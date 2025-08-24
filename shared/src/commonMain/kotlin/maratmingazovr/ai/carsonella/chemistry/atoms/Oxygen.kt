@@ -4,15 +4,16 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 
-class OxygenState(
+data class OxygenState(
     override val id: Long,
     override val element: Element,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
-) : AtomState<HydrogenState> {
+) : AtomState<OxygenState> {
     override fun covalentRadius() = HYDROGEN_COVALENT_RADIUS
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
 }
 
 //class Oxygen(

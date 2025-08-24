@@ -23,7 +23,7 @@ class MoleculeRenderer(
         drawScope: DrawScope,
         moleculeState: MoleculeState<*>
     ) {
-        drawDiHydrogen(drawScope, moleculeState.position().toOffset())
+        drawDiHydrogen(drawScope, moleculeState.position.toOffset())
     }
 
     private fun drawDiHydrogen(

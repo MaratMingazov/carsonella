@@ -8,17 +8,17 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 
 
-class ElectronState(
+data class ElectronState(
     override val id: Long,
     override val element: Element,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
-    private var liveTime: Float,
+    var liveTime: Float,
 ) : SubAtomState<ElectronState> {
-    fun liveTime() = liveTime
-    fun setLiveTime(liveTime: Float) { this.liveTime = liveTime }
+
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
 }
 
 
@@ -51,8 +51,9 @@ class Electron(
                 applyNewPosition()
                 checkBorders(environment)
 
-                state.value.setLiveTime(state.value.liveTime() -1)
-                if (state.value.liveTime() < 1) { destroy() }
+                state.value.copy(liveTime = state.value.liveTime - 1)
+
+                if (state.value.liveTime < 1) { destroy() }
 
             }
             delay(10)
@@ -61,7 +62,7 @@ class Electron(
     }
 
     override suspend fun destroy() {
-        state.value.updateAlive(false)
+        state.value = state.value.copy(alive = false)
         notifyDeath()
     }
 }

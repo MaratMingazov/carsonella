@@ -31,7 +31,7 @@ abstract class AbstractSubAtom<State : SubAtomState<State>>(
     LogWritable by LoggingSupport()
 {
 
-    protected val state = MutableStateFlow(initialState)
+    protected var state = MutableStateFlow(initialState)
     override fun state() = state
 
 }

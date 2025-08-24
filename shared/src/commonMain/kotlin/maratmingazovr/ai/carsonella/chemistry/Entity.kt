@@ -1,5 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
@@ -14,37 +15,33 @@ interface EntityState<State : EntityState<State>> {
     var direction: Vec2D
     var velocity: Float
 
-    fun id() = id
-    fun element() = element
-    fun alive() = alive
-    fun position() = position
-    fun direction() = direction
-    fun velocity() = velocity
-
-    fun updateAlive(alive: Boolean) { this.alive = alive }
-    fun updatePosition(position: Position) { this.position = position }
-    fun updateDirection(direction: Vec2D) { this.direction = direction }
-    fun updateVelocity(velocity: Float) { this.velocity = velocity }
+    fun copyWith(
+        alive: Boolean = this.alive,
+        position: Position = this.position,
+        direction: Vec2D = this.direction,
+        velocity: Float = this.velocity
+    ): State
 
 }
 
 interface Entity<State : EntityState<State>> {
-    fun state(): StateFlow<State>
+    fun state(): MutableStateFlow<State>
     suspend fun init()
     suspend fun destroy() // нужно, чтобы сообщить атому, что он должен быть уничтожен
 
     fun applyNewPosition() {
-        val newPosition = Position(
-            x = state().value.position().x + state().value.direction().x * state().value.velocity(),
-            y = state().value.position().y + state().value.direction().y * state().value.velocity()
+        state().value = state().value.copyWith(position =
+            Position(
+                x = state().value.position.x + state().value.direction.x * state().value.velocity,
+                y = state().value.position.y + state().value.direction.y * state().value.velocity
+            )
         )
-        state().value.updatePosition(newPosition)
     }
 
     fun checkBorders(env: IEnvironment) {
 
-        var position = state().value.position()
-        var direction = state().value.direction()
+        var position = state().value.position
+        var direction = state().value.direction
 
         if (position.x !in 0f..env.getWorldWidth()) {
             position = position.copy(x = position.x.coerceIn(0f, env.getWorldWidth()))
@@ -54,9 +51,7 @@ interface Entity<State : EntityState<State>> {
             position = position.copy(y = position.y.coerceIn(0f, env.getWorldHeight()))
             direction = direction.copy(y = -direction.y)
         }
-
-        state().value.updatePosition(position)
-        state().value.updateDirection(direction)
+        state().value = state().value.copyWith(position = position, direction = direction)
 
     }
 }

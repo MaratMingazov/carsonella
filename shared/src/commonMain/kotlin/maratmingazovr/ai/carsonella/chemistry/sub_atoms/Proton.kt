@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.sub_atoms
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
@@ -8,7 +9,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 
-class ProtonState(
+data class ProtonState(
     override val id: Long,
     override val element: Element,
     override var alive: Boolean,
@@ -24,6 +25,9 @@ class ProtonState(
             |Velocity $velocity
         """.trimMargin()
     }
+
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+
 }
 
 
@@ -47,7 +51,7 @@ class Proton(
     override suspend fun init() {
 
         writeLog("Появился протон")
-        while (state.value.alive()) {
+        while (state.value.alive) {
             stepMutex.withLock {
 
 
@@ -57,13 +61,19 @@ class Proton(
                 applyCoulombForce(neighbors)
                 applyNewPosition()
                 checkBorders(environment)
+
+                state.value = state.value.copy(
+                    //check = !state.value.check
+                )
+
+
             }
             delay(10)
         }
     }
 
     override suspend fun destroy() {
-        state.value.updateAlive(false)
+        state.value = state.value.copy(alive = false)
         notifyDeath()
     }
 
@@ -71,14 +81,14 @@ class Proton(
         val protons = neighbors.filterIsInstance<Proton>()
         if (protons.isEmpty()) return
         val f = calculateCoulombForce(protons)
-        val a = f.div(state.value.element().mass)
+        val a = f.div(state.value.element.mass)
 
-        val newVelocityVector = state.value.direction().times(state.value.velocity()).plus(a)
+        val newVelocityVector = state.value.direction.times(state.value.velocity).plus(a)
         val newVelocity = newVelocityVector.length()
-        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else state.value.direction()
+        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else state.value.direction
 
-        state.value.updateDirection(newDirection)
-        state.value.updateVelocity(newVelocity)
+        state.value = state.value.copy(direction = newDirection, velocity = newVelocity)
+
     }
 
 
@@ -97,9 +107,9 @@ class Proton(
 
         protons.forEach { neighbor ->
 
-            val nPosition = neighbor.state().value.position()
-            val rx = state.value.position().x - nPosition.x
-            val ry = state.value.position().y - nPosition.y
+            val nPosition = neighbor.state().value.position
+            val rx = state.value.position.x - nPosition.x
+            val ry = state.value.position.y - nPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val maxRadius2 = 2000f        // радиус действия (px) Если протон дальше, то не оказывает никакого влияния

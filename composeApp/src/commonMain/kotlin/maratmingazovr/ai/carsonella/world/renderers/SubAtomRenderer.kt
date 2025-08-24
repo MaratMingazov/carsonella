@@ -17,7 +17,7 @@ class SubAtomRenderer(
         state: SubAtomState<*>,
         phase: Float,
     ) {
-        when (state.element()) {
+        when (state.element) {
             Element.Photon -> drawPhoton(drawScope, state)
             Element.Electron -> drawElectron(drawScope, state)
             Element.Proton -> drawProton(drawScope, state, phase)
@@ -29,7 +29,7 @@ class SubAtomRenderer(
         drawScope: DrawScope,
         state: SubAtomState<*>,
     ) {
-        val p = state.position().toOffset()
+        val p = state.position.toOffset()
         with(drawScope) {
             drawCircle(color = Color.Black, center = p, radius = 5f)
         }
@@ -39,7 +39,7 @@ class SubAtomRenderer(
         drawScope: DrawScope,
         state: SubAtomState<*>,
     ) {
-        val p = state.position().toOffset()
+        val p = state.position.toOffset()
         with(drawScope) {
             drawCircle(color = Color.Black, center = p, radius = 5f)
         }
@@ -53,10 +53,10 @@ class SubAtomRenderer(
 
         // параметры вибрации
         val amp = 2f                  // амплитуда в пикселях
-        val idSeed = (state.id() % 1000).toFloat()   // стаб. сдвиг фазы на объект
+        val idSeed = (state.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
         val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
         val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
-        val p = state.position().toOffset()  + Offset(dx, dy)
+        val p = state.position.toOffset()  + Offset(dx, dy)
 
 
         with(drawScope) {

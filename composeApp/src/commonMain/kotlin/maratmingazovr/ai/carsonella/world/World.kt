@@ -1,11 +1,13 @@
 package maratmingazovr.ai.carsonella.world
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.HplusHtoH2
@@ -31,6 +33,8 @@ class World(
     val atomGenerator = AtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs)
     val moleculeGenerator = MoleculeGenerator(_idGen, entities, _scope, _requestsChannel)
     private val _worldMutex = Mutex()
+
+    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton)
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(
         rules = listOf(HplusHtoH2(moleculeGenerator))

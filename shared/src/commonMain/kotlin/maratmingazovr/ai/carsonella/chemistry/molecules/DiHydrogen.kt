@@ -8,14 +8,16 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 
 
-class DiHydrogenState(
+data class DiHydrogenState(
     override val id: Long,
     override val element: Element,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
-) : MoleculeState<DiHydrogenState>
+) : MoleculeState<DiHydrogenState> {
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+}
 
 class DiHydrogen(
     id: Long,
@@ -48,7 +50,7 @@ class DiHydrogen(
     }
 
     override suspend fun destroy() {
-        state.value.updateAlive(false)
+        state.value = state.value.copy(alive = false)
         notifyDeath()
     }
 

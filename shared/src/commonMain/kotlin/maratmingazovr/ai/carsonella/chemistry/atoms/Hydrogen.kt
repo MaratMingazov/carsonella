@@ -36,7 +36,7 @@ const val HYDROGEN_MASS_AMU = 1.008f
 private const val K_B = 1.380_649e-23      // Постоянная Больцмана Дж/Кельвин Дж = (кг * метр^2)/cек^2
 private const val AMU_TO_KG = 1.660_539_066_60e-27 // атомную единицу переводим в кг
 
-class HydrogenState(
+data class HydrogenState(
     override val id: Long,
     override val element: Element,
     override var alive: Boolean,
@@ -45,6 +45,7 @@ class HydrogenState(
     override var velocity: Float,
 ) : AtomState<HydrogenState> {
     override fun covalentRadius() = HYDROGEN_COVALENT_RADIUS
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
 }
 
 class Hydrogen(
@@ -141,7 +142,7 @@ class Hydrogen(
     }
 
     override suspend fun destroy() {
-        state.value.updateAlive(false)
+        state.value = state.value.copy(alive = false)
         notifyDeath()
     }
 

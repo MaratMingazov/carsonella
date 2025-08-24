@@ -20,9 +20,9 @@ class AtomRenderer(
     fun render(
         drawScope: DrawScope,
         atomState: AtomState<*>) {
-        when (atomState.element()) {
+        when (atomState.element) {
             Element.H -> drawHydrogen( drawScope,atomState)
-            Element.O -> drawOxygen( drawScope, atomState.position().toOffset())
+            Element.O -> drawOxygen( drawScope, atomState.position.toOffset())
             else -> throw NotImplementedError()
         }
     }
@@ -31,7 +31,7 @@ class AtomRenderer(
         drawScope: DrawScope,
         hydrogenState: AtomState<*>,
     ) {
-        val position = hydrogenState.position().jitter().toOffset()
+        val position = hydrogenState.position.jitter().toOffset()
         with(drawScope) {
             drawCircle(
                 color = Color.Black,

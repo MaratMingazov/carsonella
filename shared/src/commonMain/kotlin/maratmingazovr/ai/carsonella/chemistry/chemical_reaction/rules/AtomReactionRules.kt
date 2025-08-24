@@ -27,13 +27,13 @@ class HplusHtoH2(
         _hydrogen2 = null
         val atoms = reagents
             .filterIsInstance<Hydrogen>()
-            .filter { it.state().value.alive() }
+            .filter { it.state().value.alive }
         if (atoms.size < 2) return false
 
         val closestAtoms = findClosestPair(atoms)
         val firstHydrogen = closestAtoms.first
         val secondHydrogen = closestAtoms.second
-        val distance = firstHydrogen.state().value.position().distanceTo(secondHydrogen.state().value.position)
+        val distance = firstHydrogen.state().value.position.distanceTo(secondHydrogen.state().value.position)
 
 
         return if (distance < HYDROGEN_COVALENT_RADIUS * 2f) {
@@ -51,7 +51,7 @@ class HplusHtoH2(
 
         return ReactionOutcome(
             consumed = listOf(_hydrogen1!!, _hydrogen2!!),
-            spawn = listOf { moleculeGenerator.createDiHydrogen(_hydrogen1!!.state().value.position()) },
+            spawn = listOf { moleculeGenerator.createDiHydrogen(_hydrogen1!!.state().value.position) },
         )
     }
 

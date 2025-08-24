@@ -1,4 +1,0 @@
-maratmingazovr.ai.carsonella.test.composeApp-androidTest-0 /Users/maratmingazov/dev/projects/carsonella/composeApp/build/generated/res/resValues/androidTest/debug
-maratmingazovr.ai.carsonella.test.composeApp-mergeDebugAndroidTestResources-1 /Users/maratmingazov/dev/projects/carsonella/composeApp/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
-maratmingazovr.ai.carsonella.test.composeApp-mergeDebugAndroidTestResources-2 /Users/maratmingazov/dev/projects/carsonella/composeApp/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
-maratmingazovr.ai.carsonella.test.composeApp-debugAndroidTest-3 /Users/maratmingazov/dev/projects/carsonella/composeApp/build/intermediates/merged_res/debugAndroidTest/mergeDebugAndroidTestResources
