@@ -62,9 +62,10 @@ class Proton(
                 applyNewPosition()
                 checkBorders(environment)
 
-                state.value = state.value.copy(
-                    //check = !state.value.check
-                )
+                neighbors
+                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 1000f }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { requestReaction(listOf(this) + it) }
 
 
             }

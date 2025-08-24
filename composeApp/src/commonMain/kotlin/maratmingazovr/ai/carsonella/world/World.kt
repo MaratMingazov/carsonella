@@ -7,9 +7,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.HplusHtoH2
 import maratmingazovr.ai.carsonella.world.generators.AtomGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
@@ -27,17 +31,20 @@ class World(
         0f,
         0.00000000000000000000000001f
     )
+    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton, Element.H)
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val subAtomGenerator = SubAtomGenerator(_idGen, entities, _scope, environment, logs)
-    val atomGenerator = AtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs)
+    val subAtomGenerator = SubAtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs)
+    val atomGenerator = AtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
     val moleculeGenerator = MoleculeGenerator(_idGen, entities, _scope, _requestsChannel)
     private val _worldMutex = Mutex()
 
-    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton)
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(
-        rules = listOf(HplusHtoH2(moleculeGenerator))
+        rules = listOf(
+            ElectronPlusProtonToH(atomGenerator),
+            HplusHtoH2(moleculeGenerator)
+        )
     )
 
     fun start() {
@@ -51,18 +58,10 @@ class World(
 
 
     suspend fun runReaction(reactionRequest: ReactionRequest) {
-        println("Пришел запрос на реакцию. Реагенты: ${reactionRequest.reagents.size}")
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
-        println("Результат реакции:")
-//        val consumedElements = result.consumed.joinToString(", ") {
-//            it.state().value.label() + "-" + it.state().value.id()
-//        }
-//        println("  Реагенты: $consumedElements")
+        logs += "${nowString()}: Произошла реакция между: ${result.consumed.map { it.state().value.element.name }.toList()}"
 
-        for (e in result.consumed) {
-            e.destroy()
-        }
-
+        result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }
     }
 }
@@ -71,4 +70,10 @@ class World(
 
 data class ReactionRequest(val reagents: List<Entity<*>>)
 
-
+fun nowString(): String {
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val h = now.hour.toString().padStart(2, '0')
+    val m = now.minute.toString().padStart(2, '0')
+    val s = now.second.toString().padStart(2, '0')
+    return "$h:$m:$s"
+}

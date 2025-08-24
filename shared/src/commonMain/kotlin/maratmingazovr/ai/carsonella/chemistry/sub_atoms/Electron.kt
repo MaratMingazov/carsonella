@@ -58,7 +58,6 @@ class Electron(
             }
             delay(10)
         }
-        writeLog("Электрон улетел")
     }
 
     override suspend fun destroy() {

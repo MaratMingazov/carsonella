@@ -16,6 +16,11 @@ data class Position(val x: Float, val y: Float) {
         val dy = other.y - y
         return kotlin.math.sqrt(dx * dx + dy * dy)
     }
+    fun distanceSquareTo(other: Position): Float {
+        val dx = other.x - x
+        val dy = other.y - y
+        return dx * dx + dy * dy
+    }
 
     // эффект дрожания
     // мы возвращаем новую позицию рядом с текущей

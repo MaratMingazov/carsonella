@@ -45,7 +45,7 @@ class HplusHtoH2(
         }
     }
 
-    override suspend fun weight() = abs(HYDROGEN_ELECTRONEGATIVITY - HYDROGEN_ELECTRONEGATIVITY)
+    override suspend fun weight() = abs(HYDROGEN_ELECTRONEGATIVITY - HYDROGEN_ELECTRONEGATIVITY).toFloat()
 
     override suspend fun produce(): ReactionOutcome {
 

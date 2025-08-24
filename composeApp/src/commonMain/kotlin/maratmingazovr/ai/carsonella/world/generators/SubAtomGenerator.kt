@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.world.generators
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -15,11 +16,14 @@ import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Electron
 import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Photon
 import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Proton
 import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtom
+import maratmingazovr.ai.carsonella.world.ReactionRequest
+import maratmingazovr.ai.carsonella.world.nowString
 
 class SubAtomGenerator(
     private val idGen: IdGenerator,
     private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
     private val scope: CoroutineScope,
+    private val requestsChannel: Channel<ReactionRequest>,
     private val environment: IEnvironment,
     private val logs: SnapshotStateList<String>,
 ) : ISubAtomGenerator {
@@ -60,17 +64,10 @@ class SubAtomGenerator(
             entities.add(this)
             setOnDeath { entities.remove(this)}
             setNeighbors { entities.toList().filter { it !== this }  }
+            setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
             setEnvironment(environment)
-            setLogger { log -> logs += "[${nowString()}] $log" }
+            setLogger { log -> logs += "${nowString()}: $log" }
         }
-    }
-
-    fun nowString(): String {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        val h = now.hour.toString().padStart(2, '0')
-        val m = now.minute.toString().padStart(2, '0')
-        val s = now.second.toString().padStart(2, '0')
-        return "$h:$m:$s"
     }
 
 }

@@ -46,6 +46,14 @@ data class HydrogenState(
 ) : AtomState<HydrogenState> {
     override fun covalentRadius() = HYDROGEN_COVALENT_RADIUS
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+
+    override fun toString(): String {
+        return """
+            |Hydrogen: $id
+            |Position (${position.x.toInt()}, ${position.y.toInt()})
+            |Velocity $velocity
+        """.trimMargin()
+    }
 }
 
 class Hydrogen(
@@ -76,69 +84,18 @@ class Hydrogen(
 
     override suspend fun init() {
 
-        println("Атом Водорода (H) id:${state.value.id} создан")
         writeLog("Атом Водорода (H) id:${state.value.id} создан")
         while (state.value.alive) {
             stepMutex.withLock {
 
+                val neighbors = getNeighbors()
+                val environment = getEnvironment()
 
-               // _state.value = _state.value.copy(temp = _state.value.temp + 1)
-
-
-
-//                val environment = getEnvironment()
-//                val temperature = environment.getTemperature()
-//
-//                // определили с какой скоростью должен двигаться атом водорода [пикометр/сек]
-//                val targetVelocity = calculateAtomVelocity(temperature, HYDROGEN_MASS_AMU)
-//
-//                // это его текущий вектор скорости
-//                val currentVelocity = _state.value.velocity
-//
-//                val lerp = 0.2
-//                val target = currentVelocity.length() * (1.0 - lerp) + targetVelocity * lerp
-//
-//
-//                println("targetVelocity = $targetVelocity")
-//                println("currentVelocity_1 = $currentVelocity")
-//
-//                currentVelocity.scaleTo(target.toFloat())
-//
-//                println("currentVelocity_2 = $currentVelocity")
-//                println("")
-//
-//                /**
-//                 * Атом водорода просто колеблется.
-//                 */
-//                var newPosition = _state.value.position()
-//                    .addVelocity(_state.value.velocity)
-//                var newVelocity = _state.value.velocity
-//                if (newPosition.x !in 0f..environment.getWorldWidth()) {
-//                    newPosition = newPosition.copy(x = newPosition.x.coerceIn(0f, getEnvironment().getWorldWidth()))
-//                    newVelocity = newVelocity.copy(x = -newVelocity.x)
-//                }
-//                if (newPosition.y !in 0f..environment.getWorldHeight()) {
-//                    newPosition = newPosition.copy(y = newPosition.y.coerceIn(0f, getEnvironment().getWorldHeight()))
-//                    newVelocity = newVelocity.copy(y = -newVelocity.y)
-//                }
-//
-//                _state.value = _state.value.copy(position = newPosition, velocity = newVelocity)
-//
-//
-//                /**
-//                 * Мы будем проверять какие другие атомы находятся возле нашего атома водорода
-//                 * Если нашли такие атомы, то отправляем запрос на химическую реакцию
-//                 *
-//                 */
-//                getNeighbors()
-//                    .filter { entity -> _state.value.position.distanceTo(entity.state().value.position()) < 100f }
-//                    .takeIf { it.isNotEmpty() }
-//                    ?.let { requestReaction(listOf(this) + it) }
-
+                applyNewPosition()
+                checkBorders(environment)
             }
-            delay(50)
+            delay(10)
         }
-        println("Атом Водорода (H) id:${state.value.id} разрушен")
     }
 
     override suspend fun destroy() {
@@ -146,26 +103,5 @@ class Hydrogen(
         notifyDeath()
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Hydrogen) return false
-        return state.value.id == other.state.value.id
-    }
-
-    override fun hashCode(): Int = state.value.id.hashCode()
-
-}
-
-/**
- * Вычисляем скорость движения частицы (м/c)
- * На вход:
- *  T_kelvin : Температура окружающей среды
- *  massAmu : Масса частицы в атомных единицах
- * Выход: скорость движения частицы в пикометр/cек
- */
-fun calculateAtomVelocity(T_kelvin: Float, massAmu: Float): Float {
-    val massaKg = massAmu * AMU_TO_KG // масса частицы в килограммах
-    val factor = 10.0.pow(12).toFloat() // 1 метр = 10^12 пикометров
-    return sqrt(3.0 * K_B * T_kelvin / massaKg).toFloat() * factor
 }
 

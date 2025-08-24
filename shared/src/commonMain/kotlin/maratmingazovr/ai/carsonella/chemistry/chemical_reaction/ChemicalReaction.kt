@@ -21,7 +21,7 @@ interface ISubAtomGenerator {
 }
 
 interface IAtomGenerator {
-    fun createHydrogen(position: Position, velocity: Vec2D): Entity<*>
+    fun createHydrogen(position: Position, direction: Vec2D, velocity: Float): Entity<*>
 //    fun createOxygen(position: Position): Entity<*>
 }
 

@@ -110,7 +110,7 @@ private fun SceneCanvas(
 
                         // 2) если это отпускание (клик) — выбираем под курсором
                         if (change.changedToUp()) {
-                            val selectedId = hitTestProton(entitiesState, change.position)
+                            val selectedId = hitTest(entitiesState, change.position)
                             onSelect(selectedId) // если оставляешь логику через hoveredId
                         }
                         // по желанию: change.consume() если хочешь прекратить дальнейшую доставку
@@ -127,9 +127,9 @@ private fun SceneCanvas(
 
         if (mouse != null) {
             val hit = entitiesState
-                .asSequence()
-                .filterIsInstance<SubAtomState<*>>()
-                .filter { it.element == Element.Proton }
+//                .asSequence()
+//                .filterIsInstance<SubAtomState<*>>()
+//                .filter { it.element == Element.Proton }
                 .minByOrNull { s -> (s.position.toOffset() - mouse).getDistance() }
 
             val hitRadius = 30f
@@ -232,20 +232,15 @@ fun ConsolePanel(
 }
 
 
-private fun hitTestProton(
+private fun hitTest(
     entities: List<EntityState<*>>,
     at: Offset,
     radius: Float = 50f
 ): Long? {
     val hit = entities.asSequence()
-        .filterIsInstance<SubAtomState<*>>()
-        .filter { it.element == Element.Proton }
         .minByOrNull { s -> (s.position.toOffset() - at).getDistance() }
 
-    println(entities)
-
     return hit?.let { element ->
-        println("at=$at, position=${element.position}")
         val c = element.position.toOffset()
         if ((c - at).getDistance() <= radius) element.id else null
     }

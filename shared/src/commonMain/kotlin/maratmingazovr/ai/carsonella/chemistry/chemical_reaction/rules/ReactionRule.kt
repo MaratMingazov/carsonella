@@ -18,7 +18,7 @@ interface ReactionRule {
      * Чем больше вес, тем реакция вероятнее
      * ЕСли у нас будет несколько допустимых реакций, мы выберем реакцию с наибольшим весом
      * */
-    suspend fun weight(): Double
+    suspend fun weight(): Float
 
     suspend fun produce(): ReactionOutcome
 }
