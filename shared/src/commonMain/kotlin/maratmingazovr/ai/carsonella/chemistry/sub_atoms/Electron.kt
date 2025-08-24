@@ -51,7 +51,7 @@ class Electron(
                 applyNewPosition()
                 checkBorders(environment)
 
-                state.value.copy(liveTime = state.value.liveTime - 1)
+                state.value = state.value.copy(liveTime = state.value.liveTime - 1)
 
                 if (state.value.liveTime < 1) { destroy() }
 
