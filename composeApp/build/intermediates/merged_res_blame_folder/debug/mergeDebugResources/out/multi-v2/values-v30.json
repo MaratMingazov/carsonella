@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "maratmingazovr.ai.carsonella.composeApp-mergeDebugResources-45:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "/Users/maratmingazov/.gradle/caches/8.13/transforms/4bbbd34c906bd7bc2ae06593fecbb3e9/transformed/material3-release/res/values-v30/values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}

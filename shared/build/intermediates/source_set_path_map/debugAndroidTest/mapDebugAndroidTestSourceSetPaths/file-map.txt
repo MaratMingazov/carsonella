@@ -1,0 +1,5 @@
+maratmingazovr.ai.carsonella.shared.test.shared-androidTest-0 /Users/maratmingazov/dev/projects/carsonella/shared/build/generated/res/resValues/androidTest/debug
+maratmingazovr.ai.carsonella.shared.test.shared-mergeDebugAndroidTestResources-1 /Users/maratmingazov/dev/projects/carsonella/shared/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+maratmingazovr.ai.carsonella.shared.test.shared-mergeDebugAndroidTestResources-2 /Users/maratmingazov/dev/projects/carsonella/shared/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+maratmingazovr.ai.carsonella.shared.test.shared-debugAndroidTest-3 /Users/maratmingazov/dev/projects/carsonella/shared/build/intermediates/merged_res/debugAndroidTest/mergeDebugAndroidTestResources
+maratmingazovr.ai.carsonella.shared.test.shared-debug-4 /Users/maratmingazov/dev/projects/carsonella/shared/build/intermediates/packaged_res/debug/packageDebugResources

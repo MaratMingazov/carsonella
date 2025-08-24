@@ -1,0 +1,55 @@
+package maratmingazovr.ai.carsonella.chemistry.molecules
+
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Element
+
+
+class DiHydrogenState(
+    override val id: Long,
+    override val element: Element,
+    override var alive: Boolean,
+    override var position: Position,
+    override var direction: Vec2D,
+    override var velocity: Float,
+) : MoleculeState<DiHydrogenState>
+
+class DiHydrogen(
+    id: Long,
+    position: Position,
+    direction: Vec2D,
+    velocity: Float,
+) : AbstractMolecule<DiHydrogenState>(
+    initialState = DiHydrogenState(
+        id = id,
+        element = Element.H2,
+        alive = true,
+        position = position,
+        direction = direction,
+        velocity = velocity,
+    )
+) {
+
+    private val stepMutex = Mutex()
+
+    override suspend fun init() {
+
+        println("Молекула Водорода (H2) id:${state.value.id} создана")
+        while (state.value.alive) {
+            stepMutex.withLock {
+
+            }
+            delay(100)
+        }
+        println("Молекула Водорода (H2) id:${state.value.id} разрушена")
+    }
+
+    override suspend fun destroy() {
+        state.value.updateAlive(false)
+        notifyDeath()
+    }
+
+}
