@@ -54,11 +54,10 @@ class Proton(
         while (state.value.alive) {
             stepMutex.withLock {
 
-
                 val neighbors = getNeighbors()
                 val environment = getEnvironment()
 
-                applyCoulombForce(neighbors)
+                applyForce(calculateForce(neighbors))
                 applyNewPosition()
                 checkBorders(environment)
 
@@ -76,60 +75,5 @@ class Proton(
     override suspend fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()
-    }
-
-    private fun applyCoulombForce(neighbors: List<Entity<*>>) {
-        val protons = neighbors.filterIsInstance<Proton>()
-        if (protons.isEmpty()) return
-        val f = calculateCoulombForce(protons)
-        val a = f.div(state.value.element.mass)
-
-        val newVelocityVector = state.value.direction.times(state.value.velocity).plus(a)
-        val newVelocity = newVelocityVector.length()
-        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else state.value.direction
-
-        state.value = state.value.copy(direction = newDirection, velocity = newVelocity)
-
-    }
-
-
-    /**
-     * Вычисляем с какой силой соседние протоны влияют на наш протон
-     * Будем вычислять по закону Кулоновского взаимодействия
-     * F = k * q² / r²
-     * k [Постоянная Кулона] = 8.98755 × 10⁹ Н·м²/Кл²
-     * q [Заряд частицы по модулю] = 1.602 × 10⁻¹⁹ Кл у протона
-     * r [Расстояние между частицами]
-     */
-    private fun calculateCoulombForce(protons: List<Proton>): Vec2D {
-
-        // Суммарная сила от всех соседних протонов
-        val fVector = Vec2D(0f, 0f)
-
-        protons.forEach { neighbor ->
-
-            val nPosition = neighbor.state().value.position
-            val rx = state.value.position.x - nPosition.x
-            val ry = state.value.position.y - nPosition.y
-            val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
-
-            val maxRadius2 = 2000f        // радиус действия (px) Если протон дальше, то не оказывает никакого влияния
-            if (distance2 > maxRadius2) return@forEach    // вне радиуса действия
-
-            /**
-             * Так как мы тут пока рассматриваем только протоны, То мы можем заранее вычислить:
-             * kqq = 23e-29f
-             * Так как вместо метров мы тут оперируем пикселями. МЫ пока уберем степень и оставим просто
-             * kqq = 23f
-             * Также мы введем
-             * eps = 10f чтобы при маленьких расстояниях сила не уходила в бесконечность
-             */
-            val fScalar = 23f / (distance2 + 10f)
-
-            fVector.x += rx * fScalar
-            fVector.y += ry * fScalar
-
-        }
-        return fVector
     }
 }

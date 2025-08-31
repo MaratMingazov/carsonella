@@ -11,7 +11,6 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.atoms.AtomState
-import maratmingazovr.ai.carsonella.chemistry.atoms.HYDROGEN_ATOM_RADIUS
 import maratmingazovr.ai.carsonella.toOffset
 
 class AtomRenderer(
@@ -36,7 +35,7 @@ class AtomRenderer(
             drawCircle(
                 color = Color.Black,
                 center = position,
-                radius = HYDROGEN_ATOM_RADIUS,
+                radius = hydrogenState.element.radius,
                 style = Stroke(
                     width = 1f,
                     pathEffect = PathEffect.dashPathEffect(

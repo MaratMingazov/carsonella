@@ -11,12 +11,6 @@ import kotlin.math.sqrt
 
 
 /**
- * Радиус атома водорода. Это расстояние между протоном и электроном.
- * В игре я использую это при визуализации атома водорода в игровом мире.
- */
-const val HYDROGEN_ATOM_RADIUS = 53f
-
-/**
  * Ковалентный радиус атома.
  * На такую дистанцию должны сблизиться атом с другим атомом,
  * чтобы атомы смогли образовать ковалентную связь.
@@ -24,12 +18,6 @@ const val HYDROGEN_ATOM_RADIUS = 53f
 const val HYDROGEN_COVALENT_RADIUS = 32f
 
 const val HYDROGEN_ELECTRONEGATIVITY = 2.2 // шкала Полинга
-
-/**
- * Масса водорода в атомных единицах
- * 1.008 * 1.66054 * 10^{-27} кг = 1.67 * 10^{-27} кг
- */
-const val HYDROGEN_MASS_AMU = 1.008f
 
 
 // --- ФИЗКОНСТАНТЫ ---
@@ -91,6 +79,7 @@ class Hydrogen(
                 val neighbors = getNeighbors()
                 val environment = getEnvironment()
 
+                applyForce(calculateForce(neighbors))
                 applyNewPosition()
                 checkBorders(environment)
             }

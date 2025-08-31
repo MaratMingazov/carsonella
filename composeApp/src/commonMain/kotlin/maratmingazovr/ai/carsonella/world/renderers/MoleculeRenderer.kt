@@ -12,7 +12,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.sp
-import maratmingazovr.ai.carsonella.chemistry.atoms.HYDROGEN_ATOM_RADIUS
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.molecules.MoleculeState
 import maratmingazovr.ai.carsonella.toOffset
 
@@ -33,7 +33,7 @@ class MoleculeRenderer(
         with(drawScope) {
 
 
-            val offset = HYDROGEN_ATOM_RADIUS * 0.6f // насколько смещать круги друг к другу
+            val offset = Element.H.radius * 0.6f // насколько смещать круги друг к другу
 
             // Координаты двух атомов
             val leftAtom = Offset(position.x - offset, position.y)
@@ -43,7 +43,7 @@ class MoleculeRenderer(
             drawCircle(
                 color = Color.Black,
                 center = leftAtom,
-                radius = HYDROGEN_ATOM_RADIUS,
+                radius = Element.H.radius,
                 style = Stroke(
                     width = 1f,
                     pathEffect = PathEffect.dashPathEffect(
@@ -57,7 +57,7 @@ class MoleculeRenderer(
             drawCircle(
                 color = Color.Black,
                 center = rightAtom,
-                radius = HYDROGEN_ATOM_RADIUS,
+                radius = Element.H.radius,
                 style = Stroke(
                     width = 1f,
                     pathEffect = PathEffect.dashPathEffect(
