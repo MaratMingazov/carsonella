@@ -56,6 +56,33 @@ class World(
     }
 
 
+    fun updateTemperatureGame(): Float {
+        val currentTemperature = environment.getTemperature()
+
+        if (entities.isEmpty()) {
+            environment.setTemperature(0f)
+            return 0f
+        }
+        var sum = 0f
+        for (e in entities) {
+            val m = e.state().value.element.mass
+            val v = e.state().value.velocity
+            sum += 0.5f * m * v * v
+        }
+        val actualTemperature = sum / entities.size
+        val smoothTemperature = smoothEma(currentTemperature, actualTemperature)
+        environment.setTemperature(smoothTemperature)
+        return smoothTemperature
+    }
+
+    /**
+     * Экспоненциальное сглаживание: новый = α*текущее + (1-α)*предыдущее
+     * alpha: 0.05..0.3 — мягкое сглаживание; 0.5 — более «живое».
+     */
+    fun smoothEma(prev: Float, current: Float, alpha: Float = 0.2f): Float =
+        alpha * current + (1f - alpha) * prev
+
+
 
     suspend fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
@@ -65,6 +92,7 @@ class World(
         result.spawn.forEach { it() }
     }
 }
+
 
 
 

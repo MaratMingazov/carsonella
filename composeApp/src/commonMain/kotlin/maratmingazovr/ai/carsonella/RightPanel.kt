@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -35,9 +38,7 @@ import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
-
-
-
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -58,25 +59,56 @@ fun RightPanel(
 ) {
     DropTarget(accept = accept, onDrop = onDrop) { dropModifier ->
         Column(modifier = dropModifier.fillMaxSize()) {
-            SceneCanvas(
-                world = world,
-                entitiesState = entitiesState,
-                renderer = renderer,
-                phase = phase,
-                hoverPos = hoverPos,
-                onHover = onHover,
-                hoveredId = hoveredId,
-                onSelectHoverId = onSelectHoverId,
-                selectedId = selectedId,
-                onSelect = onSelect,
-                modifier = Modifier.weight(1f)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color.White)
+                    .padding(4.dp)
+            ) {
+                SceneCanvas(
+                    world = world,
+                    entitiesState = entitiesState,
+                    renderer = renderer,
+                    phase = phase,
+                    hoverPos = hoverPos,
+                    onHover = onHover,
+                    hoveredId = hoveredId,
+                    onSelectHoverId = onSelectHoverId,
+                    selectedId = selectedId,
+                    onSelect = onSelect,
+                    modifier = Modifier.matchParentSize()
+                )
+                TemperatureBadge(world.updateTemperatureGame())
+            }
             ConsolePanel(
                 logs = world.logs,
                 onClear = { world.logs.clear() },
                 height = 200.dp
             )
         }
+    }
+}
+
+@Composable
+private fun TemperatureBadge(temperatureKelvin: Float, modifier: Modifier = Modifier) {
+    val tC = ((temperatureKelvin - 273.15f) * 10).roundToInt() / 10f
+    val text = "T: $tC °C"
+
+    Row(
+        modifier
+            .background(
+                Color.LightGray.copy(alpha = 0.2f), // 0.0f = полностью прозрачный, 1.0f = непрозрачный
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color(0xFF212121),
+            textAlign = TextAlign.Start
+        )
     }
 }
 
@@ -99,7 +131,6 @@ private fun SceneCanvas(
         modifier = modifier
             .fillMaxWidth()
             .pointerInput(entitiesState) {
-                // один цикл на все указательные события
                 awaitPointerEventScope {
                     while (true) {
                         val e = awaitPointerEvent()               // получаем событие
