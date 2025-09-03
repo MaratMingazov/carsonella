@@ -26,7 +26,7 @@ interface IAtomGenerator {
 }
 
 interface IMoleculeGenerator {
-    fun createDiHydrogen(position: Position): Entity<*>
+    fun createDiHydrogen(position: Position, direction: Vec2D, velocity: Float,): Entity<*>
 }
 
 

@@ -50,6 +50,7 @@ fun App() {
                             Element.Electron -> world.subAtomGenerator.createElectron(Position(localPos.x, localPos.y), randomUnitVec2D())
                             Element.Proton   -> world.subAtomGenerator.createProton(Position(localPos.x, localPos.y), randomUnitVec2D())
                             Element.H        -> world.atomGenerator.createHydrogen(Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
+                            Element.H2        -> world.moleculeGenerator.createDiHydrogen(Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
                             else -> Unit
                         }
                     },

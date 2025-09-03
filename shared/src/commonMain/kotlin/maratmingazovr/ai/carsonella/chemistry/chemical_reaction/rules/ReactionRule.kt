@@ -1,6 +1,8 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Proton
 
 /**
  * Описание одной реакции (набор реагентов → продукты).
@@ -21,6 +23,26 @@ interface ReactionRule {
     suspend fun weight(): Float
 
     suspend fun produce(): ReactionOutcome
+
+    /**
+     * Вычисляем направление движения и скорость новой частицы после столкновения двух частиц.
+     * Учитываем скорости направления и массу этих частиц
+     */
+    fun calculateHydrogenDirectionAndVelocity(entity1: Entity<*>, entity2: Entity<*>,) : Pair<Vec2D, Float> {
+        val electronMass = entity1.state().value.element.mass
+        val protonMass = entity2.state().value.element.mass
+        val sumMass = electronMass + protonMass
+
+        val electronVelocityVector = entity1.state().value.direction.times(entity1.state().value.velocity)
+        val protonVelocityVector = entity2.state().value.direction.times(entity2.state().value.velocity)
+        val impulseVectorTotal = electronVelocityVector.times(electronMass) + protonVelocityVector.times(protonMass)
+
+        val newEntityVelocityVector = impulseVectorTotal.div(sumMass)
+        val newEntityVelocity = newEntityVelocityVector.length()
+        val newEntityDirection = if (newEntityVelocity > 1e-6f) newEntityVelocityVector.div(newEntityVelocity) else Vec2D(1f, 0f)
+
+        return Pair(newEntityDirection,newEntityVelocity)
+    }
 }
 
 // Что делать миру после реакции

@@ -87,20 +87,4 @@ class ElectronPlusProtonToH(
             spawn = listOf { atomGenerator.createHydrogen(proton!!.state().value.position, direction, velocity) },
         )
     }
-
-    private fun calculateHydrogenDirectionAndVelocity(electron: Electron, proton: Proton) : Pair<Vec2D, Float> {
-        val electronMass = electron.state().value.element.mass
-        val protonMass = proton.state().value.element.mass
-        val sumMass = electronMass + protonMass
-
-        val electronVelocityVector = electron.state().value.direction.times(electron.state().value.velocity)
-        val protonVelocityVector = proton.state().value.direction.times(proton.state().value.velocity)
-        val impulseVectorTotal = electronVelocityVector.times(electronMass) + protonVelocityVector.times(protonMass)
-
-        val hydrogenVelocityVector = impulseVectorTotal.div(sumMass)
-        val hydrogenVelocity = hydrogenVelocityVector.length()
-        val hydrogenDirection = if (hydrogenVelocity > 1e-6f) hydrogenVelocityVector.div(hydrogenVelocity) else Vec2D(1f, 0f)
-
-        return Pair(hydrogenDirection,hydrogenVelocity)
-    }
 }

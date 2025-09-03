@@ -77,8 +77,10 @@ interface Entity<State : EntityState<State>> {
             val ry = state().value.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
-            val maxRadius2 = 15000f
-            // радиус действия (px) Если протон дальше, то не оказывает никакого влияния
+            val myRadius = state().value.element.radius
+            val elementRadius = element.state().value.element.radius
+            val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.2
+            // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
             if (distance2 > maxRadius2) return@forEach    // вне радиуса действия
 
             // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
@@ -95,10 +97,8 @@ interface Entity<State : EntityState<State>> {
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
             val myProtonsCount = state().value.element.protonsCount
-            val myRadius = state().value.element.radius
             val elementProtonsCount = element.state().value.element.electronsCount
-            val elementRadius = element.state().value.element.radius
-            val fRepulsion = if (distance2 < (myRadius + elementRadius) *  (myRadius + elementRadius)) {
+            val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) {
                 (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f)
             } else 0f
 
@@ -135,6 +135,6 @@ enum class Element(
     O(ElementType.Atom, "O", "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8, radius = 70f),
 
     // --- молекулы ---
-    H2(ElementType.Molecule, "H₂", "Hydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 100f),
+    H2(ElementType.Molecule, "H₂", "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 100f),
     H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 140f),;
 }

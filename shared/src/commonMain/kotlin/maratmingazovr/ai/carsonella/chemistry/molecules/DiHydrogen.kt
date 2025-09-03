@@ -39,14 +39,24 @@ class DiHydrogen(
 
     override suspend fun init() {
 
-        println("Молекула Водорода (H2) id:${state.value.id} создана")
+        writeLog("Молекула Водорода (H2) id:${state.value.id} создана")
         while (state.value.alive) {
             stepMutex.withLock {
 
+                val neighbors = getNeighbors()
+                val environment = getEnvironment()
+
+                applyForce(calculateForce(neighbors))
+                applyNewPosition()
+                checkBorders(environment)
+
+//                neighbors
+//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+//                    .takeIf { it.isNotEmpty() }
+//                    ?.let { requestReaction(listOf(this) + it) }
             }
-            delay(100)
+            delay(10)
         }
-        println("Молекула Водорода (H2) id:${state.value.id} разрушена")
     }
 
     override suspend fun destroy() {

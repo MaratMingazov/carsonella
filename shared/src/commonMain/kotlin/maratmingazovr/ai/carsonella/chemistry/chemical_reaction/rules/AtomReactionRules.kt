@@ -30,7 +30,7 @@ class HplusHtoH2(
             .filter { it.state().value.alive }
         if (atoms.size < 2) return false
 
-        val closestAtoms = findClosestPair(atoms)
+        val closestAtoms = findNearestToFirst(atoms)
         val firstHydrogen = closestAtoms.first
         val secondHydrogen = closestAtoms.second
         val distance = firstHydrogen.state().value.position.distanceTo(secondHydrogen.state().value.position)
@@ -49,37 +49,22 @@ class HplusHtoH2(
 
     override suspend fun produce(): ReactionOutcome {
 
+        val (direction,velocity) = calculateHydrogenDirectionAndVelocity(_hydrogen1!!, _hydrogen2!!)
         return ReactionOutcome(
             consumed = listOf(_hydrogen1!!, _hydrogen2!!),
-            spawn = listOf { moleculeGenerator.createDiHydrogen(_hydrogen1!!.state().value.position) },
+            spawn = listOf { moleculeGenerator.createDiHydrogen(_hydrogen1!!.state().value.position, direction, velocity) },
         )
     }
 
-    /**
-     * По заданному список атомов водорода мы находим два атома, расположенных ближе друг к другу
-     * Простое решение O(n²) для небольших массивов
-     */
-    fun findClosestPair(atoms: List<Hydrogen>): Pair<Hydrogen, Hydrogen> {
+    fun findNearestToFirst(atoms: List<Hydrogen>): Pair<Hydrogen, Hydrogen> {
 
-        var minDistance = atoms[0].state().value.position.distanceTo(atoms[1].state().value.position)
-        var resultPair = Pair(atoms[0], atoms[1])
+        val first = atoms.first()
+        val p0 = first.state().value.position
 
-        // Перебираем все возможные пары
-        for (i in atoms.indices) {
-            for (j in i + 1 until atoms.size) {
-                val dist = atoms[i].state().value.position.distanceTo(atoms[j].state().value.position)
+        val nearest = atoms
+            .drop(1)
+            .minBy { it.state().value.position.distanceSquareTo(p0) }
 
-                if (dist < minDistance) {
-                    minDistance = dist
-                    resultPair = Pair(atoms[i], atoms[j])
-
-                    // Если нашли точное совпадение, можно сразу выйти
-                    if (dist == 0.0f) break
-                }
-            }
-            if (minDistance == 0.0f) break
-        }
-
-        return resultPair
+        return first to nearest
     }
 }

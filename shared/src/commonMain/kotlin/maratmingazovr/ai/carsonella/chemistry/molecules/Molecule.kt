@@ -12,14 +12,18 @@ interface Molecule<State: MoleculeState<State>> :
     Entity<State>,
     DeathNotifiable,
     NeighborsAware,
-    ReactionRequester
+    ReactionRequester,
+    EnvironmentAware,
+    LogWritable
 
 abstract class AbstractMolecule<State : MoleculeState<State>>(
     initialState: State,
 ) : Molecule<State>,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
-    ReactionRequester by ReactionRequestSupport()
+    ReactionRequester by ReactionRequestSupport(),
+    EnvironmentAware by EnvironmentSupport(),
+    LogWritable by LoggingSupport()
 {
     protected val state = MutableStateFlow(initialState)
     override fun state() = state

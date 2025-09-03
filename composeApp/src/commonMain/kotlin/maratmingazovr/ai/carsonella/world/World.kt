@@ -36,7 +36,7 @@ class World(
     val logs =  mutableStateListOf<String>()
     val subAtomGenerator = SubAtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs)
     val atomGenerator = AtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
-    val moleculeGenerator = MoleculeGenerator(_idGen, entities, _scope, _requestsChannel)
+    val moleculeGenerator = MoleculeGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
     private val _worldMutex = Mutex()
 
 
