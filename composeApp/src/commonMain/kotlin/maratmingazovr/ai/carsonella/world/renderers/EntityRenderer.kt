@@ -10,9 +10,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.atoms.AtomState
-import maratmingazovr.ai.carsonella.chemistry.molecules.MoleculeState
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
+import maratmingazovr.ai.carsonella.chemistry.AtomState
+import maratmingazovr.ai.carsonella.chemistry.MoleculeState
+import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.toOffset
 
 class EntityRenderer(

@@ -13,15 +13,15 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 
 
 interface ISubAtomGenerator {
-    fun createSubAtom(element: Element, position: Position, direction: Vec2D, velocity: Float): Entity<*>
+    fun createSubAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
 }
 
 interface IAtomGenerator {
-    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float): Entity<*>
+    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
 }
 
 interface IMoleculeGenerator {
-    fun createMolecule(element: Element, position: Position, direction: Vec2D, velocity: Float): Entity<*>
+    fun createMolecule(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
 }
 
 

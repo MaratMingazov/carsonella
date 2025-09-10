@@ -50,11 +50,11 @@ fun App() {
                     accept = { it.element in Element.entries },
                     onDrop = { data, localPos ->
                         when (data.element) {
-                            Photon   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y), direction = randomUnitVec2D(), velocity = 40f)
-                            Electron -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 40f)
-                            Proton   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 0f)
-                            Element.H        -> world.atomGenerator.createAtom(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
-                            Element.H2        -> world.moleculeGenerator.createMolecule(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
+                            Photon   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y), direction = randomUnitVec2D(), velocity = 40f, energy = 1.8f)
+                            Electron -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 40f, energy = 0f)
+                            Proton   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 0f, energy = 0f)
+                            Element.H        -> world.atomGenerator.createAtom(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), velocity = 0f, energy = 0f)
+                            Element.H2        -> world.moleculeGenerator.createMolecule(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), velocity = 0f, energy = 0f)
                             else -> Unit
                         }
                     },

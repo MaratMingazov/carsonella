@@ -10,7 +10,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IMoleculeGenerator
-import maratmingazovr.ai.carsonella.chemistry.molecules.Molecule
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.world.ReactionRequest
 import maratmingazovr.ai.carsonella.world.nowString
 
@@ -28,8 +28,9 @@ class MoleculeGenerator(
         position: Position,
         direction: Vec2D,
         velocity: Float,
+        energy: Float,
     ): Entity<*> {
-        val diHydrogen = Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity)
+        val diHydrogen = Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
         applyDefaultBehavior(diHydrogen)
         scope.launch { diHydrogen.init() }
         if(!palette.contains(diHydrogen.state().value.element)) palette.add(diHydrogen.state().value.element)

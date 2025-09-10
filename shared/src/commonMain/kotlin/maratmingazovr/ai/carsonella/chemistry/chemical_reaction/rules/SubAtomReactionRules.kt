@@ -85,7 +85,7 @@ class ElectronPlusProtonToH(
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(electron!!, proton!!)
         return ReactionOutcome(
             consumed = listOf(electron!!, proton!!),
-            spawn = listOf { atomGenerator.createAtom(Element.H, proton!!.state().value.position, direction, velocity) },
+            spawn = listOf { atomGenerator.createAtom(Element.H, proton!!.state().value.position, direction, velocity, energy = 0f) },
         )
     }
 }

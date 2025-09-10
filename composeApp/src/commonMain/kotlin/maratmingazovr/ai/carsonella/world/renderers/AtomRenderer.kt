@@ -10,7 +10,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.atoms.AtomState
+import maratmingazovr.ai.carsonella.chemistry.AtomState
 import maratmingazovr.ai.carsonella.toOffset
 
 class AtomRenderer(

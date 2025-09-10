@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
 
 @Composable
 fun LeftPanel(

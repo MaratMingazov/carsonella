@@ -13,7 +13,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.molecules.MoleculeState
+import maratmingazovr.ai.carsonella.chemistry.MoleculeState
 import maratmingazovr.ai.carsonella.toOffset
 
 class MoleculeRenderer(

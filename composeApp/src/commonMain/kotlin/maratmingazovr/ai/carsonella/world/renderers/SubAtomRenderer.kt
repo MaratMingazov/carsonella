@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
+import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.toOffset
 
 class SubAtomRenderer(

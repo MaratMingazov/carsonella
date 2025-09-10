@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.sub_atoms
+package maratmingazovr.ai.carsonella.chemistry
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,12 +7,10 @@ import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
-import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Photon
-import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import kotlin.math.round
 
 
 data class SubAtomState(
@@ -29,7 +27,8 @@ data class SubAtomState(
         return """
             |${element.label}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
-            |Velocity $velocity
+            |Velocity ${round(velocity * 100) / 100}
+            |Energy $energy
         """.trimMargin()
     }
 }
@@ -40,6 +39,7 @@ class SubAtom(
     position: Position,
     direction: Vec2D,
     velocity: Float,
+    energy: Float,
 ):
     Entity<SubAtomState>,
     DeathNotifiable by OnDeathSupport(),
@@ -56,7 +56,7 @@ class SubAtom(
             position = position,
             direction = direction,
             velocity = velocity,
-            energy = 0f,
+            energy = energy,
             )
     )
     private val stepMutex = Mutex()
