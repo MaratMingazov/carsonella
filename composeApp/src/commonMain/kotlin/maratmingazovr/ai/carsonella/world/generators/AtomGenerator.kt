@@ -12,7 +12,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.atoms.Atom
-import maratmingazovr.ai.carsonella.chemistry.atoms.Hydrogen
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IAtomGenerator
 import maratmingazovr.ai.carsonella.world.ReactionRequest
 import maratmingazovr.ai.carsonella.world.nowString
@@ -27,19 +26,20 @@ class AtomGenerator(
     private val palette: SnapshotStateList<Element>,
 ) : IAtomGenerator {
 
-    override fun createHydrogen(
+    override fun createAtom(
+        element: Element,
         position: Position,
         direction: Vec2D,
         velocity: Float,
     ): Entity<*> {
-        val hydrogen = Hydrogen(id = idGen.nextId(), position = position, direction = direction, velocity = velocity)
+        val hydrogen = Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity)
         applyDefaultBehavior(hydrogen)
         scope.launch { hydrogen.init() }
         if(!palette.contains(hydrogen.state().value.element)) palette.add(hydrogen.state().value.element)
         return hydrogen
     }
 
-    private fun applyDefaultBehavior(atom: Atom<*>) {
+    private fun applyDefaultBehavior(atom: Entity<*>) {
         atom.apply {
             entities.add(this)
             setOnDeath { entities.remove(this)}

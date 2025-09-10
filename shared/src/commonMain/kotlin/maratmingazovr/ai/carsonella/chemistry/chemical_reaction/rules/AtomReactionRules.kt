@@ -1,19 +1,17 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
+import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.atoms.HYDROGEN_COVALENT_RADIUS
-import maratmingazovr.ai.carsonella.chemistry.atoms.HYDROGEN_ELECTRONEGATIVITY
-import maratmingazovr.ai.carsonella.chemistry.atoms.Hydrogen
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IMoleculeGenerator
-import kotlin.math.abs
 
 class HplusHtoH2(
     private val moleculeGenerator: IMoleculeGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
 ) : ReactionRule {
     override val id = "H+H->H2"
 
-    private var _hydrogen1 : Hydrogen? = null
-    private var _hydrogen2 : Hydrogen? = null
+    private var _hydrogen1 : Entity<*>? = null
+    private var _hydrogen2 : Entity<*>? = null
 
     /**
      * Мы должны проверить, есть ли в реагентах два атома водорода, которые находятся на расстоянии ковалентной связи
@@ -26,7 +24,7 @@ class HplusHtoH2(
         _hydrogen1 = null
         _hydrogen2 = null
         val atoms = reagents
-            .filterIsInstance<Hydrogen>()
+            .filter { it.state().value.element == H }
             .filter { it.state().value.alive }
         if (atoms.size < 2) return false
 
@@ -36,7 +34,7 @@ class HplusHtoH2(
         val distance = firstHydrogen.state().value.position.distanceTo(secondHydrogen.state().value.position)
 
 
-        return if (distance < HYDROGEN_COVALENT_RADIUS * 2f) {
+        return if (distance < Element.H.radius * 2f) {
             _hydrogen1 = firstHydrogen
             _hydrogen2 = secondHydrogen
             true
@@ -45,7 +43,7 @@ class HplusHtoH2(
         }
     }
 
-    override suspend fun weight() = abs(HYDROGEN_ELECTRONEGATIVITY - HYDROGEN_ELECTRONEGATIVITY).toFloat()
+    override suspend fun weight() = 0f
 
     override suspend fun produce(): ReactionOutcome {
 
@@ -56,7 +54,7 @@ class HplusHtoH2(
         )
     }
 
-    fun findNearestToFirst(atoms: List<Hydrogen>): Pair<Hydrogen, Hydrogen> {
+    fun findNearestToFirst(atoms: List<Entity<*>>): Pair<Entity<*>, Entity<*>> {
 
         val first = atoms.first()
         val p0 = first.state().value.position

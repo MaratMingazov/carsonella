@@ -18,17 +18,16 @@ class AtomRenderer(
 ) {
     fun render(
         drawScope: DrawScope,
-        atomState: AtomState<*>) {
+        atomState: AtomState) {
         when (atomState.element) {
             Element.H -> drawHydrogen( drawScope,atomState)
-            Element.O -> drawOxygen( drawScope, atomState.position.toOffset())
             else -> throw NotImplementedError()
         }
     }
 
     private fun drawHydrogen(
         drawScope: DrawScope,
-        hydrogenState: AtomState<*>,
+        hydrogenState: AtomState,
     ) {
         val position = hydrogenState.position.jitter().toOffset()
         with(drawScope) {
@@ -52,42 +51,5 @@ class AtomRenderer(
                 topLeft = Offset(position.x - textLayoutResult.size.width / 2, position.y - textLayoutResult.size.height / 2)
             )
         }
-    }
-
-    private fun drawOxygen(
-        drawScope: DrawScope,
-        position: Offset
-    ) {
-//        with(drawScope) {
-//            drawCircle(
-//                color = Color.Black,
-//                center = position,
-//                radius = HYDROGEN_ATOM_RADIUS,
-//                style = Stroke(
-//                    width = 1f,
-//                    pathEffect = PathEffect.dashPathEffect(
-//                        intervals = floatArrayOf(10f, 5f), // длина штриха, длина пробела
-//                        phase = 0f // смещение начала узора
-//                    )
-//                )
-//            )
-//
-//            val annotated = AnnotatedString.Builder().apply {
-//                append("H")
-//                pushStyle(SpanStyle(fontSize = 5.sp, baselineShift = BaselineShift.Subscript))
-//                append("2")
-//                pop()
-//            }.toAnnotatedString()
-//
-//            val layout = textMeasurer.measure(
-//                text = annotated,
-//                style = TextStyle(color = Color.Black, fontSize = 10.sp)
-//            )
-//
-//            drawText(
-//                textLayoutResult = layout,
-//                topLeft = Offset(x = position.x - layout.size.width / 2f, y = position.y - layout.size.height / 2f)
-//            )
-//        }
     }
 }

@@ -9,9 +9,6 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
-class ChemicalReaction {
-}
-
 
 
 
@@ -20,12 +17,11 @@ interface ISubAtomGenerator {
 }
 
 interface IAtomGenerator {
-    fun createHydrogen(position: Position, direction: Vec2D, velocity: Float): Entity<*>
-//    fun createOxygen(position: Position): Entity<*>
+    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float): Entity<*>
 }
 
 interface IMoleculeGenerator {
-    fun createDiHydrogen(position: Position, direction: Vec2D, velocity: Float,): Entity<*>
+    fun createDiHydrogen(position: Position, direction: Vec2D, velocity: Float): Entity<*>
 }
 
 

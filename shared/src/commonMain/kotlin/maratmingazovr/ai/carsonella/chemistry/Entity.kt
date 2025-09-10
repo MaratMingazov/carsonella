@@ -58,7 +58,7 @@ interface Entity<State : EntityState<State>> :
 
     fun reduceVelocity() {
         if (state().value.velocity < 0.1f) {
-            state().value = state().value.copyWith(velocity = 0f)
+            //state().value = state().value.copyWith(velocity = 0f)
         } else {
             state().value = state().value.copyWith(velocity = state().value.velocity * 0.99f)
         }
@@ -108,9 +108,9 @@ interface Entity<State : EntityState<State>> :
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.state().value.element.radius
-            val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.2
+            val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
-            if (distance2 > maxRadius2) return@forEach    // вне радиуса действия
+            if (distance2 > maxRadius2) return@forEach // вне радиуса действия
 
             // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
             // Если электроны есть у обоих элементов, то будут отталкиваться
@@ -119,15 +119,13 @@ interface Entity<State : EntityState<State>> :
                 if (elementElectronsCount > 0) { (myElectronsCount+elementElectronsCount) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
                 else { 0f } // у него электронов нет, я ничего не буду делать, пусть он сам притянется если нужно
             } else { // у меня электронов нет. Проверим, есть ли у него электроны
-                if (elementElectronsCount > 0) { -1 * elementElectronsCount / (distance2 + 10f) } // у него есть электроны, значит я притянусь к нему
+                if (elementElectronsCount > 0) { -2 * elementElectronsCount / (distance2 + 10f) } // у него есть электроны, значит я притянусь к нему
                 else { 0f } // у него тоже нет электроноа, никакой силы нет
             }
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
             val elementProtonsCount = element.state().value.element.electronsCount
-            val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) {
-                (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f)
-            } else 0f
+            val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) { (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f) } else 0f
 
             val fScalar = fAttraction + fRepulsion
             fVector.x += rx * fScalar

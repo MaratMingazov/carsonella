@@ -1,5 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -84,7 +85,7 @@ class ElectronPlusProtonToH(
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(electron!!, proton!!)
         return ReactionOutcome(
             consumed = listOf(electron!!, proton!!),
-            spawn = listOf { atomGenerator.createHydrogen(proton!!.state().value.position, direction, velocity) },
+            spawn = listOf { atomGenerator.createAtom(Element.H, proton!!.state().value.position, direction, velocity) },
         )
     }
 }

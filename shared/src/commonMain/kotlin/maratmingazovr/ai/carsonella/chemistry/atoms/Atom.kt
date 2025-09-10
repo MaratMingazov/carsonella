@@ -1,6 +1,15 @@
 package maratmingazovr.ai.carsonella.chemistry.atoms
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.IEnvironment
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.Electron
+import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
@@ -13,30 +22,87 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
+import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
+import kotlin.compareTo
 
-interface AtomState<State: AtomState<State>> : EntityState<State> {
-    fun covalentRadius(): Float? // Если атом может образовывать ковалентную связь, у него есть ковалентный радиус.
+data class AtomState(
+    override val id: Long,
+    override val element: Element,
+    override var alive: Boolean,
+    override var position: Position,
+    override var direction: Vec2D,
+    override var velocity: Float,
+    override var energy: Float,
+) : EntityState<AtomState> {
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
+    override fun toString(): String {
+        return """
+            |${element.label}: $id
+            |Position (${position.x.toInt()}, ${position.y.toInt()})
+            |Velocity $velocity
+        """.trimMargin()
+    }
 }
 
-interface Atom<State: AtomState<State>> :
-    Entity<State>,
-    DeathNotifiable,
-    NeighborsAware,
-    ReactionRequester,
-    EnvironmentAware,
-    LogWritable
-
-abstract class AbstractAtom<State : AtomState<State>>(
-    initialState: State,
-) : Atom<State>,
-    DeathNotifiable by OnDeathSupport(), // теперь атомы во время смерти могут оповещаться мир об этом
-    NeighborsAware by NeighborsSupport(), // теперь атомы могут получать информацию о других объектах мира
-    ReactionRequester by ReactionRequestSupport(), // теперь атомы могут вступать в реакцию с другими объектами мира
+class Atom(
+    id: Long,
+    element: Element,
+    position: Position,
+    direction: Vec2D,
+    velocity: Float,
+):
+    Entity<AtomState>,
+    DeathNotifiable by OnDeathSupport(),
+    NeighborsAware by NeighborsSupport(),
+    ReactionRequester by ReactionRequestSupport(),
     EnvironmentAware by EnvironmentSupport(),
-    LogWritable by LoggingSupport()
+    LogWritable  by LoggingSupport()
 {
+    private var state = MutableStateFlow(
+        AtomState(
+            id = id,
+            element = element,
+            alive = true,
+            position = position,
+            direction = direction,
+            velocity = velocity,
+            energy = 0f,
+        )
+    )
+    private val stepMutex = Mutex()
 
-    protected val state = MutableStateFlow(initialState)
     override fun state() = state
+
+    override suspend fun init() {
+        writeLog("Появился ${state.value.element.label}: ${state.value.id}")
+        while (state.value.alive) {
+            stepMutex.withLock {
+
+                val neighbors = getNeighbors()
+                val environment = getEnvironment()
+
+                applyForce(calculateForce(neighbors))
+                applyNewPosition()
+                reduceVelocity()
+                checkBorders(environment)
+
+                neighbors
+                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { requestReaction(listOf(this) + it) }
+
+            }
+            delay(10)
+        }
+    }
+
+
+
+    override suspend fun destroy() {
+        state.value = state.value.copy(alive = false)
+        notifyDeath()
+    }
+
 }
+
 

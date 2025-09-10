@@ -8,48 +8,12 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
-import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
-import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentSupport
-import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
-import maratmingazovr.ai.carsonella.chemistry.behavior.LoggingSupport
-import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
-import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
-import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
-import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
-import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
-import kotlin.compareTo
+import maratmingazovr.ai.carsonella.chemistry.behavior.*
 
-
-//interface SubAtomState<State: SubAtomState<State>> : EntityState<State>
-
-//interface SubAtom<State: SubAtomState<State>> :
-//    Entity<State>,
-//    DeathNotifiable,
-//    NeighborsAware,
-//    ReactionRequester,
-//    EnvironmentAware,
-//    LogWritable
-
-//abstract class AbstractSubAtom<State : SubAtomState<State>>(
-//    initialState: State,
-//) : SubAtom<State>,
-//    DeathNotifiable by OnDeathSupport(), // теперь атомы во время смерти могут оповещаться мир об этом
-//    NeighborsAware by NeighborsSupport(),
-//    ReactionRequester by ReactionRequestSupport(),
-//    EnvironmentAware by EnvironmentSupport(),
-//    LogWritable by LoggingSupport()
-//{
-//
-//    protected var state = MutableStateFlow(initialState)
-//    override fun state() = state
-//
-//}
 
 data class SubAtomState(
     override val id: Long,
@@ -128,9 +92,11 @@ class SubAtom(
         }
     }
 
-    private suspend fun initProton(environment: IEnvironment, neighbors: List<Entity<*>>) {
-        applyForce(calculateForce(neighbors))
+    private fun initProton(environment: IEnvironment, neighbors: List<Entity<*>>) {
         reduceVelocity()
+        applyForce(calculateForce(neighbors))
+        //println("vecolity before: ${state().value.velocity}")
+        //println("vecolity after: ${state().value.velocity}")
         applyNewPosition()
         checkBorders(environment)
 
