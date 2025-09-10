@@ -50,7 +50,7 @@ class HplusHtoH2(
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(_hydrogen1!!, _hydrogen2!!)
         return ReactionOutcome(
             consumed = listOf(_hydrogen1!!, _hydrogen2!!),
-            spawn = listOf { moleculeGenerator.createDiHydrogen(_hydrogen1!!.state().value.position, direction, velocity) },
+            spawn = listOf { moleculeGenerator.createMolecule(Element.H2, _hydrogen1!!.state().value.position, direction, velocity) },
         )
     }
 

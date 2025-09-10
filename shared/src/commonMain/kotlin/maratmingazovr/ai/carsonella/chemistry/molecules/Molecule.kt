@@ -1,32 +1,88 @@
 package maratmingazovr.ai.carsonella.chemistry.molecules
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 
 
-interface MoleculeState<State: MoleculeState<State>> : EntityState<State>
+data class MoleculeState(
+    override val id: Long,
+    override val element: Element,
+    override var alive: Boolean,
+    override var position: Position,
+    override var direction: Vec2D,
+    override var velocity: Float,
+    override var energy: Float,
+) : EntityState<MoleculeState> {
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
+    override fun toString(): String {
+        return """
+            |${element.label}: $id
+            |Position (${position.x.toInt()}, ${position.y.toInt()})
+            |Velocity $velocity
+        """.trimMargin()
+    }
+}
 
-interface Molecule<State: MoleculeState<State>> :
-    Entity<State>,
-    DeathNotifiable,
-    NeighborsAware,
-    ReactionRequester,
-    EnvironmentAware,
-    LogWritable
-
-abstract class AbstractMolecule<State : MoleculeState<State>>(
-    initialState: State,
-) : Molecule<State>,
+class Molecule(
+    id: Long,
+    element: Element,
+    position: Position,
+    direction: Vec2D,
+    velocity: Float,
+):
+    Entity<MoleculeState>,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
     EnvironmentAware by EnvironmentSupport(),
-    LogWritable by LoggingSupport()
+    LogWritable  by LoggingSupport()
 {
-    protected val state = MutableStateFlow(initialState)
-    override fun state() = state
-}
+    private var state = MutableStateFlow(
+        MoleculeState(
+            id = id,
+            element = element,
+            alive = true,
+            position = position,
+            direction = direction,
+            velocity = velocity,
+            energy = 0f,
+        )
+    )
+    private val stepMutex = Mutex()
 
-enum class Symbol { H2 }
+    override fun state() = state
+
+    override suspend fun init() {
+        writeLog("Появился ${state.value.element.label}: ${state.value.id}")
+        while (state.value.alive) {
+            stepMutex.withLock {
+
+                val neighbors = getNeighbors()
+                val environment = getEnvironment()
+
+                applyForce(calculateForce(neighbors))
+                applyNewPosition()
+                reduceVelocity()
+                checkBorders(environment)
+
+            }
+            delay(10)
+        }
+    }
+
+
+
+    override suspend fun destroy() {
+        state.value = state.value.copy(alive = false)
+        notifyDeath()
+    }
+
+}

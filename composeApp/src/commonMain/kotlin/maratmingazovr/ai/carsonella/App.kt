@@ -54,7 +54,7 @@ fun App() {
                             Electron -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 40f)
                             Proton   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 0f)
                             Element.H        -> world.atomGenerator.createAtom(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
-                            Element.H2        -> world.moleculeGenerator.createDiHydrogen(Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
+                            Element.H2        -> world.moleculeGenerator.createMolecule(element = data.element, Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
                             else -> Unit
                         }
                     },

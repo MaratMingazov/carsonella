@@ -156,10 +156,10 @@ enum class Element(
     Proton(ElementType.SubAtom, "p⁺", "Proton (p⁺)", mass = 1f, electronsCount = 0, protonsCount = 1, radius = 10f),
 
     // --- атомы ---
-    H(ElementType.Atom, "H", "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, radius = 53f),
-    O(ElementType.Atom, "O", "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8, radius = 70f),
+    H(ElementType.Atom, "H", "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, radius = 40f),
+    O(ElementType.Atom, "O", "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8, radius = 40f),
 
     // --- молекулы ---
-    H2(ElementType.Molecule, "H₂", "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 100f),
-    H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 140f),;
+    H2(ElementType.Molecule, "H₂", "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 40f),
+    H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 40f),;
 }
