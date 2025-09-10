@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.world
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -15,7 +14,8 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.HplusHtoH2
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusHtoH2
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
 import maratmingazovr.ai.carsonella.world.generators.AtomGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 import maratmingazovr.ai.carsonella.world.generators.MoleculeGenerator
@@ -44,6 +44,7 @@ class World(
     private val _chemicalReactionResolver = ChemicalReactionResolver(
         rules = listOf(
             ElectronPlusProtonToH(atomGenerator),
+            HplusPhotonToProtonAndElectron(subAtomGenerator),
             HplusHtoH2(moleculeGenerator)
         )
     )
@@ -95,6 +96,7 @@ class World(
 
         result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }
+        result.updateState.forEach { it() }
     }
 }
 

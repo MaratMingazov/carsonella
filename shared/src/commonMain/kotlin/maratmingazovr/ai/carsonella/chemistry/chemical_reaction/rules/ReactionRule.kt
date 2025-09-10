@@ -46,6 +46,7 @@ interface ReactionRule {
 
 // Что делать миру после реакции
 data class ReactionOutcome(
-    val consumed: List<Entity<*>>,       // атомы, которые участвовали в реакции
-    val spawn: List<() -> Entity<*>>,    // новые атомы и молекулы, которые появились. Вот тут нужно каким то образом сказать что нужно создать
+    val consumed: List<Entity<*>> = listOf(),       // атомы, которые участвовали в реакции
+    val spawn: List<() -> Entity<*>> = listOf(),    // новые атомы и молекулы, которые появились. Вот тут нужно каким то образом сказать что нужно создать
+    val updateState: List<() -> Unit> = listOf(),   // когда нужно обновить состояние элемента
 )

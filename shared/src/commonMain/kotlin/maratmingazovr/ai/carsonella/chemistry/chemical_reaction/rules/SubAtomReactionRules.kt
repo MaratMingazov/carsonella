@@ -30,26 +30,21 @@ class ElectronPlusProtonToH(
 
         val first = reagents.first()
         val others = reagents.drop(1)
-        val activationDistanceSquare = 100f
-
-        fun dist(a: Entity<*>, b: Entity<*>): Float {
-            val pa = a.state().value.position
-            val pb = b.state().value.position
-            return pa.distanceSquareTo(pb) // твоя функция расстояния в «пикселях»
-        }
-        Electron
+        val activationDistanceSquare = Proton.radius * Proton.radius
 
         when (first.state().value.element) {
             Electron -> {
                 if (!first.state().value.alive) return false
-                val nearestProton = others
+                val (nearestProton, distance) = others
                     .asSequence()
                     .filter { it.state().value.element == Proton }
                     .filter { it.state().value.alive }
-                    .minByOrNull { dist(first, it) }
+                    .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
+                    .minByOrNull { it.second }
                     ?: return false
 
-                if (dist(first, nearestProton) <= activationDistanceSquare) {
+
+                if (distance <= activationDistanceSquare) {
                     electron = first
                     proton = nearestProton
                     return true
@@ -58,14 +53,15 @@ class ElectronPlusProtonToH(
 
             Proton -> {
                 if (!first.state().value.alive) return false
-                val nearestElectron = others
+                val (nearestElectron, distance) = others
                     .asSequence()
                     .filter { it.state().value.element == Electron }
                     .filter { it.state().value.alive }
-                    .minByOrNull { dist(first, it) }
+                    .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
+                    .minByOrNull { it.second }
                     ?: return false
 
-                if (dist(first, nearestElectron) <= activationDistanceSquare) {
+                if (distance <= activationDistanceSquare) {
                     electron = nearestElectron
                     proton = first
                     return true

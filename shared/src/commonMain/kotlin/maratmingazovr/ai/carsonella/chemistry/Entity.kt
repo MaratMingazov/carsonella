@@ -80,6 +80,12 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(position = position, direction = direction)
     }
 
+    fun addEnergy(energy: Float) {
+        var updatedEnergy =  state().value.energy + energy
+        if (updatedEnergy < 0f) { updatedEnergy = 0f }
+        state().value = state().value.copyWith(energy = updatedEnergy)
+    }
+
     fun applyForce(force: Vec2D) {
 
         if (state().value.element.mass < 0.001f) return

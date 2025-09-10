@@ -28,7 +28,7 @@ data class SubAtomState(
             |${element.label}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
             |Velocity ${round(velocity * 100) / 100}
-            |Energy $energy
+            ||Energy ${round(energy * 100) / 100}
         """.trimMargin()
     }
 }
