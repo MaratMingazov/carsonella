@@ -85,9 +85,5 @@ fun SelectedEntityPanel(
 
         Spacer(Modifier.height(8.dp))
         Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
-        (selectedElement as? SubAtomState<*>)?.let {
-//            Text("Element: ${it.element()}")
-//            Text("Position: ${it.position()}")
-        }
     }
 }

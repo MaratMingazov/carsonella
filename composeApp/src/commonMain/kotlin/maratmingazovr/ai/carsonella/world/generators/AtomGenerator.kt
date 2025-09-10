@@ -39,15 +39,6 @@ class AtomGenerator(
         return hydrogen
     }
 
-//    override fun createOxygen(
-//        position: Position,
-//    ): Entity<*> {
-//        val oxygen = Oxygen(id = idGen.nextId(), position = position)
-//        applyDefaultBehavior(oxygen)
-//        scope.launch { oxygen.init() }
-//        return oxygen
-//    }
-
     private fun applyDefaultBehavior(atom: Atom<*>) {
         atom.apply {
             entities.add(this)

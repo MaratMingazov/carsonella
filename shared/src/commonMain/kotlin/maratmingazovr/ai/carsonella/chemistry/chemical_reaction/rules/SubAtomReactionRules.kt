@@ -1,18 +1,17 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
-import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Element.Electron
+import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IAtomGenerator
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Electron
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Proton
 
 class ElectronPlusProtonToH(
     private val atomGenerator: IAtomGenerator,
 ) : ReactionRule {
     override val id = "e+p->H"
 
-    private var electron : Electron? = null
-    private var proton : Proton? = null
+    private var electron : Entity<*>? = null
+    private var proton : Entity<*>? = null
 
 
     /**
@@ -37,13 +36,14 @@ class ElectronPlusProtonToH(
             val pb = b.state().value.position
             return pa.distanceSquareTo(pb) // твоя функция расстояния в «пикселях»
         }
+        Electron
 
-        when (first) {
-            is Electron -> {
+        when (first.state().value.element) {
+            Electron -> {
                 if (!first.state().value.alive) return false
                 val nearestProton = others
                     .asSequence()
-                    .filterIsInstance<Proton>()
+                    .filter { it.state().value.element == Proton }
                     .filter { it.state().value.alive }
                     .minByOrNull { dist(first, it) }
                     ?: return false
@@ -55,11 +55,11 @@ class ElectronPlusProtonToH(
                 }
             }
 
-            is Proton -> {
+            Proton -> {
                 if (!first.state().value.alive) return false
                 val nearestElectron = others
                     .asSequence()
-                    .filterIsInstance<Electron>()
+                    .filter { it.state().value.element == Electron }
                     .filter { it.state().value.alive }
                     .minByOrNull { dist(first, it) }
                     ?: return false

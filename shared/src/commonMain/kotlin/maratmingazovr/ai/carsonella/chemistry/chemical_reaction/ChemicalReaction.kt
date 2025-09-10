@@ -4,6 +4,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
@@ -15,9 +16,7 @@ class ChemicalReaction {
 
 
 interface ISubAtomGenerator {
-    fun createPhoton(position: Position, direction: Vec2D): Entity<*>
-    fun createElectron(position: Position, direction: Vec2D): Entity<*>
-    fun createProton(position: Position, direction: Vec2D): Entity<*>
+    fun createSubAtom(element: Element, position: Position, direction: Vec2D, velocity: Float): Entity<*>
 }
 
 interface IAtomGenerator {

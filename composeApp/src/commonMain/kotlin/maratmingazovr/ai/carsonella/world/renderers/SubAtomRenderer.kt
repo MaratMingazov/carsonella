@@ -14,7 +14,7 @@ class SubAtomRenderer(
 ) {
     fun render(
         drawScope: DrawScope,
-        state: SubAtomState<*>,
+        state: SubAtomState,
         phase: Float,
     ) {
         when (state.element) {
@@ -27,7 +27,7 @@ class SubAtomRenderer(
 
     private fun drawPhoton(
         drawScope: DrawScope,
-        state: SubAtomState<*>,
+        state: SubAtomState,
     ) {
         val p = state.position.toOffset()
         with(drawScope) {
@@ -37,7 +37,7 @@ class SubAtomRenderer(
 
     private fun drawElectron(
         drawScope: DrawScope,
-        state: SubAtomState<*>,
+        state: SubAtomState,
     ) {
         val p = state.position.toOffset()
         with(drawScope) {
@@ -47,7 +47,7 @@ class SubAtomRenderer(
 
     private fun drawProton(
         drawScope: DrawScope,
-        state: SubAtomState<*>,
+        state: SubAtomState,
         phase: Float,
     ) {
 

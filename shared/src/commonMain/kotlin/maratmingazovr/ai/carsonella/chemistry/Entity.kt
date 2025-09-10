@@ -5,6 +5,16 @@ import kotlinx.coroutines.flow.StateFlow
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
+import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
+import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentSupport
+import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
+import maratmingazovr.ai.carsonella.chemistry.behavior.LoggingSupport
+import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
+import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
+import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
+import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
+import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 
 interface EntityState<State : EntityState<State>> {
 
@@ -26,7 +36,13 @@ interface EntityState<State : EntityState<State>> {
 
 }
 
-interface Entity<State : EntityState<State>> {
+interface Entity<State : EntityState<State>> :
+    DeathNotifiable,
+    NeighborsAware,
+    ReactionRequester,
+    EnvironmentAware,
+    LogWritable
+{
     fun state(): MutableStateFlow<State>
     suspend fun init()
     suspend fun destroy() // нужно, чтобы сообщить атому, что он должен быть уничтожен
@@ -80,6 +96,10 @@ interface Entity<State : EntityState<State>> {
      */
     fun calculateForce(elements: List<Entity<*>>): Vec2D {
         val fVector = Vec2D(0f, 0f)
+        val myElectronsCount = state().value.element.electronsCount
+        val myProtonsCount = state().value.element.protonsCount
+        val myRadius = state().value.element.radius
+        if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
         elements.forEach { element ->
             val elementPosition = element.state().value.position
@@ -87,7 +107,6 @@ interface Entity<State : EntityState<State>> {
             val ry = state().value.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
-            val myRadius = state().value.element.radius
             val elementRadius = element.state().value.element.radius
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.2
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
@@ -95,7 +114,6 @@ interface Entity<State : EntityState<State>> {
 
             // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
             // Если электроны есть у обоих элементов, то будут отталкиваться
-            val myElectronsCount = state().value.element.electronsCount
             val elementElectronsCount = element.state().value.element.electronsCount
             val fAttraction = if (myElectronsCount > 0) { // отлично, у меня есть электроны. Проверим электроны соседа
                 if (elementElectronsCount > 0) { (myElectronsCount+elementElectronsCount) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
@@ -106,7 +124,6 @@ interface Entity<State : EntityState<State>> {
             }
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
-            val myProtonsCount = state().value.element.protonsCount
             val elementProtonsCount = element.state().value.element.electronsCount
             val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) {
                 (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f)

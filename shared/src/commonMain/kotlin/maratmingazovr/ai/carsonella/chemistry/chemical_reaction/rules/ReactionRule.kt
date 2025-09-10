@@ -2,7 +2,6 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.Proton
 
 /**
  * Описание одной реакции (набор реагентов → продукты).

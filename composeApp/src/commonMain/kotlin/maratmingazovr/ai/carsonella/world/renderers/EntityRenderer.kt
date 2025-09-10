@@ -29,7 +29,7 @@ class EntityRenderer(
         phase: Float,
     ) {
         when (entityState) {
-            is SubAtomState<*> -> subAtomRenderer.render(drawScope, entityState, phase)
+            is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase)
             is AtomState<*> -> drawEntity(drawScope, entityState, phase)
             is MoleculeState<*> -> drawEntity(drawScope, entityState, phase)
         }

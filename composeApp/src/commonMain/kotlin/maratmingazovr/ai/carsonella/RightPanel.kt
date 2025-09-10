@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
@@ -89,7 +90,7 @@ fun RightPanel(
                                             val from = selected.position.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
                                             // Из выбранного элемента стреляем электроном
-                                            world.subAtomGenerator.createPhoton(Position(selected.position.x, selected.position.y), dir)
+                                            world.subAtomGenerator.createSubAtom(element = Element.Photon, Position(selected.position.x, selected.position.y),  direction = dir, velocity = 40f)
                                         }
                                     }
                                 }

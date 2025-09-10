@@ -10,6 +10,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.Electron
+import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -47,9 +50,9 @@ fun App() {
                     accept = { it.element in Element.entries },
                     onDrop = { data, localPos ->
                         when (data.element) {
-                            Element.Photon   -> world.subAtomGenerator.createPhoton(Position(localPos.x, localPos.y), randomUnitVec2D())
-                            Element.Electron -> world.subAtomGenerator.createElectron(Position(localPos.x, localPos.y), randomUnitVec2D())
-                            Element.Proton   -> world.subAtomGenerator.createProton(Position(localPos.x, localPos.y), randomUnitVec2D())
+                            Photon   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y), direction = randomUnitVec2D(), velocity = 40f)
+                            Electron -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 40f)
+                            Proton   -> world.subAtomGenerator.createSubAtom(element = data.element, Position(localPos.x, localPos.y),  direction = randomUnitVec2D(), velocity = 0f)
                             Element.H        -> world.atomGenerator.createHydrogen(Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
                             Element.H2        -> world.moleculeGenerator.createDiHydrogen(Position(localPos.x, localPos.y), randomUnitVec2D(), 0f)
                             else -> Unit
