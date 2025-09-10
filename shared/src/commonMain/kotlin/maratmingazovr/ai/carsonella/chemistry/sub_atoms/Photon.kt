@@ -15,8 +15,9 @@ data class PhotonState(
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
+    override var energy: Float,
 ) : SubAtomState<PhotonState> {
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
 }
 
 
@@ -32,6 +33,7 @@ class Photon(
         position = position,
         direction = direction,
         velocity = 40f,
+        energy = 0f,
     )
 ) {
 

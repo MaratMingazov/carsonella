@@ -15,10 +15,11 @@ data class ElectronState(
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
+    override var energy: Float,
     var liveTime: Float,
 ) : SubAtomState<ElectronState> {
 
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
 }
 
 
@@ -35,6 +36,7 @@ class Electron(
         direction = direction,
         velocity = 40f,
         liveTime = 500f,
+        energy = 0f,
     )
 ) {
 

@@ -15,8 +15,9 @@ data class DiHydrogenState(
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
+    override var energy: Float,
 ) : MoleculeState<DiHydrogenState> {
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
 }
 
 class DiHydrogen(
@@ -32,6 +33,7 @@ class DiHydrogen(
         position = position,
         direction = direction,
         velocity = velocity,
+        energy = 0f,
     )
 ) {
 

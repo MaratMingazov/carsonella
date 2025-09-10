@@ -31,9 +31,10 @@ data class HydrogenState(
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
+    override var energy: Float,
 ) : AtomState<HydrogenState> {
     override fun covalentRadius() = HYDROGEN_COVALENT_RADIUS
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
 
     override fun toString(): String {
         return """
@@ -57,6 +58,7 @@ class Hydrogen(
             position = position,
             direction = direction,
             velocity = velocity,
+            energy = 0f,
         )
 ) {
 

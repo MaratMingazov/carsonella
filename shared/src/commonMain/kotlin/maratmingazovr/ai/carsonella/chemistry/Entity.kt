@@ -14,12 +14,14 @@ interface EntityState<State : EntityState<State>> {
     var position: Position
     var direction: Vec2D
     var velocity: Float
+    var energy: Float
 
     fun copyWith(
         alive: Boolean = this.alive,
         position: Position = this.position,
         direction: Vec2D = this.direction,
-        velocity: Float = this.velocity
+        velocity: Float = this.velocity,
+        energy: Float = this.energy,
     ): State
 
 }

@@ -16,6 +16,7 @@ data class ProtonState(
     override var position: Position,
     override var direction: Vec2D,
     override var velocity: Float,
+    override var energy: Float,
 ) : SubAtomState<ProtonState> {
 
     override fun toString(): String {
@@ -26,7 +27,7 @@ data class ProtonState(
         """.trimMargin()
     }
 
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
 
 }
 
@@ -43,6 +44,7 @@ class Proton(
         position = position,
         direction = direction,
         velocity = 0f,
+        energy = 0f,
     )
 ) {
 
