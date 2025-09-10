@@ -38,6 +38,14 @@ interface Entity<State : EntityState<State>> {
         )
     }
 
+    fun reduceVelocity() {
+        if (state().value.velocity < 0.1f) {
+            state().value = state().value.copyWith(velocity = 0f)
+        } else {
+            state().value = state().value.copyWith(velocity = state().value.velocity * 0.99f)
+        }
+    }
+
     fun checkBorders(env: IEnvironment) {
 
         var position = state().value.position

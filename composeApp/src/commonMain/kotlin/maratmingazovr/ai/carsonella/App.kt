@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
@@ -63,7 +64,7 @@ fun App() {
                     world = world,
                     entitiesState = entitiesState,
                     renderer = renderer,
-                    phase = phase
+                    phase = phase,
                 )
 
             }

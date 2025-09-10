@@ -81,6 +81,7 @@ class Hydrogen(
 
                 applyForce(calculateForce(neighbors))
                 applyNewPosition()
+                reduceVelocity()
                 checkBorders(environment)
 
                 neighbors

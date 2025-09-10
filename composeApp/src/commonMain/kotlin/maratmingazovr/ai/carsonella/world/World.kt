@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
@@ -73,6 +74,10 @@ class World(
         val smoothTemperature = smoothEma(currentTemperature, actualTemperature)
         environment.setTemperature(smoothTemperature)
         return smoothTemperature
+    }
+
+    fun applyForceToEntity(entityId: Long, force: Vec2D) {
+        entities.find { it.state().value.id == entityId }?.run { applyForce(force) }
     }
 
     /**

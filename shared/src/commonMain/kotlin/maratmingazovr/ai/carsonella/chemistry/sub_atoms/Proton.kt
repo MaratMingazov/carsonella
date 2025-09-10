@@ -59,6 +59,7 @@ class Proton(
 
                 applyForce(calculateForce(neighbors))
                 applyNewPosition()
+                reduceVelocity()
                 checkBorders(environment)
 
                 neighbors

@@ -1,19 +1,10 @@
 package maratmingazovr.ai.carsonella
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,21 +12,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.sub_atoms.SubAtomState
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import kotlin.math.roundToInt
@@ -57,6 +57,14 @@ fun RightPanel(
     phase: Float,
     modifier: Modifier = Modifier
 ) {
+
+    // Для обработки клавиш клавиатуры
+    // 1) локально храним зажатые клавиши
+    var keys by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(setOf<Key>()) }
+    // --- фокус для приёма клавиатуры ---
+    val focusRequester = remember { FocusRequester() }
+    val onSelectUpToDate = rememberUpdatedState(onSelect) // чтобы замыкание не устаревало
+
     DropTarget(accept = accept, onDrop = onDrop) { dropModifier ->
         Column(modifier = dropModifier.fillMaxSize()) {
             Box(
@@ -65,6 +73,32 @@ fun RightPanel(
                     .weight(1f)
                     .background(Color.White)
                     .padding(4.dp)
+                    .focusRequester(focusRequester) // для обработки клавиш клавиутуры
+                    .focusable() // важно!
+                    .onKeyEvent { e ->
+                        when (e.type) {
+                            KeyDown -> {
+                                keys = keys + e.key
+                                // ► действие по пробелу
+                                if (e.key == Key.Spacebar) {
+                                    val id = selectedId
+                                    val mouse = hoverPos
+                                    if (id != null && mouse != null) {
+                                        val selected = entitiesState.firstOrNull { it.id == id }
+                                        if (selected != null) {
+                                            val from = selected.position.toOffset()
+                                            val dir = direction(from, mouse)   // единичный вектор к мыши
+                                            // Из выбранного элемента стреляем электроном
+                                            world.subAtomGenerator.createPhoton(Position(selected.position.x, selected.position.y), dir)
+                                        }
+                                    }
+                                }
+                                true
+                            }
+                            KeyUp -> { keys = keys - e.key; true }
+                            else -> false
+                        }
+                    }
             ) {
                 SceneCanvas(
                     world = world,
@@ -72,11 +106,11 @@ fun RightPanel(
                     renderer = renderer,
                     phase = phase,
                     hoverPos = hoverPos,
-                    onHover = onHover,
+                    onHover = { pos -> onHover(pos); focusRequester.requestFocus() },
                     hoveredId = hoveredId,
                     onSelectHoverId = onSelectHoverId,
                     selectedId = selectedId,
-                    onSelect = onSelect,
+                    onSelect = { onSelect(it); focusRequester.requestFocus() },
                     modifier = Modifier.matchParentSize()
                 )
                 TemperatureBadge(world.updateTemperatureGame())
@@ -88,6 +122,27 @@ fun RightPanel(
             )
         }
     }
+
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.yield()
+        focusRequester.requestFocus()
+    }
+    ControlSelectedWithKeysLoop(selectedId = selectedId, keys = keys) { id, force ->
+        world.applyForceToEntity(id, force)
+    }
+//    HandleKeyboardForSelection(selectedId = selectedId, keys = keys) { key, id ->
+//        when (key) {
+//            Key.W -> world.applyForceToEntity(id, Vec2D(0f, -1f))
+//            Key.DirectionUp -> world.applyForceToEntity(id, Vec2D(0f, -1f))
+//            Key.S -> world.applyForceToEntity(id, Vec2D(0f, 1f))
+//            Key.DirectionDown -> world.applyForceToEntity(id, Vec2D(0f, 1f))
+//            Key.A -> world.applyForceToEntity(id, Vec2D(-1f, 0f))
+//            Key.DirectionLeft -> world.applyForceToEntity(id, Vec2D(-1f, 0f))
+//            Key.D -> world.applyForceToEntity(id, Vec2D(1f, 0f))
+//            Key.DirectionRight -> world.applyForceToEntity(id, Vec2D(1f, 0f))
+//        }
+//    }
 }
 
 @Composable
@@ -143,6 +198,8 @@ private fun SceneCanvas(
                         if (change.changedToUp()) {
                             val selectedId = hitTest(entitiesState, change.position)
                             onSelect(selectedId) // если оставляешь логику через hoveredId
+
+                            // Если у
                         }
                         // по желанию: change.consume() если хочешь прекратить дальнейшую доставку
                     }
@@ -157,11 +214,8 @@ private fun SceneCanvas(
         onSelectHoverId(null)
 
         if (mouse != null) {
-            val hit = entitiesState
-//                .asSequence()
-//                .filterIsInstance<SubAtomState<*>>()
-//                .filter { it.element == Element.Proton }
-                .minByOrNull { s -> (s.position.toOffset() - mouse).getDistance() }
+            // ищем самый ближайший объект
+            val hit = entitiesState.minByOrNull { s -> (s.position.toOffset() - mouse).getDistance() }
 
             val hitRadius = 30f
             if (hit != null) {
@@ -172,11 +226,11 @@ private fun SceneCanvas(
 
         // выбранную частицу обводим
         selectedId?.let { id ->
-            entitiesState.firstOrNull { it.id == id }?.let { s ->
-                val c = s.position.toOffset()
+            entitiesState.firstOrNull { it.id == id }?.let { selectedEntity ->
+                val selectedEntityPosition = selectedEntity.position.toOffset()
                 drawCircle(
                     color = Color.Blue.copy(alpha = 0.8f),
-                    center = c,
+                    center = selectedEntityPosition,
                     radius = 18f,
                     style = Stroke(width = 3f)
                 )
@@ -203,6 +257,35 @@ private fun SceneCanvas(
             }
         }
     }
+}
+
+private fun direction(from: Offset, to: Offset): Vec2D {
+    val dx = to.x - from.x
+    val dy = to.y - from.y
+    val len = Vec2D(dx, dy).length()
+    return if (len > 1e-6f) Vec2D(dx / len, dy / len) else Vec2D(0f, 0f)
+}
+
+@Composable
+private fun ControlSelectedWithKeysLoop(selectedId: Long?, keys: Set<Key>, onImpulse: (Long, Vec2D) -> Unit) {
+    LaunchedEffect(selectedId, keys) {
+        if (selectedId == null) return@LaunchedEffect
+        while (keys.isNotEmpty()) {
+            val dir = dirFromKeys(keys)
+            onImpulse(selectedId, dir.div(10f))
+            kotlinx.coroutines.delay(16)
+        }
+    }
+}
+
+// Направление из WASD/стрелок
+private fun dirFromKeys(keys: Set<Key>): Vec2D {
+    var dx = 0f; var dy = 0f
+    if (Key.W in keys || Key.DirectionUp in keys)    dy -= 1f
+    if (Key.S in keys || Key.DirectionDown in keys)  dy += 1f
+    if (Key.A in keys || Key.DirectionLeft in keys)  dx -= 1f
+    if (Key.D in keys || Key.DirectionRight in keys) dx += 1f
+    return Vec2D(dx, dy)
 }
 
 @Composable
