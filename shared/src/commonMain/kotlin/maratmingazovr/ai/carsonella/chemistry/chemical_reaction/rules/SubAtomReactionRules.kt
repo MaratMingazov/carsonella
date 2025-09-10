@@ -25,12 +25,11 @@ class ElectronPlusProtonToH(
     override suspend fun matches(reagents: List<Entity<*>>) : Boolean {
         electron = null
         proton = null
-
         if (reagents.size < 2) return false
 
         val first = reagents.first()
         val others = reagents.drop(1)
-        val activationDistanceSquare = Proton.radius * Proton.radius
+        val activationDistanceSquare = 2f * Proton.radius * Proton.radius
 
         when (first.state().value.element) {
             Electron -> {

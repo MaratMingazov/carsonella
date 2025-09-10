@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
 
@@ -74,7 +75,8 @@ class SubAtom(
                 when (state.value.element) {
                     Photon -> initPhoton(environment)
                     Electron -> initPhoton(environment)
-                    else -> initProton(environment, neighbors)
+                    Proton -> initProton(environment, neighbors)
+                    else -> NotImplementedError()
                 }
 
             }
@@ -95,15 +97,13 @@ class SubAtom(
     private fun initProton(environment: IEnvironment, neighbors: List<Entity<*>>) {
         reduceVelocity()
         applyForce(calculateForce(neighbors))
-        //println("vecolity before: ${state().value.velocity}")
-        //println("vecolity after: ${state().value.velocity}")
         applyNewPosition()
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 1000f }
+            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 5000f }
             .takeIf { it.isNotEmpty() }
-            ?.let { requestReaction(listOf(this) + it) }
+            ?.let {requestReaction(listOf(this) + it) }
     }
 
     override suspend fun destroy() {

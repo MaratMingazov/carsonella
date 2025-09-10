@@ -8,6 +8,7 @@ import kotlin.math.sin
 val random = Random(1)
 
 data class Position(val x: Float, val y: Float) {
+    operator fun plus(p: Position) = Position(x + p.x, y + p.y)
     fun moveRandomly() = Position(x = x +  random.nextInt(-3, 3), y = y + random.nextInt(-3, 3))
     fun addVelocity(velocity: Vec2D) = Position(x = x + velocity.x, y = y + velocity.y)
     fun toPixels(scale: Float) = Position(x = x * scale, y = y * scale)
@@ -66,7 +67,7 @@ data class Vec2D(var x: Float, var y: Float) {
     }
 }
 
-fun randomUnitVec2D(): Vec2D {
+fun randomDirection(): Vec2D {
     val angle = random.nextDouble(0.0, 2 * PI)
     return Vec2D(cos(angle).toFloat(), sin(angle).toFloat())
 }
