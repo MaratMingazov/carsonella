@@ -71,3 +71,8 @@ fun randomDirection(): Vec2D {
     val angle = random.nextDouble(0.0, 2 * PI)
     return Vec2D(cos(angle).toFloat(), sin(angle).toFloat())
 }
+
+fun chance(probability: Float): Boolean {
+    require(probability in 0f..1f) { "Вероятность должна быть от 0f до 1f" }
+    return Random.nextFloat() < probability
+}

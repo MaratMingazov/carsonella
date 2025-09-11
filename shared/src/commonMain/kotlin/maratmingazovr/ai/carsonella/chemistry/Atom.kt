@@ -86,6 +86,8 @@ class Atom(
                     .takeIf { it.isNotEmpty() }
                     ?.let { requestReaction(listOf(this) + it) }
 
+                if (state.value.energy > 0) { requestReaction(listOf(this)) }
+
             }
             delay(10)
         }

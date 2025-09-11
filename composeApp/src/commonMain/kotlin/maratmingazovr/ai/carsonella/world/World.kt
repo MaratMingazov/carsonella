@@ -14,6 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HToHAndPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusHtoH2
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
 import maratmingazovr.ai.carsonella.world.generators.AtomGenerator
@@ -43,8 +44,14 @@ class World(
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(
         rules = listOf(
+            // subAtoms
             ElectronPlusProtonToH(atomGenerator),
-            HplusPhotonToProtonAndElectron(subAtomGenerator),
+
+            // Atoms
+            HplusPhotonToProtonAndElectron(subAtomGenerator), // Фотоэффект
+            HToHAndPhoton(subAtomGenerator), // Излучение фотона
+
+            // Molecules
             HplusHtoH2(moleculeGenerator)
         )
     )
