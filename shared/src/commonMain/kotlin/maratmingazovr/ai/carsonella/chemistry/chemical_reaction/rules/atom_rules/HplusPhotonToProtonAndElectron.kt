@@ -75,13 +75,13 @@ class HplusPhotonToProtonAndElectron(
         } else {
             // фотон выбивает электрон у атома водорода.
             val freeEnergy = hydrogen!!.state().value.energy + photon!!.state().value.energy - H_ev
-            val electronDiration = randomDirection()
-            val protonDirection = Vec2D(-1*electronDiration.x, -1*electronDiration.y)
+            val electronDirection = randomDirection()
+            val protonDirection = Vec2D(-1*electronDirection.x, -1*electronDirection.y)
             return ReactionOutcome(
                 consumed = listOf(photon!!, hydrogen!!),
                 spawn = listOf {
                     subAtomGenerator.createSubAtom(Proton, hydrogen!!.state().value.position.plus(Position(H.radius,0f)), protonDirection, freeEnergy, energy = 0f)
-                    subAtomGenerator.createSubAtom(Electron, hydrogen!!.state().value.position, electronDiration, 40f, energy = 0f)
+                    subAtomGenerator.createSubAtom(Electron, hydrogen!!.state().value.position, electronDirection, 40f, energy = 0f)
                                },
             )
         }

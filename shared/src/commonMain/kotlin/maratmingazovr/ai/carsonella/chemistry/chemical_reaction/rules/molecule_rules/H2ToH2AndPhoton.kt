@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
@@ -9,33 +9,29 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
 
-/**
- * Когда атом водорода находится в возбужденном состояние, электрон находится на втором уровне
- * Это не стабильное состояние.
- * Поэтому атом водорода может излучить фотон, чтобы уменьшить свою энергию
- */
-class HToHAndPhoton(
+
+class H2ToH2AndPhoton(
     private val subAtomGenerator: ISubAtomGenerator,
 ) : ReactionRule {
-    override val id = "H->HandPhoton"
+    override val id = "H₂->H₂ + γ"
 
-    private var hydrogen : Entity<*>? = null
+    private var diHydrogen : Entity<*>? = null
 
 
     override suspend fun matches(reagents: List<Entity<*>>) : Boolean {
-        hydrogen = null
+        diHydrogen = null
 
         if (reagents.size != 1) return false
         val first = reagents.first()
 
-        if (first.state().value.element != Element.H) return false
+        if (first.state().value.element != Element.H2) return false
         if (!first.state().value.alive) return false
 
-        val H_ev = 10.2f // если у атома водорода больше этой энергии, то он находится в возбужденном состоянии
+        val H_ev = 3f
         if (first.state().value.energy < H_ev) return false
         if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
-        hydrogen = first
+        diHydrogen = first
         return true
     }
 
@@ -44,11 +40,11 @@ class HToHAndPhoton(
     override suspend fun produce(): ReactionOutcome {
 
         return ReactionOutcome(
-            updateState = listOf { hydrogen!!.addEnergy(-1.8f) },
+            updateState = listOf { diHydrogen!!.addEnergy(-1.8f) },
             spawn = listOf {
                 subAtomGenerator.createSubAtom(
                     Element.Photon,
-                    hydrogen!!.state().value.position.plus(Position(Element.H.radius, 0f)),
+                    diHydrogen!!.state().value.position.plus(Position(Element.H.radius, 0f)),
                     randomDirection(),
                     40f,
                     energy = 1.8f

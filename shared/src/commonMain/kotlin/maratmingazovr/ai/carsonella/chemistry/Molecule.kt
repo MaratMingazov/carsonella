@@ -73,6 +73,13 @@ class Molecule(
                 reduceVelocity()
                 checkBorders(environment)
 
+                neighbors
+                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { requestReaction(listOf(this) + it) }
+
+                if (state.value.energy > 0) { requestReaction(listOf(this)) }
+
             }
             delay(10)
         }

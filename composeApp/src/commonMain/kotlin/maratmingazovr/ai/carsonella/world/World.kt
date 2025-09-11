@@ -17,6 +17,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPl
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HToHAndPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusHtoH2
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2ToH2AndPhoton
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
 import maratmingazovr.ai.carsonella.world.generators.AtomGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 import maratmingazovr.ai.carsonella.world.generators.MoleculeGenerator
@@ -52,7 +54,9 @@ class World(
             HToHAndPhoton(subAtomGenerator), // Излучение фотона
 
             // Molecules
-            HplusHtoH2(moleculeGenerator)
+            HplusHtoH2(moleculeGenerator),
+            H2plusPhotonToHandH(atomGenerator), // Фотодиссоциация молекулы водорода (светом)
+            H2ToH2AndPhoton(subAtomGenerator),
         )
     )
 
