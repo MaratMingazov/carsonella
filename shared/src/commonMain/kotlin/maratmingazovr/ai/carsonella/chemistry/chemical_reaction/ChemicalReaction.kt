@@ -5,17 +5,16 @@ import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.Electron
+import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Element.O
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HToHAndPhoton
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomToAtomAndPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2ToH2AndPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
 
 
@@ -31,17 +30,25 @@ class ChemicalReactionResolver(
 
     private val rules = listOf(
         // subAtoms
-        ElectronPlusProtonToH(entityGenerator),
+        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
 
         // Atoms
         HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
-        HToHAndPhoton(entityGenerator), // Излучение фотона
+
+
+        // Фотодиссоциация Фотоэффект PhotodissociationThreshold
+        // PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
+        // excitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
+
+
+        // Излучение фотона
+        AtomToAtomAndPhoton(entityGenerator, H, 10.2f),
+        AtomToAtomAndPhoton(entityGenerator, H2, 3f),
 
         // Molecules
         AtomPlusAtomToMolecule(entityGenerator, H, H, H2),
-        AtomPlusAtomToMolecule(entityGenerator, O, H, Element.O2),
+        AtomPlusAtomToMolecule(entityGenerator, O, O, Element.O2),
         H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
-        H2ToH2AndPhoton(entityGenerator), // Излучение фотона
     )
 
     private val _stepMutex = Mutex()

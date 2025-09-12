@@ -141,11 +141,7 @@ interface Entity<State : EntityState<State>> :
     }
 }
 
-enum class ElementType {
-    SubAtom,  // субатомные частицы
-    Atom,     // атомы
-    Molecule  // молекулы
-}
+enum class ElementType { SubAtom, Atom, Molecule }
 
 enum class Element(
     val type: ElementType,
@@ -154,19 +150,19 @@ enum class Element(
     val mass: Float,
     val electronsCount: Int,
     val protonsCount: Int,
-    val radius: Float, // в пикометрах
+    val radius: Float,
 ) {
     // --- субатомные частицы ---
-    Photon(ElementType.SubAtom, "γ", "Photon (γ)", mass = 0f, electronsCount = 0, protonsCount = 0, radius = 1f),
-    Electron(ElementType.SubAtom, "e⁻", "Electron (e⁻)", mass = 0.0005f, electronsCount = 1, protonsCount = 0, radius = 1f),
-    Proton(ElementType.SubAtom, "p⁺", "Proton (p⁺)", mass = 1f, electronsCount = 0, protonsCount = 1, radius = 10f),
+    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, electronsCount = 0, protonsCount = 0, radius = 10f),
+    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.0005f, electronsCount = 1, protonsCount = 0, radius = 10f),
+    Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, electronsCount = 0, protonsCount = 1, radius = 10f),
 
     // --- атомы ---
-    H(ElementType.Atom, "H", "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, radius = 40f),
-    O(ElementType.Atom, "O", "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8, radius = 40f),
+    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, radius = 40f),
+    O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8, radius = 40f),
 
     // --- молекулы ---
-    H2(ElementType.Molecule, "H₂", "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 40f),
-    O2(ElementType.Molecule, "O₂", "Oxygen (O₂)", mass = 32f, electronsCount = 16, protonsCount = 16, radius = 40f),
-    H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 40f),
+    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 40f),
+    O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, electronsCount = 16, protonsCount = 16, radius = 40f),
+    H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 40f),
 }
