@@ -12,11 +12,6 @@ data class Position(val x: Float, val y: Float) {
     fun moveRandomly() = Position(x = x +  random.nextInt(-3, 3), y = y + random.nextInt(-3, 3))
     fun addVelocity(velocity: Vec2D) = Position(x = x + velocity.x, y = y + velocity.y)
     fun toPixels(scale: Float) = Position(x = x * scale, y = y * scale)
-    fun distanceTo(other: Position): Float {
-        val dx = other.x - x
-        val dy = other.y - y
-        return kotlin.math.sqrt(dx * dx + dy * dy)
-    }
     fun distanceSquareTo(other: Position): Float {
         val dx = other.x - x
         val dy = other.y - y

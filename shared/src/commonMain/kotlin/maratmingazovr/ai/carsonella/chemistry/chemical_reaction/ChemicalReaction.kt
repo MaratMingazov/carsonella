@@ -5,9 +5,18 @@ import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.H
+import maratmingazovr.ai.carsonella.chemistry.Element.O
+import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HToHAndPhoton
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2ToH2AndPhoton
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
 
 
 interface IEntityGenerator {
@@ -17,8 +26,23 @@ interface IEntityGenerator {
 
 
 class ChemicalReactionResolver(
-    private val rules: List<ReactionRule>,
+    private val entityGenerator: IEntityGenerator,
 ) {
+
+    private val rules = listOf(
+        // subAtoms
+        ElectronPlusProtonToH(entityGenerator),
+
+        // Atoms
+        HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
+        HToHAndPhoton(entityGenerator), // Излучение фотона
+
+        // Molecules
+        AtomPlusAtomToMolecule(entityGenerator, H, H, H2),
+        AtomPlusAtomToMolecule(entityGenerator, O, H, Element.O2),
+        H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
+        H2ToH2AndPhoton(entityGenerator), // Излучение фотона
+    )
 
     private val _stepMutex = Mutex()
 

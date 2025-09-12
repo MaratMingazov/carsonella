@@ -13,12 +13,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ElectronPlusProtonToH
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HToHAndPhoton
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusHtoH2
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2ToH2AndPhoton
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 
@@ -33,28 +27,14 @@ class World(
         0f,
         0.00000000000000000000000001f
     )
-    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton, Element.H)
+    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton, Element.H, Element.O, Element.O2)
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
     val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
     private val _worldMutex = Mutex()
 
 
-    private val _chemicalReactionResolver = ChemicalReactionResolver(
-        rules = listOf(
-            // subAtoms
-            ElectronPlusProtonToH(entityGenerator),
-
-            // Atoms
-            HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
-            HToHAndPhoton(entityGenerator), // Излучение фотона
-
-            // Molecules
-            HplusHtoH2(entityGenerator),
-            H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
-            H2ToH2AndPhoton(entityGenerator),
-        )
-    )
+    private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
         _scope.launch {

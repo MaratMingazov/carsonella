@@ -167,5 +167,6 @@ enum class Element(
 
     // --- молекулы ---
     H2(ElementType.Molecule, "H₂", "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, radius = 40f),
-    H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 40f),;
+    O2(ElementType.Molecule, "O₂", "Oxygen (O₂)", mass = 32f, electronsCount = 16, protonsCount = 16, radius = 40f),
+    H2O(ElementType.Molecule, "H₂O", "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10, radius = 40f),
 }
