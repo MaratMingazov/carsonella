@@ -4,8 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IAtomGenerator
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ISubAtomGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
@@ -19,7 +18,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  * 	•	В астрономии это важный процесс — ультрафиолет от звёзд разрушает межзвёздные облака водорода.
  */
 class H2plusPhotonToHandH(
-    private val atomGenerator: IAtomGenerator,
+    private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "H₂ + hν → H + H"
 
@@ -74,14 +73,14 @@ class H2plusPhotonToHandH(
             return ReactionOutcome(
                 consumed = listOf(photon!!, diHydrogen!!),
                 spawn = listOf {
-                    atomGenerator.createAtom(
+                    entityGenerator.createEntity(
                         Element.H,
                         diHydrogen!!.state().value.position.plus(Position(-1.5f*Element.H.radius, 0f)),
                         firstHydrogenDirection,
                         diHydrogen!!.state().value.velocity,
                         energy = 0f
                     )
-                    atomGenerator.createAtom(
+                    entityGenerator.createEntity(
                         Element.H,
                         diHydrogen!!.state().value.position.plus(Position(1.5f*Element.H.radius, 0f)),
                         secondHydrogenDirection,

@@ -10,18 +10,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
 
-
-
-interface ISubAtomGenerator {
-    fun createSubAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
-}
-
-interface IAtomGenerator {
-    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
-}
-
-interface IMoleculeGenerator {
-    fun createMolecule(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
+interface IEntityGenerator {
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
 }
 
 

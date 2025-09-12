@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ISubAtomGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
@@ -15,7 +15,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  * Поэтому атом водорода может излучить фотон, чтобы уменьшить свою энергию
  */
 class HToHAndPhoton(
-    private val subAtomGenerator: ISubAtomGenerator,
+    private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "H->HandPhoton"
 
@@ -46,7 +46,7 @@ class HToHAndPhoton(
         return ReactionOutcome(
             updateState = listOf { hydrogen!!.addEnergy(-1.8f) },
             spawn = listOf {
-                subAtomGenerator.createSubAtom(
+                entityGenerator.createEntity(
                     Element.Photon,
                     hydrogen!!.state().value.position.plus(Position(Element.H.radius, 0f)),
                     randomDirection(),

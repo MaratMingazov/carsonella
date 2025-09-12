@@ -4,10 +4,10 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IAtomGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 class ElectronPlusProtonToH(
-    private val atomGenerator: IAtomGenerator,
+    private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "e+p->H"
 
@@ -80,7 +80,7 @@ class ElectronPlusProtonToH(
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(electron!!, proton!!)
         return ReactionOutcome(
             consumed = listOf(electron!!, proton!!),
-            spawn = listOf { atomGenerator.createAtom(Element.H, proton!!.state().value.position, direction, velocity, energy = 0f) },
+            spawn = listOf { entityGenerator.createEntity(Element.H, proton!!.state().value.position, direction, velocity, energy = 0f) },
         )
     }
 }

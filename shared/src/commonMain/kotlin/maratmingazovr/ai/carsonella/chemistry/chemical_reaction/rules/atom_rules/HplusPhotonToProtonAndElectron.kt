@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.*
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ISubAtomGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
@@ -25,7 +25,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  * 3 - Если мы превысим энергию связи, то атом водорода разлетится на части. Электрон сможет преодолеть притяжение протона и улетит от него
  */
 class HplusPhotonToProtonAndElectron(
-    private val subAtomGenerator: ISubAtomGenerator,
+    private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "H+photon->ProtonAndElectron"
 
@@ -80,8 +80,8 @@ class HplusPhotonToProtonAndElectron(
             return ReactionOutcome(
                 consumed = listOf(photon!!, hydrogen!!),
                 spawn = listOf {
-                    subAtomGenerator.createSubAtom(Proton, hydrogen!!.state().value.position.plus(Position(H.radius,0f)), protonDirection, freeEnergy, energy = 0f)
-                    subAtomGenerator.createSubAtom(Electron, hydrogen!!.state().value.position, electronDirection, 40f, energy = 0f)
+                    entityGenerator.createEntity(Proton, hydrogen!!.state().value.position.plus(Position(H.radius,0f)), protonDirection, freeEnergy, energy = 0f)
+                    entityGenerator.createEntity(Electron, hydrogen!!.state().value.position, electronDirection, 40f, energy = 0f)
                                },
             )
         }

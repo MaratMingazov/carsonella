@@ -19,10 +19,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2ToH2AndPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
-import maratmingazovr.ai.carsonella.world.generators.AtomGenerator
+import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
-import maratmingazovr.ai.carsonella.world.generators.MoleculeGenerator
-import maratmingazovr.ai.carsonella.world.generators.SubAtomGenerator
 
 class World(
     private val _scope: CoroutineScope,
@@ -38,25 +36,23 @@ class World(
     val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton, Element.H)
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val subAtomGenerator = SubAtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs)
-    val atomGenerator = AtomGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
-    val moleculeGenerator = MoleculeGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
+    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
     private val _worldMutex = Mutex()
 
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(
         rules = listOf(
             // subAtoms
-            ElectronPlusProtonToH(atomGenerator),
+            ElectronPlusProtonToH(entityGenerator),
 
             // Atoms
-            HplusPhotonToProtonAndElectron(subAtomGenerator), // Фотоэффект
-            HToHAndPhoton(subAtomGenerator), // Излучение фотона
+            HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
+            HToHAndPhoton(entityGenerator), // Излучение фотона
 
             // Molecules
-            HplusHtoH2(moleculeGenerator),
-            H2plusPhotonToHandH(atomGenerator), // Фотодиссоциация молекулы водорода (светом)
-            H2ToH2AndPhoton(subAtomGenerator),
+            HplusHtoH2(entityGenerator),
+            H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
+            H2ToH2AndPhoton(entityGenerator),
         )
     )
 

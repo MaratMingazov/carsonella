@@ -3,12 +3,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IMoleculeGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
 class HplusHtoH2(
-    private val moleculeGenerator: IMoleculeGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
+    private val entityGenerator: IEntityGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
 ) : ReactionRule {
     override val id = "H+H->H2"
 
@@ -53,7 +53,7 @@ class HplusHtoH2(
         return ReactionOutcome(
             consumed = listOf(_hydrogen1!!, _hydrogen2!!),
             spawn = listOf {
-                moleculeGenerator.createMolecule(
+                entityGenerator.createEntity(
                     Element.H2,
                     _hydrogen1!!.state().value.position,
                     direction,

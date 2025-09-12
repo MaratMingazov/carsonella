@@ -4,14 +4,14 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ISubAtomGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
 
 
 class H2ToH2AndPhoton(
-    private val subAtomGenerator: ISubAtomGenerator,
+    private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "H₂->H₂ + γ"
 
@@ -42,7 +42,7 @@ class H2ToH2AndPhoton(
         return ReactionOutcome(
             updateState = listOf { diHydrogen!!.addEnergy(-1.8f) },
             spawn = listOf {
-                subAtomGenerator.createSubAtom(
+                entityGenerator.createEntity(
                     Element.Photon,
                     diHydrogen!!.state().value.position.plus(Position(Element.H.radius, 0f)),
                     randomDirection(),
