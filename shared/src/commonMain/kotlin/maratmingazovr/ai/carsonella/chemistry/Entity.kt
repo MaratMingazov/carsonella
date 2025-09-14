@@ -151,7 +151,8 @@ enum class Element(
     val electronsCount: Int,
     val protonsCount: Int,
     val radius: Float = 40f,
-    val excitationEnergy: Float? = null,
+    val excitationEnergy: Float? = null, // Энергия возбуждения. После этого элемент переходит в возбужденное состояние и может испускать фотон
+    val energyThreshold: Float? = null, // Энергетический порог. После этого элемент разрывается.
 ) {
     // --- субатомные частицы ---
     Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, electronsCount = 0, protonsCount = 0, radius = 10f),
@@ -159,11 +160,11 @@ enum class Element(
     Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, electronsCount = 0, protonsCount = 1, radius = 10f),
 
     // --- атомы ---
-    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, excitationEnergy = 10.2f),
+    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, excitationEnergy = 10.2f, energyThreshold = 13.6f),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8),
 
     // --- молекулы ---
-    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, excitationEnergy = 3f),
+    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, excitationEnergy = 3f, energyThreshold = 4.5f),
     O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, electronsCount = 16, protonsCount = 16),
     H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10),
 }

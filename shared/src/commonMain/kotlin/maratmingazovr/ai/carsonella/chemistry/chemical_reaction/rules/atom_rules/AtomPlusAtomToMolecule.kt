@@ -35,7 +35,7 @@ class AtomPlusAtomToMolecule(
             ?: return false
 
 
-        return if (distanceSquare < H.radius * H.radius * 2f) {
+        return if (distanceSquare < element1.radius * element2.radius * 2f) {
             atom1 = firstAtom
             atom2 = secondAtom
             true

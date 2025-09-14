@@ -15,8 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomToAtomAndPhoton
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.HplusPhotonToProtonAndElectron
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.H2plusPhotonToHandH
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculePlusPhotonToAtomAndAtom
 
 
 interface IEntityGenerator {
@@ -30,20 +29,17 @@ class ChemicalReactionResolver(
 ) {
 
     private val rules = listOf(
-        // subAtoms
-        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
 
 
-        // Фотодиссоциация Фотоэффект PhotodissociationThreshold
-        // PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
-        HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
-        H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
+        // Фотодиссоциация/Фотоэффект PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
+        MoleculePlusPhotonToAtomAndAtom(entityGenerator, H, Proton, Electron),
+        MoleculePlusPhotonToAtomAndAtom(entityGenerator, H2, H, H),
 
-        // Излучение фотона
-        // excitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
+        // Излучение фотона ExcitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
         AtomToAtomAndPhoton(entityGenerator),
 
         // Molecules
+        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
         AtomPlusAtomToMolecule(entityGenerator, H, H, H2),
         AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
 
