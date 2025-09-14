@@ -14,8 +14,6 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class AtomToAtomAndPhoton(
     private val entityGenerator: IEntityGenerator,
-    private val reagen: Element,
-    private val energyThreshold: Float,
 ) : ReactionRule {
     override val id = "Entity -> Entity and γ"
 
@@ -27,12 +25,12 @@ class AtomToAtomAndPhoton(
 
         if (reagents.size != 1) return false
         val first = reagents.first()
+        val excitationEnergy = first.state().value.element.excitationEnergy ?: return false
 
-        if (first.state().value.element != reagen) return false
         if (!first.state().value.alive) return false
 
 
-        if (first.state().value.energy < energyThreshold) return false
+        if (first.state().value.energy < excitationEnergy) return false
         if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
         entity = first

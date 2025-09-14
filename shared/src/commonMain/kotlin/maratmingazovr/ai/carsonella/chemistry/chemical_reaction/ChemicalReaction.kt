@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Element.O
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
+import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
@@ -32,23 +33,20 @@ class ChemicalReactionResolver(
         // subAtoms
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
 
-        // Atoms
-        HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
-
 
         // Фотодиссоциация Фотоэффект PhotodissociationThreshold
         // PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
-        // excitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
-
+        HplusPhotonToProtonAndElectron(entityGenerator), // Фотоэффект
+        H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
 
         // Излучение фотона
-        AtomToAtomAndPhoton(entityGenerator, H, 10.2f),
-        AtomToAtomAndPhoton(entityGenerator, H2, 3f),
+        // excitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
+        AtomToAtomAndPhoton(entityGenerator),
 
         // Molecules
         AtomPlusAtomToMolecule(entityGenerator, H, H, H2),
-        AtomPlusAtomToMolecule(entityGenerator, O, O, Element.O2),
-        H2plusPhotonToHandH(entityGenerator), // Фотодиссоциация молекулы водорода (светом)
+        AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
+
     )
 
     private val _stepMutex = Mutex()
