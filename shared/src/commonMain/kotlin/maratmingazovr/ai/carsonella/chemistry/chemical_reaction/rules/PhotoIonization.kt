@@ -8,10 +8,10 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
- * Ионизация. Или фотоэффект.
+ * Ионизация под действием света. Или фотоэффект.
  * Если элемент наберет достаточно энергии (energyIonization), то электрон может вылететь с орбиты
  */
-class Ionization (
+class PhotoIonization (
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "Ionization"
