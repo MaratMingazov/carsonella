@@ -86,7 +86,8 @@ class SubAtom(
 
     private suspend fun initPhoton(environment: IEnvironment) {
         applyNewPosition()
-        if (state.value.element in listOf(Element.Photon, Element.Electron)) {
+        // Фотон и Электрон разрушаются, если вылетают за пределы поля
+        if (state.value.element in listOf(Photon, Electron)) {
             if (state.value.position.x !in 0f..environment.getWorldWidth() ||
                 state.value.position.y !in 0f..environment.getWorldHeight()) {
                 destroy()

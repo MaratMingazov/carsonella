@@ -32,7 +32,7 @@ class MoleculePlusPhotonToAtomAndAtom(
         if (reagents.size < 2) return false
 
         val first = reagents.first()
-        if (first.state().value.element.energyThreshold == null) return false
+        if (first.state().value.element.energyBondDissociation == null) return false
         if (first.state().value.element != moleculeElement) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
@@ -62,7 +62,7 @@ class MoleculePlusPhotonToAtomAndAtom(
          *  Энергетический порог молекулы.
          *  Если в молекулу прилетел фотон, то молекула либо заберет эту энергию, либо сама распадется
          */
-        val energyThreshold = moleculeElement.energyThreshold!!
+        val energyThreshold = moleculeElement.energyBondDissociation!!
 
         if (molecule!!.state().value.energy + photon!!.state().value.energy < energyThreshold) {
             // молекула поглощает энергию, пока не достигнет энергетического порога

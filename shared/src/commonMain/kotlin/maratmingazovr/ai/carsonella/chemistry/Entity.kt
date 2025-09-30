@@ -152,7 +152,11 @@ enum class Element(
     val protonsCount: Int,
     val radius: Float = 40f,
     val excitationEnergy: Float? = null, // Энергия возбуждения. После этого элемент переходит в возбужденное состояние и может испускать фотон
-    val energyThreshold: Float? = null, // Энергетический порог. После этого элемент разрывается.
+
+    val energyIonization: Float? = null, // Энергия ионизации. Cколько нужно энергии, чтобы выбить электрон из атома
+    val ion: Element? = null, // Ион, который образуется, когда мы выбиваем электрон у элемента
+
+    val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
 ) {
     // --- субатомные частицы ---
     Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, electronsCount = 0, protonsCount = 0, radius = 10f),
@@ -160,11 +164,12 @@ enum class Element(
     Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, electronsCount = 0, protonsCount = 1, radius = 10f),
 
     // --- атомы ---
-    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, excitationEnergy = 10.2f, energyThreshold = 13.6f),
+    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, electronsCount = 1, protonsCount = 1, excitationEnergy = 10.2f, energyIonization = 13.6f, ion = Proton),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, electronsCount = 8, protonsCount = 8),
+    Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, electronsCount = 28, protonsCount = 28),
 
     // --- молекулы ---
-    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, excitationEnergy = 3f, energyThreshold = 4.5f),
+    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, electronsCount = 2, protonsCount = 2, excitationEnergy = 3f, energyBondDissociation = 4.5f),
     O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, electronsCount = 16, protonsCount = 16),
     H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, electronsCount = 10, protonsCount = 10),
 }

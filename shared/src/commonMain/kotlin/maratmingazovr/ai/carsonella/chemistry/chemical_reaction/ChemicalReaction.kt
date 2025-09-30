@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.O
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Ionization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomToAtomAndPhoton
@@ -31,6 +32,7 @@ class ChemicalReactionResolver(
     private val rules = listOf(
 
 
+        Ionization(entityGenerator),
         // Фотодиссоциация/Фотоэффект PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
         MoleculePlusPhotonToAtomAndAtom(entityGenerator, H, Proton, Electron),
         MoleculePlusPhotonToAtomAndAtom(entityGenerator, H2, H, H),
