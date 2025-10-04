@@ -16,7 +16,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIoniz
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomToAtomAndPhoton
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculePlusPhotonToAtomAndAtom
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 
 
 interface IEntityGenerator {
@@ -25,19 +25,12 @@ interface IEntityGenerator {
 
 
 
-class ChemicalReactionResolver(
-    private val entityGenerator: IEntityGenerator,
-) {
+class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
 
     private val rules = listOf(
 
-
         PhotoIonization(entityGenerator), // отрыв электрона от элемента под действием света
-
-
-        // Фотодиссоциация/Фотоэффект PhotodissociationThreshold - энергетический порог, после которого может разорваться связь и элемент может распасться на составные элементы
-        MoleculePlusPhotonToAtomAndAtom(entityGenerator, H, Proton, Electron),
-        MoleculePlusPhotonToAtomAndAtom(entityGenerator, H2, H, H),
+        PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
 
         // Излучение фотона ExcitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
         AtomToAtomAndPhoton(entityGenerator),

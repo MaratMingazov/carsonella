@@ -8,13 +8,15 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
+ * Фотоионизация - Процесс взаимодействия электромагнитного излучения с веществом,
+ * при котором вещество распадается на электрически заряженные частицы — ионы и электроны
  * Ионизация под действием света. Или фотоэффект.
  * Если элемент наберет достаточно энергии (energyIonization), то электрон может вылететь с орбиты
  */
 class PhotoIonization (
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
-    override val id = "Ionization"
+    override val id = "PhotoIonization"
 
     private var entity : Entity<*>? = null
     private var photon : Entity<*>? = null
@@ -71,21 +73,26 @@ class PhotoIonization (
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
             val entityPosition = entity!!.state().value.position
+            val entityElement = entity!!.state().value.element
+            val entityDirection = entity!!.state().value.direction
+            val entityVelocity = entity!!.state().value.velocity
 
-            val ion = entity!!.state().value.element.ion!!
-            val ionPosition = entityPosition.plus(Position(-1.5f * ion.radius, 0f))
-            val ionDirection = entity!!.state().value.direction
-            val ionVelocity = entity!!.state().value.velocity
+            val ion = entityElement.ion!!
+            val ionPosition = entityPosition.plus(Position(-1f * entityElement.radius, 0f))
+            val ionDirection = entityDirection
+            val ionVelocity = entityVelocity
+            val ionEnergy = 0f
 
             val electron = Electron
-            val electronPosition = entityPosition.plus(Position(1.5f * electron.radius, 0f))
-            val electronDirection = Vec2D(-1 * ionDirection.x, -1 * ionDirection.y)
+            val electronPosition = entityPosition.plus(Position(1f * entityElement.radius, 0f))
+            val electronDirection = entityDirection
             val electronVelocity = 10 + 0.2f * freeEnergy
             val electronEnergy = 0.8f * freeEnergy
+
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
-                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, energy = 0f)
+                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
                     entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
                 }
             )
