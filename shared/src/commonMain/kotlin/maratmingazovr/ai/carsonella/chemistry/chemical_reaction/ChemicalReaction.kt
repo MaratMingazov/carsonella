@@ -15,7 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomToAtomAndPhoton
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.Luminescence
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 
 
@@ -31,9 +31,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
 
         PhotoIonization(entityGenerator), // отрыв электрона от элемента под действием света
         PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
-
-        // Излучение фотона ExcitationEnergy - энергия возбуждения. Если атом накопит такую энергию, то он перейдет в возбужденное состояние, и может выстрелить фотоном, чтобы отдать лишнюю энергию
-        AtomToAtomAndPhoton(entityGenerator),
+        Luminescence(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
         // Molecules
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),

@@ -27,7 +27,11 @@ class World(
         0f,
         0.00000000000000000000000001f
     )
-    val palette =  mutableStateListOf(Element.Photon, Element.Electron, Element.Proton, Element.H, Element.O, Element.O2)
+    val palette =  mutableStateListOf(
+        Element.Photon, Element.Electron, Element.Proton,
+        Element.H, Element.O,
+        Element.H2, Element.O2
+    )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
     val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
