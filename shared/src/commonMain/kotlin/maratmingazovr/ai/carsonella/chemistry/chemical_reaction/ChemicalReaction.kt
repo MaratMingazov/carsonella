@@ -8,9 +8,11 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.H
+import maratmingazovr.ai.carsonella.chemistry.Element.C
 import maratmingazovr.ai.carsonella.chemistry.Element.O
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
+import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -33,10 +35,11 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
         Luminescence(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
-        // Molecules
+        // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
         AtomPlusAtomToMolecule(entityGenerator, H, H, H2),
         AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
+        AtomPlusAtomToMolecule(entityGenerator, O, H2, H2O),
 
     )
 
