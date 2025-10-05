@@ -1,15 +1,13 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
- * Фотоионизация - Процесс взаимодействия электромагнитного излучения с веществом,
- * при котором вещество распадается на электрически заряженные частицы — ионы и электроны
+ * Фотоионизация — это процесс, при котором атом или молекула теряет электрон под воздействием фотона, становясь ионом
  * Ионизация под действием света. Или фотоэффект.
  * Если элемент наберет достаточно энергии (energyIonization), то электрон может вылететь с орбиты
  */
