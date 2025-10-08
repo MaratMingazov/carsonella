@@ -27,7 +27,7 @@ class PhotoIonization (
 
         val first = reagents.first()
         val firstElement = first.state().value.element
-        if (firstElement.energyIonization == null) return false
+        if (firstElement.energyLevels.isEmpty()) return false
         if (firstElement.ion == null) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
@@ -36,12 +36,15 @@ class PhotoIonization (
         val (nearestPhoton, distance) = others
             .asSequence()
             .filter { it.state().value.element == Photon }
+            .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
             .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
             .minByOrNull { it.second }
             ?: return false
 
-        if (distance <= activationDistanceSquare) {
+        if (distance > activationDistanceSquare) return false
+        val expectedEnergy = first.state().value.energy + nearestPhoton.state().value.energy
+        if (firstElement.energyLevels.contains(expectedEnergy) || expectedEnergy > firstElement.energyLevels.last()) {
             entity = first
             photon = nearestPhoton
             return true
@@ -57,21 +60,23 @@ class PhotoIonization (
          *  Если в элемент прилетел фотон, то электрон заберет эту энергию.
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
-        val energyIonization = entity!!.state().value.element.energyIonization!!
+        val energyIonization = entity!!.state().value.element.energyLevels.last()
         val entityEnergy = entity!!.state().value.energy
+        val entityElement = entity!!.state().value.element
         val photonEnergy = photon!!.state().value.energy
+        val photonElement = photon!!.state().value.element
 
         if (entityEnergy + photonEnergy < energyIonization) {
             // мы поглащаем энергию, так как порог еще не пройден
             return ReactionOutcome(
                 consumed = listOf(photon!!),
                 updateState = listOf { entity!!.addEnergy(photonEnergy) },
+                description = "Фотоионизация: ${entityElement.label} (${entityEnergy}eV) + ${photonElement.label} (${photonEnergy}eV) -> ${entityElement.label} (${entityEnergy + photonEnergy}eV)"
             )
         } else {
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
             val entityPosition = entity!!.state().value.position
-            val entityElement = entity!!.state().value.element
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
 
@@ -85,14 +90,15 @@ class PhotoIonization (
             val electronPosition = entityPosition.plus(Position(1f * entityElement.radius, 0f))
             val electronDirection = entityDirection
             val electronVelocity = 10 + 0.2f * freeEnergy
-            val electronEnergy = 0.8f * freeEnergy
+            val electronEnergy = 0f
 
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
                     entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
                     entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
-                }
+                },
+                description = "Фотоионизация: ${entityElement.label} (${entityEnergy}eV) + ${photonElement.label} (${photonEnergy}eV) -> ${ion.label} (${ionEnergy}eV) + ${electron.label} (${electronEnergy}eV)"
             )
         }
     }

@@ -10,6 +10,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
+ * Когда электрон в атоме водорода падает с более высокого уровня на более низкий, он излучает фотон.
+ * Это процесс называется спонтанное излучение (spontaneous emission).
+ *
  * Люминесценция — это холодное свечение вещества, возникающее после поглощения им энергии возбуждения,
  * то есть излучение света нетеплового происхождения, в отличие от накала.
  * В результате перехода молекул из возбуждённого состояния в основное состояние происходит излучение света.
@@ -18,7 +21,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  *
  * Атом или молекула находится в возбужденном состоянии, он может испускать фотон, чтобы отдать лишнюю энергию
  */
-class Luminescence(
+class SpontaneousEmission(
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
     override val id = "Luminescence"
@@ -34,15 +37,10 @@ class Luminescence(
         if (!first.state().value.alive) return false
 
         val firstElement = first.state().value.element
-        val firstElementLuminescenceEnergy = if (firstElement.energyIonization != null) {
-              0.8 * firstElement.energyIonization
-        } else if (firstElement.energyBondDissociation != null) {
-            0.8 * firstElement.energyBondDissociation
-        } else {
-            return false
-        }
+        if (firstElement.energyLevels.isEmpty()) return false
+        if (first.state().value.energy == 0f) return false
+        if (!firstElement.energyLevels.contains(first.state().value.energy)) { throw Exception("Luminescence")}
 
-        if (first.state().value.energy < firstElementLuminescenceEnergy) return false
         if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
         entity = first
@@ -53,17 +51,29 @@ class Luminescence(
 
     override suspend fun produce(): ReactionOutcome {
 
+        // нужно вычислить сколько энергии должен отдать атом
+        val entityEnergy = entity!!.state().value.energy
+        val entityElement = entity!!.state().value.element
+        val index = entityElement.energyLevels.indexOf(entityEnergy)
+        if (index < 0) throw Exception("Luminescence out of index")
+
+        // электрон в атоме спустится на 1 уровень ниже и отдаст энергию
+        val energyToExpose =
+            if (index == 0) { entityEnergy }
+            else { entityEnergy - entityElement.energyLevels[index - 1] }
+
         return ReactionOutcome(
-            updateState = listOf { entity!!.addEnergy(-1.8f) },
+            updateState = listOf { entity!!.addEnergy(-1 * energyToExpose) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.Photon,
                     entity!!.state().value.position.plus(Position(Element.H.radius, 0f)),
                     randomDirection(),
                     40f,
-                    energy = 1.8f
+                    energy = energyToExpose
                 )
             },
+            description = "Люминесценция: ${entityElement.label} (${entityEnergy}eV) -> ${Element.Photon.label} (${energyToExpose}eV)",
         )
     }
 

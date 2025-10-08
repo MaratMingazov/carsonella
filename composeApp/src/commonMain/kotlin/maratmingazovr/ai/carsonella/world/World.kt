@@ -9,10 +9,12 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
+import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 
@@ -41,6 +43,13 @@ class World(
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
+        environment.setWorldHeight(500f)
+        environment.setWorldWidth(500f)
+        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 100f),  direction = randomDirection(), velocity = 0f, energy = 1.8f)
+        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)
+        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
+        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)
+        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 300f),  direction = randomDirection(), velocity = 0f, energy = 12.09f)
         _scope.launch {
             for (reactinoRequest in _requestsChannel) {
                 _worldMutex.withLock { runReaction(reactinoRequest) }
@@ -83,7 +92,7 @@ class World(
 
     suspend fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
-        logs += "${nowString()}: Произошла реакция между: ${result.consumed.map { it.state().value.element.name }.toList()}"
+        logs += "${currentTime()}: Произошла реакция: ${result.description}"
 
         result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }
@@ -96,7 +105,7 @@ class World(
 
 data class ReactionRequest(val reagents: List<Entity<*>>)
 
-fun nowString(): String {
+fun currentTime(): String {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     val h = now.hour.toString().padStart(2, '0')
     val m = now.minute.toString().padStart(2, '0')

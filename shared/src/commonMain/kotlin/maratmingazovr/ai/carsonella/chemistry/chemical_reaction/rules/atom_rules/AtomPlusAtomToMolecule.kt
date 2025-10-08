@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -12,6 +11,7 @@ class AtomPlusAtomToMolecule(
     private val element1: Element,
     private val element2: Element,
     private val resultElement: Element,
+    private val resultEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
 ) : ReactionRule {
     override val id = "Atom + Atom -> Molecule"
 
@@ -57,7 +57,7 @@ class AtomPlusAtomToMolecule(
                     atom1!!.state().value.position,
                     direction,
                     velocity,
-                    energy = atom1!!.state().value.energy + atom2!!.state().value.energy
+                    energy = atom1!!.state().value.energy + atom2!!.state().value.energy + resultEnergy
                 )
             },
         )

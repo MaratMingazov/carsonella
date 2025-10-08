@@ -17,7 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.world.ReactionRequest
-import maratmingazovr.ai.carsonella.world.nowString
+import maratmingazovr.ai.carsonella.world.currentTime
 
 class EntityGenerator(
     private val idGen: IdGenerator,
@@ -56,7 +56,7 @@ class EntityGenerator(
             setNeighbors { entities.toList().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
             setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
             setEnvironment(environment)
-            setLogger { log -> logs += "${nowString()}: $log" }
+            setLogger { log -> logs += "${currentTime()}: $log" }
         }
     }
 }
