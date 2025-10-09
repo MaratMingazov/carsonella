@@ -39,7 +39,7 @@ class SpontaneousEmission(
         val firstElement = first.state().value.element
         if (firstElement.energyLevels.isEmpty()) return false
         if (first.state().value.energy == 0f) return false
-        if (!firstElement.energyLevels.contains(first.state().value.energy)) { throw Exception("Luminescence")}
+        if (!firstElement.energyLevels.contains(first.state().value.energy)) { throw Exception("SpontaneousEmission")}
 
         if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
@@ -55,7 +55,7 @@ class SpontaneousEmission(
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
         val index = entityElement.energyLevels.indexOf(entityEnergy)
-        if (index < 0) throw Exception("Luminescence out of index")
+        if (index < 0) throw Exception("SpontaneousEmission out of index")
 
         // электрон в атоме спустится на 1 уровень ниже и отдаст энергию
         val energyToExpose =

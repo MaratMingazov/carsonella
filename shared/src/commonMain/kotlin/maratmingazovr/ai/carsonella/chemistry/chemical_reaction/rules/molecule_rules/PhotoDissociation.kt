@@ -85,14 +85,14 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityPosition.plus(Position(-1f * entityElement.radius, 0f)),
                         entityDirection,
                         entityVelocity,
-                        freeEnergy/2
+                        0f
                     )
                     entityGenerator.createEntity(
                         dissociationElements[1],
                         entityPosition.plus(Position(1f * entityElement.radius, 0f)),
                         entityDirection,
                         entityVelocity,
-                        freeEnergy/2
+                        0f
                     )
                 },
             )
