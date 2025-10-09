@@ -1,6 +1,8 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -11,7 +13,7 @@ class AtomPlusAtomToMolecule(
     private val element1: Element,
     private val element2: Element,
     private val resultElement: Element,
-    private val resultEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
+    private val resultPhotonEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
 ) : ReactionRule {
     override val id = "Atom + Atom -> Molecule"
 
@@ -49,17 +51,38 @@ class AtomPlusAtomToMolecule(
     override suspend fun produce(): ReactionOutcome {
 
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(atom1!!, atom2!!)
+        val spawnList = mutableListOf<() -> Entity<*>>()
+        val resultPosition = atom1!!.state().value.position
+        val atom1Element = atom1!!.state().value.element
+        val atom2Element = atom2!!.state().value.element
+
+        spawnList += {
+            entityGenerator.createEntity(
+                resultElement,
+                resultPosition,
+                direction,
+                velocity,
+                energy = atom1!!.state().value.energy + atom2!!.state().value.energy
+            )
+        }
+
+        if (resultPhotonEnergy > 0) {
+            spawnList += {
+                entityGenerator.createEntity(
+                    Photon,
+                    Position(resultPosition.x + 1.5f * direction.x * resultElement.radius,resultPosition.y + 1.5f * direction.y * resultElement.radius),
+                    direction,
+                    10f,
+                    energy = resultPhotonEnergy
+                )
+            }
+
+        }
+
         return ReactionOutcome(
             consumed = listOf(atom1!!, atom2!!),
-            spawn = listOf {
-                entityGenerator.createEntity(
-                    resultElement,
-                    atom1!!.state().value.position,
-                    direction,
-                    velocity,
-                    energy = atom1!!.state().value.energy + atom2!!.state().value.energy + resultEnergy
-                )
-            },
+            spawn = spawnList,
+            description = "${atom1Element.symbol} + ${atom2Element.symbol} -> ${resultElement.symbol} + ${Photon.symbol}"
         )
     }
 }

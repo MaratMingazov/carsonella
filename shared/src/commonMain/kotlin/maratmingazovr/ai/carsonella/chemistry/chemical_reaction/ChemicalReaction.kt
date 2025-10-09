@@ -35,8 +35,8 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
         // Реакции атомов
-        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H),
-        AtomPlusAtomToMolecule(entityGenerator, H, H, H2, 4.48f),
+        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),
+        AtomPlusAtomToMolecule(entityGenerator, H, H, H2, 4.5f),
         AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
         AtomPlusAtomToMolecule(entityGenerator, O, H2, H2O),
 

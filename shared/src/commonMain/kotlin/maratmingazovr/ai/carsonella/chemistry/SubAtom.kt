@@ -65,7 +65,7 @@ class SubAtom(
     override fun state() = state
 
     override suspend fun init() {
-        writeLog("Появился ${state.value.element.label}: ${state.value.id}, energy: ${state.value.energy}")
+        //writeLog("Появился ${state.value.element.label}: ${state.value.id}, energy: ${state.value.energy}")
         while (state.value.alive) {
             stepMutex.withLock {
 

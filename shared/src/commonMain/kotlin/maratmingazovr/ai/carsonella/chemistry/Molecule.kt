@@ -61,7 +61,7 @@ class Molecule(
     override fun state() = state
 
     override suspend fun init() {
-        writeLog("Появился ${state.value.element.label}: ${state.value.id}")
+        //writeLog("Появился ${state.value.element.label}: ${state.value.id}")
         while (state.value.alive) {
             stepMutex.withLock {
 
