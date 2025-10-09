@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.AtomState
 import maratmingazovr.ai.carsonella.chemistry.MoleculeState
+import maratmingazovr.ai.carsonella.chemistry.StarState
 import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.toOffset
 
@@ -20,8 +21,6 @@ class EntityRenderer(
 ) {
 
     private val subAtomRenderer = SubAtomRenderer(textMeasurer)
-    private val atomRenderer = AtomRenderer(textMeasurer)
-    private val moleculeRenderer = MoleculeRenderer(textMeasurer)
 
     fun render(
         drawScope: DrawScope,
@@ -32,6 +31,7 @@ class EntityRenderer(
             is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase)
             is AtomState -> drawEntity(drawScope, entityState, phase)
             is MoleculeState -> drawEntity(drawScope, entityState, phase)
+            is StarState -> drawEntity(drawScope, entityState, phase)
         }
     }
 

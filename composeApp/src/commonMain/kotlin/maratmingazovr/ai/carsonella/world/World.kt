@@ -32,7 +32,8 @@ class World(
     val palette =  mutableStateListOf(
         Element.Photon, Element.Electron, Element.Proton,
         Element.H, Element.O,
-        Element.H2, Element.O2
+        Element.H2, Element.O2,
+        Element.Star
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()

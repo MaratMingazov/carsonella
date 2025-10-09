@@ -13,7 +13,9 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Molecule
+import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.world.ReactionRequest
@@ -41,6 +43,7 @@ class EntityGenerator(
             SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
+            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
         }
 
         applyDefaultBehavior(entity)
