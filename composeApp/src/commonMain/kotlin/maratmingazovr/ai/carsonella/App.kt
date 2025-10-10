@@ -34,6 +34,11 @@ fun App() {
             targetValue = (2f * PI).toFloat(),
             animationSpec = infiniteRepeatable(tween(durationMillis = 1000, easing = LinearEasing))
         )
+        val phase2 by rememberInfiniteTransition().animateFloat(
+            initialValue = 0f,
+            targetValue = (2f * PI).toFloat(),
+            animationSpec = infiniteRepeatable(tween(durationMillis = 5000, easing = LinearEasing))
+        )
 
         var hoverPos by remember { mutableStateOf<Offset?>(null) } // это координаты моего курсора на канве
         var hoveredId by remember { mutableStateOf<Long?>(null) }
@@ -59,6 +64,7 @@ fun App() {
                     entitiesState = entitiesState,
                     renderer = renderer,
                     phase = phase,
+                    phase2 = phase2,
                 )
 
             }

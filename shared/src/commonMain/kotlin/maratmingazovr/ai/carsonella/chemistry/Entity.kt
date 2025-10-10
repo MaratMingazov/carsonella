@@ -99,6 +99,7 @@ interface Entity<State : EntityState<State>> :
         val myElectronsCount = state().value.element.e
         val myProtonsCount = state().value.element.p
         val myRadius = state().value.element.radius
+        val myMass = state().value.element.mass
         if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
         elements.forEach { element ->
@@ -108,6 +109,7 @@ interface Entity<State : EntityState<State>> :
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.state().value.element.radius
+            val elementMass = element.state().value.element.mass
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
             if (distance2 > maxRadius2) return@forEach // вне радиуса действия
@@ -123,11 +125,14 @@ interface Entity<State : EntityState<State>> :
                 else { 0f } // у него тоже нет электроноа, никакой силы нет
             }
 
+            //val gravityForce = -1 * myMass * elementMass / (distance2 + 10f)
+            val gravityForce = 0
+
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
             val elementProtonsCount = element.state().value.element.e
             val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) { (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f) } else 0f
 
-            val fScalar = fAttraction + fRepulsion
+            val fScalar = fAttraction + fRepulsion + gravityForce
             fVector.x += rx * fScalar
             fVector.y += ry * fScalar
         }
@@ -175,7 +180,7 @@ enum class Element(
     C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
-    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1000f, e = 0, p = 0, n = 0)
+    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1000f, e = 0, p = 0, n = 0, radius = 100f),
 
 
 }

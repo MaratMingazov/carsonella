@@ -56,6 +56,7 @@ fun RightPanel(
     entitiesState: List<EntityState<*>>,
     renderer: EntityRenderer,
     phase: Float,
+    phase2: Float,
     modifier: Modifier = Modifier
 ) {
 
@@ -106,6 +107,7 @@ fun RightPanel(
                     entitiesState = entitiesState,
                     renderer = renderer,
                     phase = phase,
+                    phase2 = phase2,
                     hoverPos = hoverPos,
                     onHover = { pos -> onHover(pos); focusRequester.requestFocus() },
                     hoveredId = hoveredId,
@@ -174,6 +176,7 @@ private fun SceneCanvas(
     entitiesState: List<EntityState<*>>,
     renderer: EntityRenderer,
     phase: Float,
+    phase2: Float,
     hoverPos: Offset?,
     onHover: (Offset?) -> Unit,
     hoveredId: Long?,
@@ -243,7 +246,7 @@ private fun SceneCanvas(
         world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей
-        entitiesState.forEach { renderer.render(this, it, phase) }
+        entitiesState.forEach { renderer.render(this, it, phase, phase2) }
 
         // подсветка ховера
         hoveredId?.let { id ->

@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.world.renderers
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -26,12 +27,13 @@ class EntityRenderer(
         drawScope: DrawScope,
         entityState: EntityState<*>,
         phase: Float,
+        phase2: Float,
     ) {
         when (entityState) {
             is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase)
             is AtomState -> drawEntity(drawScope, entityState, phase)
             is MoleculeState -> drawEntity(drawScope, entityState, phase)
-            is StarState -> drawEntity(drawScope, entityState, phase)
+            is StarState -> drawStar(drawScope, entityState, phase, phase2)
         }
     }
 
@@ -66,6 +68,49 @@ class EntityRenderer(
             drawText(
                 textLayoutResult,
                 topLeft = Offset(position.x - textLayoutResult.size.width / 2, position.y - textLayoutResult.size.height / 2)
+            )
+        }
+    }
+
+    fun drawStar(
+        drawScope: DrawScope,
+        entityState: EntityState<*>,
+        phase: Float,
+        phase2: Float,
+    ) {
+        // параметры вибрации
+        val amp = 1f + entityState.energy                  // амплитуда в пикселях
+        val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
+        val dx = amp * kotlin.math.cos(phase2 + idSeed)
+        val dy = amp * kotlin.math.sin(phase2 + idSeed)
+        val position = entityState.position.toOffset()  + Offset(dx, dy)
+
+        // пульсирующий радиус для границы
+        val baseRadius = entityState.element.radius + 5f   // базовый радиус круга
+        val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
+        val pulsingRadius = baseRadius + pulse
+
+        with(drawScope) {
+
+            // радиальный градиент: от красного на границе к прозрачному в центре
+            val gradientBrush = Brush.radialGradient(
+                colors = listOf(Color.Red, Color.Transparent, Color.Transparent),
+                center = position,
+                radius = pulsingRadius
+            )
+
+            // рисуем пульсирующий градиентный круг
+            drawCircle(
+                brush = gradientBrush,
+                center = position,
+                radius = pulsingRadius
+            )
+
+            drawCircle(
+                color = Color.Black,
+                center = position,
+                radius = entityState.element.radius,
+                style = Stroke(width = 1f,)
             )
         }
     }
