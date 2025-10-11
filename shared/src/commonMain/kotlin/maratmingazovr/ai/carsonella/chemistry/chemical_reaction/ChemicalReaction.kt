@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
@@ -33,6 +34,8 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         PhotoIonization(entityGenerator), // отрыв электрона от элемента под действием света
         PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
+
+        StarEmission(entityGenerator),
 
         // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),

@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
+import kotlin.math.abs
 
 interface EntityState<State : EntityState<State>> {
 
@@ -52,7 +53,7 @@ interface Entity<State : EntityState<State>> :
 
     fun reduceVelocity() {
         if (state().value.velocity < 0.1f) {
-            //state().value = state().value.copyWith(velocity = 0f)
+            state().value = state().value.copyWith(velocity = 0f)
         } else {
             state().value = state().value.copyWith(velocity = state().value.velocity * 0.99f)
         }
@@ -62,13 +63,17 @@ interface Entity<State : EntityState<State>> :
 
         var position = state().value.position
         var direction = state().value.direction
+        val left = env.getCenter().x - env.getRadius()
+        val right = env.getCenter().x + env.getRadius()
+        val bottom = env.getCenter().y - env.getRadius()
+        val top = env.getCenter().y + env.getRadius()
 
-        if (position.x !in 0f..env.getWorldWidth()) {
-            position = position.copy(x = position.x.coerceIn(0f, env.getWorldWidth()))
+        if (position.x !in left..right) {
+            position = position.copy(x = position.x.coerceIn(left, right))
             direction = direction.copy(x = -direction.x)
         }
-        if (position.y !in 0f..env.getWorldHeight()) {
-            position = position.copy(y = position.y.coerceIn(0f, env.getWorldHeight()))
+        if (position.y !in bottom..top) {
+            position = position.copy(y = position.y.coerceIn(bottom, top))
             direction = direction.copy(y = -direction.y)
         }
         state().value = state().value.copyWith(position = position, direction = direction)
@@ -166,6 +171,8 @@ enum class Element(
 
     // --- атомы ---
     H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
+    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1),
+
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
     Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
@@ -180,7 +187,7 @@ enum class Element(
     C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
-    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1000f, e = 0, p = 0, n = 0, radius = 100f),
+    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1000f, e = 0, p = 0, n = 0, radius = 50f),
 
 
 }

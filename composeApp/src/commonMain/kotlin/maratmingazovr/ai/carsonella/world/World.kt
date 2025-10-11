@@ -14,7 +14,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
-import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 
@@ -25,8 +24,8 @@ class World(
     private val _idGen: IdGenerator = IdGenerator()
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
     val environment = Environment(
-        0f,
-        0f,
+        Position(500f, 500f),
+        500f,
         0.00000000000000000000000001f
     )
     val palette =  mutableStateListOf(
@@ -44,13 +43,11 @@ class World(
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
-        environment.setWorldHeight(500f)
-        environment.setWorldWidth(500f)
-        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 100f),  direction = randomDirection(), velocity = 0f, energy = 1.8f)
-        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)
-        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
-        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)
-        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 300f),  direction = randomDirection(), velocity = 0f, energy = 12.09f)
+//        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 100f),  direction = randomDirection(), velocity = 0f, energy = 1.8f)
+//        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)
+//        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
+//        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)
+//        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 300f),  direction = randomDirection(), velocity = 0f, energy = 12.09f)
         _scope.launch {
             for (reactinoRequest in _requestsChannel) {
                 _worldMutex.withLock { runReaction(reactinoRequest) }

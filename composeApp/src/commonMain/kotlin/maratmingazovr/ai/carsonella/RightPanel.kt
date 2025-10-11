@@ -241,9 +241,9 @@ private fun SceneCanvas(
             }
         }
 
-        // размеры мира
-        world.environment.setWorldWidth(size.width)
-        world.environment.setWorldHeight(size.height)
+//        // размеры мира
+//        world.environment.setWorldWidth(size.width)
+//        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей
         entitiesState.forEach { renderer.render(this, it, phase, phase2) }

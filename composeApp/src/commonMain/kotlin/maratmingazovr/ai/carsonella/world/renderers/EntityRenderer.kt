@@ -94,7 +94,7 @@ class EntityRenderer(
 
             // радиальный градиент: от красного на границе к прозрачному в центре
             val gradientBrush = Brush.radialGradient(
-                colors = listOf(Color.Red, Color.Transparent, Color.Transparent),
+                colors = listOf(Color.Red, Color.Transparent),
                 center = position,
                 radius = pulsingRadius
             )
@@ -106,12 +106,12 @@ class EntityRenderer(
                 radius = pulsingRadius
             )
 
-            drawCircle(
-                color = Color.Black,
-                center = position,
-                radius = entityState.element.radius,
-                style = Stroke(width = 1f,)
-            )
+//            drawCircle(
+//                color = Color.Black,
+//                center = position,
+//                radius = entityState.element.radius,
+//                style = Stroke(width = 1f,)
+//            )
         }
     }
 }
