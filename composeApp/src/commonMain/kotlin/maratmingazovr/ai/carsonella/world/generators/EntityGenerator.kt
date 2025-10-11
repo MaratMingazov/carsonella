@@ -40,10 +40,10 @@ class EntityGenerator(
     ): Entity<*> {
 
         val entity = when(element.type) {
-            SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
+            SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment)
+            Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment)
+            Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment)
+            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment)
         }
 
         applyDefaultBehavior(entity)
@@ -58,7 +58,6 @@ class EntityGenerator(
             setOnDeath { entities.remove(this)}
             setNeighbors { entities.toList().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
             setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
-            setEnvironment(environment)
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
     }

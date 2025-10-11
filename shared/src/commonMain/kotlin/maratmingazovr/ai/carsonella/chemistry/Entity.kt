@@ -5,11 +5,9 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
-import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
-import kotlin.math.abs
 
 interface EntityState<State : EntityState<State>> {
 
@@ -20,6 +18,8 @@ interface EntityState<State : EntityState<State>> {
     var direction: Vec2D
     var velocity: Float
     var energy: Float
+    var environment: IEnvironment
+    var subEnvironment: IEnvironment
 
     fun copyWith(
         alive: Boolean = this.alive,
@@ -27,6 +27,8 @@ interface EntityState<State : EntityState<State>> {
         direction: Vec2D = this.direction,
         velocity: Float = this.velocity,
         energy: Float = this.energy,
+        environment: IEnvironment = this.environment,
+        subEnvironment: IEnvironment = this.subEnvironment
     ): State
 
 }
@@ -35,7 +37,6 @@ interface Entity<State : EntityState<State>> :
     DeathNotifiable,
     NeighborsAware,
     ReactionRequester,
-    EnvironmentAware,
     LogWritable
 {
     fun state(): MutableStateFlow<State>

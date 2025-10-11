@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
@@ -18,8 +19,10 @@ data class MoleculeState(
     override var direction: Vec2D,
     override var velocity: Float,
     override var energy: Float,
+    override var environment: IEnvironment,
+    override var subEnvironment: IEnvironment,
 ) : EntityState<MoleculeState> {
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, subEnvironment: IEnvironment) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment, subEnvironment = subEnvironment)
     override fun toString(): String {
         return """
             |${element.label}: $id
@@ -37,12 +40,12 @@ class Molecule(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    environment: IEnvironment,
 ):
     Entity<MoleculeState>,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
-    EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
@@ -54,6 +57,8 @@ class Molecule(
             direction = direction,
             velocity = velocity,
             energy = energy,
+            environment = environment,
+            subEnvironment = environment,
         )
     )
     private val stepMutex = Mutex()
@@ -66,7 +71,7 @@ class Molecule(
             stepMutex.withLock {
 
                 val neighbors = getNeighbors()
-                val environment = getEnvironment()
+                val environment = state.value.environment
 
                 applyForce(calculateForce(neighbors))
                 applyNewPosition()

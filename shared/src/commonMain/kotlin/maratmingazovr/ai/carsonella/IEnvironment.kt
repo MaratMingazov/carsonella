@@ -9,13 +9,3 @@ interface IEnvironment {
     fun setRadius(radius: Float)
     fun setTemperature(temperature: Float)
 }
-
-class EnvironmentDefault : IEnvironment {
-    override fun getCenter() = Position(0f, 0f)
-    override fun getRadius() = 0f
-    override fun getTemperature() = 0f
-
-    override fun setCenter(position: Position) {}
-    override fun setRadius(radius: Float) {}
-    override fun setTemperature(temperature: Float) {}
-}

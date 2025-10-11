@@ -12,16 +12,8 @@ class Environment(
     override fun getRadius() = radius
     override fun getTemperature() = temperature
 
-    override fun setCenter(position: Position) {
-        this.center = position
-    }
-
-    override fun setRadius(radius: Float) {
-        this.radius = radius
-    }
-
-    override fun setTemperature(temperature: Float) {
-        this.temperature = temperature
-    }
+    override fun setCenter(position: Position) { this.center = position }
+    override fun setRadius(radius: Float) { this.radius = radius }
+    override fun setTemperature(temperature: Float) { this.temperature = temperature }
 
 }
