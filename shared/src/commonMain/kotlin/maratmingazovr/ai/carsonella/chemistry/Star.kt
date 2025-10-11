@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -58,7 +59,7 @@ class Star(
             velocity = velocity,
             energy = energy,
             environment = environment,
-            subEnvironment = environment,
+            subEnvironment = Environment(position, element.radius, 1000000f),
         )
     )
     private val stepMutex = Mutex()

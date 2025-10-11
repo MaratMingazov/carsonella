@@ -9,6 +9,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -36,7 +37,7 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, environment, logs, palette)
+    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, logs, palette)
     private val _worldMutex = Mutex()
 
 

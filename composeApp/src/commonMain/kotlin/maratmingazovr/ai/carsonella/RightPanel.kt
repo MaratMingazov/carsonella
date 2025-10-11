@@ -91,7 +91,7 @@ fun RightPanel(
                                             val from = selected.position.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
                                             // Из выбранного элемента стреляем фотоном
-                                            world.entityGenerator.createEntity(element = selected.element, Position(selected.position.x, selected.position.y),  direction = dir, velocity = 10f, energy = selected.energy)
+                                            world.entityGenerator.createEntity(element = selected.element, Position(selected.position.x, selected.position.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment)
                                         }
                                     }
                                 }

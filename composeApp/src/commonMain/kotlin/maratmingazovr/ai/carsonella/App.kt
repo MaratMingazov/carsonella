@@ -53,7 +53,7 @@ fun App() {
 
                 RightPanel(
                     accept = { it.element in Element.entries },
-                    onDrop = { data, localPos -> world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(), velocity = 0f, energy = 0f) },
+                    onDrop = { data, localPos -> world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(), velocity = 0f, energy = 0f, environment = world.environment) },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
                     hoveredId = hoveredId,

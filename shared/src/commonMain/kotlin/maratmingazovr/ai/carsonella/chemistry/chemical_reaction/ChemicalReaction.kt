@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -22,7 +23,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_r
 
 
 interface IEntityGenerator {
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float): Entity<*>
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment): Entity<*>
 }
 
 

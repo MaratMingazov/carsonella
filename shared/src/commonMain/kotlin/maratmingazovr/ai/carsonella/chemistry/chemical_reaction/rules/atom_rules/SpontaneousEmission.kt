@@ -53,6 +53,7 @@ class SpontaneousEmission(
 
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity!!.state().value.energy
+        val entityEnvironment = entity!!.state().value.environment
         val entityElement = entity!!.state().value.element
         val index = entityElement.energyLevels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")
@@ -70,7 +71,8 @@ class SpontaneousEmission(
                     entity!!.state().value.position.plus(Position(Element.H.radius, 0f)),
                     randomDirection(),
                     40f,
-                    energy = energyToExpose
+                    energy = energyToExpose,
+                    environment = entityEnvironment,
                 )
             },
             description = "Люминесценция: ${entityElement.label} (${entityEnergy}eV) -> ${Element.Photon.label} (${energyToExpose}eV)",

@@ -79,6 +79,7 @@ class PhotoIonization (
             val entityPosition = entity!!.state().value.position
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
+            val entityEnvironment = entity!!.state().value.environment
 
             val ion = entityElement.ion!!
             val ionPosition = entityPosition.plus(Position(-1f * entityElement.radius, 0f))
@@ -95,8 +96,8 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
-                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
-                    entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
+                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy, environment = entityEnvironment)
+                    entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy, environment = entityEnvironment)
                 },
                 description = "Фотоионизация: ${entityElement.label} (${entityEnergy}eV) + ${photonElement.label} (${photonEnergy}eV) -> ${ion.label} (${ionEnergy}eV) + ${electron.label} (${electronEnergy}eV)"
             )

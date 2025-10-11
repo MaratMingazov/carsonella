@@ -70,8 +70,8 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
             )
         } else {
             // пройден энергетический порог. Происходит диссоциация
-            val freeEnergy = entityEnergy + photonEnergy - energyDissociation
             val entityPosition = entity!!.state().value.position
+            val entityEnvironment = entity!!.state().value.environment
             val entityElement = entity!!.state().value.element
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
@@ -85,14 +85,16 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityPosition.plus(Position(-1f * entityElement.radius, 0f)),
                         entityDirection,
                         entityVelocity,
-                        0f
+                        energy = 0f,
+                        environment = entityEnvironment,
                     )
                     entityGenerator.createEntity(
                         dissociationElements[1],
                         entityPosition.plus(Position(1f * entityElement.radius, 0f)),
                         entityDirection,
                         entityVelocity,
-                        0f
+                        energy = 0f,
+                        environment = entityEnvironment,
                     )
                 },
             )

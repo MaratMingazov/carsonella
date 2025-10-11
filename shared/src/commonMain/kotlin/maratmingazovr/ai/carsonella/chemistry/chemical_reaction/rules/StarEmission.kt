@@ -49,7 +49,8 @@ class StarEmission (
                     entity!!.state().value.position,
                     randomDirection(),
                     2f,
-                    energy = 0f
+                    energy = 0f,
+                    entity!!.state().value.subEnvironment
                 )
             },
             //description = "Люминесценция: ${entityElement.label} (${entityEnergy}eV) -> ${Element.Photon.label} (${energyToExpose}eV)",

@@ -26,7 +26,6 @@ class EntityGenerator(
     private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
     private val scope: CoroutineScope,
     private val requestsChannel: Channel<ReactionRequest>, // это канал, в который атом может отправлять запросы на химическую реакцию
-    private val environment: IEnvironment,
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
 ) : IEntityGenerator {
@@ -37,6 +36,7 @@ class EntityGenerator(
         direction: Vec2D,
         velocity: Float,
         energy: Float,
+        environment: IEnvironment,
     ): Entity<*> {
 
         val entity = when(element.type) {

@@ -53,6 +53,7 @@ class AtomPlusAtomToMolecule(
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(atom1!!, atom2!!)
         val spawnList = mutableListOf<() -> Entity<*>>()
         val resultPosition = atom1!!.state().value.position
+        val resultEnvironment = atom1!!.state().value.environment
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
 
@@ -62,7 +63,8 @@ class AtomPlusAtomToMolecule(
                 resultPosition,
                 direction,
                 velocity,
-                energy = atom1!!.state().value.energy + atom2!!.state().value.energy
+                energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
+                environment = resultEnvironment
             )
         }
 
@@ -73,7 +75,8 @@ class AtomPlusAtomToMolecule(
                     Position(resultPosition.x + 1.5f * direction.x * resultElement.radius,resultPosition.y + 1.5f * direction.y * resultElement.radius),
                     direction,
                     10f,
-                    energy = resultPhotonEnergy
+                    energy = resultPhotonEnergy,
+                    environment = resultEnvironment
                 )
             }
 
