@@ -24,11 +24,7 @@ class World(
 
     private val _idGen: IdGenerator = IdGenerator()
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
-    val environment = Environment(
-        Position(500f, 500f),
-        500f,
-        0.00000000000000000000000001f
-    )
+    val environment = Environment(Position(500f, 500f), 500f, 0f)
     val palette =  mutableStateListOf(
         Element.Photon, Element.Electron, Element.Proton,
         Element.H, Element.O,
@@ -37,7 +33,7 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, logs, palette)
+    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, logs, palette, environment)
     private val _worldMutex = Mutex()
 
 
@@ -54,26 +50,6 @@ class World(
                 _worldMutex.withLock { runReaction(reactinoRequest) }
             }
         }
-    }
-
-
-    fun updateTemperatureGame(): Float {
-        val currentTemperature = environment.getTemperature()
-
-        if (entities.isEmpty()) {
-            environment.setTemperature(0f)
-            return 0f
-        }
-        var sum = 0f
-        for (e in entities) {
-            val m = e.state().value.element.mass
-            val v = e.state().value.velocity
-            sum += 0.5f * m * v * v
-        }
-        val actualTemperature = sum / entities.size
-        val smoothTemperature = smoothEma(currentTemperature, actualTemperature)
-        environment.setTemperature(smoothTemperature)
-        return smoothTemperature
     }
 
     fun applyForceToEntity(entityId: Long, force: Vec2D) {

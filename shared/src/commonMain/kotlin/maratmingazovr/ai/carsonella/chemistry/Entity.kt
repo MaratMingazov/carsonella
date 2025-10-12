@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
+import kotlin.math.sqrt
 
 interface EntityState<State : EntityState<State>> {
 
@@ -18,17 +19,13 @@ interface EntityState<State : EntityState<State>> {
     var direction: Vec2D
     var velocity: Float
     var energy: Float
-    var environment: IEnvironment
-    var subEnvironment: IEnvironment
 
     fun copyWith(
         alive: Boolean = this.alive,
         position: Position = this.position,
         direction: Vec2D = this.direction,
         velocity: Float = this.velocity,
-        energy: Float = this.energy,
-        environment: IEnvironment = this.environment,
-        subEnvironment: IEnvironment = this.subEnvironment
+        energy: Float = this.energy
     ): State
 
 }
@@ -37,11 +34,17 @@ interface Entity<State : EntityState<State>> :
     DeathNotifiable,
     NeighborsAware,
     ReactionRequester,
+    IEnvironment, // каждая частица может являться средой для других частиц
     LogWritable
 {
     fun state(): MutableStateFlow<State>
     suspend fun init()
     suspend fun destroy() // нужно, чтобы сообщить атому, что он должен быть уничтожен
+
+    // только те частицы, которые сами могут служить средой, будут переопределять эти методы
+    override fun getEnvCenter(): Position = throw Exception("Not Supported")
+    override fun getEnvRadius(): Float = throw Exception("Not Supported")
+    override fun getEnvTemperature(): Float = throw Exception("Not Supported")
 
     fun applyNewPosition() {
         state().value = state().value.copyWith(position =
@@ -64,19 +67,35 @@ interface Entity<State : EntityState<State>> :
 
         var position = state().value.position
         var direction = state().value.direction
-        val left = env.getCenter().x - env.getRadius()
-        val right = env.getCenter().x + env.getRadius()
-        val bottom = env.getCenter().y - env.getRadius()
-        val top = env.getCenter().y + env.getRadius()
+        val center = env.getEnvCenter()
+        val radius = env.getEnvRadius()
 
-        if (position.x !in left..right) {
-            position = position.copy(x = position.x.coerceIn(left, right))
-            direction = direction.copy(x = -direction.x)
+        // Вектор от центра круга к объекту
+        val dx = position.x - center.x
+        val dy = position.y - center.y
+
+
+        if (dx * dx + dy * dy > radius * radius) {
+            // Расстояние от центра
+            val dist = sqrt(dx * dx + dy * dy)
+            // Если снаружи — нормализуем вектор и перемещаем на границу круга
+            val nx = dx / dist
+            val ny = dy / dist
+            position =  Position(x = center.x + nx * radius, y = center.y + ny * radius)
+
+            // Отразить направление относительно нормали
+            val dot = direction.x * nx + direction.y * ny
+            direction = direction.copy(x = direction.x - 2 * dot * nx, y = direction.y - 2 * dot * ny)
         }
-        if (position.y !in bottom..top) {
-            position = position.copy(y = position.y.coerceIn(bottom, top))
-            direction = direction.copy(y = -direction.y)
-        }
+
+//        if (position.x !in left..right) {
+//            position = position.copy(x = position.x.coerceIn(left, right))
+//            direction = direction.copy(x = -direction.x)
+//        }
+//        if (position.y !in bottom..top) {
+//            position = position.copy(y = position.y.coerceIn(bottom, top))
+//            direction = direction.copy(y = -direction.y)
+//        }
         state().value = state().value.copyWith(position = position, direction = direction)
     }
 
@@ -188,7 +207,7 @@ enum class Element(
     C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
-    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1000f, e = 0, p = 0, n = 0, radius = 50f),
+    Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 0, p = 0, n = 0, radius = 50f),
 
 
 }

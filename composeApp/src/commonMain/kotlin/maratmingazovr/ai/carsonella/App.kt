@@ -7,12 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
-import maratmingazovr.ai.carsonella.chemistry.Element.Electron
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -53,7 +49,7 @@ fun App() {
 
                 RightPanel(
                     accept = { it.element in Element.entries },
-                    onDrop = { data, localPos -> world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(), velocity = 0f, energy = 0f, environment = world.environment) },
+                    onDrop = { data, localPos -> world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(), velocity = 0f, energy = 0f) },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
                     hoveredId = hoveredId,

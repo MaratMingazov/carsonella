@@ -23,7 +23,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_r
 
 
 interface IEntityGenerator {
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment): Entity<*>
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment? = null): Entity<*>
 }
 
 

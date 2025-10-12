@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -71,7 +70,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
         } else {
             // пройден энергетический порог. Происходит диссоциация
             val entityPosition = entity!!.state().value.position
-            val entityEnvironment = entity!!.state().value.environment
             val entityElement = entity!!.state().value.element
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
@@ -86,7 +84,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
-                        environment = entityEnvironment,
                     )
                     entityGenerator.createEntity(
                         dissociationElements[1],
@@ -94,7 +91,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
-                        environment = entityEnvironment,
                     )
                 },
             )

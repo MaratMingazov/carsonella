@@ -22,10 +22,8 @@ data class SubAtomState(
     override var direction: Vec2D,
     override var velocity: Float,
     override var energy: Float,
-    override var environment: IEnvironment,
-    override var subEnvironment: IEnvironment,
 ) : EntityState<SubAtomState> {
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, subEnvironment: IEnvironment) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, environment = environment, subEnvironment = subEnvironment)
+    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
     override fun toString(): String {
         return """
             |${element.label}: $id
@@ -43,12 +41,12 @@ class SubAtom(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
-    environment: IEnvironment,
 ):
     Entity<SubAtomState>,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
+    EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
@@ -59,9 +57,7 @@ class SubAtom(
             position = position,
             direction = direction,
             velocity = velocity,
-            energy = energy,
-            environment = environment,
-            subEnvironment = environment,
+            energy = energy
             )
     )
     private val stepMutex = Mutex()
@@ -74,7 +70,7 @@ class SubAtom(
             stepMutex.withLock {
 
                 val neighbors = getNeighbors()
-                val environment = state.value.environment
+                val environment = getEnvironment()
 
                 when (state.value.element) {
                     Photon -> initPhoton(environment)
@@ -92,10 +88,8 @@ class SubAtom(
         applyNewPosition()
         // Фотон и Электрон разрушаются, если вылетают за пределы поля
         if (state.value.element in listOf(Photon, Electron)) {
-            val distanceSquare = state.value.position.distanceSquareTo(environment.getCenter())
-            if (distanceSquare > environment.getRadius() *  environment.getRadius()) {
-//            if (state.value.position.x !in 0f..environment.getWorldWidth() ||
-//                state.value.position.y !in 0f..environment.getWorldHeight()) {
+            val distanceSquare = state.value.position.distanceSquareTo(environment.getEnvCenter())
+            if (distanceSquare > environment.getEnvRadius() * environment.getEnvRadius()) {
                 destroy()
             }
         }

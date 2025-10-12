@@ -1,19 +1,11 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.Electron
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
 
-/**
- * Фотоионизация — это процесс, при котором атом или молекула теряет электрон под воздействием фотона, становясь ионом
- * Ионизация под действием света. Или фотоэффект.
- * Если элемент наберет достаточно энергии (energyIonization), то электрон может вылететь с орбиты
- */
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
@@ -42,7 +34,6 @@ class StarEmission (
     override suspend fun produce(): ReactionOutcome {
 
         return ReactionOutcome(
-            //updateState = listOf { entity!!.addEnergy(-1 * energyToExpose) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.Proton,
@@ -50,10 +41,9 @@ class StarEmission (
                     randomDirection(),
                     2f,
                     energy = 0f,
-                    entity!!.state().value.subEnvironment
+                    environment = entity!!
                 )
             },
-            //description = "Люминесценция: ${entityElement.label} (${entityEnergy}eV) -> ${Element.Photon.label} (${energyToExpose}eV)",
         )
     }
 }
