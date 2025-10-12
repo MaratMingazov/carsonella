@@ -74,7 +74,7 @@ class SubAtom(
 
                 when (state.value.element) {
                     Photon -> initPhoton(environment)
-                    Electron -> initPhoton(environment)
+                    Electron -> initElectron(environment)
                     Proton -> initProton(environment, neighbors)
                     else -> NotImplementedError()
                 }
@@ -93,6 +93,11 @@ class SubAtom(
                 destroy()
             }
         }
+    }
+
+    private fun initElectron(environment: IEnvironment) {
+        applyNewPosition()
+        checkBorders(environment)
     }
 
     private fun initProton(environment: IEnvironment, neighbors: List<Entity<*>>) {

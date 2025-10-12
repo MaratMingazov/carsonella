@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Photon
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -14,6 +15,7 @@ class AtomPlusAtomToMolecule(
     private val element2: Element,
     private val resultElement: Element,
     private val resultPhotonEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
+    private val temperatureMode: TemperatureMode = TemperatureMode.Space,
 ) : ReactionRule {
     override val id = "Atom + Atom -> Molecule"
 
@@ -36,6 +38,8 @@ class AtomPlusAtomToMolecule(
             .minByOrNull { it.second }
             ?: return false
 
+        if (firstAtom.getEnvironment().getEnvTemperature() != temperatureMode) return false
+        if (secondAtom.getEnvironment().getEnvTemperature() != temperatureMode) return false
 
         return if (distanceSquare < element1.radius * element2.radius * 2f) {
             atom1 = firstAtom

@@ -23,7 +23,7 @@ class StarEmission (
         if (firstElement != Element.Star) return false
         if (!first.state().value.alive) return false
 
-        if (!chance(0.002f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
+        if (!chance(0.002f)) return false
 
         entity = first
         return true
@@ -33,10 +33,12 @@ class StarEmission (
 
     override suspend fun produce(): ReactionOutcome {
 
+        val resultElement =  if (!chance(0.5f))  Element.Proton else  Element.Electron
+
         return ReactionOutcome(
             spawn = listOf {
                 entityGenerator.createEntity(
-                    Element.H,
+                    resultElement,
                     entity!!.state().value.position,
                     randomDirection(),
                     2f,
