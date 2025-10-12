@@ -63,6 +63,7 @@ class AtomPlusAtomToMolecule(
                 direction,
                 velocity,
                 energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
+                atom1!!.getEnvironment(),
             )
         }
 

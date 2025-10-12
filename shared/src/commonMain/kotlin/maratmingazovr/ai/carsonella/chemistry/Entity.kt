@@ -3,8 +3,10 @@ package maratmingazovr.ai.carsonella.chemistry
 import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
+import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
@@ -35,6 +37,7 @@ interface Entity<State : EntityState<State>> :
     NeighborsAware,
     ReactionRequester,
     IEnvironment, // каждая частица может являться средой для других частиц
+    EnvironmentAware, // каждая частица сама находится в каком то среде
     LogWritable
 {
     fun state(): MutableStateFlow<State>
@@ -44,7 +47,7 @@ interface Entity<State : EntityState<State>> :
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
     override fun getEnvRadius(): Float = throw Exception("Not Supported")
-    override fun getEnvTemperature(): Float = throw Exception("Not Supported")
+    override fun getEnvTemperature(): TemperatureMode = throw Exception("Not Supported")
 
     fun applyNewPosition() {
         state().value = state().value.copyWith(position =

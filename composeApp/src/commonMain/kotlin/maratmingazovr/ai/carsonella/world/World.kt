@@ -11,6 +11,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -24,7 +25,7 @@ class World(
 
     private val _idGen: IdGenerator = IdGenerator()
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
-    val environment = Environment(Position(500f, 500f), 500f, 0f)
+    val environment = Environment(Position(500f, 500f), 500f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.Photon, Element.Electron, Element.Proton,
         Element.H, Element.O,

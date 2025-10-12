@@ -36,7 +36,7 @@ class StarEmission (
         return ReactionOutcome(
             spawn = listOf {
                 entityGenerator.createEntity(
-                    Element.Proton,
+                    Element.H,
                     entity!!.state().value.position,
                     randomDirection(),
                     2f,

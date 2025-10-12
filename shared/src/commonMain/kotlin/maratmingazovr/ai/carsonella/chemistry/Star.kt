@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
@@ -88,7 +89,7 @@ class Star(
 
     override fun getEnvCenter() = state.value.position
     override fun getEnvRadius() = state.value.element.radius
-    override fun getEnvTemperature() = 1000f
+    override fun getEnvTemperature() = TemperatureMode.Star
 
     override suspend fun destroy() {
         state.value = state.value.copy(alive = false)
