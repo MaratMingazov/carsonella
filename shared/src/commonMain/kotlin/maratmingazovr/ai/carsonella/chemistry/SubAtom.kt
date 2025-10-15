@@ -74,7 +74,7 @@ class SubAtom(
 
                 when (state.value.element) {
                     Photon -> initPhoton(environment)
-                    Electron -> initElectron(environment)
+                    Electron -> initElectron(environment, neighbors)
                     Proton -> initProton(environment, neighbors)
                     else -> NotImplementedError()
                 }
@@ -95,7 +95,9 @@ class SubAtom(
         }
     }
 
-    private fun initElectron(environment: IEnvironment) {
+    private fun initElectron(environment: IEnvironment, neighbors: List<Entity<*>>) {
+        reduceVelocity()
+        applyForce(calculateForce(neighbors)) // электроны должны отталкиваться друг от друга
         applyNewPosition()
         checkBorders(environment)
     }

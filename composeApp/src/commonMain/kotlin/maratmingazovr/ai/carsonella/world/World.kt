@@ -25,7 +25,7 @@ class World(
 
     private val _idGen: IdGenerator = IdGenerator()
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
-    val environment = Environment(Position(500f, 500f), 500f, TemperatureMode.Space)
+    val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.Photon, Element.Electron, Element.Proton,
         Element.H, Element.O,

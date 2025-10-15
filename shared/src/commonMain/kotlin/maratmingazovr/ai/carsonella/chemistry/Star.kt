@@ -68,6 +68,7 @@ class Star(
 
                 val neighbors = getNeighbors()
                 val environment = getEnvironment()
+                val radius = state.value.element.radius
 
                 applyForce(calculateForce(neighbors))
                 applyNewPosition()
@@ -75,7 +76,7 @@ class Star(
                 checkBorders(environment)
 
                 neighbors
-                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
                     .takeIf { it.isNotEmpty() }
                     ?.let { requestReaction(listOf(this) + it) }
 

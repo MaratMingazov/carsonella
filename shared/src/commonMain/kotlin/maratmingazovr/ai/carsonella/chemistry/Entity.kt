@@ -108,6 +108,10 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(energy = updatedEnergy)
     }
 
+    fun addVelocity(moreVelocity: Float) {
+        state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
+    }
+
     fun applyForce(force: Vec2D) {
 
         if (state().value.element.mass < 0.001f) return
@@ -188,14 +192,17 @@ enum class Element(
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
 ) {
     // --- субатомные частицы ---
-    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 10f),
-    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.0005f, e = 1, p = 0, n = 0, radius = 10f),
+    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 5f),
+    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.1f, e = 1, p = 0, n = 0, radius = 5f),
     Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, e = 0, p = 1, n = 0, radius = 10f),
 
     // --- атомы ---
     H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
-    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1),
+    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
+    H_DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
 
+
+    // "Дважды ионизованное ядро Гелия"
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
     Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
