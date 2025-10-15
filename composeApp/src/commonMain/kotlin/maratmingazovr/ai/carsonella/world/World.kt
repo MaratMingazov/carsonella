@@ -68,7 +68,7 @@ class World(
 
     suspend fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
-        logs += "${currentTime()}: Реакция: ${result.description}"
+        if (result.description.isNotEmpty()) logs += "${currentTime()}: Реакция: ${result.description}"
 
         result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }

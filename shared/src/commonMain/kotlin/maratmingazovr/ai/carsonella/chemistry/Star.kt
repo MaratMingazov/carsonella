@@ -70,7 +70,7 @@ class Star(
                 val environment = getEnvironment()
                 val radius = state.value.element.radius
 
-                applyForce(calculateForce(neighbors))
+                //applyForce(calculateForce(neighbors))
                 applyNewPosition()
                 reduceVelocity()
                 checkBorders(environment)
