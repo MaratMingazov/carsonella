@@ -38,6 +38,7 @@ class Star(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    private val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<StarState>,
     DeathNotifiable by OnDeathSupport(),
@@ -91,6 +92,9 @@ class Star(
     override fun getEnvCenter() = state.value.position
     override fun getEnvRadius() = state.value.element.radius
     override fun getEnvTemperature() = TemperatureMode.Star
+    override fun getEnvChildren(): List<Entity<*>> { return children }
+    override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
+    override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
 
     override suspend fun destroy() {
         state.value = state.value.copy(alive = false)

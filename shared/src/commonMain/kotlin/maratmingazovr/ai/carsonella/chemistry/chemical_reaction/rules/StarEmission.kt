@@ -66,7 +66,9 @@ class StarEmission (
             val reagent = entityReagents.first()
             return ReactionOutcome(
                 updateState = listOf {
+                    reagent.getEnvironment().removeEnvChild(reagent)
                     reagent.setEnvironment(entity!!.getEnvironment())
+                    entity!!.getEnvironment().addEnvChild(reagent)
                     reagent.addVelocity(1f)
                                      },
             )

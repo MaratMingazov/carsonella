@@ -48,6 +48,9 @@ interface Entity<State : EntityState<State>> :
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
     override fun getEnvRadius(): Float = throw Exception("Not Supported")
     override fun getEnvTemperature(): TemperatureMode = throw Exception("Not Supported")
+    override fun getEnvChildren(): List<Entity<*>> = throw Exception("Not Supported")
+    override fun addEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
+    override fun removeEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
 
     fun applyNewPosition() {
         state().value = state().value.copyWith(position =

@@ -43,6 +43,7 @@ class EntityGenerator(
         environment: IEnvironment?,
     ): Entity<*> {
 
+        val targetEnvironment = environment ?: worldEnvironment
         val entity = when(element.type) {
             SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
@@ -51,12 +52,16 @@ class EntityGenerator(
             SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
         }.apply {
             entities.add(this)
-            setOnDeath { entities.remove(this)}
+            setOnDeath {
+                this.getEnvironment().removeEnvChild(this)
+                entities.remove(this)
+            }
             setNeighbors { entities.toList().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
             setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
-            setEnvironment(environment ?: worldEnvironment)
+            setEnvironment(targetEnvironment)
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
+        targetEnvironment.addEnvChild(entity)
         scope.launch { entity.init() }
         //if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
         return entity

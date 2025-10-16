@@ -66,7 +66,8 @@ class SpaceModule(
         while (state.value.alive) {
             stepMutex.withLock {
 
-//                val neighbors = getNeighbors()
+                val neighbors = getNeighbors()
+                println(getEnvironment().getEnvChildren().size)
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius
 //
