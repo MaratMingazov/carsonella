@@ -172,7 +172,7 @@ interface Entity<State : EntityState<State>> :
     }
 }
 
-enum class ElementType { SubAtom, Atom, Molecule, Star }
+enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule }
 
 enum class Element(
     val type: ElementType,
@@ -218,6 +218,6 @@ enum class Element(
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
-
+    SPACE_MODULE (type = ElementType.SpaceModule, symbol = "SpaceModule", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 70f),
 
 }

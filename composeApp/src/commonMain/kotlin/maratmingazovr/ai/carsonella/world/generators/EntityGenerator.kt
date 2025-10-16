@@ -10,11 +10,14 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Molecule
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
+import maratmingazovr.ai.carsonella.chemistry.ElementType.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -45,6 +48,7 @@ class EntityGenerator(
             Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
+            SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
         }.apply {
             entities.add(this)
             setOnDeath { entities.remove(this)}
@@ -54,7 +58,7 @@ class EntityGenerator(
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
         scope.launch { entity.init() }
-        if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
+        //if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
         return entity
     }
 
