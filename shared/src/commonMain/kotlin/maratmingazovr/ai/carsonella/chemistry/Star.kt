@@ -76,12 +76,12 @@ class Star(
                 reduceVelocity()
                 checkBorders(environment)
 
-                neighbors
-                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { requestReaction(listOf(this) + it) }
+                // это нужно будет, если солнце будет поглощать элементы
+//                neighbors
+//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
+//                    .takeIf { it.isNotEmpty() }
+//                    ?.let { requestReaction(listOf(this) + it) }
 
-                //if (state.value.energy > 0) { requestReaction(listOf(this)) }
                 requestReaction(listOf(this))
 
             }

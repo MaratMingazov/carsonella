@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -51,6 +52,12 @@ interface Entity<State : EntityState<State>> :
     override fun getEnvChildren(): List<Entity<*>> = throw Exception("Not Supported")
     override fun addEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
     override fun removeEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
+
+    fun updateMyEnvironment(newEnvironment: IEnvironment) {
+        this.getEnvironment().removeEnvChild(this)
+        this.setEnvironment(newEnvironment)
+        newEnvironment.addEnvChild(this)
+    }
 
     fun applyNewPosition() {
         state().value = state().value.copyWith(position =
@@ -198,6 +205,7 @@ enum class Element(
     Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 5f),
     Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.1f, e = 1, p = 0, n = 0, radius = 5f),
     Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, e = 0, p = 1, n = 0, radius = 10f),
+    Neutron (type = ElementType.SubAtom, "n", label = "Neutron (n)", mass = 1f, e = 0, p = 0, n = 1, radius = 10f),
 
     // --- атомы ---
     H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
@@ -221,6 +229,6 @@ enum class Element(
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
-    SPACE_MODULE (type = ElementType.SpaceModule, symbol = "SpaceModule", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 70f),
+    SPACE_MODULE (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
 
 }

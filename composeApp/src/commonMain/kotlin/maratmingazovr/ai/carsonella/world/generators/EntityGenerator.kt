@@ -56,9 +56,9 @@ class EntityGenerator(
                 this.getEnvironment().removeEnvChild(this)
                 entities.remove(this)
             }
-            setNeighbors { entities.toList().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
-            setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
             setEnvironment(targetEnvironment)
+            setNeighbors { getEnvironment().getEnvChildren().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
+            setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
         targetEnvironment.addEnvChild(entity)

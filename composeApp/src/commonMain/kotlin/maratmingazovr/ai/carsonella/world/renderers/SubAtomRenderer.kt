@@ -21,6 +21,7 @@ class SubAtomRenderer(
             Element.Photon -> drawPhoton(drawScope, state)
             Element.Electron -> drawElectron(drawScope, state)
             Element.Proton -> drawProton(drawScope, state, phase)
+            Element.Neutron -> drawProton(drawScope, state, phase)
             else -> throw NotImplementedError()
         }
     }

@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
@@ -28,8 +29,8 @@ class World(
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
-//        Element.Photon, Element.Electron, Element.Proton,
-//        Element.H, Element.O,
+        Element.Photon, Element.Electron, Element.Proton,
+        Element.H, Element.O,
 //        Element.H2, Element.O2,
         Element.Star, Element.SPACE_MODULE
     )
@@ -44,6 +45,12 @@ class World(
     fun start() {
         entityGenerator.createEntity(element = Element.Star, position = Position(800f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
         entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
+
+        val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
+        module1.setReagent1Element(Element.H)
+        module1.setReagent2Element(Element.H)
+
+
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)

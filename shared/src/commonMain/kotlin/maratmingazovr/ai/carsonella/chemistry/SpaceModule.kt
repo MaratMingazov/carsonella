@@ -38,6 +38,7 @@ class SpaceModule(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    private val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<SpaceModuleState>,
     DeathNotifiable by OnDeathSupport(),
@@ -59,6 +60,12 @@ class SpaceModule(
     )
     private val stepMutex = Mutex()
 
+    private var radiusCounter = element.radius
+    private var reagent1Element: Element = Element.Electron
+    private var reagent2Element: Element = Element.Proton
+    private var reagent1: Entity<*>? = null
+    private var reagent2: Entity<*>? = null
+
     override fun state() = state
 
     override suspend fun init() {
@@ -66,8 +73,16 @@ class SpaceModule(
         while (state.value.alive) {
             stepMutex.withLock {
 
-                val neighbors = getNeighbors()
-                println(getEnvironment().getEnvChildren().size)
+                //val neighbors = getNeighbors()
+
+                reagent1 = findReagent(reagent1Element, reagent1)
+                reagent2 = findReagent(reagent2Element, reagent2)
+                children
+                    .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
+                    ?.updateMyEnvironment(getEnvironment())
+
+                radiusCounter = if (radiusCounter < 2) { state.value.element.radius } else { radiusCounter-1 }
+
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius
 //
@@ -89,9 +104,30 @@ class SpaceModule(
         }
     }
 
+    fun setReagent1Element(element: Element) {
+        reagent1Element = element
+    }
+    fun setReagent2Element(element: Element) {
+        reagent2Element = element
+    }
+
+    private fun findReagent(reagentElement: Element, childReagent: Entity<*>?) : Entity<*>? {
+        val reagent = children.find { it == childReagent }
+        if (reagent == null) {
+            val newReagent = getNeighbors().find { it.state().value.element == reagentElement &&  it.state().value.alive}
+            newReagent?.updateMyEnvironment(this)
+            return newReagent
+        } else {
+            return reagent
+        }
+    }
+
     override fun getEnvCenter() = state.value.position
-    override fun getEnvRadius() = state.value.element.radius
+    override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Space
+    override fun getEnvChildren(): List<Entity<*>> { return children }
+    override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
+    override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
 
     override suspend fun destroy() {
         state.value = state.value.copy(alive = false)

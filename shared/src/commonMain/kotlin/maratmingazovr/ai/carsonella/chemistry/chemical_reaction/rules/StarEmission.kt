@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
+import kotlin.collections.List
 
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
@@ -27,12 +28,9 @@ class StarEmission (
 
         if (!chance(0.012f)) return false
 
-        val firstPosition = first.state().value.position
-        val firstRadius = firstElement.radius
-        val starAtoms = reagents
-            .drop(1)
+        val starAtoms = first
+            .getEnvChildren()
             .filter{reagent -> reagent.state().value.alive}
-            .filter { reagent -> reagent.state().value.position.distanceSquareTo(firstPosition) < firstRadius * firstRadius }
 
 
         entity = first
@@ -45,10 +43,10 @@ class StarEmission (
     override suspend fun produce(): ReactionOutcome {
 
         /*
-        Когда концентрация элементов в звезде повышается, она начинает излучить их в космом
+        Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
          */
         if (entityReagents.size < 10) {
-            val resultElement =  if (!chance(0.5f))  Element.Proton else  Element.Electron
+            val resultElement =  if (!chance(0.5f))  Element.Proton else if (!chance(0.5f)) Element.Electron else Element.Neutron
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createEntity(
@@ -62,16 +60,18 @@ class StarEmission (
                 },
             )
         } else {
+            val updateList = mutableListOf<() -> Unit>()
             // звезда излучит первый элемент в космос
-            val reagent = entityReagents.first()
-            return ReactionOutcome(
-                updateState = listOf {
-                    reagent.getEnvironment().removeEnvChild(reagent)
-                    reagent.setEnvironment(entity!!.getEnvironment())
-                    entity!!.getEnvironment().addEnvChild(reagent)
+            val reagent = entityReagents
+                .filter { entity -> entity.state().value.element != Element.H_DEUTERIUM_ION } // пока непонятно зачем он нужен в космосе
+                .firstOrNull()
+            if (reagent != null) {
+                updateList += {
+                    reagent.updateMyEnvironment(entity!!.getEnvironment())
                     reagent.addVelocity(1f)
-                                     },
-            )
+                }
+            }
+            return ReactionOutcome(updateState = updateList)
         }
 
     }
