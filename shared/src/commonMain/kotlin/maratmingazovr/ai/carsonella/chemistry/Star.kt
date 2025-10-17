@@ -59,6 +59,7 @@ class Star(
         )
     )
     private val stepMutex = Mutex()
+    private var radiusCounter = element.radius
 
     override fun state() = state
 
@@ -76,6 +77,8 @@ class Star(
                 reduceVelocity()
                 checkBorders(environment)
 
+                radiusCounter = if (radiusCounter < 20) { state.value.element.radius } else { radiusCounter - 1 }
+
                 // это нужно будет, если солнце будет поглощать элементы
 //                neighbors
 //                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
@@ -90,7 +93,7 @@ class Star(
     }
 
     override fun getEnvCenter() = state.value.position
-    override fun getEnvRadius() = state.value.element.radius
+    override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star
     override fun getEnvChildren(): List<Entity<*>> { return children }
     override fun addEnvChild(entity: Entity<*>) { children.add(entity) }

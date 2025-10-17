@@ -16,6 +16,8 @@ class AtomPlusAtomToMolecule(
     private val resultElement: Element,
     private val resultPhotonEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
     private val temperatureMode: TemperatureMode = TemperatureMode.Space,
+    private val resultElement2: Element? = null,
+    private val resultElement3: Element? = null,
 ) : ReactionRule {
     override val id = "Atom + Atom -> Molecule"
 
@@ -69,6 +71,32 @@ class AtomPlusAtomToMolecule(
                 energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
                 atom1!!.getEnvironment(),
             )
+        }
+
+        if (resultElement2 != null) {
+            spawnList += {
+                entityGenerator.createEntity(
+                    resultElement2,
+                    Position(resultPosition.x + 1.5f * direction.x * resultElement.radius,resultPosition.y),
+                    direction,
+                    velocity,
+                    energy = 0f,
+                )
+            }
+
+        }
+
+        if (resultElement3 != null) {
+            spawnList += {
+                entityGenerator.createEntity(
+                    resultElement3,
+                    Position(resultPosition.x - 1.5f * direction.x * resultElement.radius,resultPosition.y),
+                    direction,
+                    velocity,
+                    energy = 0f,
+                )
+            }
+
         }
 
         if (resultPhotonEnergy > 0) {

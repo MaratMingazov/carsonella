@@ -81,7 +81,7 @@ class SpaceModule(
                     .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
                     ?.updateMyEnvironment(getEnvironment())
 
-                radiusCounter = if (radiusCounter < 2) { state.value.element.radius } else { radiusCounter-1 }
+                radiusCounter = if (radiusCounter < 2) { state.value.element.radius } else { radiusCounter - 1 }
 
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius
