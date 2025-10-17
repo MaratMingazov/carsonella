@@ -46,7 +46,7 @@ class StarEmission (
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
          */
         if (entityReagents.size < 10) {
-            val resultElement =  if (!chance(0.5f))  Element.Proton else if (!chance(0.5f)) Element.Electron else Element.Neutron
+            val resultElement =  if (!chance(0.5f))  Element.Proton else Element.Electron
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createEntity(
@@ -63,7 +63,8 @@ class StarEmission (
             val updateList = mutableListOf<() -> Unit>()
             // звезда излучит первый элемент в космос
             val reagent = entityReagents
-                .filter { entity -> entity.state().value.element != Element.H_DEUTERIUM_ION } // пока непонятно зачем он нужен в космосе
+                .filter { entity -> entity.state().value.element != Element.H_DEUTERIUM_ION }
+                .filter { entity -> entity.state().value.element != Element.HE3_ION_2 }
                 .firstOrNull()
             if (reagent != null) {
                 updateList += {
