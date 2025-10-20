@@ -47,8 +47,9 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, H_DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, H_DEUTERIUM_ION, Proton, Element.HE_3_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, HE_3_ION_2, HE_3_ION_2, HE_4_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
-        AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, HE_4_ION_2, Element.BERYLLIUM_8_ION_4, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, Element.BERYLLIUM_8_ION_4, Element.C_12_ION_6, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
+        AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, HE_4_ION_2, Element.BE_8_ION_4, temperatureMode = TemperatureMode.Star),
+        AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, Element.BE_8_ION_4, Element.C_12_ION_6, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
+        AtomPlusAtomToMolecule(entityGenerator, Element.C_12_ION_6, HE_4_ION_2, Element.O_16_ION_8, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
 
         // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),

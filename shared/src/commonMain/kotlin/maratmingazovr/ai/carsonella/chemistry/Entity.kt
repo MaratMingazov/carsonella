@@ -213,9 +213,9 @@ enum class Element(
     H_DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
     HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
     HE_4_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
-    BERYLLIUM_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
+    BE_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
     C_12_ION_6 (type = ElementType.Atom, symbol = "C⁶⁺", label = "Carbon (¹²C⁶⁺)", mass = 12f, e = 0, p = 6, n = 6),
-
+    O_16_ION_8 (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
 
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
