@@ -72,9 +72,17 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
     suspend fun resolve(reagents: List<Entity<*>>): ReactionOutcome? {
 
         _stepMutex.withLock {
-            val applicable = rules.filter { it.matches(reagents) }
-            if (applicable.isEmpty()) return null
-            val chosenRule = applicable.map { it to it.weight() }.maxBy { it.second }.first
+            val applicableRules = rules.filter { it.matches(reagents) }
+            if (applicableRules.isEmpty()) return null
+            // Сначала вычисляем веса для всех подходящих правил
+            val weighted = applicableRules.map { it to it.weight() }
+            // Находим максимальный вес
+            val maxWeight = weighted.maxOf { it.second }
+            // Отбираем все правила с максимальным весом
+            val topRules = weighted.filter { it.second == maxWeight }.map { it.first }
+            // Выбираем случайное из них
+            val chosenRule = topRules.random()
+            // val chosenRule = applicableRules.map { it to it.weight() }.maxBy { it.second }.first
             return chosenRule.produce()
         }
     }
