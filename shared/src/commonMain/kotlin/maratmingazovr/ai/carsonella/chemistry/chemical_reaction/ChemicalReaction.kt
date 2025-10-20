@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H
 import maratmingazovr.ai.carsonella.chemistry.Element.H_DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.H_DEUTERIUM
 import maratmingazovr.ai.carsonella.chemistry.Element.HE_3_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.HE_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.HE_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.O
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
@@ -46,8 +46,8 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         // STAR REACTIONS
         AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, H_DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, H_DEUTERIUM_ION, Proton, Element.HE_3_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, HE_3_ION_2, HE_3_ION_2, HE_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
-        AtomPlusAtomToMolecule(entityGenerator, HE_ION_2, HE_ION_2, Element.BERYLLIUM_8_ION_4, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
+        AtomPlusAtomToMolecule(entityGenerator, HE_3_ION_2, HE_3_ION_2, HE_4_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
+        AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, HE_4_ION_2, Element.BERYLLIUM_8_ION_4, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
 
         // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),
