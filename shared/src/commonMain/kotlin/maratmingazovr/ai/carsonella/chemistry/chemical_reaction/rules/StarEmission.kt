@@ -63,8 +63,8 @@ class StarEmission (
             val updateList = mutableListOf<() -> Unit>()
             // звезда излучит первый элемент в космос
             val reagent = entityReagents
-                .filter { entity -> entity.state().value.element != Element.H_DEUTERIUM_ION }
-                .filter { entity -> entity.state().value.element != Element.HE3_ION_2 }
+                .filter { entity -> entity.state().value.element == Element.Proton }
+                .filter { entity -> entity.state().value.element != Element.Electron }
                 .firstOrNull()
             if (reagent != null) {
                 updateList += {

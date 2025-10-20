@@ -211,8 +211,9 @@ enum class Element(
     H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
     H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
     H_DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
-    HE3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
+    HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
     HE_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
+    BERYLLIUM_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
 
     // "Дважды ионизованное ядро Гелия"
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
