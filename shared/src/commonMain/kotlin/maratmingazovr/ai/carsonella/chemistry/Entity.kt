@@ -216,6 +216,7 @@ enum class Element(
     BE_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
     C_12_ION_6 (type = ElementType.Atom, symbol = "C⁶⁺", label = "Carbon (¹²C⁶⁺)", mass = 12f, e = 0, p = 6, n = 6),
     O_16_ION_8 (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
+    NE_20_ION_10 (type = ElementType.Atom, symbol = "Ne¹⁰⁺", label = "Neon (²⁰Ne¹⁰⁺)", mass = 20f, e = 0, p = 10, n = 10),
 
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
