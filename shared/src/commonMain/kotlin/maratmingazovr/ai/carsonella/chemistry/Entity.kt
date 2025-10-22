@@ -203,20 +203,21 @@ enum class Element(
     val alphaReactionResult: Element? = null // Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
 ) {
     // --- субатомные частицы ---
-    Neutron (type = ElementType.SubAtom, "n", label = "Neutron (n)", mass = 1f, e = 0, p = 0, n = 1, radius = 10f),
-    Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, e = 0, p = 1, n = 0, radius = 10f),
-    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.1f, e = 1, p = 0, n = 0, radius = 5f),
-    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 5f),
+    Neutron     (type = ElementType.SubAtom, symbol = "n",  label = "Neutron (n)",      mass = 1f,      e = 0, p = 0, n = 1, radius = 10f),
+    Proton      (type = ElementType.SubAtom, symbol = "p⁺", label = "Proton (p⁺)",      mass = 1f,      e = 0, p = 1, n = 0, radius = 10f),
+    Electron    (type = ElementType.SubAtom, symbol = "e⁻", label = "Electron (e⁻)",    mass = 0.1f,    e = 1, p = 0, n = 0, radius = 5f),
+    Photon      (type = ElementType.SubAtom, symbol = "γ",  label = "Photon (γ)",       mass = 0f,      e = 0, p = 0, n = 0, radius = 5f),
 
     // --- атомы ---
     Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
-    SULFUR_32_ION_16 (type = ElementType.Atom, symbol = "S¹⁶⁺", label = "Sulfur (³2S¹⁶⁺)", mass = 32f, e = 0, p = 16, n = 16, description = "Сера"),
-    SULFUR_31_ION_16 (type = ElementType.Atom, symbol = "³¹S¹⁶⁺", label = "Sulfur (³¹S¹⁶⁺)", mass = 31f, e = 0, p = 16, n = 15, description = "Сера"),
-    PHOSPHORUS_31_ION_15 (type = ElementType.Atom, symbol = "P¹⁵⁺", label = "Phosphorus (³¹P¹⁵⁺)", mass = 31f, e = 0, p = 15, n = 16, description = "Фосфор"),
-    SILICON_28_ION_14 (type = ElementType.Atom, symbol = "Si¹⁴⁺", label = "Silicon (²⁸Mg¹⁴⁺)", mass = 28f, e = 0, p = 14, n = 14, description = "Кремний", alphaReactionResult = SULFUR_32_ION_16),
-    MG_24_ION_12 (type = ElementType.Atom, symbol = "Mg¹²⁺", label = "Magnesium (²⁴Mg¹²⁺)", mass = 24f, e = 0, p = 12, n = 12),
+    ARGON_36_ION_18         (type = ElementType.Atom, symbol = "Ar¹⁸⁺",     label = "Argon (³⁶S¹⁸⁺)",       mass = 36f, e = 0, p = 18, n = 18, description = "Аргон"),
+    SULFUR_32_ION_16        (type = ElementType.Atom, symbol = "S¹⁶⁺",      label = "Sulfur (³²S¹⁶⁺)",      mass = 32f, e = 0, p = 16, n = 16, description = "Сера", alphaReactionResult = ARGON_36_ION_18),
+    SULFUR_31_ION_16        (type = ElementType.Atom, symbol = "³¹S¹⁶⁺",    label = "Sulfur (³¹S¹⁶⁺)",      mass = 31f, e = 0, p = 16, n = 15, description = "Сера"),
+    PHOSPHORUS_31_ION_15    (type = ElementType.Atom, symbol = "P¹⁵⁺",      label = "Phosphorus (³¹P¹⁵⁺)",  mass = 31f, e = 0, p = 15, n = 16, description = "Фосфор"),
+    SILICON_28_ION_14       (type = ElementType.Atom, symbol = "Si¹⁴⁺",     label = "Silicon (²⁸Mg¹⁴⁺)",    mass = 28f, e = 0, p = 14, n = 14, description = "Кремний", alphaReactionResult = SULFUR_32_ION_16),
+    MG_24_ION_12            (type = ElementType.Atom, symbol = "Mg¹²⁺",     label = "Magnesium (²⁴Mg¹²⁺)",  mass = 24f, e = 0, p = 12, n = 12),
     NA_23_ION_11 (type = ElementType.Atom, symbol = "Na¹¹⁺", label = "Sodium (²³Na¹¹⁺)", mass = 23f, e = 0, p = 11, n = 12),
     NE_20_ION_10 (type = ElementType.Atom, symbol = "Ne¹⁰⁺", label = "Neon (²⁰Ne¹⁰⁺)", mass = 20f, e = 0, p = 10, n = 10),
     O_16_ION_8 (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
@@ -225,8 +226,8 @@ enum class Element(
     HE_4_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
     HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
     DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
-    DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H⁺", label = "DEUTERIUM (²H⁺)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
-    HYDROGEN (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
+    DEUTERIUM_ION           (type = ElementType.Atom, symbol = "²H⁺",       label = "DEUTERIUM (²H⁺)",      mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
+    HYDROGEN                (type = ElementType.Atom, symbol = "H",         label = "Hydrogen (H)",         mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
