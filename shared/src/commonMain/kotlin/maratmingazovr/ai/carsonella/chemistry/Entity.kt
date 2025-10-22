@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -200,44 +199,48 @@ enum class Element(
 
     val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
+
+    val alphaReactionResult: Element? = null // Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
 ) {
     // --- субатомные частицы ---
-    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 5f),
-    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.1f, e = 1, p = 0, n = 0, radius = 5f),
-    Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, e = 0, p = 1, n = 0, radius = 10f),
     Neutron (type = ElementType.SubAtom, "n", label = "Neutron (n)", mass = 1f, e = 0, p = 0, n = 1, radius = 10f),
+    Proton (type = ElementType.SubAtom, "p⁺", label = "Proton (p⁺)", mass = 1f, e = 0, p = 1, n = 0, radius = 10f),
+    Electron (type = ElementType.SubAtom, "e⁻", label = "Electron (e⁻)", mass = 0.1f, e = 1, p = 0, n = 0, radius = 5f),
+    Photon (type = ElementType.SubAtom, symbol = "γ", label = "Photon (γ)", mass = 0f, e = 0, p = 0, n = 0, radius = 5f),
 
     // --- атомы ---
-    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
-    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
-    H_DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
-    HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
-    HE_4_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
-    BE_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
-    C_12_ION_6 (type = ElementType.Atom, symbol = "C⁶⁺", label = "Carbon (¹²C⁶⁺)", mass = 12f, e = 0, p = 6, n = 6),
-    O_16_ION_8 (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
-    NE_20_ION_10 (type = ElementType.Atom, symbol = "Ne¹⁰⁺", label = "Neon (²⁰Ne¹⁰⁺)", mass = 20f, e = 0, p = 10, n = 10),
-    NA_23_ION_11 (type = ElementType.Atom, symbol = "Na¹¹⁺", label = "Sodium (²³Na¹¹⁺)", mass = 23f, e = 0, p = 11, n = 12),
-    MG_24_ION_12 (type = ElementType.Atom, symbol = "Mg¹²⁺", label = "Magnesium (²⁴Mg¹²⁺)", mass = 24f, e = 0, p = 12, n = 12),
-    SI_28_ION_14 (type = ElementType.Atom, symbol = "Si¹⁴⁺", label = "Silicon (²⁸Mg¹⁴⁺)", mass = 28f, e = 0, p = 14, n = 14),
-    P_31_ION_15 (type = ElementType.Atom, symbol = "P¹⁵⁺", label = "Phosphorus (³¹P¹⁵⁺)", mass = 31f, e = 0, p = 15, n = 16),
-    S_31_ION_16 (type = ElementType.Atom, symbol = "P¹⁶⁺", label = "Sulfur (³¹P¹⁶⁺)", mass = 31f, e = 0, p = 16, n = 15),
-
-    C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
-    O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
     Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
-
-    // --- молекулы ---
-    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, e = 2, p = 2, n = 2, energyBondDissociation = 4.5f, dissociationElements = listOf(H, H)),
-    H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, e = 10, p = 10, n = 8),
-    O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, e = 16, p = 16, n = 16),
-
-    C_H4 (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", mass = 16f, e = 10, p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
-
-    C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
-    C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
+    O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
+    C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
+    S_31_ION_16 (type = ElementType.Atom, symbol = "P¹⁶⁺", label = "Sulfur (³¹P¹⁶⁺)", mass = 31f, e = 0, p = 16, n = 15),
+    P_31_ION_15 (type = ElementType.Atom, symbol = "P¹⁵⁺", label = "Phosphorus (³¹P¹⁵⁺)", mass = 31f, e = 0, p = 15, n = 16),
+    SI_28_ION_14 (type = ElementType.Atom, symbol = "Si¹⁴⁺", label = "Silicon (²⁸Mg¹⁴⁺)", mass = 28f, e = 0, p = 14, n = 14),
+    MG_24_ION_12 (type = ElementType.Atom, symbol = "Mg¹²⁺", label = "Magnesium (²⁴Mg¹²⁺)", mass = 24f, e = 0, p = 12, n = 12),
+    NA_23_ION_11 (type = ElementType.Atom, symbol = "Na¹¹⁺", label = "Sodium (²³Na¹¹⁺)", mass = 23f, e = 0, p = 11, n = 12),
+    NE_20_ION_10 (type = ElementType.Atom, symbol = "Ne¹⁰⁺", label = "Neon (²⁰Ne¹⁰⁺)", mass = 20f, e = 0, p = 10, n = 10),
+    O_16_ION_8 (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
+    C_12_ION_6 (type = ElementType.Atom, symbol = "C⁶⁺", label = "Carbon (¹²C⁶⁺)", mass = 12f, e = 0, p = 6, n = 6, alphaReactionResult = O_16_ION_8),
+    BE_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
+    HE_4_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
+    HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
+    H_DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
+    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H+", label = "DEUTERIUM (²H+)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
+    H (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
+
+    // Молекулы
+    C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
+    C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
+
+    C_H4 (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", mass = 16f, e = 10, p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
+
+    O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, e = 16, p = 16, n = 16),
+    H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, e = 10, p = 10, n = 8),
+    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, e = 2, p = 2, n = 2, energyBondDissociation = 4.5f, dissociationElements = listOf(H, H)),
+
+
+
 
 }

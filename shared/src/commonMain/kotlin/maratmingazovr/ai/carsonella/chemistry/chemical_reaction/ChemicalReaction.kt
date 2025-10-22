@@ -21,6 +21,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
@@ -42,6 +43,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
         StarEmission(entityGenerator),
+        StarAlphaReaction(entityGenerator),
 
         // STAR REACTIONS
         AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, H_DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
@@ -49,7 +51,6 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, HE_3_ION_2, HE_3_ION_2, HE_4_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
         AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, HE_4_ION_2, Element.BE_8_ION_4, temperatureMode = TemperatureMode.Star),
         AtomPlusAtomToMolecule(entityGenerator, HE_4_ION_2, Element.BE_8_ION_4, Element.C_12_ION_6, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, Element.C_12_ION_6, HE_4_ION_2, Element.O_16_ION_8, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, Element.C_12_ION_6, Element.C_12_ION_6, Element.NE_20_ION_10, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HE_4_ION_2),
         AtomPlusAtomToMolecule(entityGenerator, Element.C_12_ION_6, Element.C_12_ION_6, Element.NA_23_ION_11, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
         AtomPlusAtomToMolecule(entityGenerator, Element.C_12_ION_6, Element.C_12_ION_6, Element.MG_24_ION_12, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
