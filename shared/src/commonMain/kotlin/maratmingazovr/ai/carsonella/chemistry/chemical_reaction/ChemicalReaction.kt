@@ -56,6 +56,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, Element.NE_20_ION_10, Element.HE_4_ION_2, Element.MG_24_ION_12, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, Element.O_16_ION_8, Element.O_16_ION_8, Element.SI_28_ION_14, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HE_4_ION_2),
         AtomPlusAtomToMolecule(entityGenerator, Element.O_16_ION_8, Element.O_16_ION_8, Element.P_31_ION_15, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
+        AtomPlusAtomToMolecule(entityGenerator, Element.O_16_ION_8, Element.O_16_ION_8, Element.S_31_ION_16, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Element.Neutron),
 
         // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),
