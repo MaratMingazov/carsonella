@@ -67,7 +67,7 @@ class SpontaneousEmission(
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.Photon,
-                    entity!!.state().value.position.plus(Position(Element.H.radius, 0f)),
+                    entity!!.state().value.position.plus(Position(Element.HYDROGEN.radius, 0f)),
                     randomDirection(),
                     40f,
                     energy = energyToExpose,

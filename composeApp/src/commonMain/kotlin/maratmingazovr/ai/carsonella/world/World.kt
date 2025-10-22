@@ -30,7 +30,7 @@ class World(
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.Photon, Element.Electron, Element.Proton,
-        Element.H, Element.O,
+        Element.HYDROGEN, Element.O,
 //        Element.H2, Element.O2,
         Element.Star, Element.SPACE_MODULE
     )
@@ -47,8 +47,8 @@ class World(
         entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
 
         val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
-        module1.setReagent1Element(Element.H)
-        module1.setReagent2Element(Element.H)
+        module1.setReagent1Element(Element.HYDROGEN)
+        module1.setReagent2Element(Element.HYDROGEN)
 
 
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)

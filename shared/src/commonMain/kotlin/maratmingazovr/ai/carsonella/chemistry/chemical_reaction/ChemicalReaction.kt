@@ -9,7 +9,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
-import maratmingazovr.ai.carsonella.chemistry.Element.H
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.H_DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.H_DEUTERIUM
 import maratmingazovr.ai.carsonella.chemistry.Element.HE_3_ION_2
@@ -43,7 +43,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
         StarEmission(entityGenerator),
-        StarAlphaReaction(entityGenerator),
+        StarAlphaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
 
         // STAR REACTIONS
         AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, H_DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
@@ -60,9 +60,9 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, Element.O_16_ION_8, Element.O_16_ION_8, Element.S_31_ION_16, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Element.Neutron),
 
         // Реакции атомов
-        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, H, resultPhotonEnergy = 13.6f),
+        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, H_DEUTERIUM_ION, Electron, H_DEUTERIUM, resultPhotonEnergy = 13.6f),
-        AtomPlusAtomToMolecule(entityGenerator, H, H, H2, 4.5f),
+        AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
         AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
         AtomPlusAtomToMolecule(entityGenerator, O, H2, H2O),
 
