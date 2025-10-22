@@ -220,6 +220,7 @@ enum class Element(
     NA_23_ION_11 (type = ElementType.Atom, symbol = "Na¹¹⁺", label = "Sodium (²³Na¹¹⁺)", mass = 23f, e = 0, p = 11, n = 12),
     MG_24_ION_12 (type = ElementType.Atom, symbol = "Mg¹²⁺", label = "Magnesium (²⁴Mg¹²⁺)", mass = 24f, e = 0, p = 12, n = 12),
     SI_28_ION_14 (type = ElementType.Atom, symbol = "Si¹⁴⁺", label = "Silicon (²⁸Mg¹⁴⁺)", mass = 28f, e = 0, p = 14, n = 14),
+    P_31_ION_15 (type = ElementType.Atom, symbol = "P¹⁵⁺", label = "Phosphorus (³¹P¹⁵⁺)", mass = 31f, e = 0, p = 15, n = 16),
 
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
