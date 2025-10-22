@@ -223,22 +223,22 @@ enum class Element(
     BE_8_ION_4 (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
     HE_4_ION_2 (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
     HE_3_ION_2 (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
-    H_DEUTERIUM (type = ElementType.Atom, symbol = "²HYDROGEN", label = "DEUTERIUM (²HYDROGEN)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
-    H_DEUTERIUM_ION (type = ElementType.Atom, symbol = "²HYDROGEN+", label = "DEUTERIUM (²HYDROGEN+)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
-    HYDROGEN (type = ElementType.Atom, symbol = "HYDROGEN", label = "Hydrogen (HYDROGEN)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
+    DEUTERIUM (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
+    DEUTERIUM_ION (type = ElementType.Atom, symbol = "²H⁺", label = "DEUTERIUM (²H⁺)", mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
+    HYDROGEN (type = ElementType.Atom, symbol = "H", label = "Hydrogen (H)", mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
 
     // Молекулы
-    C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂HYDROGEN₅OH", label = "Ethanol (C₂HYDROGEN₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
+    C2_H6_O_ETHANOL (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
     C2_H6_O_DIMETHYL_ETHER (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", mass = 46f, e = 26, p = 26, n = 20, description = "Диметиловый Эфир."),
 
     C_H4 (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", mass = 16f, e = 10, p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
 
     O2 (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", mass = 32f, e = 16, p = 16, n = 16),
-    H2O (type = ElementType.Molecule, symbol = "HYDROGEN₂O", label = "Water (HYDROGEN₂O)", mass = 18f, e = 10, p = 10, n = 8),
-    H2 (type = ElementType.Molecule, symbol = "HYDROGEN₂", label = "DiHydrogen (HYDROGEN₂)", mass = 2f, e = 2, p = 2, n = 2, energyBondDissociation = 4.5f, dissociationElements = listOf(HYDROGEN, HYDROGEN)),
+    H2O (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", mass = 18f, e = 10, p = 10, n = 8),
+    H2 (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", mass = 2f, e = 2, p = 2, n = 2, energyBondDissociation = 4.5f, dissociationElements = listOf(HYDROGEN, HYDROGEN)),
 
 
 
