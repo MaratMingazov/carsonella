@@ -3,7 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HE_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
@@ -27,7 +27,7 @@ class StarAlphaReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == HE_4_ION_2 }
+            .filter { it.state().value.element == HELIUM_4_ION_2 }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }

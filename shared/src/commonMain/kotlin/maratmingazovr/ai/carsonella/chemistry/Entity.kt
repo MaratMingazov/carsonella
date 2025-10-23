@@ -194,14 +194,14 @@ enum class Element(val details: Details, ) {
     HYDROGEN (Details.HYDROGEN),
     DEUTERIUM_ION (Details.DEUTERIUM_ION),
     DEUTERIUM (Details.DEUTERIUM),
-    HE_3_ION_2 (Details.HE_3_ION_2),
-    HE_4_ION_2 (Details.HE_4_ION_2),
+    HELIUM_3_ION_2 (Details.HELIUM_3_ION_2),
+    HELIUM_4_ION_2 (Details.HELIUM_4_ION_2),
     BE_8_ION_4 (Details.BE_8_ION_4),
-    C_12_ION_6 (Details.C_12_ION_6),
-    C (Details.C),
+    CARBON_12_ION_6 (Details.CARBON_12_ION_6),
+    CARBON_12 (Details.CARBON_12),
     O_16_ION_8 (Details.O_16_ION_8),
     O (Details.O),
-    NE_20_ION_10 (Details.NE_20_ION_10),
+    NEON_20_ION_10 (Details.NEON_20_ION_10),
     NA_23_ION_11 (Details.NA_23_ION_11),
     MG_24_ION_12 (Details.MG_24_ION_12),
     SILICON_28_ION_14 (Details.SILICON_28_ION_14),
@@ -244,9 +244,10 @@ enum class Details(
     val radius: Float = 20f,
     val description: String = "",
 
-    val energyLevels: List<Float> = listOf(), // Энергетические уровни атома. Атом может принимать только такие кванты энергии
-    val ion: Element? = null, // Ион, который образуется, когда мы выбиваем электрон у элемента
-    val recombinationElement: Element? = null, // Элемент, который образуется, когда ион забирает себе электрон
+    val energyLevels: List<Float> = listOf(), // Столько энергии нужно, чтобы выбить электрон у элемента. Энергетические уровни атома. Атом может принимать только такие кванты энергии
+    val ion: Element? = null, // Если этот параметр указан, значит элемент может отдавать электрон. Положительно заряженный ион, который образуется, когда мы выбиваем электрон у элемента. Ионизация.
+    val recombinationElement: Element? = null,  // Такой элемент получится, если элемент получит электрон
+    val recombinationEnergy: Float? = null, // Столько энергии выделится, если элемент получит электрон
 
     val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
@@ -262,50 +263,29 @@ enum class Details(
 
     // --- атомы ---
     HYDROGEN                (type = ElementType.Atom, symbol = "H",         label = "Hydrogen (H)",         mass = 1f, e = 1, p = 1, n = 0, energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Element.Proton),
-    DEUTERIUM_ION           (type = ElementType.Atom, symbol = "²H⁺",       label = "DEUTERIUM (²H⁺)",      mass = 2f, e = 0, p = 1, n = 1, description = "Ион Дейтерия"),
-    DEUTERIUM               (type = ElementType.Atom, symbol = "²H", label = "DEUTERIUM (²H)", mass = 2f, e = 1, p = 1, n = 1, description = "Дейтерий"),
-    HE_3_ION_2              (type = ElementType.Atom, symbol = "³He²⁺", label = "Helium (³He²⁺)", mass = 3f, e = 0, p = 2, n = 1),
-    HE_4_ION_2              (type = ElementType.Atom, symbol = "He²⁺", label = "Helium (⁴He²⁺)", mass = 4f, e = 0, p = 2, n = 2),
-    BE_8_ION_4              (type = ElementType.Atom, symbol = "⁸Be⁴⁺", label = "Beryllium (⁸Be⁴⁺)", mass = 8f, e = 0, p = 4, n = 4),
-    C_12_ION_6              (type = ElementType.Atom, symbol = "C⁶⁺", label = "Carbon (¹²C⁶⁺)", mass = 12f, e = 0, p = 6, n = 6, alphaReactionResult = Element.O_16_ION_8),
-    C                       (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
-    O_16_ION_8              (type = ElementType.Atom, symbol = "O⁸⁺", label = "Oxygen (¹⁶O⁸⁺)", mass = 16f, e = 0, p = 8, n = 8),
-    O                       (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
-    NE_20_ION_10            (type = ElementType.Atom, symbol = "Ne¹⁰⁺", label = "Neon (²⁰Ne¹⁰⁺)", mass = 20f, e = 0, p = 10, n = 10),
-    NA_23_ION_11            (type = ElementType.Atom, symbol = "Na¹¹⁺", label = "Sodium (²³Na¹¹⁺)", mass = 23f, e = 0, p = 11, n = 12),
+    DEUTERIUM_ION           (type = ElementType.Atom, symbol = "²H⁺",       label = "DEUTERIUM (²H⁺)",      mass = 2f, e = 0, p = 1, n = 1,     description = "Ион Дейтерия"),
+    DEUTERIUM               (type = ElementType.Atom, symbol = "²H",        label = "DEUTERIUM (²H)",       mass = 2f, e = 1, p = 1, n = 1,     description = "Дейтерий"),
+    HELIUM_3_ION_2          (type = ElementType.Atom, symbol = "³He²⁺",     label = "Helium (³He²⁺)",       mass = 3f, e = 0, p = 2, n = 1),
+    HELIUM_4_ION_2          (type = ElementType.Atom, symbol = "He²⁺",      label = "Helium (⁴He²⁺)",       mass = 4f, e = 0, p = 2, n = 2),
+    BE_8_ION_4              (type = ElementType.Atom, symbol = "⁸Be⁴⁺",     label = "Beryllium (⁸Be⁴⁺)",    mass = 8f, e = 0, p = 4, n = 4,     description = "Бериллий",   alphaReactionResult = Element.CARBON_12_ION_6),
+    CARBON_12_ION_6         (type = ElementType.Atom, symbol = "C⁶⁺",       label = "Carbon (¹²C⁶⁺)",       mass = 12f, e = 0, p = 6, n = 6,    description = "Углерод",    alphaReactionResult = Element.O_16_ION_8),
+    CARBON_12               (type = ElementType.Atom, symbol = "C",         label = "Carbon (C)",           mass = 12f, e = 6, p = 6, n = 6),
+    O_16_ION_8              (type = ElementType.Atom, symbol = "O⁸⁺",       label = "Oxygen (¹⁶O⁸⁺)",       mass = 16f, e = 0, p = 8, n = 8),
+    O                       (type = ElementType.Atom, symbol = "O",         label = "Oxygen (O)",           mass = 16f, e = 8, p = 8, n = 8),
+    NEON_20_ION_10          (type = ElementType.Atom, symbol = "Ne¹⁰⁺",     label = "Neon (²⁰Ne¹⁰⁺)",       mass = 20f, e = 0, p = 10, n = 10, description = "Неон",        alphaReactionResult = Element.MG_24_ION_12),
+    NA_23_ION_11            (type = ElementType.Atom, symbol = "Na¹¹⁺",     label = "Sodium (²³Na¹¹⁺)",     mass = 23f, e = 0, p = 11, n = 12),
     MG_24_ION_12            (type = ElementType.Atom, symbol = "Mg¹²⁺",     label = "Magnesium (²⁴Mg¹²⁺)",  mass = 24f, e = 0, p = 12, n = 12),
-    SILICON_28_ION_14       (type = ElementType.Atom, symbol = "Si¹⁴⁺",     label = "Silicon (²⁸Mg¹⁴⁺)",    mass = 28f, e = 0, p = 14, n = 14, description = "Кремний", alphaReactionResult = Element.SULFUR_32_ION_16),
-    PHOSPHORUS_31_ION_15    (type = ElementType.Atom, symbol = "P¹⁵⁺",      label = "Phosphorus (³¹P¹⁵⁺)",  mass = 31f, e = 0, p = 15, n = 16, description = "Фосфор"),
-    SULFUR_31_ION_16        (type = ElementType.Atom, symbol = "³¹S¹⁶⁺",    label = "Sulfur (³¹S¹⁶⁺)",      mass = 31f, e = 0, p = 16, n = 15, description = "Сера"),
-    SULFUR_32_ION_16        (type = ElementType.Atom, symbol = "S¹⁶⁺",      label = "Sulfur (³²S¹⁶⁺)",      mass = 32f, e = 0, p = 16, n = 16, description = "Сера", alphaReactionResult = Element.ARGON_36_ION_18),
-    ARGON_36_ION_18         (type = ElementType.Atom, symbol = "Ar¹⁸⁺",     label = "Argon (³⁶Ar¹⁸⁺)",      mass = 36f, e = 0, p = 18, n = 18, description = "Аргон", alphaReactionResult = Element.CALCIUM_40_ION_20),
-    CALCIUM_40_ION_20       (type = ElementType.Atom, symbol = "Ca²⁰⁺",     label = "Calcium (⁴⁰Ca²⁰⁺)",    mass = 40f, e = 0, p = 20, n = 20, description = "Кальций", alphaReactionResult = Element.TITANIUM_44_ION_22),
-    TITANIUM_44_ION_22      (type = ElementType.Atom, symbol = "Ti²²⁺",     label = "Titanium (⁴⁴Ti²²⁺)",   mass = 44f, e = 0, p = 22, n = 22, description = "Титан", alphaReactionResult = Element.CHROMIUM_48_ION_24),
-    CHROMIUM_48_ION_24      (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24, description = "Хром", alphaReactionResult = Element.IRON_52_ION_26),
-    IRON_52_ION_26          (type = ElementType.Atom, symbol = "Fe²⁶⁺",     label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26, description = "Железо", alphaReactionResult = Element.NICKEL_56_ION_28),
+    SILICON_28_ION_14       (type = ElementType.Atom, symbol = "Si¹⁴⁺",     label = "Silicon (²⁸Mg¹⁴⁺)",    mass = 28f, e = 0, p = 14, n = 14,  description = "Кремний",    alphaReactionResult = Element.SULFUR_32_ION_16),
+    PHOSPHORUS_31_ION_15    (type = ElementType.Atom, symbol = "P¹⁵⁺",      label = "Phosphorus (³¹P¹⁵⁺)",  mass = 31f, e = 0, p = 15, n = 16,  description = "Фосфор"),
+    SULFUR_31_ION_16        (type = ElementType.Atom, symbol = "³¹S¹⁶⁺",    label = "Sulfur (³¹S¹⁶⁺)",      mass = 31f, e = 0, p = 16, n = 15,  description = "Сера"),
+    SULFUR_32_ION_16        (type = ElementType.Atom, symbol = "S¹⁶⁺",      label = "Sulfur (³²S¹⁶⁺)",      mass = 32f, e = 0, p = 16, n = 16,  description = "Сера",       alphaReactionResult = Element.ARGON_36_ION_18),
+    ARGON_36_ION_18         (type = ElementType.Atom, symbol = "Ar¹⁸⁺",     label = "Argon (³⁶Ar¹⁸⁺)",      mass = 36f, e = 0, p = 18, n = 18,  description = "Аргон",      alphaReactionResult = Element.CALCIUM_40_ION_20),
+    CALCIUM_40_ION_20       (type = ElementType.Atom, symbol = "Ca²⁰⁺",     label = "Calcium (⁴⁰Ca²⁰⁺)",    mass = 40f, e = 0, p = 20, n = 20, description = "Кальций",     alphaReactionResult = Element.TITANIUM_44_ION_22),
+    TITANIUM_44_ION_22      (type = ElementType.Atom, symbol = "Ti²²⁺",     label = "Titanium (⁴⁴Ti²²⁺)",   mass = 44f, e = 0, p = 22, n = 22, description = "Титан",       alphaReactionResult = Element.CHROMIUM_48_ION_24),
+    CHROMIUM_48_ION_24      (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24, description = "Хром",        alphaReactionResult = Element.IRON_52_ION_26),
+    IRON_52_ION_26          (type = ElementType.Atom, symbol = "Fe²⁶⁺",     label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26, description = "Железо",      alphaReactionResult = Element.NICKEL_56_ION_28),
     NICKEL_56_ION_28        (type = ElementType.Atom, symbol = "Ni²⁸⁺",     label = "Nickel (⁵⁶Ni²⁸⁺)",     mass = 56f, e = 0, p = 28, n = 28, description = "Никель"),
     Ni (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     Star (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
