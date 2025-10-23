@@ -213,7 +213,9 @@ enum class Element(
     O (type = ElementType.Atom, symbol = "O", label = "Oxygen (O)", mass = 16f, e = 8, p = 8, n = 8),
     C (type = ElementType.Atom, symbol = "C", label = "Carbon (C)", mass = 12f, e = 6, p = 6, n = 6),
 
-    CHROMIUM_48_ION_24      (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24, description = "Хром"),
+    NICKEL_56_ION_28        (type = ElementType.Atom, symbol = "Ni²⁸⁺",     label = "Nickel (⁵⁶Ni²⁸⁺)",     mass = 56f, e = 0, p = 28, n = 28, description = "Никель"),
+    IRON_52_ION_26          (type = ElementType.Atom, symbol = "Fe²⁶⁺",     label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26, description = "Железо", alphaReactionResult = NICKEL_56_ION_28),
+    CHROMIUM_48_ION_24      (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24, description = "Хром", alphaReactionResult = IRON_52_ION_26),
     TITANIUM_44_ION_22      (type = ElementType.Atom, symbol = "Ti²²⁺",     label = "Titanium (⁴⁴Ti²²⁺)",   mass = 44f, e = 0, p = 22, n = 22, description = "Титан", alphaReactionResult = CHROMIUM_48_ION_24),
     CALCIUM_40_ION_20       (type = ElementType.Atom, symbol = "Ca²⁰⁺",     label = "Calcium (⁴⁰Ca²⁰⁺)",    mass = 40f, e = 0, p = 20, n = 20, description = "Кальций", alphaReactionResult = TITANIUM_44_ION_22),
     ARGON_36_ION_18         (type = ElementType.Atom, symbol = "Ar¹⁸⁺",     label = "Argon (³⁶Ar¹⁸⁺)",      mass = 36f, e = 0, p = 18, n = 18, description = "Аргон", alphaReactionResult = CALCIUM_40_ION_20),
