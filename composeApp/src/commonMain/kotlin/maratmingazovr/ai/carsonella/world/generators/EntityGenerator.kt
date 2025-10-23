@@ -44,7 +44,7 @@ class EntityGenerator(
     ): Entity<*> {
 
         val targetEnvironment = environment ?: worldEnvironment
-        val entity = when(element.type) {
+        val entity = when(element.details.type) {
             SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)

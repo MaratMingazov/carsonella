@@ -23,7 +23,7 @@ data class SpaceModuleState(
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
     override fun toString(): String {
         return """
-            |${element.label}: $id
+            |${element.details.label}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
             |Velocity ${round(velocity * 100) / 100}
             |Energy ${round(energy * 100) / 100}
@@ -60,7 +60,7 @@ class SpaceModule(
     )
     private val stepMutex = Mutex()
 
-    private var radiusCounter = element.radius
+    private var radiusCounter = element.details.radius
     private var reagent1Element: Element = Element.Electron
     private var reagent2Element: Element = Element.Proton
     private var reagent1: Entity<*>? = null
@@ -81,7 +81,7 @@ class SpaceModule(
                     .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
                     ?.updateMyEnvironment(getEnvironment())
 
-                radiusCounter = if (radiusCounter < 2) { state.value.element.radius } else { radiusCounter - 1 }
+                radiusCounter = if (radiusCounter < 2) { state.value.element.details.radius } else { radiusCounter - 1 }
 
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius

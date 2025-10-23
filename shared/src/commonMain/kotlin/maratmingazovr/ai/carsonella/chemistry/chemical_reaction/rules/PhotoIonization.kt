@@ -27,11 +27,11 @@ class PhotoIonization (
 
         val first = reagents.first()
         val firstElement = first.state().value.element
-        if (firstElement.energyLevels.isEmpty()) return false
-        if (firstElement.ion == null) return false
+        if (firstElement.details.energyLevels.isEmpty()) return false
+        if (firstElement.details.ion == null) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
-        val activationDistanceSquare = firstElement.radius * firstElement.radius
+        val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
 
         val (nearestPhoton, distance) = others
             .asSequence()
@@ -44,7 +44,7 @@ class PhotoIonization (
 
         if (distance > activationDistanceSquare) return false
         val expectedEnergy = first.state().value.energy + nearestPhoton.state().value.energy
-        if (firstElement.energyLevels.contains(expectedEnergy) || expectedEnergy > firstElement.energyLevels.last()) {
+        if (firstElement.details.energyLevels.contains(expectedEnergy) || expectedEnergy > firstElement.details.energyLevels.last()) {
             entity = first
             photon = nearestPhoton
             return true
@@ -60,7 +60,7 @@ class PhotoIonization (
          *  Если в элемент прилетел фотон, то электрон заберет эту энергию.
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
-        val energyIonization = entity!!.state().value.element.energyLevels.last()
+        val energyIonization = entity!!.state().value.element.details.energyLevels.last()
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
         val photonEnergy = photon!!.state().value.energy
@@ -71,7 +71,7 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon!!),
                 updateState = listOf { entity!!.addEnergy(photonEnergy) },
-                description = "Фотоионизация: ${entityElement.label} (${entityEnergy}eV) + ${photonElement.label} (${photonEnergy}eV) -> ${entityElement.label} (${entityEnergy + photonEnergy}eV)"
+                description = "Фотоионизация: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${entityEnergy + photonEnergy}eV)"
             )
         } else {
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
@@ -80,14 +80,14 @@ class PhotoIonization (
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
 
-            val ion = entityElement.ion!!
-            val ionPosition = entityPosition.plus(Position(-1f * entityElement.radius, 0f))
+            val ion = entityElement.details.ion!!
+            val ionPosition = entityPosition.plus(Position(-1f * entityElement.details.radius, 0f))
             val ionDirection = entityDirection
             val ionVelocity = entityVelocity
             val ionEnergy = 0f
 
             val electron = Electron
-            val electronPosition = entityPosition.plus(Position(1f * entityElement.radius, 0f))
+            val electronPosition = entityPosition.plus(Position(1f * entityElement.details.radius, 0f))
             val electronDirection = entityDirection
             val electronVelocity = 10 + 0.2f * freeEnergy
             val electronEnergy = 0f
@@ -98,7 +98,7 @@ class PhotoIonization (
                     entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
                     entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
                 },
-                description = "Фотоионизация: ${entityElement.label} (${entityEnergy}eV) + ${photonElement.label} (${photonEnergy}eV) -> ${ion.label} (${ionEnergy}eV) + ${electron.label} (${electronEnergy}eV)"
+                description = "Фотоионизация: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${ion.details.label} (${ionEnergy}eV) + ${electron.details.label} (${electronEnergy}eV)"
             )
         }
     }

@@ -37,9 +37,9 @@ class SpontaneousEmission(
         if (!first.state().value.alive) return false
 
         val firstElement = first.state().value.element
-        if (firstElement.energyLevels.isEmpty()) return false
+        if (firstElement.details.energyLevels.isEmpty()) return false
         if (first.state().value.energy == 0f) return false
-        if (!firstElement.energyLevels.contains(first.state().value.energy)) { throw Exception("SpontaneousEmission")}
+        if (!firstElement.details.energyLevels.contains(first.state().value.energy)) { throw Exception("SpontaneousEmission")}
 
         if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
@@ -54,26 +54,26 @@ class SpontaneousEmission(
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
-        val index = entityElement.energyLevels.indexOf(entityEnergy)
+        val index = entityElement.details.energyLevels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")
 
         // электрон в атоме спустится на 1 уровень ниже и отдаст энергию
         val energyToExpose =
             if (index == 0) { entityEnergy }
-            else { entityEnergy - entityElement.energyLevels[index - 1] }
+            else { entityEnergy - entityElement.details.energyLevels[index - 1] }
 
         return ReactionOutcome(
             updateState = listOf { entity!!.addEnergy(-1 * energyToExpose) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.Photon,
-                    entity!!.state().value.position.plus(Position(Element.HYDROGEN.radius, 0f)),
+                    entity!!.state().value.position.plus(Position(Element.HYDROGEN.details.radius, 0f)),
                     randomDirection(),
                     40f,
                     energy = energyToExpose,
                 )
             },
-            description = "Люминесценция: ${entityElement.label} (${entityEnergy}eV) -> ${Element.Photon.label} (${energyToExpose}eV)",
+            description = "Люминесценция: ${entityElement.details.label} (${entityEnergy}eV) -> ${Element.Photon.details.label} (${energyToExpose}eV)",
         )
     }
 

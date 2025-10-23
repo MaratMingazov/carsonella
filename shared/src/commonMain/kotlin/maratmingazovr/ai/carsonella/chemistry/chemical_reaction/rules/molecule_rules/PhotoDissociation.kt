@@ -27,11 +27,11 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
 
         val first = reagents.first()
         val firstElement = first.state().value.element
-        if (firstElement.energyBondDissociation == null) return false
-        if (firstElement.dissociationElements.isEmpty()) return false
+        if (firstElement.details.energyBondDissociation == null) return false
+        if (firstElement.details.dissociationElements.isEmpty()) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
-        val activationDistanceSquare = firstElement.radius * firstElement.radius
+        val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
 
         val (nearestPhoton, distance) = others
             .asSequence()
@@ -57,7 +57,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
          *  Энергетический порог молекулы.
          *  Если в молекулу прилетел фотон, то молекула либо заберет эту энергию, либо сама распадется
          */
-        val energyDissociation = entity!!.state().value.element.energyBondDissociation!!
+        val energyDissociation = entity!!.state().value.element.details.energyBondDissociation!!
         val entityEnergy = entity!!.state().value.energy
         val photonEnergy = photon!!.state().value.energy
 
@@ -73,21 +73,21 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
             val entityElement = entity!!.state().value.element
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
-            val dissociationElements = entityElement.dissociationElements
+            val dissociationElements = entityElement.details.dissociationElements
 
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
                     entityGenerator.createEntity(
                         dissociationElements[0],
-                        entityPosition.plus(Position(-1f * entityElement.radius, 0f)),
+                        entityPosition.plus(Position(-1f * entityElement.details.radius, 0f)),
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
                     )
                     entityGenerator.createEntity(
                         dissociationElements[1],
-                        entityPosition.plus(Position(1f * entityElement.radius, 0f)),
+                        entityPosition.plus(Position(1f * entityElement.details.radius, 0f)),
                         entityDirection,
                         entityVelocity,
                         energy = 0f,

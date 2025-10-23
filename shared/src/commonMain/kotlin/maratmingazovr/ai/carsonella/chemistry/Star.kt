@@ -23,7 +23,7 @@ data class StarState(
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy)
     override fun toString(): String {
         return """
-            |${element.label}: $id
+            |${element.details.label}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
             |Velocity ${round(velocity * 100) / 100}
             |Energy ${round(energy * 100) / 100}
@@ -59,7 +59,7 @@ class Star(
         )
     )
     private val stepMutex = Mutex()
-    private var radiusCounter = element.radius
+    private var radiusCounter = element.details.radius
 
     override fun state() = state
 
@@ -70,14 +70,14 @@ class Star(
 
                 val neighbors = getNeighbors()
                 val environment = getEnvironment()
-                val radius = state.value.element.radius
+                val radius = state.value.element.details.radius
 
                 //applyForce(calculateForce(neighbors))
                 applyNewPosition()
                 reduceVelocity()
                 checkBorders(environment)
 
-                radiusCounter = if (radiusCounter < 20) { state.value.element.radius } else { radiusCounter - 1 }
+                radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
 
                 // это нужно будет, если солнце будет поглощать элементы
 //                neighbors

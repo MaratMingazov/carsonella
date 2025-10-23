@@ -43,7 +43,7 @@ class AtomPlusAtomToMolecule(
         if (firstAtom.getEnvironment().getEnvTemperature() != temperatureMode) return false
         if (secondAtom.getEnvironment().getEnvTemperature() != temperatureMode) return false
 
-        return if (distanceSquare < element1.radius * element2.radius * 2f) {
+        return if (distanceSquare < element1.details.radius * element2.details.radius * 2f) {
             atom1 = firstAtom
             atom2 = secondAtom
             true
@@ -77,7 +77,7 @@ class AtomPlusAtomToMolecule(
             spawnList += {
                 entityGenerator.createEntity(
                     resultElement2,
-                    Position(resultPosition.x + 1.5f * direction.x * resultElement.radius,resultPosition.y),
+                    Position(resultPosition.x + 1.5f * direction.x * resultElement.details.radius,resultPosition.y),
                     direction,
                     velocity,
                     energy = 0f,
@@ -90,7 +90,7 @@ class AtomPlusAtomToMolecule(
             spawnList += {
                 entityGenerator.createEntity(
                     resultElement3,
-                    Position(resultPosition.x - 1.5f * direction.x * resultElement.radius,resultPosition.y),
+                    Position(resultPosition.x - 1.5f * direction.x * resultElement.details.radius,resultPosition.y),
                     direction,
                     velocity,
                     energy = 0f,
@@ -103,7 +103,7 @@ class AtomPlusAtomToMolecule(
             spawnList += {
                 entityGenerator.createEntity(
                     Photon,
-                    Position(resultPosition.x + 1.5f * direction.x * resultElement.radius,resultPosition.y + 1.5f * direction.y * resultElement.radius),
+                    Position(resultPosition.x + 1.5f * direction.x * resultElement.details.radius,resultPosition.y + 1.5f * direction.y * resultElement.details.radius),
                     direction,
                     10f,
                     energy = resultPhotonEnergy,
@@ -115,7 +115,7 @@ class AtomPlusAtomToMolecule(
         return ReactionOutcome(
             consumed = listOf(atom1!!, atom2!!),
             spawn = spawnList,
-            description = "${atom1Element.symbol} + ${atom2Element.symbol} -> ${resultElement.symbol} + ${Photon.symbol}"
+            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Photon.details.symbol}"
         )
     }
 }

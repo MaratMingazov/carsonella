@@ -56,7 +56,7 @@ class EntityRenderer(
             drawCircle(
                 color = Color.Black,
                 center = position,
-                radius = entityState.element.radius,
+                radius = entityState.element.details.radius,
                 style = Stroke(
                     width = 1f,
                     pathEffect = PathEffect.dashPathEffect(
@@ -66,7 +66,7 @@ class EntityRenderer(
                 )
             )
 
-            val textLayoutResult = textMeasurer.measure(text = entityState.element.symbol, style = TextStyle(color = Color.Black, fontSize = 10.sp))
+            val textLayoutResult = textMeasurer.measure(text = entityState.element.details.symbol, style = TextStyle(color = Color.Black, fontSize = 10.sp))
 
             drawText(
                 textLayoutResult,
@@ -89,7 +89,7 @@ class EntityRenderer(
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
-        val baseRadius = entityState.element.radius + 5f   // базовый радиус круга
+        val baseRadius = entityState.element.details.radius + 5f   // базовый радиус круга
         val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 

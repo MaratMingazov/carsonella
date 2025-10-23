@@ -23,7 +23,7 @@ class StarAlphaReaction(
         val firstAtomPosition = reagents.first().state().value.position
         val firstAtomElement = firstAtom.state().value.element
         if (!firstAtom.state().value.alive) return false
-        if (firstAtomElement.alphaReactionResult == null) return false // значит элемент не участвует в альфа захвате
+        if (firstAtomElement.details.alphaReactionResult == null) return false // значит элемент не участвует в альфа захвате
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -37,7 +37,7 @@ class StarAlphaReaction(
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
         val secondAtomElement = secondAtom.state().value.element
 
-        return if (distanceSquare < firstAtomElement.radius * secondAtomElement.radius * 2f) {
+        return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
             atom1 = firstAtom
             atom2 = secondAtom
             true
@@ -54,7 +54,7 @@ class StarAlphaReaction(
         val resultPosition = atom1!!.state().value.position
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
-        val resultElement = atom1Element.alphaReactionResult!!
+        val resultElement = atom1Element.details.alphaReactionResult!!
         val resultPhotonEnergy = 1000f
 
 
@@ -72,15 +72,15 @@ class StarAlphaReaction(
                 entityGenerator.createEntity(
                     Element.Photon,
                     Position(
-                        resultPosition.x + 1.5f * direction.x * resultElement.radius,
-                        resultPosition.y + 1.5f * direction.y * resultElement.radius
+                        resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
+                        resultPosition.y + 1.5f * direction.y * resultElement.details.radius
                     ),
                     direction,
                     10f,
                     energy = resultPhotonEnergy,
                 )
             },
-            description = "${atom1Element.symbol} + ${atom2Element.symbol} -> ${resultElement.symbol} + ${Element.Photon.symbol} (alpha reaction)"
+            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.Photon.details.symbol} (alpha reaction)"
         )
     }
 }

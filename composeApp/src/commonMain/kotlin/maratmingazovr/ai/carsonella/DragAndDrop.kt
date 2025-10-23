@@ -56,7 +56,7 @@ fun DragDropContainer(content: @Composable BoxScope.() -> Unit) {
                         .background(Color.Blue),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(state.data!!.element.symbol, color = Color.White)
+                    Text(state.data!!.element.details.symbol, color = Color.White)
                 }
             }
         }
