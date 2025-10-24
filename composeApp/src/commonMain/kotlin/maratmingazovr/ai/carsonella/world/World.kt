@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.randomDirection
@@ -43,12 +44,14 @@ class World(
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
-        entityGenerator.createEntity(element = Element.Star, position = Position(800f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
-        entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
+        entityGenerator.createEntity(element = Element.Star,            position = Position(800f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
+        val recombinationModule1 = entityGenerator.createEntity(element = Element.RECOMBINATION_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f) as RecombinationModule
 
         val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
         module1.setReagent1Element(Element.HYDROGEN)
         module1.setReagent2Element(Element.HYDROGEN)
+
+
 
 
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)

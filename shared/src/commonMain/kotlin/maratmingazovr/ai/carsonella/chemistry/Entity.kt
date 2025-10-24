@@ -181,7 +181,7 @@ interface Entity<State : EntityState<State>> :
     }
 }
 
-enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule }
+enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule, RecombinationModule }
 
 enum class Element() {
     // --- субатомные частицы ---
@@ -216,6 +216,7 @@ enum class Element() {
 
     Star,
     SPACE_MODULE,
+    RECOMBINATION_MODULE,
 
     // Молекулы
     C2_H6_O_ETHANOL,
@@ -265,6 +266,7 @@ enum class Element() {
 
             Star                    to Details (type = ElementType.Star, symbol = "Star", label = "Star", mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
             SPACE_MODULE            to Details (type = ElementType.SpaceModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
+            RECOMBINATION_MODULE    to Details (type = ElementType.RecombinationModule, symbol = ".", label = "SpaceModule", mass = 1f, e = 1, p = 1, n = 0, radius = 10f),
 
             // Молекулы
             C2_H6_O_ETHANOL         to Details (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", mass = 46f, e = 26, p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),

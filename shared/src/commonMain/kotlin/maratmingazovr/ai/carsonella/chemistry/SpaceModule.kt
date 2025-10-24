@@ -31,14 +31,14 @@ data class SpaceModuleState(
     }
 }
 
-class SpaceModule(
+open class SpaceModule(
     id: Long,
     element: Element,
     position: Position,
     direction: Vec2D,
     velocity: Float,
     energy: Float,
-    private val children: MutableList<Entity<*>> = mutableListOf(),
+    protected val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<SpaceModuleState>,
     DeathNotifiable by OnDeathSupport(),
@@ -47,7 +47,7 @@ class SpaceModule(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
-    private var state = MutableStateFlow(
+    protected var state = MutableStateFlow(
         SpaceModuleState(
             id = id,
             element = element,
@@ -58,13 +58,13 @@ class SpaceModule(
             energy = energy,
         )
     )
-    private val stepMutex = Mutex()
+    protected val stepMutex = Mutex()
 
-    private var radiusCounter = element.details.radius
+    protected var radiusCounter = element.details.radius
     private var reagent1Element: Element = Element.ELECTRON
     private var reagent2Element: Element = Element.Proton
-    private var reagent1: Entity<*>? = null
-    private var reagent2: Entity<*>? = null
+    protected var reagent1: Entity<*>? = null
+    protected var reagent2: Entity<*>? = null
 
     override fun state() = state
 
@@ -75,14 +75,10 @@ class SpaceModule(
 
                 //val neighbors = getNeighbors()
 
-                reagent1 = findReagent(reagent1Element, reagent1)
-                reagent2 = findReagent(reagent2Element, reagent2)
-                children
-                    .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
-                    ?.updateMyEnvironment(getEnvironment())
+                reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
+                reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
 
-                radiusCounter = if (radiusCounter < 2) { state.value.element.details.radius } else { radiusCounter - 1 }
-
+                updateChildrenAndRadius()
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius
 //
@@ -111,10 +107,21 @@ class SpaceModule(
         reagent2Element = element
     }
 
-    private fun findReagent(reagentElement: Element, childReagent: Entity<*>?) : Entity<*>? {
+    protected fun updateChildrenAndRadius() {
+        children
+            .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
+            ?.updateMyEnvironment(getEnvironment())
+
+        radiusCounter = if (radiusCounter < 2) { state.value.element.details.radius } else { radiusCounter - 1 }
+    }
+
+    protected fun findReagent(
+        predicate: (Entity<*>) -> Boolean,
+        childReagent: Entity<*>?
+    ) : Entity<*>? {
         val reagent = children.find { it == childReagent }
         if (reagent == null) {
-            val newReagent = getNeighbors().find { it.state().value.element == reagentElement &&  it.state().value.alive}
+            val newReagent = getNeighbors().find { predicate(it) &&  it.state().value.alive}
             newReagent?.updateMyEnvironment(this)
             return newReagent
         } else {
@@ -134,4 +141,26 @@ class SpaceModule(
         notifyDeath()
     }
 
+}
+
+class RecombinationModule(
+    id: Long,
+    element: Element,
+    position: Position,
+    direction: Vec2D,
+    velocity: Float,
+    energy: Float,
+): SpaceModule(id, element, position, direction, velocity, energy) {
+    override suspend fun init() {
+
+        while (state.value.alive) {
+            stepMutex.withLock {
+                reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
+                reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
+
+                updateChildrenAndRadius()
+            }
+            delay(10)
+        }
+    }
 }

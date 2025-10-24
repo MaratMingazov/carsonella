@@ -64,8 +64,9 @@ class StarEmission (
             // звезда излучит первый элемент в космос
             val reagent =
                 entityReagents.firstOrNull {
-                    entity -> entity.state().value.element == Element.Proton ||
-                    entity.state().value.element == Element.ELECTRON
+                    entity -> entity.state().value.element == Element.Proton
+                        || entity.state().value.element == Element.ELECTRON
+                        || entity.state().value.element == Element.O_16_ION_8
                 }
             if (reagent != null) {
                 updateList += {

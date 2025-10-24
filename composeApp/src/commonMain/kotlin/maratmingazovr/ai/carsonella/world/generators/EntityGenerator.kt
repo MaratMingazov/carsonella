@@ -15,7 +15,9 @@ import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Molecule
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SpaceModule
+import maratmingazovr.ai.carsonella.chemistry.ElementType.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
@@ -49,6 +51,7 @@ class EntityGenerator(
             Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
+            RecombinationModule -> RecombinationModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
         }.apply {
             entities.add(this)
             setOnDeath {
