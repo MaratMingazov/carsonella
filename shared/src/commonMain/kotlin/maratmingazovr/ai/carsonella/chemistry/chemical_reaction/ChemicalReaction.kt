@@ -23,6 +23,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIoniz
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
@@ -43,6 +44,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
 
         StarEmission(entityGenerator),
+        RecombinationReaction(entityGenerator),
         StarAlphaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
 
         // STAR REACTIONS
@@ -58,7 +60,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, Element.O_16_ION_8, Element.O_16_ION_8, Element.SULFUR_31_ION_16, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Element.Neutron),
 
         // Реакции атомов
-        AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),
+        //AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, DEUTERIUM_ION, Electron, DEUTERIUM, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
         AtomPlusAtomToMolecule(entityGenerator, O, O, O2),

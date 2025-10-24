@@ -183,28 +183,6 @@ interface Entity<State : EntityState<State>> :
 
 enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule }
 
-data class Details(
-    val type: ElementType,
-    val symbol: String,
-    val label: String,
-    val mass: Float,
-    val e: Int, // Количество электронов в элементе
-    val p: Int, // Количество протонов в элементе
-    val n: Int, // Количество нейтронов в элементе
-    val radius: Float = 20f,
-    val description: String = "",
-
-    val energyLevels: List<Float> = listOf(), // Столько энергии нужно, чтобы выбить электрон у элемента. Энергетические уровни атома. Атом может принимать только такие кванты энергии
-    val ion: Element? = null, // Если этот параметр указан, значит элемент может отдавать электрон. Положительно заряженный ион, который образуется, когда мы выбиваем электрон у элемента. Ионизация.
-    val recombinationElement: Element? = null,  // Такой элемент получится, если элемент получит электрон
-    val recombinationEnergy: Float? = null, // Столько энергии выделится, если элемент получит электрон
-
-    val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
-    val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
-
-    val alphaReactionResult: Element? = null // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
-)
-
 enum class Element() {
     // --- субатомные частицы ---
     PHOTON, Electron, Proton, Neutron,
@@ -301,4 +279,26 @@ enum class Element() {
     }
 
 }
+
+data class Details(
+    val type: ElementType,
+    val symbol: String,
+    val label: String,
+    val mass: Float,
+    val e: Int, // Количество электронов в элементе
+    val p: Int, // Количество протонов в элементе
+    val n: Int, // Количество нейтронов в элементе
+    val radius: Float = 20f,
+    val description: String = "",
+
+    val energyLevels: List<Float> = listOf(), // Столько энергии нужно, чтобы выбить электрон у элемента. Энергетические уровни атома. Атом может принимать только такие кванты энергии
+    val ion: Element? = null, // Если этот параметр указан, значит элемент может отдавать электрон. Положительно заряженный ион, который образуется, когда мы выбиваем электрон у элемента. Ионизация.
+    val recombinationElement: Element? = null,  // Такой элемент получится, если элемент получит электрон
+    val recombinationEnergy: Float? = null, // Столько энергии выделится, если элемент получит электрон
+
+    val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
+    val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
+
+    val alphaReactionResult: Element? = null // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
+)
 
