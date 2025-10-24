@@ -8,7 +8,7 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
@@ -73,7 +73,7 @@ class SubAtom(
                 val environment = getEnvironment()
 
                 when (state.value.element) {
-                    Photon -> initPhoton(environment)
+                    PHOTON -> initPhoton(environment)
                     Electron -> initElectron(environment, neighbors)
                     Proton -> initProton(environment, neighbors)
                     else -> NotImplementedError()
@@ -87,7 +87,7 @@ class SubAtom(
     private suspend fun initPhoton(environment: IEnvironment) {
         applyNewPosition()
         // Фотон и Электрон разрушаются, если вылетают за пределы поля
-        if (state.value.element in listOf(Photon, Electron)) {
+        if (state.value.element in listOf(PHOTON, Electron)) {
             val distanceSquare = state.value.position.distanceSquareTo(environment.getEnvCenter())
             if (distanceSquare > environment.getEnvRadius() * environment.getEnvRadius()) {
                 destroy()

@@ -49,7 +49,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, DEUTERIUM_ION, Proton, Element.HELIUM_3_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
         AtomPlusAtomToMolecule(entityGenerator, HELIUM_3_ION_2, HELIUM_3_ION_2, HELIUM_4_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
-        AtomPlusAtomToMolecule(entityGenerator, HELIUM_4_ION_2, HELIUM_4_ION_2, Element.BE_8_ION_4, temperatureMode = TemperatureMode.Star),
+        //AtomPlusAtomToMolecule(entityGenerator, HELIUM_4_ION_2, HELIUM_4_ION_2, Element.BERYLLIUM_8_ION_4, temperatureMode = TemperatureMode.Star),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NEON_20_ION_10, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HELIUM_4_ION_2),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NA_23_ION_11, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.MG_24_ION_12, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),

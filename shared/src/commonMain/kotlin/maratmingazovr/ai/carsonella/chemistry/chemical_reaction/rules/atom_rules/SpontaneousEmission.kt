@@ -66,14 +66,14 @@ class SpontaneousEmission(
             updateState = listOf { entity!!.addEnergy(-1 * energyToExpose) },
             spawn = listOf {
                 entityGenerator.createEntity(
-                    Element.Photon,
+                    Element.PHOTON,
                     entity!!.state().value.position.plus(Position(Element.HYDROGEN.details.radius, 0f)),
                     randomDirection(),
                     40f,
                     energy = energyToExpose,
                 )
             },
-            description = "Люминесценция: ${entityElement.details.label} (${entityEnergy}eV) -> ${Element.Photon.details.label} (${energyToExpose}eV)",
+            description = "Люминесценция: ${entityElement.details.label} (${entityEnergy}eV) -> ${Element.PHOTON.details.label} (${energyToExpose}eV)",
         )
     }
 

@@ -29,7 +29,7 @@ class World(
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
-        Element.Photon, Element.Electron, Element.Proton,
+        Element.PHOTON, Element.Electron, Element.Proton,
         Element.HYDROGEN, Element.O,
 //        Element.H2, Element.O2,
         Element.Star, Element.SPACE_MODULE
@@ -52,6 +52,7 @@ class World(
 
 
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 150f),  direction = randomDirection(), velocity = 0f, energy = 10.2f)
+//        entityGenerator.createEntity(element = Element.H2, position = Position(100f, 350f),  direction = randomDirection(), velocity = 0f, energy = 0f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 300f),  direction = randomDirection(), velocity = 0f, energy = 12.09f)

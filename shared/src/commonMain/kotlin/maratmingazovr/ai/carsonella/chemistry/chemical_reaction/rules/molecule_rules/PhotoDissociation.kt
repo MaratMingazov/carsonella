@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -35,7 +35,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
 
         val (nearestPhoton, distance) = others
             .asSequence()
-            .filter { it.state().value.element == Photon }
+            .filter { it.state().value.element == PHOTON }
             .filter { it.state().value.alive }
             .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
             .minByOrNull { it.second }
@@ -74,19 +74,21 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
             val dissociationElements = entityElement.details.dissociationElements
+            val dissociationElement1 = dissociationElements[0]
+            val dissociationElement2 = dissociationElements[1]
 
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
                     entityGenerator.createEntity(
-                        dissociationElements[0],
+                        dissociationElement1,
                         entityPosition.plus(Position(-1f * entityElement.details.radius, 0f)),
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
                     )
                     entityGenerator.createEntity(
-                        dissociationElements[1],
+                        dissociationElement2,
                         entityPosition.plus(Position(1f * entityElement.details.radius, 0f)),
                         entityDirection,
                         entityVelocity,

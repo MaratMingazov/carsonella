@@ -3,7 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -102,7 +102,7 @@ class AtomPlusAtomToMolecule(
         if (resultPhotonEnergy > 0) {
             spawnList += {
                 entityGenerator.createEntity(
-                    Photon,
+                    PHOTON,
                     Position(resultPosition.x + 1.5f * direction.x * resultElement.details.radius,resultPosition.y + 1.5f * direction.y * resultElement.details.radius),
                     direction,
                     10f,
@@ -115,7 +115,7 @@ class AtomPlusAtomToMolecule(
         return ReactionOutcome(
             consumed = listOf(atom1!!, atom2!!),
             spawn = spawnList,
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Photon.details.symbol}"
+            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${PHOTON.details.symbol}"
         )
     }
 }

@@ -2,7 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element.Electron
-import maratmingazovr.ai.carsonella.chemistry.Element.Photon
+import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
@@ -35,7 +35,7 @@ class PhotoIonization (
 
         val (nearestPhoton, distance) = others
             .asSequence()
-            .filter { it.state().value.element == Photon }
+            .filter { it.state().value.element == PHOTON }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
             .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }

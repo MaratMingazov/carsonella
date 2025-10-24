@@ -10,7 +10,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Molecule

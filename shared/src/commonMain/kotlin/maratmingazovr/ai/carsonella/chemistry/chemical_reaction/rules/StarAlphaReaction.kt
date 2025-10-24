@@ -70,7 +70,7 @@ class StarAlphaReaction(
                     atom1!!.getEnvironment(),
                 )
                 entityGenerator.createEntity(
-                    Element.Photon,
+                    Element.PHOTON,
                     Position(
                         resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
                         resultPosition.y + 1.5f * direction.y * resultElement.details.radius
@@ -80,7 +80,7 @@ class StarAlphaReaction(
                     energy = resultPhotonEnergy,
                 )
             },
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.Photon.details.symbol} (alpha reaction)"
+            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} (alpha reaction)"
         )
     }
 }

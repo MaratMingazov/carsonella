@@ -18,7 +18,7 @@ class SubAtomRenderer(
         phase: Float,
     ) {
         when (state.element) {
-            Element.Photon -> drawPhoton(drawScope, state)
+            Element.PHOTON -> drawPhoton(drawScope, state)
             Element.Electron -> drawElectron(drawScope, state)
             Element.Proton -> drawProton(drawScope, state, phase)
             Element.Neutron -> drawProton(drawScope, state, phase)
