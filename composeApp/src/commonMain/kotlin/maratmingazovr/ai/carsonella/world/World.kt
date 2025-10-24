@@ -29,7 +29,7 @@ class World(
     private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
-        Element.PHOTON, Element.Electron, Element.Proton,
+        Element.PHOTON, Element.ELECTRON, Element.Proton,
         Element.HYDROGEN, Element.O,
 //        Element.H2, Element.O2,
         Element.Star, Element.SPACE_MODULE

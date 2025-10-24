@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.chemistry.Element.Electron
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -86,7 +86,7 @@ class PhotoIonization (
             val ionVelocity = entityVelocity
             val ionEnergy = 0f
 
-            val electron = Electron
+            val electron = ELECTRON
             val electronPosition = entityPosition.plus(Position(1f * entityElement.details.radius, 0f))
             val electronDirection = entityDirection
             val electronVelocity = 10 + 0.2f * freeEnergy

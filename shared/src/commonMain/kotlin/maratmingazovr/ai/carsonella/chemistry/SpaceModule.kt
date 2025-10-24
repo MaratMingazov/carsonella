@@ -61,7 +61,7 @@ class SpaceModule(
     private val stepMutex = Mutex()
 
     private var radiusCounter = element.details.radius
-    private var reagent1Element: Element = Element.Electron
+    private var reagent1Element: Element = Element.ELECTRON
     private var reagent2Element: Element = Element.Proton
     private var reagent1: Entity<*>? = null
     private var reagent2: Entity<*>? = null

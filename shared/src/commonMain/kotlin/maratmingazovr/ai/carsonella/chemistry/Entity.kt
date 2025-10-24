@@ -185,7 +185,7 @@ enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule }
 
 enum class Element() {
     // --- субатомные частицы ---
-    PHOTON, Electron, Proton, Neutron,
+    PHOTON, ELECTRON, Proton, Neutron,
 
     // --- атомы ---
     HYDROGEN,
@@ -233,7 +233,7 @@ enum class Element() {
         private val detailsMap: Map<Element, Details> = mapOf(
             // --- субатомные частицы ---
             PHOTON      to Details (type = ElementType.SubAtom, symbol = "γ",  label = "Photon (γ)",       mass = 0f,      e = 0, p = 0, n = 0, radius = 5f),
-            Electron    to Details (type = ElementType.SubAtom, symbol = "e⁻", label = "Electron (e⁻)",    mass = 0.1f,    e = 1, p = 0, n = 0, radius = 5f),
+            ELECTRON    to Details (type = ElementType.SubAtom, symbol = "e⁻", label = "Electron (e⁻)",    mass = 0.1f,    e = 1, p = 0, n = 0, radius = 5f),
             Proton      to Details (type = ElementType.SubAtom, symbol = "p⁺", label = "Proton (p⁺)",      mass = 1f,      e = 0, p = 1, n = 0, radius = 10f, recombinationElement = HYDROGEN),
             Neutron     to Details (type = ElementType.SubAtom, symbol = "n",  label = "Neutron (n)",      mass = 1f,      e = 0, p = 0, n = 1, radius = 10f),
 
