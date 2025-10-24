@@ -78,7 +78,7 @@ open class SpaceModule(
                 reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
                 reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
 
-                updateChildrenAndRadius()
+                updateChildrenAndRadius(needToExcludePredicate = { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element })
 //                val environment = getEnvironment()
 //                val radius = state.value.element.radius
 //
@@ -107,9 +107,11 @@ open class SpaceModule(
         reagent2Element = element
     }
 
-    protected fun updateChildrenAndRadius() {
+    protected fun updateChildrenAndRadius(
+        needToExcludePredicate: (Entity<*>) -> Boolean,
+    ) {
         children
-            .find { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element }
+            .find { needToExcludePredicate(it) }
             ?.updateMyEnvironment(getEnvironment())
 
         radiusCounter = if (radiusCounter < 2) { state.value.element.details.radius } else { radiusCounter - 1 }
@@ -158,7 +160,7 @@ class RecombinationModule(
                 reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
                 reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
 
-                updateChildrenAndRadius()
+                updateChildrenAndRadius(needToExcludePredicate = {!(it.state().value.element == Element.ELECTRON || it.state().value.element.details.recombinationElement != null)})
             }
             delay(10)
         }

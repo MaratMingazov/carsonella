@@ -32,7 +32,7 @@ class World(
     val palette =  mutableStateListOf(
         Element.PHOTON, Element.ELECTRON, Element.Proton,
         Element.HYDROGEN, Element.O,
-//        Element.H2, Element.O2,
+        Element.H2, Element.OXYGEN_16_ION_8,
         Element.Star, Element.SPACE_MODULE
     )
     val entities =  mutableStateListOf<Entity<*>>()
@@ -47,9 +47,9 @@ class World(
         entityGenerator.createEntity(element = Element.Star,            position = Position(800f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
         val recombinationModule1 = entityGenerator.createEntity(element = Element.RECOMBINATION_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f) as RecombinationModule
 
-        val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
-        module1.setReagent1Element(Element.HYDROGEN)
-        module1.setReagent2Element(Element.HYDROGEN)
+//        val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
+//        module1.setReagent1Element(Element.HYDROGEN)
+//        module1.setReagent2Element(Element.HYDROGEN)
 
 
 
