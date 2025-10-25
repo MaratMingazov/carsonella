@@ -14,7 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.O
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Element.H2O
@@ -63,8 +63,8 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         //AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, DEUTERIUM_ION, ELECTRON, DEUTERIUM, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
-        AtomPlusAtomToMolecule(entityGenerator, O, O, O2),
-        AtomPlusAtomToMolecule(entityGenerator, O, H2, H2O),
+        AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, OXYGEN_16, O2),
+        AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, H2, H2O),
 
     )
 
