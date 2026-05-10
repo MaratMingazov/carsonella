@@ -68,21 +68,24 @@ class SubAtom(
         //writeLog("Появился ${state.value.element.label}: ${state.value.id}, energy: ${state.value.energy}")
         while (state.value.alive) {
             stepMutex.withLock {
-
-                val neighbors = getNeighbors()
-                val environment = getEnvironment()
-
-                when (state.value.element) {
-                    PHOTON -> initPhoton(environment)
-                    ELECTRON -> initElectron(environment, neighbors)
-                    Proton -> initProton(environment, neighbors)
-                    else -> NotImplementedError()
-                }
-
+                step()
             }
             delay(10)
         }
     }
+
+    private suspend fun step() {
+        val neighbors = getNeighbors()
+        val environment = getEnvironment()
+
+        when (state.value.element) {
+            PHOTON -> initPhoton(environment)
+            ELECTRON -> initElectron(environment, neighbors)
+            Proton -> initProton(environment, neighbors)
+            else -> NotImplementedError()
+        }
+    }
+
 
     private suspend fun initPhoton(environment: IEnvironment) {
         applyNewPosition()
