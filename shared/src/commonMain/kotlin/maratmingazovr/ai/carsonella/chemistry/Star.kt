@@ -67,25 +67,7 @@ class Star(
 
         while (state.value.alive) {
             stepMutex.withLock {
-
-                val neighbors = getNeighbors()
-                val environment = getEnvironment()
-                val radius = state.value.element.details.radius
-
-                //applyForce(calculateForce(neighbors))
-                applyNewPosition()
-                reduceVelocity()
-                checkBorders(environment)
-
-                radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
-
-                // это нужно будет, если солнце будет поглощать элементы
-//                neighbors
-//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
-//                    .takeIf { it.isNotEmpty() }
-//                    ?.let { requestReaction(listOf(this) + it) }
-
-                requestReaction(listOf(this))
+                step()
 
             }
             delay(10)
@@ -98,6 +80,27 @@ class Star(
     override fun getEnvChildren(): List<Entity<*>> { return children }
     override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
     override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
+
+    private fun step() {
+        val neighbors = getNeighbors()
+        val environment = getEnvironment()
+        val radius = state.value.element.details.radius
+
+        //applyForce(calculateForce(neighbors))
+        applyNewPosition()
+        reduceVelocity()
+        checkBorders(environment)
+
+        radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
+
+        // это нужно будет, если солнце будет поглощать элементы
+//                neighbors
+//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
+//                    .takeIf { it.isNotEmpty() }
+//                    ?.let { requestReaction(listOf(this) + it) }
+
+        requestReaction(listOf(this))
+    }
 
     override suspend fun destroy() {
         state.value = state.value.copy(alive = false)
