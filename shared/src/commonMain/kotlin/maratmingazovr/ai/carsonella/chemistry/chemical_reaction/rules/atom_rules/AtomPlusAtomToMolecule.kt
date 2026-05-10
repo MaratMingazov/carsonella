@@ -24,7 +24,7 @@ class AtomPlusAtomToMolecule(
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
 
-    override suspend fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matches(reagents: List<Entity<*>>) : Boolean {
         atom1 = null
         atom2 = null
         if (reagents.size < 2) return false
@@ -52,9 +52,9 @@ class AtomPlusAtomToMolecule(
         }
     }
 
-    override suspend fun weight() = 0f
+    override fun weight() = 0f
 
-    override suspend fun produce(): ReactionOutcome {
+    override fun produce(): ReactionOutcome {
 
         val (direction,velocity) = calculateHydrogenDirectionAndVelocity(atom1!!, atom2!!)
         val spawnList = mutableListOf<() -> Entity<*>>()

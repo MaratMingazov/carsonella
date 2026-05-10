@@ -19,7 +19,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
     private var photon : Entity<*>? = null
 
 
-    override suspend fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matches(reagents: List<Entity<*>>) : Boolean {
         entity = null
         photon = null
 
@@ -49,9 +49,9 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
         return false
     }
 
-    override suspend fun weight() = 0f
+    override fun weight() = 0f
 
-    override suspend fun produce(): ReactionOutcome {
+    override fun produce(): ReactionOutcome {
 
         /**
          *  Энергетический порог молекулы.

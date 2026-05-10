@@ -15,7 +15,7 @@ class StarEmission (
     private var entity : Entity<*>? = null
     private var entityReagents: List<Entity<*>> = listOf()
 
-    override suspend fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matches(reagents: List<Entity<*>>): Boolean {
         entity = null
         entityReagents = listOf()
 
@@ -38,9 +38,9 @@ class StarEmission (
         return true
     }
 
-    override suspend fun weight() = 0f
+    override fun weight() = 0f
 
-    override suspend fun produce(): ReactionOutcome {
+    override fun produce(): ReactionOutcome {
 
         /*
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос

@@ -29,7 +29,7 @@ class SpontaneousEmission(
     private var entity : Entity<*>? = null
 
 
-    override suspend fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matches(reagents: List<Entity<*>>) : Boolean {
         entity = null
 
         if (reagents.size != 1) return false
@@ -47,9 +47,9 @@ class SpontaneousEmission(
         return true
     }
 
-    override suspend fun weight() = 0f
+    override fun weight() = 0f
 
-    override suspend fun produce(): ReactionOutcome {
+    override fun produce(): ReactionOutcome {
 
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity!!.state().value.energy

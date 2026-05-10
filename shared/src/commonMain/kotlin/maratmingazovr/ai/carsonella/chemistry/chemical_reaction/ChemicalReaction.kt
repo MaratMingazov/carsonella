@@ -1,7 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -68,8 +66,6 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
 
     )
 
-    private val _stepMutex = Mutex()
-
     /**
      * 1 - Прогоняем наши реагенты по всему списку правил химических реакций.
      *     Определяем какие реакции в принципе возможны
@@ -77,21 +73,18 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
      * 3 - Если нашли несколько возможных реакций, то определяем какая из них наиболее вероятна
      * 4 - Выполняем химическую реакцию и возвращаем результат
      */
-    suspend fun resolve(reagents: List<Entity<*>>): ReactionOutcome? {
-
-        _stepMutex.withLock {
-            val applicableRules = rules.filter { it.matches(reagents) }
-            if (applicableRules.isEmpty()) return null
-            // Сначала вычисляем веса для всех подходящих правил
-            val weighted = applicableRules.map { it to it.weight() }
-            // Находим максимальный вес
-            val maxWeight = weighted.maxOf { it.second }
-            // Отбираем все правила с максимальным весом
-            val topRules = weighted.filter { it.second == maxWeight }.map { it.first }
-            // Выбираем случайное из них
-            val chosenRule = topRules.random()
-            // val chosenRule = applicableRules.map { it to it.weight() }.maxBy { it.second }.first
-            return chosenRule.produce()
-        }
+    fun resolve(reagents: List<Entity<*>>): ReactionOutcome? {
+        val applicableRules = rules.filter { it.matches(reagents) }
+        if (applicableRules.isEmpty()) return null
+        // Сначала вычисляем веса для всех подходящих правил
+        val weighted = applicableRules.map { it to it.weight() }
+        // Находим максимальный вес
+        val maxWeight = weighted.maxOf { it.second }
+        // Отбираем все правила с максимальным весом
+        val topRules = weighted.filter { it.second == maxWeight }.map { it.first }
+        // Выбираем случайное из них
+        val chosenRule = topRules.random()
+        // val chosenRule = applicableRules.map { it to it.weight() }.maxBy { it.second }.first
+        return chosenRule.produce()
     }
 }

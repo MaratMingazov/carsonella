@@ -76,7 +76,6 @@ class World(
                     // - tryReceive() — non-blocking чтение из канала, возвращает ChannelResult.
                     // - .getOrNull() — даёт null если канал пустой → выходим из цикла.
                     // - Цикл крутится, пока в канале есть запросы; каждый отрабатывает синхронно через тот же runReaction, что и раньше.
-                    // - runReaction остаётся suspend — компилятор не ругнётся, потому что мы внутри _worldMutex.withLock { ... }, а withLock — это уже suspend контекст.
                     while (true) {
                         val request = _requestsChannel.tryReceive().getOrNull() ?: break
                         runReaction(request)
@@ -102,7 +101,7 @@ class World(
 
 
 
-    suspend fun runReaction(reactionRequest: ReactionRequest) {
+    fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: Реакция: ${result.description}"
 

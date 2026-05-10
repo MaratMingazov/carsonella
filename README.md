@@ -128,22 +128,23 @@ composeApp/src/commonMain/kotlin/maratmingazovr/ai/carsonella/
 ### Что уже сделано
 
 - ✅ В каждой сущности (`Atom`, `Molecule`, `Star`, `SubAtom`, `SpaceModule`, `RecombinationModule`) тело шага вынесено из `init()` в отдельный метод `step()`.
-- ✅ В интерфейс `Entity<S>` добавлен `suspend fun step()`.
+- ✅ В интерфейс `Entity<S>` добавлен `step()`.
 - ✅ В `World` добавлен главный tick-loop под `_worldMutex` (взаимоисключение с резолвером реакций), `tickMs = 16L`.
 - ✅ В `EntityGenerator` удалён `scope.launch { entity.init() }` — сущности больше не имеют собственных корутин. Параметр `scope` убран из конструктора.
+- ✅ Удалён `init()` из интерфейса и всех реализаций.
+- ✅ Удалены поля `stepMutex` (`Mutex`) из всех сущностей. В домене (`shared/.../chemistry/`) больше нет `Mutex`/`withLock`/`delay`.
+- ✅ `step()` и `destroy()` стали синхронными `fun` (без `suspend`); в `SubAtom` `initPhoton` тоже потерял `suspend`.
+- ✅ **Drain канала перенесён внутрь tick'а** (шаг 9a). Удалён второй `_scope.launch` — реакции обрабатываются в фазе после step через `tryReceive()`. Теперь в проекте ровно один корутинный цикл.
+- ✅ **`ChemicalReactionResolver` стал синхронным** (шаг 9b). Снят `suspend` с `resolve` и со всех `ReactionRule.matches/weight/produce` в 7 правилах. Удалён `_stepMutex` из резолвера. `World.runReaction` тоже потерял `suspend`. В домене (`shared/.../chemistry/`) больше нет ни одного `suspend` или `Mutex`.
 - ✅ Поведение визуально неизменно: звезда пульсирует, фотоионизация, рекомбинация, drag&drop работают.
 
 ### Что осталось (порядок выполнения)
 
-1. **Очистить «висячий» `init()`.** Сейчас `Entity.init()` никем не зовётся, но всё ещё крутит `while + delay + withLock { step() }`. Варианты: либо удалить из интерфейса и реализаций, либо превратить в одноразовый `onCreate()` для side-effect'ов при спавне.
-2. **Убрать `Mutex` из сущностей.** Когда `init()` исчезнет, защищать там нечего — мир шагает в одном потоке.
-3. **Перевести `step()` обратно в синхронный `fun`** (без `suspend`). Для этого `destroy()` тоже должен стать синхронным или его вызовы из `step()` перенести в фазу Cleanup мира. Самое простое: помечать `state.alive = false` в `step()`, а реальный removal делать в World после tick'а.
-4. **Channel реакций → drain в одной фазе tick'а.** Сейчас параллельный `_scope.launch { for (req in _requestsChannel) ... }` обрабатывает реакции в другом потоке (но синхронизированно через `_worldMutex`). После п. 3 можно убрать второй launch и в tick'е делать `drainAll() → resolve → apply`.
-5. **`ChemicalReactionResolver`** — переписать `resolve` на батч-обработку: принимает список запросов, возвращает список outcomes, разрешает конфликты (один реагент в двух запросах). Без `suspend` / `Mutex`.
-6. **SpatialGrid (`Grid2D.kt`)** — оживить и подключить к World. Перестраивается в начале tick'а. `getNeighbors()` идёт через него.
-7. **`Random` глобальный** (`Geomtry.kt: val random = Random(1)`) → перенести в `World` (`val rng = Random(seed)`) и пробрасывать туда, где нужен.
-8. **`updateMyEnvironment`** — перевести из «инлайнового» вызова внутри `step()` в отложенный effect, который применяется в фазе Cleanup. Иначе в момент шага A может перевестись из одного env в другой, и B, шагающий следом, увидит несогласованную картину.
-9. **Drag&drop спавн (`RightPanel.kt`, Space «выстрел»)** — должны идти через pending-список, чтобы не модифицировать `entities` во время фазы Step.
+1. **`Channel<ReactionRequest>` → `MutableList<ReactionRequest>`** (шаг 9c). Канал был оправдан, пока было N корутин-продюсеров. Сейчас всё последовательно — простой список с `clear()` после drain'а проще и яснее. Затронет `World.kt` (поле `_requestsChannel`, drain в tick'е) и `EntityGenerator.kt` (где привязан `setRequestReaction`).
+2. **SpatialGrid (`Grid2D.kt`)** — оживить и подключить к World. Перестраивается в начале tick'а. `getNeighbors()` идёт через него.
+3. **`Random` глобальный** (`Geomtry.kt: val random = Random(1)`) → перенести в `World` (`val rng = Random(seed)`) и пробрасывать туда, где нужен.
+4. **`updateMyEnvironment`** — перевести из «инлайнового» вызова внутри `step()` в отложенный effect, который применяется в фазе Cleanup. Иначе в момент шага A может перевестись из одного env в другой, и B, шагающий следом, увидит несогласованную картину.
+5. **Drag&drop спавн (`RightPanel.kt`, Space «выстрел»)** — должны идти через pending-список, чтобы не модифицировать `entities` во время фазы Step. После этого `_worldMutex` тоже можно удалить.
 
 ### Зачем
 
@@ -205,11 +206,12 @@ interface Entity<S> {
 
 ### Definition of Done
 
-- [x] В `World` ровно один цикл, который шагает мир. *(сделано — tick-loop с `tickMs = 16L`. Пауза/скорость пока через изменение `tickMs`, без UI-контроля.)*
-- [ ] `Entity.init()` либо удалён, либо ничего не делает; нет ни одного `delay()` в `commonMain/.../chemistry/`.
+- [x] В `World` ровно один цикл, который шагает мир. *(tick-loop с `tickMs = 16L`. Пауза/скорость пока через изменение `tickMs`, без UI-контроля.)*
+- [x] `Entity.init()` удалён; нет ни одного `delay()` в `commonMain/.../chemistry/`.
+- [x] Удалён `Mutex` из сущностей.
+- [x] В `ChemicalReactionResolver` нет `suspend` / `Mutex`. *(батч-обработка с разрешением конфликтов отложена — пока не нужна.)*
 - [ ] При фиксированном `Random(seed)` два запуска от стартового состояния дают побитово одинаковую последовательность реакций. (тест: `SharedCommonTest.kt`)
 - [ ] `Grid2D` подключён, `getNeighbors()` идёт через него; на 500 сущностях кадр ≤ 16 мс на JVM.
-- [ ] Удалён `Mutex` из сущностей; в `ChemicalReactionResolver` нет `suspend` / `Mutex`.
 - [ ] Рендер на 60 fps без визуального дрожания (которое бывает сейчас при большом количестве сущностей).
 
 ### Что оставляем НЕ в этом рефакторинге

@@ -13,15 +13,15 @@ interface ReactionRule {
      * true - реакция возможна и произойдет, если не найдется более выгодная реакция
      * false - реакция невозможна
      * */
-    suspend fun matches(reagents: List<Entity<*>>): Boolean
+    fun matches(reagents: List<Entity<*>>): Boolean
 
     /** Этот метод вычисляет насколько вероятна реакция
      * Чем больше вес, тем реакция вероятнее
      * ЕСли у нас будет несколько допустимых реакций, мы выберем реакцию с наибольшим весом
      * */
-    suspend fun weight(): Float
+    fun weight(): Float
 
-    suspend fun produce(): ReactionOutcome
+    fun produce(): ReactionOutcome
 
     /**
      * Вычисляем направление движения и скорость новой частицы после столкновения двух частиц.
