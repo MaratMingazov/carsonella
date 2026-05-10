@@ -71,33 +71,16 @@ open class SpaceModule(
     override suspend fun init() {
 
         while (state.value.alive) {
-            stepMutex.withLock {
-
-                //val neighbors = getNeighbors()
-
-                reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
-                reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
-
-                updateChildrenAndRadius(needToExcludePredicate = { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element })
-//                val environment = getEnvironment()
-//                val radius = state.value.element.radius
-//
-//                //applyForce(calculateForce(neighbors))
-//                applyNewPosition()
-//                reduceVelocity()
-//                checkBorders(environment)
-//
-//                neighbors
-//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
-//                    .takeIf { it.isNotEmpty() }
-//                    ?.let { requestReaction(listOf(this) + it) }
-//
-//                //if (state.value.energy > 0) { requestReaction(listOf(this)) }
-//                requestReaction(listOf(this))
-
-            }
+            stepMutex.withLock { step() }
             delay(10)
         }
+    }
+
+    protected open fun step() {
+        reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
+        reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
+
+        updateChildrenAndRadius(needToExcludePredicate = { it.state().value.element != reagent1Element  &&  it.state().value.element != reagent2Element })
     }
 
     fun setReagent1Element(element: Element) {
@@ -153,16 +136,11 @@ class RecombinationModule(
     velocity: Float,
     energy: Float,
 ): SpaceModule(id, element, position, direction, velocity, energy) {
-    override suspend fun init() {
 
-        while (state.value.alive) {
-            stepMutex.withLock {
-                reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
-                reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
+    override fun step() {
+        reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
+        reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
 
-                updateChildrenAndRadius(needToExcludePredicate = {!(it.state().value.element == Element.ELECTRON || it.state().value.element.details.recombinationElement != null)})
-            }
-            delay(10)
-        }
+        updateChildrenAndRadius(needToExcludePredicate = {!(it.state().value.element == Element.ELECTRON || it.state().value.element.details.recombinationElement != null)})
     }
 }
