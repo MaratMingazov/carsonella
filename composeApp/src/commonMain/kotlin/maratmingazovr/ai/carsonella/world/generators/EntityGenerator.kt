@@ -28,7 +28,6 @@ import maratmingazovr.ai.carsonella.world.currentTime
 class EntityGenerator(
     private val idGen: IdGenerator,
     private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
-    private val scope: CoroutineScope,
     private val requestsChannel: Channel<ReactionRequest>, // это канал, в который атом может отправлять запросы на химическую реакцию
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
@@ -64,7 +63,6 @@ class EntityGenerator(
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
         targetEnvironment.addEnvChild(entity)
-        scope.launch { entity.init() }
         //if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
         return entity
     }

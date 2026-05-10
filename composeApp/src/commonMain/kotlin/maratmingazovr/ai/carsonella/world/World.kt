@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.world
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,7 +38,7 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _scope, _requestsChannel, logs, palette, environment)
+    val entityGenerator = EntityGenerator(_idGen, entities, _requestsChannel, logs, palette, environment)
     private val _worldMutex = Mutex()
 
 
@@ -64,6 +65,22 @@ class World(
                 _worldMutex.withLock { runReaction(reactinoRequest) }
             }
         }
+
+        _scope.launch {
+            val tickMs = 16L
+            while (true) {
+                _worldMutex.withLock {
+                    // снимок, чтобы не падать на ConcurrentModificationException
+                    // если кто-то добавит сущность во время шага
+                    val snapshot = entities.toList()
+                    snapshot.forEach { entity ->
+                        if (entity.state().value.alive) entity.step()
+                    }
+                }
+                delay(tickMs)
+            }
+        }
+
     }
 
     fun applyForceToEntity(entityId: Long, force: Vec2D) {
