@@ -2,7 +2,6 @@ package maratmingazovr.ai.carsonella.world
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -17,7 +16,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
-import maratmingazovr.ai.carsonella.chemistry.SpaceModule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
@@ -28,7 +26,7 @@ class World(
 ) {
 
     private val _idGen: IdGenerator = IdGenerator()
-    private val _requestsChannel =  Channel<ReactionRequest>(capacity = Channel.UNLIMITED)
+    private val _pendingRequests = mutableListOf<ReactionRequest>()
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.PHOTON, Element.ELECTRON, Element.Proton,
@@ -38,7 +36,7 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _requestsChannel, logs, palette, environment)
+    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, environment)
     private val _worldMutex = Mutex()
 
 
@@ -73,13 +71,11 @@ class World(
                     }
 
                     // Resolve phase — обрабатываем все запросы, накопленные за tick
-                    // - tryReceive() — non-blocking чтение из канала, возвращает ChannelResult.
-                    // - .getOrNull() — даёт null если канал пустой → выходим из цикла.
-                    // - Цикл крутится, пока в канале есть запросы; каждый отрабатывает синхронно через тот же runReaction, что и раньше.
-                    while (true) {
-                        val request = _requestsChannel.tryReceive().getOrNull() ?: break
-                        runReaction(request)
-                    }
+                    // - toList() — снимок, чтобы быть устойчивыми, если runReaction сам положит новый запрос (сейчас не кладёт, но защищаемся).
+                    val requests = _pendingRequests.toList()
+                    _pendingRequests.clear()
+                    requests.forEach { runReaction(it) }
+
 
                 }
                 delay(tickMs)

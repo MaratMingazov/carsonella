@@ -136,15 +136,15 @@ composeApp/src/commonMain/kotlin/maratmingazovr/ai/carsonella/
 - ✅ `step()` и `destroy()` стали синхронными `fun` (без `suspend`); в `SubAtom` `initPhoton` тоже потерял `suspend`.
 - ✅ **Drain канала перенесён внутрь tick'а** (шаг 9a). Удалён второй `_scope.launch` — реакции обрабатываются в фазе после step через `tryReceive()`. Теперь в проекте ровно один корутинный цикл.
 - ✅ **`ChemicalReactionResolver` стал синхронным** (шаг 9b). Снят `suspend` с `resolve` и со всех `ReactionRule.matches/weight/produce` в 7 правилах. Удалён `_stepMutex` из резолвера. `World.runReaction` тоже потерял `suspend`. В домене (`shared/.../chemistry/`) больше нет ни одного `suspend` или `Mutex`.
+- ✅ **`Channel<ReactionRequest>` → `MutableList<ReactionRequest>`** (шаг 9c). Канал заменён на простой список `_pendingRequests` в `World`. В фазе Resolve берётся снимок (`toList()`), список очищается, запросы обрабатываются. `kotlinx.coroutines.channels.Channel` больше нигде не используется.
 - ✅ Поведение визуально неизменно: звезда пульсирует, фотоионизация, рекомбинация, drag&drop работают.
 
 ### Что осталось (порядок выполнения)
 
-1. **`Channel<ReactionRequest>` → `MutableList<ReactionRequest>`** (шаг 9c). Канал был оправдан, пока было N корутин-продюсеров. Сейчас всё последовательно — простой список с `clear()` после drain'а проще и яснее. Затронет `World.kt` (поле `_requestsChannel`, drain в tick'е) и `EntityGenerator.kt` (где привязан `setRequestReaction`).
-2. **SpatialGrid (`Grid2D.kt`)** — оживить и подключить к World. Перестраивается в начале tick'а. `getNeighbors()` идёт через него.
-3. **`Random` глобальный** (`Geomtry.kt: val random = Random(1)`) → перенести в `World` (`val rng = Random(seed)`) и пробрасывать туда, где нужен.
-4. **`updateMyEnvironment`** — перевести из «инлайнового» вызова внутри `step()` в отложенный effect, который применяется в фазе Cleanup. Иначе в момент шага A может перевестись из одного env в другой, и B, шагающий следом, увидит несогласованную картину.
-5. **Drag&drop спавн (`RightPanel.kt`, Space «выстрел»)** — должны идти через pending-список, чтобы не модифицировать `entities` во время фазы Step. После этого `_worldMutex` тоже можно удалить.
+1. **`Random` глобальный** (`Geomtry.kt: val random = Random(1)`) → перенести в `World` (`val rng = Random(seed)`) и пробрасывать туда, где нужен. Самый маленький из оставшихся пунктов — на разогрев.
+2. **SpatialGrid (`Grid2D.kt`)** — оживить и подключить к World. Перестраивается в начале tick'а. `getNeighbors()` идёт через него. Главный пункт по производительности.
+3. **`updateMyEnvironment`** — перевести из «инлайнового» вызова внутри `step()` в отложенный effect, который применяется в фазе Cleanup. Иначе в момент шага A может перевестись из одного env в другой, и B, шагающий следом, увидит несогласованную картину.
+4. **Drag&drop спавн (`RightPanel.kt`, Space «выстрел»)** — должны идти через pending-список, чтобы не модифицировать `entities` во время фазы Step. После этого `_worldMutex` тоже можно удалить.
 
 ### Зачем
 

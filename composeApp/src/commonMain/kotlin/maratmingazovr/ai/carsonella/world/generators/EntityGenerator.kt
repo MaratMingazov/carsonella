@@ -1,9 +1,6 @@
 package maratmingazovr.ai.carsonella.world.generators
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -28,7 +25,7 @@ import maratmingazovr.ai.carsonella.world.currentTime
 class EntityGenerator(
     private val idGen: IdGenerator,
     private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
-    private val requestsChannel: Channel<ReactionRequest>, // это канал, в который атом может отправлять запросы на химическую реакцию
+    private val pendingRequests: MutableList<ReactionRequest>, // это канал, в который элемент может отправлять запросы на химическую реакцию
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
     private val worldEnvironment: IEnvironment,
@@ -59,7 +56,7 @@ class EntityGenerator(
             }
             setEnvironment(targetEnvironment)
             setNeighbors { getEnvironment().getEnvChildren().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
-            setRequestReaction { reagents -> requestsChannel.trySend(ReactionRequest(reagents)) }
+            setRequestReaction {  reagents -> pendingRequests.add(ReactionRequest(reagents)) }
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
         targetEnvironment.addEnvChild(entity)
