@@ -72,25 +72,27 @@ class Atom(
         //writeLog("Появился ${state.value.element.label}: ${state.value.id}")
         while (state.value.alive) {
             stepMutex.withLock {
-
-                val neighbors = getNeighbors()
-                val environment = getEnvironment()
-
-                applyForce(calculateForce(neighbors))
-                applyNewPosition()
-                reduceVelocity()
-                checkBorders(environment)
-
-                neighbors
-                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { requestReaction(listOf(this) + it) }
-
-                if (state.value.energy > 0) { requestReaction(listOf(this)) }
-
+                step()
             }
             delay(10)
         }
+    }
+
+    private fun step() {
+        val neighbors = getNeighbors()
+        val environment = getEnvironment()
+
+        applyForce(calculateForce(neighbors))
+        applyNewPosition()
+        reduceVelocity()
+        checkBorders(environment)
+
+        neighbors
+            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+            .takeIf { it.isNotEmpty() }
+            ?.let { requestReaction(listOf(this) + it) }
+
+        if (state.value.energy > 0) { requestReaction(listOf(this)) }
     }
 
 
