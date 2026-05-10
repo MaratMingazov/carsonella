@@ -21,14 +21,16 @@ import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.world.ReactionRequest
 import maratmingazovr.ai.carsonella.world.currentTime
+import kotlin.random.Random
 
 class EntityGenerator(
     private val idGen: IdGenerator,
     private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
-    private val pendingRequests: MutableList<ReactionRequest>, // это канал, в который элемент может отправлять запросы на химическую реакцию
+    private val pendingRequests: MutableList<ReactionRequest>, // буфер запросов реакций, дренится в фазе Resolve каждого tick'а
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
     private val worldEnvironment: IEnvironment,
+    override val random: Random,
 ) : IEntityGenerator {
 
     override fun createEntity(

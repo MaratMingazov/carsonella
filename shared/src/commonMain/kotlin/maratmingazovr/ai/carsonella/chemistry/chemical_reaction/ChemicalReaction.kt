@@ -25,15 +25,17 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Recombinat
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
+import kotlin.random.Random
 
 
 interface IEntityGenerator {
+    val random: Random
     fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment? = null): Entity<*>
 }
 
 
 
-class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
+class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
 
     private val rules = listOf(
 
@@ -83,7 +85,7 @@ class ChemicalReactionResolver(entityGenerator: IEntityGenerator, ) {
         // Отбираем все правила с максимальным весом
         val topRules = weighted.filter { it.second == maxWeight }.map { it.first }
         // Выбираем случайное из них
-        val chosenRule = topRules.random()
+        val chosenRule = topRules.random(entityGenerator.random)
         // val chosenRule = applicableRules.map { it to it.weight() }.maxBy { it.second }.first
         return chosenRule.produce()
     }

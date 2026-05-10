@@ -5,11 +5,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-val random = Random(1)
 
 data class Position(val x: Float, val y: Float) {
     operator fun plus(p: Position) = Position(x + p.x, y + p.y)
-    fun moveRandomly() = Position(x = x +  random.nextInt(-3, 3), y = y + random.nextInt(-3, 3))
+    fun moveRandomly(random: Random) = Position(x = x +  random.nextInt(-3, 3), y = y + random.nextInt(-3, 3))
     fun addVelocity(velocity: Vec2D) = Position(x = x + velocity.x, y = y + velocity.y)
     fun toPixels(scale: Float) = Position(x = x * scale, y = y * scale)
     fun distanceSquareTo(other: Position): Float {
@@ -20,7 +19,7 @@ data class Position(val x: Float, val y: Float) {
 
     // эффект дрожания
     // мы возвращаем новую позицию рядом с текущей
-    fun jitter(): Position {
+    fun jitter(random: Random): Position {
         return Position(
             x = x + random.nextInt(-1, 1),
             y = y + random.nextInt(-1, 1)
@@ -49,10 +48,9 @@ data class Vec2D(var x: Float, var y: Float) {
             x *= factor
             y *= factor
         } else {
-            // если длина ≈ 0 — можно, например, задать случайное направление
-            val angle = random.nextFloat() * 2.0 * PI
-            x = (cos(angle) * newLength).toFloat()
-            y = (sin(angle) * newLength).toFloat()
+            // если длина ≈ 0 — задаём фиксированное направление
+            x = newLength
+            y = 0f
         }
     }
     fun length() = kotlin.math.sqrt(x*x + y*y)
@@ -62,12 +60,12 @@ data class Vec2D(var x: Float, var y: Float) {
     }
 }
 
-fun randomDirection(): Vec2D {
+fun randomDirection(random: Random): Vec2D {
     val angle = random.nextDouble(0.0, 2 * PI)
     return Vec2D(cos(angle).toFloat(), sin(angle).toFloat())
 }
 
-fun chance(probability: Float): Boolean {
+fun chance(probability: Float, random: Random): Boolean {
     require(probability in 0f..1f) { "Вероятность должна быть от 0f до 1f" }
-    return Random.nextFloat() < probability
+    return random.nextFloat() < probability
 }

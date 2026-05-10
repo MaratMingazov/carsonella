@@ -26,7 +26,7 @@ class StarEmission (
         if (firstElement != Element.Star) return false
         if (!first.state().value.alive) return false
 
-        if (!chance(0.012f)) return false
+        if (!chance(0.012f, entityGenerator.random)) return false
 
         val starAtoms = first
             .getEnvChildren()
@@ -46,13 +46,13 @@ class StarEmission (
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
          */
         if (entityReagents.size < 10) {
-            val resultElement =  if (!chance(0.5f))  Element.Proton else Element.ELECTRON
+            val resultElement =  if (!chance(0.5f, entityGenerator.random))  Element.Proton else Element.ELECTRON
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createEntity(
                         resultElement,
                         entity!!.state().value.position,
-                        randomDirection(),
+                        randomDirection(entityGenerator.random),
                         2f,
                         energy = 0f,
                         environment = entity!!

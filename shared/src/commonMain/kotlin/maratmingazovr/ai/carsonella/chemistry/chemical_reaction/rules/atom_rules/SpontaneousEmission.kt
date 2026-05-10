@@ -41,7 +41,7 @@ class SpontaneousEmission(
         if (first.state().value.energy == 0f) return false
         if (!firstElement.details.energyLevels.contains(first.state().value.energy)) { throw Exception("SpontaneousEmission")}
 
-        if (!chance(0.02f)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
+        if (!chance(0.02f, entityGenerator.random)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
         entity = first
         return true
@@ -68,7 +68,7 @@ class SpontaneousEmission(
                 entityGenerator.createEntity(
                     Element.PHOTON,
                     entity!!.state().value.position.plus(Position(Element.HYDROGEN.details.radius, 0f)),
-                    randomDirection(),
+                    randomDirection(entityGenerator.random),
                     40f,
                     energy = energyToExpose,
                 )

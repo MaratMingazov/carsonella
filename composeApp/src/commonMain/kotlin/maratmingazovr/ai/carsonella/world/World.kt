@@ -27,6 +27,8 @@ class World(
 
     private val _idGen: IdGenerator = IdGenerator()
     private val _pendingRequests = mutableListOf<ReactionRequest>()
+    private val _seed = 1L
+    val random = kotlin.random.Random(_seed)
     val environment = Environment(Position(5000f, 5000f), 10000f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.PHOTON, Element.ELECTRON, Element.Proton,
@@ -36,15 +38,16 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, environment)
+    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, environment, random)
     private val _worldMutex = Mutex()
+
 
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
-        entityGenerator.createEntity(element = Element.Star,            position = Position(800f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f)
-        val recombinationModule1 = entityGenerator.createEntity(element = Element.RECOMBINATION_MODULE, position = Position(300f, 250f),  direction = randomDirection(), velocity = 0f, energy = 0f) as RecombinationModule
+        entityGenerator.createEntity(element = Element.Star, position = Position(800f, 250f),  direction = randomDirection(random), velocity = 0f, energy = 0f)
+        val recombinationModule1 = entityGenerator.createEntity(element = Element.RECOMBINATION_MODULE, position = Position(300f, 250f),  direction = randomDirection(random), velocity = 0f, energy = 0f) as RecombinationModule
 
 //        val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule
 //        module1.setReagent1Element(Element.HYDROGEN)
