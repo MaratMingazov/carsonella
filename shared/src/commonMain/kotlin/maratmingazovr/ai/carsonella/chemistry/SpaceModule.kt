@@ -76,7 +76,7 @@ open class SpaceModule(
         }
     }
 
-    protected open fun step() {
+    override suspend  fun step() {
         reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
         reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
 
@@ -137,7 +137,7 @@ class RecombinationModule(
     energy: Float,
 ): SpaceModule(id, element, position, direction, velocity, energy) {
 
-    override fun step() {
+    override suspend  fun step() {
         reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
         reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
 

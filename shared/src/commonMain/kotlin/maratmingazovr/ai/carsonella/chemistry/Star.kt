@@ -81,7 +81,7 @@ class Star(
     override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
     override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
 
-    private fun step() {
+    override suspend  fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
         val radius = state.value.element.details.radius

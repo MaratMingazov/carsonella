@@ -78,7 +78,7 @@ class Atom(
         }
     }
 
-    private fun step() {
+    override suspend  fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
