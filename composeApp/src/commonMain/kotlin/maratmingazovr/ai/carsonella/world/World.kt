@@ -4,8 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -39,7 +37,6 @@ class World(
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
     val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, environment, random)
-    private val _worldMutex = Mutex()
 
 
 
@@ -65,22 +62,20 @@ class World(
         _scope.launch {
             val tickMs = 16L
             while (true) {
-                _worldMutex.withLock {
-                    // снимок, чтобы не падать на ConcurrentModificationException
-                    // если кто-то добавит сущность во время шага
-                    val snapshot = entities.toList()
-                    snapshot.forEach { entity ->
-                        if (entity.state().value.alive) entity.step()
-                    }
 
-                    // Resolve phase — обрабатываем все запросы, накопленные за tick
-                    // - toList() — снимок, чтобы быть устойчивыми, если runReaction сам положит новый запрос (сейчас не кладёт, но защищаемся).
-                    val requests = _pendingRequests.toList()
-                    _pendingRequests.clear()
-                    requests.forEach { runReaction(it) }
-
-
+                // снимок, чтобы не падать на ConcurrentModificationException
+                // если кто-то добавит сущность во время шага
+                val snapshot = entities.toList()
+                snapshot.forEach { entity ->
+                    if (entity.state().value.alive) entity.step()
                 }
+
+                // Resolve phase — обрабатываем все запросы, накопленные за tick
+                // - toList() — снимок, чтобы быть устойчивыми, если runReaction сам положит новый запрос (сейчас не кладёт, но защищаемся).
+                val requests = _pendingRequests.toList()
+                _pendingRequests.clear()
+                requests.forEach { runReaction(it) }
+
                 delay(tickMs)
             }
         }
