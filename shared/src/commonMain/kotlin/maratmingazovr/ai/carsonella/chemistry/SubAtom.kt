@@ -1,9 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -60,21 +57,10 @@ class SubAtom(
             energy = energy
             )
     )
-    private val stepMutex = Mutex()
 
     override fun state() = state
 
-    override suspend fun init() {
-        //writeLog("Появился ${state.value.element.label}: ${state.value.id}, energy: ${state.value.energy}")
-        while (state.value.alive) {
-            stepMutex.withLock {
-                step()
-            }
-            delay(10)
-        }
-    }
-
-    override suspend fun step() {
+    override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
@@ -87,7 +73,7 @@ class SubAtom(
     }
 
 
-    private suspend fun initPhoton(environment: IEnvironment) {
+    private fun initPhoton(environment: IEnvironment) {
         applyNewPosition()
         // Фотон и Электрон разрушаются, если вылетают за пределы поля
         if (state.value.element in listOf(PHOTON, ELECTRON)) {
@@ -117,7 +103,7 @@ class SubAtom(
             ?.let {requestReaction(listOf(this) + it) }
     }
 
-    override suspend fun destroy() {
+    override fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()
     }

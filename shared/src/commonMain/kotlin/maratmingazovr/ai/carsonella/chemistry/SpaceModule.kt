@@ -1,9 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
@@ -58,7 +55,6 @@ open class SpaceModule(
             energy = energy,
         )
     )
-    protected val stepMutex = Mutex()
 
     protected var radiusCounter = element.details.radius
     private var reagent1Element: Element = Element.ELECTRON
@@ -68,15 +64,7 @@ open class SpaceModule(
 
     override fun state() = state
 
-    override suspend fun init() {
-
-        while (state.value.alive) {
-            stepMutex.withLock { step() }
-            delay(10)
-        }
-    }
-
-    override suspend  fun step() {
+    override fun step() {
         reagent1 = findReagent(predicate = { it.state().value.element == reagent1Element }, reagent1)
         reagent2 = findReagent(predicate = { it.state().value.element == reagent2Element }, reagent2)
 
@@ -121,7 +109,7 @@ open class SpaceModule(
     override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
     override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
 
-    override suspend fun destroy() {
+    override fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()
     }
@@ -137,7 +125,7 @@ class RecombinationModule(
     energy: Float,
 ): SpaceModule(id, element, position, direction, velocity, energy) {
 
-    override suspend  fun step() {
+    override fun step() {
         reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
         reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
 

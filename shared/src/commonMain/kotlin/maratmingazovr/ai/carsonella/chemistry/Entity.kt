@@ -41,9 +41,8 @@ interface Entity<State : EntityState<State>> :
     LogWritable
 {
     fun state(): MutableStateFlow<State>
-    suspend fun init()
-    suspend fun step()
-    suspend fun destroy() // нужно, чтобы сообщить атому, что он должен быть уничтожен
+    fun step() // элемент делает свой ход
+    fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
 
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")

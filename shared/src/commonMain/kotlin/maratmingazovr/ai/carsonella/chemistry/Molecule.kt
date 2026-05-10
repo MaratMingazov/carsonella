@@ -1,9 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
@@ -56,21 +53,10 @@ class Molecule(
             energy = energy,
         )
     )
-    private val stepMutex = Mutex()
 
     override fun state() = state
 
-    override suspend fun init() {
-        //writeLog("Появился ${state.value.element.label}: ${state.value.id}")
-        while (state.value.alive) {
-            stepMutex.withLock {
-                step()
-            }
-            delay(10)
-        }
-    }
-
-    override suspend  fun step() {
+    override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
@@ -89,7 +75,7 @@ class Molecule(
 
 
 
-    override suspend fun destroy() {
+    override fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()
     }

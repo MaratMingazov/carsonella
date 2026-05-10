@@ -1,9 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
@@ -58,21 +55,9 @@ class Star(
             energy = energy,
         )
     )
-    private val stepMutex = Mutex()
     private var radiusCounter = element.details.radius
 
     override fun state() = state
-
-    override suspend fun init() {
-
-        while (state.value.alive) {
-            stepMutex.withLock {
-                step()
-
-            }
-            delay(10)
-        }
-    }
 
     override fun getEnvCenter() = state.value.position
     override fun getEnvRadius() = radiusCounter
@@ -81,7 +66,7 @@ class Star(
     override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
     override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
 
-    override suspend  fun step() {
+    override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
         val radius = state.value.element.details.radius
@@ -102,7 +87,7 @@ class Star(
         requestReaction(listOf(this))
     }
 
-    override suspend fun destroy() {
+    override fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()
     }
