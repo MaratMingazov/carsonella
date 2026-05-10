@@ -60,11 +60,6 @@ class World(
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 200f),  direction = randomDirection(), velocity = 0f, energy = 1.89f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 250f),  direction = randomDirection(), velocity = 0f, energy = 1.51f)
 //        entityGenerator.createEntity(element = Element.Photon, position = Position(100f, 300f),  direction = randomDirection(), velocity = 0f, energy = 12.09f)
-        _scope.launch {
-            for (reactinoRequest in _requestsChannel) {
-                _worldMutex.withLock { runReaction(reactinoRequest) }
-            }
-        }
 
         _scope.launch {
             val tickMs = 16L
@@ -76,6 +71,17 @@ class World(
                     snapshot.forEach { entity ->
                         if (entity.state().value.alive) entity.step()
                     }
+
+                    // Resolve phase — обрабатываем все запросы, накопленные за tick
+                    // - tryReceive() — non-blocking чтение из канала, возвращает ChannelResult.
+                    // - .getOrNull() — даёт null если канал пустой → выходим из цикла.
+                    // - Цикл крутится, пока в канале есть запросы; каждый отрабатывает синхронно через тот же runReaction, что и раньше.
+                    // - runReaction остаётся suspend — компилятор не ругнётся, потому что мы внутри _worldMutex.withLock { ... }, а withLock — это уже suspend контекст.
+                    while (true) {
+                        val request = _requestsChannel.tryReceive().getOrNull() ?: break
+                        runReaction(request)
+                    }
+
                 }
                 delay(tickMs)
             }
