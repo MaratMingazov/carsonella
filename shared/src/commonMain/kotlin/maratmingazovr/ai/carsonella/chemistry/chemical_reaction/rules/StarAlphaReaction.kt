@@ -7,6 +7,9 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
+
+// альфа-захват
+// «Внутри звезды ион ловит ⁴He, превращается в более тяжёлый элемент».
 class StarAlphaReaction(
     private val entityGenerator: IEntityGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
 ) : ReactionRule {

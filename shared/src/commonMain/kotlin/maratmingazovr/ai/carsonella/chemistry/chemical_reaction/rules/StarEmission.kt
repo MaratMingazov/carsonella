@@ -7,6 +7,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.collections.List
 
+// Звезда либо генерирует внутри себя протон с электроном
+// Либо при большой концентрации  излучает элементы наружку в космос
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {

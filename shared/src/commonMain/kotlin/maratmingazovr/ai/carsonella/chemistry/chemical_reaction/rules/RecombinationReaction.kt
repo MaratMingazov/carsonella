@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
+// «Ион ловит электрон, излучает фотон».
 class RecombinationReaction(
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
