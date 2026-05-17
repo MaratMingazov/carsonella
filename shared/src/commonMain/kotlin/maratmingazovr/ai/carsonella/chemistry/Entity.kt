@@ -258,7 +258,7 @@ enum class Element() {
             NEON_20_ION_10          to Details (type = ElementType.Atom, symbol = "Ne¹⁰⁺",     label = "Neon (²⁰Ne¹⁰⁺)",       mass = 20f, e = 0, p = 10, n = 10,   description = "Неон",        alphaReactionResult = MG_24_ION_12),
             NA_23_ION_11            to Details (type = ElementType.Atom, symbol = "Na¹¹⁺",     label = "Sodium (²³Na¹¹⁺)",     mass = 23f, e = 0, p = 11, n = 12),
             MG_24_ION_12            to Details (type = ElementType.Atom, symbol = "Mg¹²⁺",     label = "Magnesium (²⁴Mg¹²⁺)",  mass = 24f, e = 0, p = 12, n = 12),
-            SILICON_28_ION_14       to Details (type = ElementType.Atom, symbol = "Si¹⁴⁺",     label = "Silicon (²⁸Mg¹⁴⁺)",    mass = 28f, e = 0, p = 14, n = 14,   description = "Кремний",    alphaReactionResult = SULFUR_32_ION_16),
+            SILICON_28_ION_14       to Details (type = ElementType.Atom, symbol = "Si¹⁴⁺",     label = "Silicon (²⁸Si¹⁴⁺)",    mass = 28f, e = 0, p = 14, n = 14,   description = "Кремний",    alphaReactionResult = SULFUR_32_ION_16),
             PHOSPHORUS_31_ION_15    to Details (type = ElementType.Atom, symbol = "P¹⁵⁺",      label = "Phosphorus (³¹P¹⁵⁺)",  mass = 31f, e = 0, p = 15, n = 16,   description = "Фосфор"),
             SULFUR_31_ION_16        to Details (type = ElementType.Atom, symbol = "³¹S¹⁶⁺",    label = "Sulfur (³¹S¹⁶⁺)",      mass = 31f, e = 0, p = 16, n = 15,   description = "Сера"),
             SULFUR_32_ION_16        to Details (type = ElementType.Atom, symbol = "S¹⁶⁺",      label = "Sulfur (³²S¹⁶⁺)",      mass = 32f, e = 0, p = 16, n = 16,   description = "Сера",       alphaReactionResult = ARGON_36_ION_18),
@@ -268,7 +268,7 @@ enum class Element() {
             CHROMIUM_48_ION_24      to Details (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24,   description = "Хром",        alphaReactionResult = IRON_52_ION_26),
             IRON_52_ION_26          to Details (type = ElementType.Atom, symbol = "Fe²⁶⁺",     label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26,   description = "Железо",      alphaReactionResult = NICKEL_56_ION_28),
             NICKEL_56_ION_28        to Details (type = ElementType.Atom, symbol = "Ni²⁸⁺",     label = "Nickel (⁵⁶Ni²⁸⁺)",     mass = 56f, e = 0, p = 28, n = 28,   description = "Никель"),
-            Ni                      to Details (type = ElementType.Atom, symbol = "Ni", label = "Nikel (O)", mass = 58f, e = 28, p = 28, n = 30),
+            Ni                      to Details (type = ElementType.Atom, symbol = "Ni", label = "Nikel (Ni)", mass = 58f, e = 28, p = 28, n = 30),
 
             Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
             SPACE_MODULE            to Details (type = ElementType.SpaceModule,         symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),
