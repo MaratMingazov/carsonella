@@ -4,19 +4,27 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
+val withAndroid: Boolean = (findProperty("withAndroid") as? String)?.toBoolean() ?: false
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
 }
 
+if (withAndroid) {
+    apply(plugin = libs.plugins.androidApplication.get().pluginId)
+}
+
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+    if (withAndroid) {
+        androidTarget {
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_11)
+            }
         }
     }
 
@@ -54,9 +62,11 @@ kotlin {
     }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
+        if (withAndroid) {
+            androidMain.dependencies {
+                implementation(compose.preview)
+                implementation(libs.androidx.activity.compose)
+            }
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -84,35 +94,37 @@ kotlin {
     }
 }
 
-android {
-    namespace = "maratmingazovr.ai.carsonella"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+if (withAndroid) {
+    extensions.configure<com.android.build.api.dsl.ApplicationExtension>("android") {
+        namespace = "maratmingazovr.ai.carsonella"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    defaultConfig {
-        applicationId = "maratmingazovr.ai.carsonella"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        defaultConfig {
+            applicationId = "maratmingazovr.ai.carsonella"
+            minSdk = libs.versions.android.minSdk.get().toInt()
+            targetSdk = libs.versions.android.targetSdk.get().toInt()
+            versionCode = 1
+            versionName = "1.0"
+        }
+        packaging {
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
+        }
+        buildTypes {
+            getByName("release") {
+                isMinifyEnabled = false
+            }
+        }
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
         }
     }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
 
-dependencies {
-    debugImplementation(compose.uiTooling)
+    dependencies {
+        "debugImplementation"(compose.uiTooling)
+    }
 }
 
 compose.desktop {
