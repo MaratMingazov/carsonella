@@ -10,7 +10,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
@@ -21,6 +20,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIoniz
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StartPPChain
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
@@ -46,12 +46,9 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),
         StarAlphaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
+        StartPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
 
         // STAR REACTIONS
-        AtomPlusAtomToMolecule(entityGenerator, Proton, Proton, DEUTERIUM_ION, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, DEUTERIUM_ION, Proton, Element.HELIUM_3_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, HELIUM_3_ION_2, HELIUM_3_ION_2, HELIUM_4_ION_2, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton, resultElement3 = Proton),
-        //AtomPlusAtomToMolecule(entityGenerator, HELIUM_4_ION_2, HELIUM_4_ION_2, Element.BERYLLIUM_8_ION_4, temperatureMode = TemperatureMode.Star),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NEON_20_ION_10, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HELIUM_4_ION_2),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NA_23_ION_11, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
         AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.MG_24_ION_12, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
