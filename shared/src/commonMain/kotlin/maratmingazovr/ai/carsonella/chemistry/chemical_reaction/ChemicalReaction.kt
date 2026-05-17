@@ -2,15 +2,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
@@ -20,7 +17,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIoniz
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StartPPChain
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCarbonBurning
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarOxygenBurning
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPPChain
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
@@ -46,15 +45,9 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),
         StarAlphaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
-        StartPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
-
-        // STAR REACTIONS
-        AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NEON_20_ION_10, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HELIUM_4_ION_2),
-        AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.NA_23_ION_11, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
-        AtomPlusAtomToMolecule(entityGenerator, Element.CARBON_12_ION_6, Element.CARBON_12_ION_6, Element.MG_24_ION_12, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f),
-        AtomPlusAtomToMolecule(entityGenerator, Element.OXYGEN_16_ION_8, Element.OXYGEN_16_ION_8, Element.SILICON_28_ION_14, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = HELIUM_4_ION_2),
-        AtomPlusAtomToMolecule(entityGenerator, Element.OXYGEN_16_ION_8, Element.OXYGEN_16_ION_8, Element.PHOSPHORUS_31_ION_15, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Proton),
-        AtomPlusAtomToMolecule(entityGenerator, Element.OXYGEN_16_ION_8, Element.OXYGEN_16_ION_8, Element.SULFUR_31_ION_16, temperatureMode = TemperatureMode.Star, resultPhotonEnergy = 1000f, resultElement2 = Element.Neutron),
+        StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
+        StarCarbonBurning(entityGenerator), // горение углерода: ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg
+        StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
 
         // Реакции атомов
         //AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),

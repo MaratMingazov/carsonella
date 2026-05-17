@@ -63,7 +63,10 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 - `StarEmission` — звезда излучает частицы в космос
 - `RecombinationReaction` — ион + электрон → атом + фотон
 - `StarAlphaReaction` — альфа-захват в недрах звёзд (нуклеосинтез)
-- `AtomPlusAtomToMolecule` — параметризованное правило для синтеза (p+p→D, D+p→³He, C+C→Ne, H+H→H₂, O+O→O₂, O+H₂→H₂O и т. д.)
+- `StarPPChain` — pp-цепочка в звезде: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
+- `StarCarbonBurning` — горение углерода: ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg (канал выбирается случайно)
+- `StarOxygenBurning` — горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n (канал выбирается случайно)
+- `AtomPlusAtomToMolecule` — параметризованное правило для молекулообразования (D⁺+e⁻→D, H+H→H₂, O+O→O₂, O+H₂→H₂O)
 
 Каждое правило возвращает `ReactionOutcome { consumed, spawn, updateState, description }`.
 
@@ -71,10 +74,14 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 
 ```
 звезда (StarEmission)
-    → нуклеосинтез внутри звезды (StarAlphaReaction + AtomPlusAtomToMolecule в Star-режиме: p+p→D, D+p→³He, C+C→Ne, O+O→Si, …)
+    → нуклеосинтез внутри звезды:
+        · pp-цепочка (StarPPChain): p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
+        · альфа-захват (StarAlphaReaction): ⁴He→⁸Be→¹²C→¹⁶O→…→⁵⁶Ni
+        · горение углерода (StarCarbonBurning): ¹²C+¹²C → ²⁰Ne/²³Na/²⁴Mg
+        · горение кислорода (StarOxygenBurning): ¹⁶O+¹⁶O → ²⁸Si/³¹P/³¹S
     → излучение в космос (StarEmission выбрасывает p⁺/e⁻/O⁸⁺ наружу)
     → фотоионизация / рекомбинация (PhotoIonization, RecombinationReaction, SpontaneousEmission)
-    → молекулообразование (AtomPlusAtomToMolecule в Space-режиме: H+H→H₂, O+O→O₂, O+H₂→H₂O, …)
+    → молекулообразование (AtomPlusAtomToMolecule: H+H→H₂, O+O→O₂, O+H₂→H₂O, …)
     → распад молекул фотонами (PhotoDissociation)
 ```
 
@@ -86,18 +93,21 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 |---|---|---|---|
 | 0 | **Спавн звезды** | — | `World.start()` создаёт `Star` как `Entity`. Звезда — не реакция, а сущность-среда. |
 | 1 | **Звезда работает (топливо)** | `StarEmission` (ветка генерации) | При `< 10` детях создаёт внутри звезды свежий p⁺ или e⁻ |
-| 2 | **Нуклеосинтез: pp-цепочка, CNO-, O-fusion** | `AtomPlusAtomToMolecule` в **Star-режиме** | p+p→D, D+p→³He, ³He+³He→⁴He, C+C→Ne/Na/Mg, O+O→Si/P/S |
+| 2 | **Нуклеосинтез: pp-цепочка** | `StarPPChain` | p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p |
+| 2 | **Нуклеосинтез: горение углерода** | `StarCarbonBurning` | ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg (случайный канал) |
+| 2 | **Нуклеосинтез: горение кислорода** | `StarOxygenBurning` | ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n (случайный канал) |
 | 2 | **Нуклеосинтез: альфа-захват** | `StarAlphaReaction` | ⁴He+X→Y по цепочке ⁴He→⁸Be→¹²C→¹⁶O→²⁰Ne→…→⁵⁶Ni |
 | 3 | **Излучение в космос** | `StarEmission` (ветка выброса) | При `≥ 10` детях выкидывает p⁺/e⁻/O⁸⁺ за пределы звезды (через `updateMyEnvironment`) |
 | 4 | **Ионизация** | `PhotoIonization` | атом + γ → ион + e⁻ (или поглощение энергии, если порог не пройден) |
 | 4 | **Рекомбинация** | `RecombinationReaction` | ион + e⁻ → атом + γ |
 | 4 | **Релаксация (люминесценция)** | `SpontaneousEmission` | возбуждённый атом сам излучает фотон, спускаясь на нижний энергоуровень |
-| 5 | **Молекулообразование** | `AtomPlusAtomToMolecule` в **Space-режиме** | H+H→H₂, O+O→O₂, O+H₂→H₂O |
+| 5 | **Молекулообразование** | `AtomPlusAtomToMolecule` | D⁺+e⁻→D, H+H→H₂, O+O→O₂, O+H₂→H₂O |
 | 5* | **Распад молекул (обратное)** | `PhotoDissociation` | молекула + γ → 2 атома |
 
 **Заметки:**
 
-- **`AtomPlusAtomToMolecule` — двойной агент**. Один и тот же класс работает и в нуклеосинтезе, и в молекулообразовании. Разница только в реагентах + `temperatureMode`. В резолвере его инстансов больше всех (~13).
+- **Звёздный нуклеосинтез разнесён по специализированным правилам.** Раньше всё (pp-цепочка, горение C, горение O) ехало на `AtomPlusAtomToMolecule` в Star-режиме. Сейчас каждая ветвь — отдельный `Star…`-класс со своей логикой выбора канала. `AtomPlusAtomToMolecule` остался только для молекулообразования (4 инстанса) — звёздных реакций он больше не делает, хоть параметр `temperatureMode` в нём пока сохранён.
+- **`StarCarbonBurning` / `StarOxygenBurning` — рандомизация внутри правила.** У реакции три возможных канала (для C: ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg, для O: ²⁸Si+⁴He / ³¹P+p / ³¹S+n) — конкретный выбирается в `matches()` через `entityGenerator.random`. Это эквивалент прежнего random-выбора между тремя `AtomPlusAtomToMolecule` с равным весом, но компактнее.
 - **`StarEmission` совмещает две роли** через `if/else` (генерация vs выброс). Можно при желании разнести на `StarFuelGeneration` + `StarOutflow`.
 - **Стадия 4 — внутренний цикл**: атом ↔ возбуждённый атом ↔ ион. `PhotoIonization` (поглощение) ↔ `SpontaneousEmission` (сброс) и `PhotoIonization` (отрыв) ↔ `RecombinationReaction`. В консоли логов это видно как постоянное «туда-сюда».
 
@@ -217,4 +227,15 @@ composeApp/src/commonMain/kotlin/maratmingazovr/ai/carsonella/
 
 3. **«Реакторы» как игровая механика, обходящая медленные естественные процессы.**
    `SpaceModule` / `RecombinationModule` — уже шаг в эту сторону. Игрок строит «ускорители», которые сжимают невероятно медленные естественные процессы. Это рабочая формула в духе Factorio / Oxygen Not Included, её стоит развивать.
+
+## Лог разработки
+
+Короткие записи в формате «дата — что сделали и почему». Новые записи сверху.
+
+- **2026-05-17 — Выделены `StarCarbonBurning` и `StarOxygenBurning`.**
+  Три `AtomPlusAtomToMolecule(... CARBON_12_ION_6 ...)` и три `... OXYGEN_16_ION_8 ...` в Star-режиме заменены на два специализированных правила. Каждое правило само рандомно выбирает один из трёх каналов горения в `matches()`. Зачем: убрать дублирование в резолвере, привести нуклеосинтез к одному стилю (как `StarPPChain`), оставить `AtomPlusAtomToMolecule` только для молекулообразования.
+- **2026-05-17 — Введён `StarPPChain` (commit `030c849`).**
+  Три `AtomPlusAtomToMolecule` (`p+p→D⁺`, `D⁺+p→³He²⁺`, `³He²⁺+³He²⁺→⁴He²⁺+2p`) свёрнуты в одно правило, где следующий шаг pp-цепочки выбирается по элементу первого реагента. Зачем: связные шаги одной физической цепочки логичнее держать в одном классе.
+- **2026-05-10 — Симуляция переведена на единый tick (`030c849` и более ранние).**
+  Удалены `suspend`-функции и `ReactionRequest` через `Channel`; сущности стали пассивными `step()`-функциями, мир — единственный писатель. RNG централизован в `World.random` (`seed=1L`). Зачем: убрать гонки, сделать симуляцию детерминированной и пригодной для тестов.
 

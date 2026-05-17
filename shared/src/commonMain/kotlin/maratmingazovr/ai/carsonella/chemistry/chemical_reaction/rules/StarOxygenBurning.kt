@@ -3,26 +3,29 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.Neutron
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
+import maratmingazovr.ai.carsonella.chemistry.Element.PHOSPHORUS_31_ION_15
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.SILICON_28_ION_14
+import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31_ION_16
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
- * pp-chain - Процесс внутри звезды
- * Протоны образуют первые атомы:
- * 1: p + p -> D (2 протона образуют ион Дейтерий+ (ион) (²H⁺), один из протонов превращается в нейтрон)
- * 2: D + p -> ³He²⁺ + γ (Дейтерий+ (ион) и протон образуют Гелий3+ (дважды ион) ³He²⁺ а также выделяется энергия )
- * 3: ³He²⁺ + ³He²⁺ -> He²⁺ 2p
+ * Oxygen burning — горение кислорода внутри массивной звезды.
+ * Два ядра ¹⁶O сливаются по одному из трёх каналов:
+ * 1: ¹⁶O + ¹⁶O → ²⁸Si + ⁴He + γ
+ * 2: ¹⁶O + ¹⁶O → ³¹P  + p   + γ
+ * 3: ¹⁶O + ¹⁶O → ³¹S  + n   + γ
  */
-class StartPPChain(
+class StarOxygenBurning(
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
 
-    override val id = "StartPPChain"
+    override val id = "StarOxygenBurning"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
@@ -37,23 +40,13 @@ class StartPPChain(
         if (reagents.size < 2) return false
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        val firstAtomElement = firstAtom.state().value.element
+        if (firstAtom.state().value.element != OXYGEN_16_ION_8) return false
         if (!firstAtom.state().value.alive) return false
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
-        // В зависимости от первого реагента определяем какой второй реагент нужен и что родится.
-        // Если первый элемент это не протон, дейтерий и не Гелий3+ — реакция невозможна.
-        val (secondElement, result, extras) = when (firstAtomElement) {
-            Proton         -> Triple(Proton,         DEUTERIUM_ION,  emptyList<Element>())
-            DEUTERIUM_ION  -> Triple(Proton,         HELIUM_3_ION_2, emptyList())
-            HELIUM_3_ION_2 -> Triple(HELIUM_3_ION_2, HELIUM_4_ION_2, listOf(Proton, Proton))
-            else -> return false
-        }
-
-        // Ищем ближайший подходящий второй реагент
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == secondElement }
+            .filter { it.state().value.element == OXYGEN_16_ION_8 }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
@@ -61,15 +54,20 @@ class StartPPChain(
 
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
-        return if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
-            atom1 = firstAtom
-            atom2 = secondAtom
-            resultElement = result
-            extraElements = extras
-            true
-        } else {
-            false
-        }
+        if (distanceSquare >= OXYGEN_16_ION_8.details.radius * OXYGEN_16_ION_8.details.radius * 2f) return false
+
+        // Случайно выбираем один из трёх каналов горения кислорода.
+        val (result, extras) = listOf(
+            SILICON_28_ION_14    to listOf(HELIUM_4_ION_2),
+            PHOSPHORUS_31_ION_15 to listOf(Proton),
+            SULFUR_31_ION_16     to listOf(Neutron),
+        ).random(entityGenerator.random)
+
+        atom1 = firstAtom
+        atom2 = secondAtom
+        resultElement = result
+        extraElements = extras
+        return true
     }
 
     override fun weight() = 0f
@@ -98,7 +96,6 @@ class StartPPChain(
             )
         }
 
-        // Дополнительные продукты (для шага ³He+³He → ⁴He + 2p)
         extras.forEachIndexed { index, extra ->
             val offsetSign = if (index % 2 == 0) 1f else -1f
             spawnList += {
@@ -112,7 +109,6 @@ class StartPPChain(
             }
         }
 
-        // На каждом шаге pp-цепочки выделяется фотон ~1000 эВ
         spawnList += {
             entityGenerator.createEntity(
                 PHOTON,
