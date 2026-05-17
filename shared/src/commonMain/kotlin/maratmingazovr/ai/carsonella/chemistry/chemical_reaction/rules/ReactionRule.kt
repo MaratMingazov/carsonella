@@ -27,7 +27,7 @@ interface ReactionRule {
      * Вычисляем направление движения и скорость новой частицы после столкновения двух частиц.
      * Учитываем скорости направления и массу этих частиц
      */
-    fun calculateHydrogenDirectionAndVelocity(entity1: Entity<*>, entity2: Entity<*>,) : Pair<Vec2D, Float> {
+    fun calculateNewEntityDirectionAndVelocity(entity1: Entity<*>, entity2: Entity<*>,) : Pair<Vec2D, Float> {
         val electronMass = entity1.state().value.element.details.mass
         val protonMass = entity2.state().value.element.details.mass
         val sumMass = electronMass + protonMass

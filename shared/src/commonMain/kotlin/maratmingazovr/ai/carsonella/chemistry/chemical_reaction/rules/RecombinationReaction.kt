@@ -52,7 +52,7 @@ class RecombinationReaction(
 
     override fun produce(): ReactionOutcome {
 
-        val (direction,velocity) = calculateHydrogenDirectionAndVelocity(atom1!!, atom2!!)
+        val (direction,velocity) = calculateNewEntityDirectionAndVelocity(atom1!!, atom2!!)
         val resultPosition = atom1!!.state().value.position
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
