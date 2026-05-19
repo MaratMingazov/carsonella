@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 class StarAlphaReaction(
     private val entityGenerator: IEntityGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
 ) : ReactionRule {
-    override val id = ""
+    override val id = "AlphaReaction"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
@@ -83,7 +83,7 @@ class StarAlphaReaction(
                     energy = resultPhotonEnergy,
                 )
             },
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} (alpha reaction)"
+            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

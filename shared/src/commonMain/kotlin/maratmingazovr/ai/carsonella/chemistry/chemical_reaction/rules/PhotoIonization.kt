@@ -71,7 +71,7 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon!!),
                 updateState = listOf { entity!!.addEnergy(photonEnergy) },
-                description = "Фотоионизация: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${entityEnergy + photonEnergy}eV)"
+                description = "$id: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${entityEnergy + photonEnergy}eV)"
             )
         } else {
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
@@ -98,7 +98,7 @@ class PhotoIonization (
                     entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
                     entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
                 },
-                description = "Фотоионизация: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${ion.details.label} (${ionEnergy}eV) + ${electron.details.label} (${electronEnergy}eV)"
+                description = "$id: ${entityElement.details.label} + ${photonElement.details.label} -> ${ion.details.label} + ${electron.details.label}"
             )
         }
     }

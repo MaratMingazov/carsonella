@@ -109,6 +109,7 @@ class StarOxygenBurning(
             }
         }
 
+        val resultPhotonEnergy = 1000f
         spawnList += {
             entityGenerator.createEntity(
                 PHOTON,
@@ -118,14 +119,14 @@ class StarOxygenBurning(
                 ),
                 direction,
                 10f,
-                energy = 1000f,
+                energy = resultPhotonEnergy,
             )
         }
 
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = spawnList,
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${result.details.symbol} + ${PHOTON.details.symbol}"
+            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${result.details.symbol} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

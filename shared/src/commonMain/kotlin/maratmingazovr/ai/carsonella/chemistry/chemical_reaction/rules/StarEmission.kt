@@ -12,7 +12,7 @@ import kotlin.collections.List
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
-    override val id = "PhotoIonization"
+    override val id = "StarEmission"
 
     private var entity : Entity<*>? = null
     private var entityReagents: List<Entity<*>> = listOf()

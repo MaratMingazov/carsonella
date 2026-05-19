@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
  * где энергия фотона превышает энергию активации молекулы, вызывая её распад на атомы, радикалы или ионы.
  */
 class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : ReactionRule {
-    override val id = "Photodissociation"
+    override val id = "PhotoDissociation"
 
     private var entity : Entity<*>? = null
     private var photon : Entity<*>? = null

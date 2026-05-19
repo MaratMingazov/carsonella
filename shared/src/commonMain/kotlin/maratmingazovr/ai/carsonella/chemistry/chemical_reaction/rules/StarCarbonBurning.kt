@@ -24,7 +24,7 @@ class StarCarbonBurning(
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
 
-    override val id = "StartCarbonBurning"
+    override val id = "StarCarbonBurning"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
@@ -108,6 +108,7 @@ class StarCarbonBurning(
             }
         }
 
+        val resultPhotonEnergy = 1000f
         spawnList += {
             entityGenerator.createEntity(
                 PHOTON,
@@ -117,14 +118,14 @@ class StarCarbonBurning(
                 ),
                 direction,
                 10f,
-                energy = 1000f,
+                energy = resultPhotonEnergy,
             )
         }
 
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = spawnList,
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${result.details.symbol} + ${PHOTON.details.symbol}"
+            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${result.details.symbol} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

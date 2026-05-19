@@ -19,7 +19,7 @@ class AtomPlusAtomToMolecule(
     private val resultElement2: Element? = null,
     private val resultElement3: Element? = null,
 ) : ReactionRule {
-    override val id = "Atom + Atom -> Molecule"
+    override val id = "AtomPlusAtomToMolecule"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
@@ -115,7 +115,7 @@ class AtomPlusAtomToMolecule(
         return ReactionOutcome(
             consumed = listOf(atom1!!, atom2!!),
             spawn = spawnList,
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${PHOTON.details.symbol}"
+            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

@@ -97,7 +97,7 @@ class World(
 
     fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
-        if (result.description.isNotEmpty()) logs += "${currentTime()}: Реакция: ${result.description}"
+        if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
 
         result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }

@@ -11,7 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 class RecombinationReaction(
     private val entityGenerator: IEntityGenerator,
 ) : ReactionRule {
-    override val id = ""
+    override val id = "Recombination"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
@@ -82,7 +82,7 @@ class RecombinationReaction(
                     energy = resultPhotonEnergy,
                 )
             },
-            description = "${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev] (recombination)"
+            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

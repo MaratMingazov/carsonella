@@ -73,7 +73,7 @@ class SpontaneousEmission(
                     energy = energyToExpose,
                 )
             },
-            description = "Люминесценция: ${entityElement.details.label} (${entityEnergy}eV) -> ${Element.PHOTON.details.label} (${energyToExpose}eV)",
+            description = "$id: ${entityElement.details.label} -> ${Element.PHOTON.details.symbol} [$energyToExpose ev]",
         )
     }
 
