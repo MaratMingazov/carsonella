@@ -185,7 +185,7 @@ enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule, Recombinati
 
 enum class Element() {
     // --- субатомные частицы ---
-    PHOTON, ELECTRON, Proton, Neutron,
+    PHOTON, ELECTRON, Proton, Neutron, POSITRON,
 
     // --- атомы ---
     HYDROGEN,
@@ -237,6 +237,8 @@ enum class Element() {
             ELECTRON    to Details (type = ElementType.SubAtom, symbol = "e⁻", label = "Electron (e⁻)",    mass = 0.1f,    e = 1, p = 0, n = 0, radius = 5f),
             Proton      to Details (type = ElementType.SubAtom, symbol = "p⁺", label = "Proton (p⁺)",      mass = 1f,      e = 0, p = 1, n = 0, radius = 10f, recombinationElement = HYDROGEN),
             Neutron     to Details (type = ElementType.SubAtom, symbol = "n",  label = "Neutron (n)",      mass = 1f,      e = 0, p = 0, n = 1, radius = 10f),
+            // Позитрон — фундаментальная античастица электрона; p = 1 здесь это маркер положительного единичного заряда (для calculateForce), а не «содержит протон».
+            POSITRON    to Details (type = ElementType.SubAtom, symbol = "e⁺", label = "Positron (e⁺)",    mass = 0.1f,    e = 0, p = 1, n = 0, radius = 5f),
 
             // --- атомы ---
             HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",         label = "Hydrogen (H)",         mass = 1f, e = 1, p = 1, n = 0,      energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),

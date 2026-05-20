@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
@@ -68,7 +69,8 @@ class SubAtom(
             PHOTON -> initPhoton(environment)
             ELECTRON -> initElectron(environment, neighbors)
             Proton -> initProton(environment, neighbors)
-            else -> NotImplementedError()
+            POSITRON -> initPositron(environment, neighbors)
+            else -> throw NotImplementedError()
         }
     }
 
@@ -101,6 +103,20 @@ class SubAtom(
             .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 5000f }
             .takeIf { it.isNotEmpty() }
             ?.let {requestReaction(listOf(this) + it) }
+    }
+
+    // Поведение идентично протону: движение под действием сил + запрос реакции с близкими соседями.
+    // requestReaction нужен для будущей аннигиляции с электроном (e⁻ + e⁺ → 2γ).
+    private fun initPositron(environment: IEnvironment, neighbors: List<Entity<*>>) {
+        reduceVelocity()
+        applyForce(calculateForce(neighbors))
+        applyNewPosition()
+        checkBorders(environment)
+
+        neighbors
+            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 5000f }
+            .takeIf { it.isNotEmpty() }
+            ?.let { requestReaction(listOf(this) + it) }
     }
 
     override fun destroy() {

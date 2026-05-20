@@ -5,6 +5,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.toOffset
@@ -20,6 +23,7 @@ class SubAtomRenderer(
         when (state.element) {
             Element.PHOTON -> drawPhoton(drawScope, state)
             Element.ELECTRON -> drawElectron(drawScope, state)
+            Element.POSITRON -> drawPositron(drawScope, state)
             Element.Proton -> drawProton(drawScope, state, phase)
             Element.Neutron -> drawProton(drawScope, state, phase)
             else -> throw NotImplementedError()
@@ -41,8 +45,36 @@ class SubAtomRenderer(
         state: SubAtomState,
     ) {
         val p = state.position.toOffset()
+        val radius = 7f
         with(drawScope) {
-            drawCircle(color = Color.Black, center = p, radius = 5f)
+            drawCircle(color = Color.Blue, center = p, radius = radius)
+            val textLayoutResult = textMeasurer.measure(
+                text = "−",
+                style = TextStyle(color = Color.White, fontSize = 10.sp),
+            )
+            drawText(
+                textLayoutResult,
+                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
+            )
+        }
+    }
+
+    private fun drawPositron(
+        drawScope: DrawScope,
+        state: SubAtomState,
+    ) {
+        val p = state.position.toOffset()
+        val radius = 7f
+        with(drawScope) {
+            drawCircle(color = Color.Red, center = p, radius = radius)
+            val textLayoutResult = textMeasurer.measure(
+                text = "+",
+                style = TextStyle(color = Color.White, fontSize = 10.sp),
+            )
+            drawText(
+                textLayoutResult,
+                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
+            )
         }
     }
 
