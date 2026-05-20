@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaReaction
@@ -41,6 +42,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         PhotoIonization(entityGenerator), // отрыв электрона от элемента под действием света
         PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
+        BetaPlusDecay(entityGenerator), // β⁺-распад протон-избыточных ядер (¹³N → ¹³C + e⁺, ¹⁵O → ¹⁵N + e⁺)
 
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),

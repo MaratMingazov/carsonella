@@ -81,6 +81,9 @@ class Atom(
             ?.let { requestReaction(listOf(this) + it) }
 
         if (state.value.energy > 0) { requestReaction(listOf(this)) }
+
+        // β⁺-нестабильные изотопы (¹³N, ¹⁵O и т.п.) всегда зовут себя в резолвер — там их подхватит BetaPlusDecay.
+        if (state.value.element.details.betaPlusDecayResult != null) { requestReaction(listOf(this)) }
     }
 
 

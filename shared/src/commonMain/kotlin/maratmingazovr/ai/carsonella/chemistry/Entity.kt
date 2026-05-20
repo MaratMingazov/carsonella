@@ -195,8 +195,12 @@ enum class Element() {
     HELIUM_4_ION_2,
     LITHIUM_7_ION_3, LITHIUM_7_ION_2, LITHIUM_7_ION_1, LITHIUM_7,
     BERYLLIUM_7_ION_4, BERYLLIUM_8_ION_4,
-    CARBON_12_ION_6,
-    CARBON_12,
+    CARBON_12_ION_6, CARBON_12,
+    CARBON_13_ION_6,
+    NITROGEN_13_ION_7,
+    NITROGEN_14_ION_7,
+    NITROGEN_15_ION_7,
+    OXYGEN_15_ION_8,
     OXYGEN_16_ION_8, OXYGEN_16_ION_7, OXYGEN_16_ION_6, OXYGEN_16_ION_5, OXYGEN_16_ION_4, OXYGEN_16_ION_3, OXYGEN_16_ION_2, OXYGEN_16_ION_1, OXYGEN_16,
     NEON_20_ION_10,
     NA_23_ION_11,
@@ -254,6 +258,11 @@ enum class Element() {
             BERYLLIUM_8_ION_4       to Details (type = ElementType.Atom, symbol = "⁸Be⁴⁺",     label = "Beryllium (⁸Be⁴⁺)",    mass = 8f, e = 0, p = 4, n = 4,      description = "Бериллий",   alphaReactionResult = CARBON_12_ION_6),
             CARBON_12_ION_6         to Details (type = ElementType.Atom, symbol = "C⁶⁺",       label = "Carbon (¹²C⁶⁺)",       mass = 12f, e = 0, p = 6, n = 6,     description = "Углерод",    alphaReactionResult = OXYGEN_16_ION_8),
             CARBON_12               to Details (type = ElementType.Atom, symbol = "C",         label = "Carbon (C)",           mass = 12f, e = 6, p = 6, n = 6),
+            CARBON_13_ION_6         to Details (type = ElementType.Atom, symbol = "¹³C⁶⁺",     label = "Carbon (¹³C⁶⁺)",       mass = 13f, e = 0, p = 6, n = 7,     description = "Углерод"),
+            NITROGEN_13_ION_7       to Details (type = ElementType.Atom, symbol = "¹³N⁷⁺",     label = "Nitrogen (¹³N⁷⁺)",     mass = 13f, e = 0, p = 7, n = 6,     description = "Азот",       betaPlusDecayResult = CARBON_13_ION_6),
+            NITROGEN_14_ION_7       to Details (type = ElementType.Atom, symbol = "¹⁴N⁷⁺",     label = "Nitrogen (¹⁴N⁷⁺)",     mass = 14f, e = 0, p = 7, n = 7,     description = "Азот"),
+            NITROGEN_15_ION_7       to Details (type = ElementType.Atom, symbol = "¹⁵N⁷⁺",     label = "Nitrogen (¹⁵N⁷⁺)",     mass = 15f, e = 0, p = 7, n = 8,     description = "Азот"),
+            OXYGEN_15_ION_8         to Details (type = ElementType.Atom, symbol = "¹⁵O⁸⁺",     label = "Oxygen (¹⁵O⁸⁺)",       mass = 15f, e = 0, p = 8, n = 7,     description = "Кислород",   betaPlusDecayResult = NITROGEN_15_ION_7),
             OXYGEN_16_ION_8         to Details (type = ElementType.Atom, symbol = "O⁸⁺",       label = "Oxygen (¹⁶O⁸⁺)",       mass = 16f, e = 0, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16_ION_7),
             OXYGEN_16_ION_7         to Details (type = ElementType.Atom, symbol = "O⁷⁺",       label = "Oxygen (¹⁶O⁷⁺)",       mass = 16f, e = 1, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16_ION_6,   energyLevels = listOf(871.41f)  ),
             OXYGEN_16_ION_6         to Details (type = ElementType.Atom, symbol = "O⁶⁺",       label = "Oxygen (¹⁶O⁶⁺)",       mass = 16f, e = 2, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16_ION_5,   energyLevels = listOf(739.29f)  ),
@@ -315,6 +324,8 @@ data class Details(
     val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
 
-    val alphaReactionResult: Element? = null // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
+    val alphaReactionResult: Element? = null, // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
+
+    val betaPlusDecayResult: Element? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
 )
 
