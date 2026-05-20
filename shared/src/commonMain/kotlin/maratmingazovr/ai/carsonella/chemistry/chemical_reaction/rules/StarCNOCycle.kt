@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_13_ION_6
@@ -22,7 +23,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * Четыре протон-захватных шага (этот класс):
  *   1: ¹²C + p → ¹³N⁷⁺ + γ
  *   2: ¹³C + p → ¹⁴N⁷⁺ + γ
- *   3: ¹⁴N + p → ¹⁵O⁸⁺ + γ        ← самый медленный шаг, поэтому ¹⁴N накапливается в равновесии
+ *   3: ¹⁴N + p → ¹⁵O⁸⁺ + γ        ← узкое горлышко цикла — сечение реакции в реальности в ~1000x меньше,
+ *                                    чем у других шагов. У нас сжато до x50 через `chance(0.02)`,
+ *                                    благодаря чему ¹⁴N задерживается в звезде заметно дольше других катализаторов.
  *   4: ¹⁵N + p → ¹²C⁶⁺ + ⁴He²⁺    (цикл замыкается)
  *
  * Два β⁺-распада между ними (¹³N→¹³C и ¹⁵O→¹⁵N) живут в отдельном `BetaPlusDecay` —
@@ -75,15 +78,17 @@ class StarCNOCycle(
 
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
-        return if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
-            atom1 = firstAtom
-            atom2 = secondAtom
-            resultElement = result
-            extraElements = extras
-            true
-        } else {
-            false
-        }
+        if (distanceSquare >= firstAtomElement.details.radius * secondElement.details.radius * 2f) return false
+
+        // ¹⁴N+p — bottleneck шаг CNO. В реальной физике сечение этой реакции ~1000x меньше остальных шагов цикла,
+        // из-за чего катализатор большую часть времени проводит именно как ¹⁴N. У нас сжато до x50 через chance.
+        if (firstAtomElement == NITROGEN_14_ION_7 && !chance(0.02f, entityGenerator.random)) return false
+
+        atom1 = firstAtom
+        atom2 = secondAtom
+        resultElement = result
+        extraElements = extras
+        return true
     }
 
     override fun weight() = 0f
