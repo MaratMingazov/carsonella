@@ -3,9 +3,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7_ION_4
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7_ION_3
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -13,10 +16,16 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
  * pp-chain - Процесс внутри звезды
- * Протоны образуют первые атомы:
- * 1: p + p -> D (2 протона образуют ион Дейтерий+ (ион) (²H⁺), один из протонов превращается в нейтрон)
- * 2: D + p -> ³He²⁺ + γ (Дейтерий+ (ион) и протон образуют Гелий3+ (дважды ион) ³He²⁺ а также выделяется энергия )
- * 3: ³He²⁺ + ³He²⁺ -> He²⁺ 2p
+ *
+ * Ветвь pp-I:
+ * 1: p + p -> D⁺            (2 протона образуют ион Дейтерия ²H⁺, один из протонов превращается в нейтрон)
+ * 2: D⁺ + p -> ³He²⁺ + γ    (Дейтерий и протон образуют Гелий-3 ³He²⁺, выделяется энергия)
+ * 3: ³He²⁺ + ³He²⁺ -> ⁴He²⁺ + 2p   (терминатор pp-I)
+ *
+ * Ветвь pp-II (альтернативный путь после ³He²⁺):
+ * 1: ³He²⁺ + ⁴He²⁺ -> ⁷Be⁴⁺ + γ   (этот шаг живёт в StarAlphaReaction — через alphaReactionResult у ³He²⁺)
+ * 2: ⁷Be⁴⁺ + e⁻ -> ⁷Li³⁺          (захват электрона ядром; в реальности выделяется νₑ, у нас условно — фотон)
+ * 3: ⁷Li³⁺ + p -> 2 ⁴He²⁺         (горение лития обратно в гелий)
  */
 class StarPPChain(
     private val entityGenerator: IEntityGenerator,
@@ -42,11 +51,14 @@ class StarPPChain(
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
         // В зависимости от первого реагента определяем какой второй реагент нужен и что родится.
-        // Если первый элемент это не протон, дейтерий и не Гелий3+ — реакция невозможна.
+        // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaReaction
+        // через alphaReactionResult на ³He²⁺.
         val (secondElement, result, extras) = when (firstAtomElement) {
-            Proton         -> Triple(Proton,         DEUTERIUM_ION,  emptyList<Element>())
-            DEUTERIUM_ION  -> Triple(Proton,         HELIUM_3_ION_2, emptyList())
-            HELIUM_3_ION_2 -> Triple(HELIUM_3_ION_2, HELIUM_4_ION_2, listOf(Proton, Proton))
+            Proton            -> Triple(Proton,         DEUTERIUM_ION,    emptyList<Element>())
+            DEUTERIUM_ION     -> Triple(Proton,         HELIUM_3_ION_2,   emptyList())
+            HELIUM_3_ION_2    -> Triple(HELIUM_3_ION_2, HELIUM_4_ION_2,   listOf(Proton, Proton))
+            BERYLLIUM_7_ION_4 -> Triple(ELECTRON,       LITHIUM_7_ION_3,  emptyList())
+            LITHIUM_7_ION_3   -> Triple(Proton,         HELIUM_4_ION_2,   listOf(HELIUM_4_ION_2))
             else -> return false
         }
 
