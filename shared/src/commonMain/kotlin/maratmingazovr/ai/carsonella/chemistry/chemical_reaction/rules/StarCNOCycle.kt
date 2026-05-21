@@ -6,34 +6,42 @@ import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_13_ION_6
+import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_17_ION_9
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_13_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_15_ION_8
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17_ION_8
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
- * CNO-цикл (Бете, 1938) — горение водорода в горячих звёздах с участием C/N/O как катализаторов.
- * Чистый эффект — тот же, что у pp-цепочки: 4p → ⁴He. Но катализатор сохраняется.
+ * CNO-циклы (Бете, 1938) — горение водорода в горячих звёздах с участием C/N/O как катализаторов.
+ * Чистый эффект каждого цикла — тот же, что у pp-цепочки: 4p → ⁴He, но катализатор сохраняется.
  *
- * Четыре протон-захватных шага (этот класс):
- *   1: ¹²C + p → ¹³N⁷⁺ + γ
- *   2: ¹³C + p → ¹⁴N⁷⁺ + γ
- *   3: ¹⁴N + p → ¹⁵O⁸⁺ + γ        ← узкое горлышко цикла — сечение реакции в реальности в ~1000x меньше,
- *                                    чем у других шагов. У нас сжато до x50 через `chance(0.02)`,
- *                                    благодаря чему ¹⁴N задерживается в звезде заметно дольше других катализаторов.
- *   4: ¹⁵N + p → ¹²C⁶⁺ + ⁴He²⁺    (цикл замыкается)
+ * Этот класс реализует **CNO-I** и **CNO-II**. β⁺-распады между шагами (¹³N→¹³C, ¹⁵O→¹⁵N, ¹⁷F→¹⁷O)
+ * автоматически отрабатываются через generic `BetaPlusDecay` — data-driven по `Details.betaPlusDecayResult`.
  *
- * Два β⁺-распада между ними (¹³N→¹³C и ¹⁵O→¹⁵N) живут в отдельном `BetaPlusDecay` —
- * generic single-reagent правило, data-driven через `Details.betaPlusDecayResult`.
+ * **CNO-I** (CN-cycle):
+ *   ¹²C + p → ¹³N + γ
+ *   ¹³C + p → ¹⁴N + γ
+ *   ¹⁴N + p → ¹⁵O + γ      ← bottleneck (реальное сечение ~1000x меньше других шагов, у нас сжато до x50)
+ *   ¹⁵N + p → ¹²C + ⁴He    (замыкание на старт, ~99.96% в реальности)
  *
- * Конфликт с `StarAlphaReaction` на ¹²C: ¹²C может либо захватить α (`alphaReactionResult = ¹⁶O`),
- * либо протон (CNO шаг 1) — оба правила matches() вернут true, резолвер выбирает случайно
- * (все weight() = 0f). Физически это естественная конкуренция двух процессов.
+ * **CNO-II** (NO-cycle) — открывается через редкую утечку из CNO-I:
+ *   ¹⁵N + p → ¹⁶O + γ      (~0.04% в реальности; у нас сжато до 10% для играбельности)
+ *   ¹⁶O + p → ¹⁷F + γ      (медленный шаг; у нас дополнительно прижат `chance(0.1)`)
+ *   ¹⁷F → ¹⁷O + e⁺         (β⁺, отдельное правило)
+ *   ¹⁷O + p → ¹⁴N + ⁴He    (замыкание на CNO-I)
+ *
+ * Конфликты в резолвере (все разруливаются равными `weight()=0f`, случайным выбором):
+ *  - На ¹²C: α-захват (`StarAlphaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
+ *  - На ¹⁵N: α-захват (`StarAlphaReaction`, → ¹⁹F) vs p-захват (CNO-I/II финал, → ¹²C+α или ¹⁶O).
+ *  - На ¹⁵N+p — внутренний branching между CNO-I и CNO-II через `chance(0.1)`.
  */
 class StarCNOCycle(
     private val entityGenerator: IEntityGenerator,
@@ -63,7 +71,15 @@ class StarCNOCycle(
             CARBON_12_ION_6   -> Triple(Proton, NITROGEN_13_ION_7, emptyList<Element>())
             CARBON_13_ION_6   -> Triple(Proton, NITROGEN_14_ION_7, emptyList())
             NITROGEN_14_ION_7 -> Triple(Proton, OXYGEN_15_ION_8,   emptyList())
-            NITROGEN_15_ION_7 -> Triple(Proton, CARBON_12_ION_6,   listOf(HELIUM_4_ION_2))
+            // ¹⁵N+p имеет два канала. В реальности ~99.96% идёт в CNO-I (¹²C+α),
+            // ~0.04% — утечка в CNO-II (¹⁶O+γ). Сжимаем до 10% для играбельности.
+            NITROGEN_15_ION_7 -> if (chance(0.1f, entityGenerator.random)) {
+                Triple(Proton, OXYGEN_16_ION_8,  emptyList())                  // CNO-II старт
+            } else {
+                Triple(Proton, CARBON_12_ION_6,  listOf(HELIUM_4_ION_2))       // CNO-I замыкание
+            }
+            OXYGEN_16_ION_8   -> Triple(Proton, FLUORINE_17_ION_9, emptyList()) // CNO-II шаг 2
+            OXYGEN_17_ION_8   -> Triple(Proton, NITROGEN_14_ION_7, listOf(HELIUM_4_ION_2)) // CNO-II замыкание
             else -> return false
         }
 
@@ -80,9 +96,12 @@ class StarCNOCycle(
 
         if (distanceSquare >= firstAtomElement.details.radius * secondElement.details.radius * 2f) return false
 
-        // ¹⁴N+p — bottleneck шаг CNO. В реальной физике сечение этой реакции ~1000x меньше остальных шагов цикла,
+        // ¹⁴N+p — bottleneck шаг CNO-I. В реальной физике сечение этой реакции ~1000x меньше остальных шагов цикла,
         // из-за чего катализатор большую часть времени проводит именно как ¹⁴N. У нас сжато до x50 через chance.
         if (firstAtomElement == NITROGEN_14_ION_7 && !chance(0.02f, entityGenerator.random)) return false
+        // ¹⁶O+p — медленный шаг CNO-II (реально в ~3000x медленнее ¹⁵N+p). Дополнительно прижимаем для играбельности,
+        // чтобы CNO-II не крутился быстрее CNO-I после того, как утечка уже произошла.
+        if (firstAtomElement == OXYGEN_16_ION_8 && !chance(0.1f, entityGenerator.random)) return false
 
         atom1 = firstAtom
         atom2 = secondAtom
