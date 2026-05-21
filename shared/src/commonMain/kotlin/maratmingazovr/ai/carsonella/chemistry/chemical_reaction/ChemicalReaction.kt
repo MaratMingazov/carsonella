@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Annihilation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -47,6 +48,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
 
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),
+        Annihilation(entityGenerator), // e⁻ + e⁺ → 2γ — без неё позитроны от β⁺-распада копились бы вечно
         StarAlphaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
         StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p, плюс pp-II финал ⁷Be+e⁻→⁷Li, ⁷Li+p→2⁴He
         StarCNOCycle(entityGenerator), // CNO-цикл: ¹²C+p→¹³N, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵N+p→¹²C+⁴He; β⁺-распады ¹³N/¹⁵O живут в BetaPlusDecay
