@@ -62,14 +62,11 @@ class StarEmission (
                 },
             )
         } else {
+            // Звезда выбрасывает случайного живого ребёнка наружу. Раньше был хардкод p⁺/e⁻/O⁸⁺,
+            // из-за которого продукты нуклеосинтеза (Li, N, Ne, Mg, Si, … вплоть до ⁵⁶Ni) застревали
+            // внутри звезды и игроку не показывались.
+            val reagent = entityReagents.randomOrNull(entityGenerator.random)
             val updateList = mutableListOf<() -> Unit>()
-            // звезда излучит первый элемент в космос
-            val reagent =
-                entityReagents.firstOrNull {
-                    entity -> entity.state().value.element == Element.Proton
-                        || entity.state().value.element == Element.ELECTRON
-                        || entity.state().value.element == Element.OXYGEN_16_ION_8
-                }
             if (reagent != null) {
                 updateList += {
                     reagent.updateMyEnvironment(entity!!.getEnvironment())
