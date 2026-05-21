@@ -41,6 +41,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * Конфликты в резолвере (все разруливаются равными `weight()=0f`, случайным выбором):
  *  - На ¹²C: α-захват (`StarAlphaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
  *  - На ¹⁵N: α-захват (`StarAlphaReaction`, → ¹⁹F) vs p-захват (CNO-I/II финал, → ¹²C+α или ¹⁶O).
+ *  - На ¹⁶O: α-захват (`StarAlphaReaction`, → ²⁰Ne) vs p-захват (CNO-II шаг 2, → ¹⁷F).
  *  - На ¹⁵N+p — внутренний branching между CNO-I и CNO-II через `chance(0.1)`.
  */
 class StarCNOCycle(
