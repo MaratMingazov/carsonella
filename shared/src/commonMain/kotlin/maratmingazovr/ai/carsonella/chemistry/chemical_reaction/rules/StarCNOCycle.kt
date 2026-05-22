@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_13_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_17_ION_9
+import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_18_ION_9
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_13_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14_ION_7
@@ -14,6 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_15_ION_8
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17_ION_8
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18_ION_8
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -23,8 +25,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * CNO-циклы (Бете, 1938) — горение водорода в горячих звёздах с участием C/N/O как катализаторов.
  * Чистый эффект каждого цикла — тот же, что у pp-цепочки: 4p → ⁴He, но катализатор сохраняется.
  *
- * Этот класс реализует **CNO-I** и **CNO-II**. β⁺-распады между шагами (¹³N→¹³C, ¹⁵O→¹⁵N, ¹⁷F→¹⁷O)
- * автоматически отрабатываются через generic `BetaPlusDecay` — data-driven по `Details.betaPlusDecayResult`.
+ * Этот класс реализует **CNO-I**, **CNO-II** и **CNO-III**. β⁺-распады между шагами
+ * (¹³N→¹³C, ¹⁵O→¹⁵N, ¹⁷F→¹⁷O, ¹⁸F→¹⁸O) автоматически отрабатываются через generic
+ * `BetaPlusDecay` — data-driven по `Details.betaPlusDecayResult`.
  *
  * **CNO-I** (CN-cycle):
  *   ¹²C + p → ¹³N + γ
@@ -36,13 +39,19 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *   ¹⁵N + p → ¹⁶O + γ      (~0.04% в реальности; у нас сжато до 10% для играбельности)
  *   ¹⁶O + p → ¹⁷F + γ      (медленный шаг; у нас дополнительно прижат `chance(0.1)`)
  *   ¹⁷F → ¹⁷O + e⁺         (β⁺, отдельное правило)
- *   ¹⁷O + p → ¹⁴N + ⁴He    (замыкание на CNO-I)
+ *   ¹⁷O + p → ¹⁴N + ⁴He    (замыкание на CNO-I, ~99% в реальности)
+ *
+ * **CNO-III** — открывается через редкую утечку из CNO-II:
+ *   ¹⁷O + p → ¹⁸F + γ      (~1% в реальности; у нас сжато до 10% для играбельности)
+ *   ¹⁸F → ¹⁸O + e⁺         (β⁺, отдельное правило)
+ *   ¹⁸O + p → ¹⁵N + ⁴He    (замыкание на CNO-I/II через ¹⁵N)
  *
  * Конфликты в резолвере (все разруливаются равными `weight()=0f`, случайным выбором):
  *  - На ¹²C: α-захват (`StarAlphaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
  *  - На ¹⁵N: α-захват (`StarAlphaReaction`, → ¹⁹F) vs p-захват (CNO-I/II финал, → ¹²C+α или ¹⁶O).
  *  - На ¹⁶O: α-захват (`StarAlphaReaction`, → ²⁰Ne) vs p-захват (CNO-II шаг 2, → ¹⁷F).
  *  - На ¹⁵N+p — внутренний branching между CNO-I и CNO-II через `chance(0.1)`.
+ *  - На ¹⁷O+p — внутренний branching между CNO-II замыканием и CNO-III утечкой через `chance(0.1)`.
  */
 class StarCNOCycle(
     private val entityGenerator: IEntityGenerator,
@@ -80,7 +89,14 @@ class StarCNOCycle(
                 Triple(Proton, CARBON_12_ION_6,  listOf(HELIUM_4_ION_2))       // CNO-I замыкание
             }
             OXYGEN_16_ION_8   -> Triple(Proton, FLUORINE_17_ION_9, emptyList()) // CNO-II шаг 2
-            OXYGEN_17_ION_8   -> Triple(Proton, NITROGEN_14_ION_7, listOf(HELIUM_4_ION_2)) // CNO-II замыкание
+            // ¹⁷O+p имеет два канала. В реальности ~99% идёт в CNO-II замыкание (¹⁴N+α),
+            // ~1% — утечка в CNO-III (¹⁸F+γ). Сжимаем до 10% для играбельности, симметрично ¹⁵N+p.
+            OXYGEN_17_ION_8   -> if (chance(0.1f, entityGenerator.random)) {
+                Triple(Proton, FLUORINE_18_ION_9, emptyList())                  // CNO-III старт
+            } else {
+                Triple(Proton, NITROGEN_14_ION_7, listOf(HELIUM_4_ION_2))       // CNO-II замыкание
+            }
+            OXYGEN_18_ION_8   -> Triple(Proton, NITROGEN_15_ION_7, listOf(HELIUM_4_ION_2)) // CNO-III замыкание
             else -> return false
         }
 
