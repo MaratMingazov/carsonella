@@ -5,6 +5,13 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import kotlin.math.abs
+
+// Допуск при сопоставлении энергии фотона с уровнем атома. Нужен потому, что фотон, рождённый
+// в SpontaneousEmission как разность двух уровней (E_high - E_low), может из-за float-округления
+// не совпасть бит-в-бит с уровнем атома-мишени, хотя физически это resonant scattering.
+// 0.01 eV в ~150 раз меньше минимального промежутка между уровнями (~1.5 eV у He, Li) — коллизий нет.
+private const val ENERGY_EPSILON = 0.01f
 
 /**
  * Фотоионизация — это процесс, при котором атом или молекула теряет электрон под воздействием фотона, становясь ионом
@@ -18,16 +25,20 @@ class PhotoIonization (
 
     private var entity : Entity<*>? = null
     private var photon : Entity<*>? = null
+    // null означает «ионизация» (energy >= top level), Float — точный уровень, на который нужно «снапнуть» entity
+    private var matchedLevel : Float? = null
 
     override fun matches(reagents: List<Entity<*>>): Boolean {
         entity = null
         photon = null
+        matchedLevel = null
 
         if (reagents.size < 2) return false
 
         val first = reagents.first()
         val firstElement = first.state().value.element
-        if (firstElement.details.energyLevels.isEmpty()) return false
+        val levels = firstElement.details.energyLevels
+        if (levels.isEmpty()) return false
         if (firstElement.details.ion == null) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
@@ -44,9 +55,21 @@ class PhotoIonization (
 
         if (distance > activationDistanceSquare) return false
         val expectedEnergy = first.state().value.energy + nearestPhoton.state().value.energy
-        if (firstElement.details.energyLevels.contains(expectedEnergy) || expectedEnergy > firstElement.details.energyLevels.last()) {
+
+        // Ионизация: энергии хватает достать электрон (с допуском по верхнему уровню)
+        if (expectedEnergy >= levels.last() - ENERGY_EPSILON) {
             entity = first
             photon = nearestPhoton
+            matchedLevel = null
+            return true
+        }
+
+        // Поглощение: энергия попадает в окрестность одного из уровней
+        val matched = levels.firstOrNull { abs(it - expectedEnergy) < ENERGY_EPSILON }
+        if (matched != null) {
+            entity = first
+            photon = nearestPhoton
+            matchedLevel = matched
             return true
         }
         return false
@@ -60,20 +83,22 @@ class PhotoIonization (
          *  Если в элемент прилетел фотон, то электрон заберет эту энергию.
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
-        val energyIonization = entity!!.state().value.element.details.energyLevels.last()
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
         val photonEnergy = photon!!.state().value.energy
         val photonElement = photon!!.state().value.element
+        val level = matchedLevel
 
-        if (entityEnergy + photonEnergy < energyIonization) {
-            // мы поглащаем энергию, так как порог еще не пройден
+        if (level != null) {
+            // Поглощение: «снапаем» энергию атома на точный уровень из таблицы через setEnergy.
+            // addEnergy(level - entityEnergy) дал бы a + (b - a), что в float не гарантирует b бит-в-бит.
             return ReactionOutcome(
                 consumed = listOf(photon!!),
-                updateState = listOf { entity!!.addEnergy(photonEnergy) },
-                description = "$id: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${entityEnergy + photonEnergy}eV)"
+                updateState = listOf { entity!!.setEnergy(level) },
+                description = "$id: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${level}eV)"
             )
         } else {
+            val energyIonization = entity!!.state().value.element.details.energyLevels.last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
             val entityPosition = entity!!.state().value.position

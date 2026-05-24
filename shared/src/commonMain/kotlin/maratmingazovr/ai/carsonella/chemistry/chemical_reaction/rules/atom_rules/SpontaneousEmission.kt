@@ -54,16 +54,18 @@ class SpontaneousEmission(
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
-        val index = entityElement.details.energyLevels.indexOf(entityEnergy)
+        val levels = entityElement.details.energyLevels
+        val index = levels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")
 
         // электрон в атоме спустится на 1 уровень ниже и отдаст энергию
-        val energyToExpose =
-            if (index == 0) { entityEnergy }
-            else { entityEnergy - entityElement.details.energyLevels[index - 1] }
+        val targetEnergy = if (index == 0) 0f else levels[index - 1]
+        val energyToExpose = entityEnergy - targetEnergy
 
         return ReactionOutcome(
-            updateState = listOf { entity!!.addEnergy(-1 * energyToExpose) },
+            // setEnergy(targetEnergy) вместо addEnergy(-energyToExpose) — записываем точное значение
+            // уровня из таблицы, чтобы не накапливался float-дрейф и contains() не падал на следующем тике.
+            updateState = listOf { entity!!.setEnergy(targetEnergy) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
