@@ -257,8 +257,8 @@ enum class Element() {
 
             // --- атомы ---
             HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",         label = "Hydrogen (H)",         mass = 1f, e = 1, p = 1, n = 0,      energyLevels = listOf(10.2f, 12.09f, 13.6f), ion = Proton),
-            DEUTERIUM_ION           to Details (type = ElementType.Atom, symbol = "²H⁺",       label = "DEUTERIUM (²H⁺)",      mass = 2f, e = 0, p = 1, n = 1,      description = "Ион Дейтерия"),
-            DEUTERIUM               to Details (type = ElementType.Atom, symbol = "²H",        label = "DEUTERIUM (²H)",       mass = 2f, e = 1, p = 1, n = 1,      description = "Дейтерий"),
+            DEUTERIUM_ION           to Details (type = ElementType.Atom, symbol = "²H⁺",       label = "DEUTERIUM (²H⁺)",      mass = 2f, e = 0, p = 1, n = 1,      description = "Дейтерий", recombinationElement = DEUTERIUM),
+            DEUTERIUM               to Details (type = ElementType.Atom, symbol = "²H",        label = "DEUTERIUM (²H)",       mass = 2f, e = 1, p = 1, n = 1,      description = "Дейтерий", energyLevels = listOf(10.2f,12.09f, 13.6f),ion = DEUTERIUM_ION),
             HELIUM_3_ION_2          to Details (type = ElementType.Atom, symbol = "³He²⁺",     label = "Helium (³He²⁺)",       mass = 3f, e = 0, p = 2, n = 1,      description = "Гелий",      recombinationElement = HELIUM_3_ION_1,      alphaReactionResult = BERYLLIUM_7_ION_4),
             HELIUM_3_ION_1          to Details (type = ElementType.Atom, symbol = "³He¹⁺",     label = "Helium (³He¹⁺)",       mass = 3f, e = 1, p = 2, n = 1,      description = "Гелий",      recombinationElement = HELIUM_3,        energyLevels = listOf(54.42f)),
             HELIUM_3                to Details (type = ElementType.Atom, symbol = "³He",       label = "Helium (³He)",         mass = 3f, e = 2, p = 2, n = 1,      description = "Гелий",                                              energyLevels = listOf(24.59f)),
