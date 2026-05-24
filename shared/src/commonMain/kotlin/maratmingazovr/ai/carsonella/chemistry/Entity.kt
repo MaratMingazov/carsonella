@@ -219,6 +219,8 @@ enum class Element() {
     TITANIUM_44_ION_22,
     CHROMIUM_48_ION_24,
     IRON_52_ION_26,
+    IRON_56_ION_26,
+    COBALT_56_ION_27,
     NICKEL_56_ION_28,
     Ni,
 
@@ -293,8 +295,10 @@ enum class Element() {
             CALCIUM_40_ION_20       to Details (type = ElementType.Atom, symbol = "Ca²⁰⁺",     label = "Calcium (⁴⁰Ca²⁰⁺)",    mass = 40f, e = 0, p = 20, n = 20,   description = "Кальций",     alphaReactionResult = TITANIUM_44_ION_22),
             TITANIUM_44_ION_22      to Details (type = ElementType.Atom, symbol = "Ti²²⁺",     label = "Titanium (⁴⁴Ti²²⁺)",   mass = 44f, e = 0, p = 22, n = 22,   description = "Титан",       alphaReactionResult = CHROMIUM_48_ION_24),
             CHROMIUM_48_ION_24      to Details (type = ElementType.Atom, symbol = "Cr²⁴⁺",     label = "Chromium (⁴⁸Cr²⁴⁺)",   mass = 48f, e = 0, p = 24, n = 24,   description = "Хром",        alphaReactionResult = IRON_52_ION_26),
-            IRON_52_ION_26          to Details (type = ElementType.Atom, symbol = "Fe²⁶⁺",     label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26,   description = "Железо",      alphaReactionResult = NICKEL_56_ION_28),
-            NICKEL_56_ION_28        to Details (type = ElementType.Atom, symbol = "Ni²⁸⁺",     label = "Nickel (⁵⁶Ni²⁸⁺)",     mass = 56f, e = 0, p = 28, n = 28,   description = "Никель"),
+            IRON_52_ION_26          to Details (type = ElementType.Atom, symbol = "⁵²Fe²⁶⁺",   label = "Iron (⁵²Fe²⁶⁺)",       mass = 52f, e = 0, p = 26, n = 26,   description = "Железо",      alphaReactionResult = NICKEL_56_ION_28),
+            IRON_56_ION_26          to Details (type = ElementType.Atom, symbol = "⁵⁶Fe²⁶⁺",   label = "Iron (⁵⁶Fe²⁶⁺)",       mass = 56f, e = 0, p = 26, n = 30,   description = "Железо"),
+            COBALT_56_ION_27        to Details (type = ElementType.Atom, symbol = "⁵⁶Co²⁷⁺",   label = "Cobalt (⁵⁶Co²⁷⁺)",     mass = 56f, e = 0, p = 27, n = 29,   description = "Кобальт",    betaPlusDecayResult = IRON_56_ION_26),
+            NICKEL_56_ION_28        to Details (type = ElementType.Atom, symbol = "Ni²⁸⁺",     label = "Nickel (⁵⁶Ni²⁸⁺)",     mass = 56f, e = 0, p = 28, n = 28,   description = "Никель",     betaPlusDecayResult = COBALT_56_ION_27),
             Ni                      to Details (type = ElementType.Atom, symbol = "Ni", label = "Nikel (Ni)", mass = 58f, e = 28, p = 28, n = 30),
 
             Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
