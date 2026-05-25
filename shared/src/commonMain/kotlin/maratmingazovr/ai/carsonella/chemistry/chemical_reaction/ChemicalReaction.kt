@@ -4,10 +4,7 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
-import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
-import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
@@ -56,8 +53,6 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
 
         // Реакции атомов
-        //AtomPlusAtomToMolecule(entityGenerator, Proton, Electron, HYDROGEN, resultPhotonEnergy = 13.6f),
-        AtomPlusAtomToMolecule(entityGenerator, DEUTERIUM_ION, ELECTRON, DEUTERIUM, resultPhotonEnergy = 13.6f),
         AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
         AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, OXYGEN_16, O2),
         AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, H2, H2O),

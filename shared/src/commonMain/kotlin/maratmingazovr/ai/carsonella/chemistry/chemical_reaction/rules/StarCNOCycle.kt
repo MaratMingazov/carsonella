@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_13_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_17_ION_9
 import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_18_ION_9
+import maratmingazovr.ai.carsonella.chemistry.Element.FLUORINE_19_ION_9
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_13_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14_ION_7
@@ -25,9 +26,10 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * CNO-циклы (Бете, 1938) — горение водорода в горячих звёздах с участием C/N/O как катализаторов.
  * Чистый эффект каждого цикла — тот же, что у pp-цепочки: 4p → ⁴He, но катализатор сохраняется.
  *
- * Этот класс реализует **CNO-I**, **CNO-II** и **CNO-III**. β⁺-распады между шагами
+ * Этот класс реализует **CNO-I**, **CNO-II**, **CNO-III** и **CNO-IV**. β⁺-распады между шагами
  * (¹³N→¹³C, ¹⁵O→¹⁵N, ¹⁷F→¹⁷O, ¹⁸F→¹⁸O) автоматически отрабатываются через generic
- * `BetaPlusDecay` — data-driven по `Details.betaPlusDecayResult`.
+ * `BetaPlusDecay` — data-driven по `Details.betaPlusDecayResult`. В CNO-IV β⁺ нет — оба
+ * ядра цикла (¹⁸O, ¹⁹F) стабильны.
  *
  * **CNO-I** (CN-cycle):
  *   ¹²C + p → ¹³N + γ
@@ -44,7 +46,14 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * **CNO-III** — открывается через редкую утечку из CNO-II:
  *   ¹⁷O + p → ¹⁸F + γ      (~1% в реальности; у нас сжато до 10% для играбельности)
  *   ¹⁸F → ¹⁸O + e⁺         (β⁺, отдельное правило)
- *   ¹⁸O + p → ¹⁵N + ⁴He    (замыкание на CNO-I/II через ¹⁵N)
+ *   ¹⁸O + p → ¹⁵N + ⁴He    (замыкание на CNO-I/II через ¹⁵N, ~95% в реальности)
+ *
+ * **CNO-IV** — открывается через редкую утечку из CNO-III:
+ *   ¹⁸O + p → ¹⁹F + γ      (~5% в реальности; у нас сжато до 10% для играбельности)
+ *   ¹⁹F + p → ¹⁶O + ⁴He    (замыкание на CNO-II через ¹⁶O)
+ *
+ * Альтернативный путь к ¹⁹F к боковому ¹⁵N+α→¹⁹F (StarAlphaReaction). Β⁺-распадов в CNO-IV нет —
+ * и ¹⁸O, и ¹⁹F стабильны; ¹⁹F — единственный стабильный изотоп фтора.
  *
  * Конфликты в резолвере (все разруливаются равными `weight()=0f`, случайным выбором):
  *  - На ¹²C: α-захват (`StarAlphaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
@@ -52,6 +61,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *  - На ¹⁶O: α-захват (`StarAlphaReaction`, → ²⁰Ne) vs p-захват (CNO-II шаг 2, → ¹⁷F).
  *  - На ¹⁵N+p — внутренний branching между CNO-I и CNO-II через `chance(0.1)`.
  *  - На ¹⁷O+p — внутренний branching между CNO-II замыканием и CNO-III утечкой через `chance(0.1)`.
+ *  - На ¹⁸O+p — внутренний branching между CNO-III замыканием и CNO-IV утечкой через `chance(0.1)`.
+ *  - На ¹⁹F — единственный потребитель в звезде; вне CNO-IV ¹⁹F α-захват не делает (нет `alphaReactionResult`).
  */
 class StarCNOCycle(
     private val entityGenerator: IEntityGenerator,
@@ -96,7 +107,14 @@ class StarCNOCycle(
             } else {
                 Triple(Proton, NITROGEN_14_ION_7, listOf(HELIUM_4_ION_2))       // CNO-II замыкание
             }
-            OXYGEN_18_ION_8   -> Triple(Proton, NITROGEN_15_ION_7, listOf(HELIUM_4_ION_2)) // CNO-III замыкание
+            // ¹⁸O+p имеет два канала. В реальности ~95% идёт в CNO-III замыкание (¹⁵N+α),
+            // ~5% — утечка в CNO-IV (¹⁹F+γ). Сжимаем до 10% для играбельности, симметрично ¹⁵N+p и ¹⁷O+p.
+            OXYGEN_18_ION_8   -> if (chance(0.1f, entityGenerator.random)) {
+                Triple(Proton, FLUORINE_19_ION_9, emptyList())                  // CNO-IV утечка
+            } else {
+                Triple(Proton, NITROGEN_15_ION_7, listOf(HELIUM_4_ION_2))       // CNO-III замыкание
+            }
+            FLUORINE_19_ION_9 -> Triple(Proton, OXYGEN_16_ION_8, listOf(HELIUM_4_ION_2)) // CNO-IV замыкание
             else -> return false
         }
 

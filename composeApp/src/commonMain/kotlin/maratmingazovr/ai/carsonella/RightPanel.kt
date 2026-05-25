@@ -213,6 +213,14 @@ private fun SceneCanvas(
         // фон
         drawRect(Color.White, size = size)
 
+        // граница корневого environment
+        drawCircle(
+            color = Color.LightGray,
+            center = world.environment.getEnvCenter().toOffset(),
+            radius = world.environment.getEnvRadius(),
+            style = Stroke(width = 1f)
+        )
+
         // хит-тест по протонам
         val mouse = hoverPos
         onSelectHoverId(null)

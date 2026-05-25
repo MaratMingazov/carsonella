@@ -78,6 +78,7 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
         · CNO-I (StarCNOCycle + BetaPlusDecay): ¹²C+p→¹³N, ¹³N→¹³C+e⁺, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵O→¹⁵N+e⁺, ¹⁵N+p→¹²C+⁴He
         · CNO-II (StarCNOCycle + BetaPlusDecay): утечка ¹⁵N+p→¹⁶O, ¹⁶O+p→¹⁷F, ¹⁷F→¹⁷O+e⁺, ¹⁷O+p→¹⁴N+⁴He
         · CNO-III (StarCNOCycle + BetaPlusDecay): утечка ¹⁷O+p→¹⁸F, ¹⁸F→¹⁸O+e⁺, ¹⁸O+p→¹⁵N+⁴He
+        · CNO-IV (StarCNOCycle): утечка ¹⁸O+p→¹⁹F, замыкание ¹⁹F+p→¹⁶O+⁴He (без β⁺ — оба ядра стабильны)
         · горение углерода (StarCarbonBurning): ¹²C+¹²C → ²⁰Ne/²³Na/²⁴Mg
         · горение кислорода (StarOxygenBurning): ¹⁶O+¹⁶O → ²⁸Si/³¹P/³¹S
     → излучение в космос (StarEmission выбрасывает случайного живого ребёнка звезды наружу)
