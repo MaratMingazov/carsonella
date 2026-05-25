@@ -23,7 +23,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * 3: ³He²⁺ + ³He²⁺ -> ⁴He²⁺ + 2p   (терминатор pp-I)
  *
  * Ветвь pp-II (альтернативный путь после ³He²⁺):
- * 1: ³He²⁺ + ⁴He²⁺ -> ⁷Be⁴⁺ + γ   (этот шаг живёт в StarAlphaReaction — через alphaReactionResult у ³He²⁺)
+ * 1: ³He²⁺ + ⁴He²⁺ -> ⁷Be⁴⁺ + γ   (этот шаг живёт в StarAlphaGammaReaction — через alphaGammaResult у ³He²⁺)
  * 2: ⁷Be⁴⁺ + e⁻ -> ⁷Li³⁺          (захват электрона ядром; в реальности выделяется νₑ, у нас условно — фотон)
  * 3: ⁷Li³⁺ + p -> 2 ⁴He²⁺         (горение лития обратно в гелий)
  */
@@ -51,8 +51,8 @@ class StarPPChain(
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
         // В зависимости от первого реагента определяем какой второй реагент нужен и что родится.
-        // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaReaction
-        // через alphaReactionResult на ³He²⁺.
+        // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaGammaReaction
+        // через alphaGammaResult на ³He²⁺.
         val (secondElement, result, extras) = when (firstAtomElement) {
             Proton            -> Triple(Proton,         DEUTERIUM_ION,    emptyList<Element>())
             DEUTERIUM_ION     -> Triple(Proton,         HELIUM_3_ION_2,   emptyList())

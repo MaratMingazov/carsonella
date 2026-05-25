@@ -10,7 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 // альфа-захват
 // «Внутри звезды ион ловит ⁴He, превращается в более тяжёлый элемент».
-class StarAlphaReaction(
+class StarAlphaGammaReaction(
     private val entityGenerator: IEntityGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
 ) : ReactionRule {
     override val id = "AlphaReaction"
@@ -26,7 +26,7 @@ class StarAlphaReaction(
         val firstAtomPosition = reagents.first().state().value.position
         val firstAtomElement = firstAtom.state().value.element
         if (!firstAtom.state().value.alive) return false
-        if (firstAtomElement.details.alphaReactionResult == null) return false // значит элемент не участвует в альфа захвате
+        if (firstAtomElement.details.alphaGammaResult == null) return false // значит элемент не участвует в альфа захвате
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -57,7 +57,7 @@ class StarAlphaReaction(
         val resultPosition = atom1!!.state().value.position
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
-        val resultElement = atom1Element.details.alphaReactionResult!!
+        val resultElement = atom1Element.details.alphaGammaResult!!
         val resultPhotonEnergy = 1000f
 
 

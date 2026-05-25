@@ -52,17 +52,17 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *   ¹⁸O + p → ¹⁹F + γ      (~5% в реальности; у нас сжато до 10% для играбельности)
  *   ¹⁹F + p → ¹⁶O + ⁴He    (замыкание на CNO-II через ¹⁶O)
  *
- * Альтернативный путь к ¹⁹F к боковому ¹⁵N+α→¹⁹F (StarAlphaReaction). Β⁺-распадов в CNO-IV нет —
+ * Альтернативный путь к ¹⁹F к боковому ¹⁵N+α→¹⁹F (StarAlphaGammaReaction). Β⁺-распадов в CNO-IV нет —
  * и ¹⁸O, и ¹⁹F стабильны; ¹⁹F — единственный стабильный изотоп фтора.
  *
  * Конфликты в резолвере (все разруливаются равными `weight()=0f`, случайным выбором):
- *  - На ¹²C: α-захват (`StarAlphaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
- *  - На ¹⁵N: α-захват (`StarAlphaReaction`, → ¹⁹F) vs p-захват (CNO-I/II финал, → ¹²C+α или ¹⁶O).
- *  - На ¹⁶O: α-захват (`StarAlphaReaction`, → ²⁰Ne) vs p-захват (CNO-II шаг 2, → ¹⁷F).
+ *  - На ¹²C: α-захват (`StarAlphaGammaReaction`, → ¹⁶O) vs p-захват (CNO-I шаг 1, → ¹³N).
+ *  - На ¹⁵N: α-захват (`StarAlphaGammaReaction`, → ¹⁹F) vs p-захват (CNO-I/II финал, → ¹²C+α или ¹⁶O).
+ *  - На ¹⁶O: α-захват (`StarAlphaGammaReaction`, → ²⁰Ne) vs p-захват (CNO-II шаг 2, → ¹⁷F).
  *  - На ¹⁵N+p — внутренний branching между CNO-I и CNO-II через `chance(0.1)`.
  *  - На ¹⁷O+p — внутренний branching между CNO-II замыканием и CNO-III утечкой через `chance(0.1)`.
  *  - На ¹⁸O+p — внутренний branching между CNO-III замыканием и CNO-IV утечкой через `chance(0.1)`.
- *  - На ¹⁹F — единственный потребитель в звезде; вне CNO-IV ¹⁹F α-захват не делает (нет `alphaReactionResult`).
+ *  - На ¹⁹F — единственный потребитель в звезде; вне CNO-IV ¹⁹F α-захват не делает (нет `alphaGammaResult`).
  */
 class StarCNOCycle(
     private val entityGenerator: IEntityGenerator,

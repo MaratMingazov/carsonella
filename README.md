@@ -56,7 +56,7 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 - `energyLevels` — энергетические уровни (для фотоионизации и спонтанной эмиссии)
 - `ion` — ион, который получится при потере электрона
 - `recombinationElement` — что получится при захвате электрона
-- `alphaReactionResult` — продукт альфа-захвата (нуклеосинтез в звёздах)
+- `alphaGammaResult` — продукт α-захвата (α,γ): ядро + α → ядро′ + γ (нуклеосинтез в звёздах)
 - `energyBondDissociation` / `dissociationElements` — для фотодиссоциации молекул
 
 ### Окружение
@@ -73,8 +73,8 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 звезда (StarEmission)
     → нуклеосинтез внутри звезды:
         · pp-I (StarPPChain): p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p
-        · pp-II (StarAlphaReaction + StarPPChain): ³He²⁺+⁴He²⁺→⁷Be⁴⁺, ⁷Be⁴⁺+e⁻→⁷Li³⁺, ⁷Li³⁺+p→2 ⁴He²⁺
-        · альфа-захват (StarAlphaReaction): ⁴He→⁸Be→¹²C→¹⁶O→…→⁵⁶Ni →(β⁺)→ ⁵⁶Co →(β⁺)→ ⁵⁶Fe (стабильная вершина железного пика), плюс боковая ¹⁵N+α→¹⁹F
+        · pp-II (StarAlphaGammaReaction + StarPPChain): ³He²⁺+⁴He²⁺→⁷Be⁴⁺, ⁷Be⁴⁺+e⁻→⁷Li³⁺, ⁷Li³⁺+p→2 ⁴He²⁺
+        · альфа-захват (StarAlphaGammaReaction): ⁴He→⁸Be→¹²C→¹⁶O→…→⁵⁶Ni →(β⁺)→ ⁵⁶Co →(β⁺)→ ⁵⁶Fe (стабильная вершина железного пика), плюс боковая ¹⁵N+α→¹⁹F
         · CNO-I (StarCNOCycle + BetaPlusDecay): ¹²C+p→¹³N, ¹³N→¹³C+e⁺, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵O→¹⁵N+e⁺, ¹⁵N+p→¹²C+⁴He
         · CNO-II (StarCNOCycle + BetaPlusDecay): утечка ¹⁵N+p→¹⁶O, ¹⁶O+p→¹⁷F, ¹⁷F→¹⁷O+e⁺, ¹⁷O+p→¹⁴N+⁴He
         · CNO-III (StarCNOCycle + BetaPlusDecay): утечка ¹⁷O+p→¹⁸F, ¹⁸F→¹⁸O+e⁺, ¹⁸O+p→¹⁵N+⁴He
