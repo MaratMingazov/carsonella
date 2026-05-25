@@ -47,8 +47,10 @@ class StarEmission (
         /*
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
          */
-        if (entityReagents.size < 10) {
+        if (entityReagents.size < 20) {
             val resultElement =  if (!chance(0.5f, entityGenerator.random))  Element.Proton else Element.ELECTRON
+            // TEMP: временно логируем fuel-ветку чтобы понять, какая ветка срабатывает у игрока.
+            // По умолчанию она молчит (chance 0.012/тик → ~0.75 раз/сек на звезду, шум в логе).
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createEntity(
@@ -60,6 +62,7 @@ class StarEmission (
                         environment = entity!!
                     )
                 },
+                //description = "$id (fuel, n=${entityReagents.size}): ${Element.Star.details.symbol} ⊕ ${resultElement.details.symbol}",
             )
         } else {
             // Звезда выбрасывает случайного живого ребёнка наружу. Раньше был хардкод p⁺/e⁻/O⁸⁺,
@@ -67,13 +70,15 @@ class StarEmission (
             // внутри звезды и игроку не показывались.
             val reagent = entityReagents.randomOrNull(entityGenerator.random)
             val updateList = mutableListOf<() -> Unit>()
+            var description = ""
             if (reagent != null) {
                 updateList += {
                     reagent.updateMyEnvironment(entity!!.getEnvironment())
                     reagent.addVelocity(1f)
                 }
+                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
             }
-            return ReactionOutcome(updateState = updateList)
+            return ReactionOutcome(updateState = updateList, description = description)
         }
 
     }

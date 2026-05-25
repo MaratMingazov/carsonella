@@ -205,11 +205,11 @@ enum class Element() {
     CARBON_12_ION_6, CARBON_12,
     CARBON_13_ION_6,
     NITROGEN_13_ION_7,
-    NITROGEN_14_ION_7,
+    NITROGEN_14_ION_7, NITROGEN_14_ION_6,
     NITROGEN_15_ION_7,
     OXYGEN_15_ION_8,
     OXYGEN_16_ION_8, OXYGEN_16_ION_7, OXYGEN_16_ION_6, OXYGEN_16_ION_5, OXYGEN_16_ION_4, OXYGEN_16_ION_3, OXYGEN_16_ION_2, OXYGEN_16_ION_1, OXYGEN_16,
-    OXYGEN_17_ION_8,
+    OXYGEN_17_ION_8, OXYGEN_17_ION_7,
     OXYGEN_18_ION_8,
     FLUORINE_17_ION_9,
     FLUORINE_18_ION_9,
@@ -282,7 +282,8 @@ enum class Element() {
             CARBON_12               to Details (type = ElementType.Atom, symbol = "C",         label = "Carbon (C)",           mass = 12f, e = 6, p = 6, n = 6),
             CARBON_13_ION_6         to Details (type = ElementType.Atom, symbol = "¹³C⁶⁺",     label = "Carbon (¹³C⁶⁺)",       mass = 13f, e = 0, p = 6, n = 7,     description = "Углерод"),
             NITROGEN_13_ION_7       to Details (type = ElementType.Atom, symbol = "¹³N⁷⁺",     label = "Nitrogen (¹³N⁷⁺)",     mass = 13f, e = 0, p = 7, n = 6,     description = "Азот",       betaPlusDecayResult = CARBON_13_ION_6),
-            NITROGEN_14_ION_7       to Details (type = ElementType.Atom, symbol = "¹⁴N⁷⁺",     label = "Nitrogen (¹⁴N⁷⁺)",     mass = 14f, e = 0, p = 7, n = 7,     description = "Азот"),
+            NITROGEN_14_ION_7       to Details (type = ElementType.Atom, symbol = "¹⁴N⁷⁺",     label = "Nitrogen (¹⁴N⁷⁺)",     mass = 14f, e = 0, p = 7, n = 7,     description = "Азот",       alphaProtonResult = OXYGEN_17_ION_8, recombinationElement = NITROGEN_14_ION_6),
+            NITROGEN_14_ION_6       to Details (type = ElementType.Atom, symbol = "¹⁴N⁶⁺",     label = "Nitrogen (¹⁴N⁶⁺)",     mass = 14f, e = 1, p = 7, n = 7,     description = "Азот",       alphaProtonResult = OXYGEN_17_ION_7, energyLevels = listOf(499.8f, 592.36f, 666.4f),    ion = NITROGEN_14_ION_7),
             NITROGEN_15_ION_7       to Details (type = ElementType.Atom, symbol = "¹⁵N⁷⁺",     label = "Nitrogen (¹⁵N⁷⁺)",     mass = 15f, e = 0, p = 7, n = 8,     description = "Азот",       alphaGammaResult = FLUORINE_19_ION_9),
             OXYGEN_15_ION_8         to Details (type = ElementType.Atom, symbol = "¹⁵O⁸⁺",     label = "Oxygen (¹⁵O⁸⁺)",       mass = 15f, e = 0, p = 8, n = 7,     description = "Кислород",   betaPlusDecayResult = NITROGEN_15_ION_7),
             OXYGEN_16_ION_8         to Details (type = ElementType.Atom, symbol = "O⁸⁺",       label = "Oxygen (¹⁶O⁸⁺)",       mass = 16f, e = 0, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16_ION_7, alphaGammaResult = NEON_20_ION_10),
@@ -294,7 +295,8 @@ enum class Element() {
             OXYGEN_16_ION_2         to Details (type = ElementType.Atom, symbol = "O²⁺",       label = "Oxygen (¹⁶O²⁺)",       mass = 16f, e = 6, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16_ION_1,   energyLevels = listOf(54.94f),                  ion = OXYGEN_16_ION_3),
             OXYGEN_16_ION_1         to Details (type = ElementType.Atom, symbol = "O¹⁺",       label = "Oxygen (¹⁶O¹⁺)",       mass = 16f, e = 7, p = 8, n = 8,     description = "Кислород", recombinationElement = OXYGEN_16,         energyLevels = listOf(35.12f),                  ion = OXYGEN_16_ION_2),
             OXYGEN_16               to Details (type = ElementType.Atom, symbol = "O",         label = "Oxygen (¹⁶O)",         mass = 16f, e = 8, p = 8, n = 8,     description = "Кислород",                                           energyLevels = listOf(1.96f, 9.51f, 13.6f),     ion = OXYGEN_16_ION_1),
-            OXYGEN_17_ION_8         to Details (type = ElementType.Atom, symbol = "¹⁷O⁸⁺",     label = "Oxygen (¹⁷O⁸⁺)",       mass = 17f, e = 0, p = 8, n = 9,     description = "Кислород"),
+            OXYGEN_17_ION_8         to Details (type = ElementType.Atom, symbol = "¹⁷O⁸⁺",     label = "Oxygen (¹⁷O⁸⁺)",       mass = 17f, e = 0, p = 8, n = 9,     description = "Кислород", recombinationElement = OXYGEN_17_ION_7),
+            OXYGEN_17_ION_7         to Details (type = ElementType.Atom, symbol = "¹⁷O⁷⁺",     label = "Oxygen (¹⁷O⁷⁺)",       mass = 17f, e = 1, p = 8, n = 9,     description = "Кислород",                                           energyLevels = listOf(652.8f, 773.69f, 871.41f), ion = OXYGEN_17_ION_8),
             OXYGEN_18_ION_8         to Details (type = ElementType.Atom, symbol = "¹⁸O⁸⁺",     label = "Oxygen (¹⁸O⁸⁺)",       mass = 18f, e = 0, p = 8, n = 10,    description = "Кислород"),
             FLUORINE_17_ION_9       to Details (type = ElementType.Atom, symbol = "¹⁷F⁹⁺",     label = "Fluorine (¹⁷F⁹⁺)",     mass = 17f, e = 0, p = 9, n = 8,     description = "Фтор", betaPlusDecayResult = OXYGEN_17_ION_8),
             FLUORINE_18_ION_9       to Details (type = ElementType.Atom, symbol = "¹⁸F⁹⁺",     label = "Fluorine (¹⁸F⁹⁺)",     mass = 18f, e = 0, p = 9, n = 9,     description = "Фтор", betaPlusDecayResult = OXYGEN_18_ION_8),
@@ -358,6 +360,8 @@ data class Details(
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
 
     val alphaGammaResult: Element? = null, // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
+
+    val alphaProtonResult: Element? = null, // (α,p) реакция. Ядро ловит ⁴He, выбрасывает протон: A + ⁴He → A′ + p (Z→Z+1, A→A+3). Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919). У нас работает только в TemperatureMode.Space — аналог «лабораторного» режима.
 
     val betaPlusDecayResult: Element? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
 )

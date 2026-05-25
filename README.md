@@ -57,6 +57,7 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 - `ion` — ион, который получится при потере электрона
 - `recombinationElement` — что получится при захвате электрона
 - `alphaGammaResult` — продукт α-захвата (α,γ): ядро + α → ядро′ + γ (нуклеосинтез в звёздах)
+- `alphaProtonResult` — продукт α-протонной реакции (α,p): ядро + α → ядро′ + p (в космосе)
 - `energyBondDissociation` / `dissociationElements` — для фотодиссоциации молекул
 
 ### Окружение
@@ -82,6 +83,7 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
         · горение углерода (StarCarbonBurning): ¹²C+¹²C → ²⁰Ne/²³Na/²⁴Mg
         · горение кислорода (StarOxygenBurning): ¹⁶O+¹⁶O → ²⁸Si/³¹P/³¹S
     → излучение в космос (StarEmission выбрасывает случайного живого ребёнка звезды наружу)
+    → (α,p) в космосе (AlphaProtonReaction): ¹⁴N+α→¹⁷O+p (Резерфорд, 1919) — α из звёздного outflow встречает холодные ядра
     → фотоионизация / рекомбинация (PhotoIonization, RecombinationReaction, SpontaneousEmission)
     → аннигиляция позитронов от β⁺-распада с электронами (Annihilation: e⁻ + e⁺ → 2γ)
     → молекулообразование (AtomPlusAtomToMolecule: H+H→H₂, O+O→O₂, O+H₂→H₂O, …)
