@@ -77,6 +77,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
             val dissociationElement1 = dissociationElements[0]
             val dissociationElement2 = dissociationElements[1]
 
+            val env = entity!!.getEnvironment()
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
@@ -86,6 +87,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
+                        environment = env,
                     )
                     entityGenerator.createEntity(
                         dissociationElement2,
@@ -93,6 +95,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityDirection,
                         entityVelocity,
                         energy = 0f,
+                        environment = env,
                     )
                 },
             )

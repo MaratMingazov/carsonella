@@ -73,6 +73,7 @@ class SpontaneousEmission(
                     randomDirection(entityGenerator.random),
                     40f,
                     energy = energyToExpose,
+                    environment = entity!!.getEnvironment(),
                 )
             },
             description = "$id: ${entityElement.details.label} -> ${Element.PHOTON.details.symbol} [$energyToExpose ev]",

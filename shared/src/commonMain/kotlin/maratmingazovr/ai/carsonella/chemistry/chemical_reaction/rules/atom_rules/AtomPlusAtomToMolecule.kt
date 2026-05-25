@@ -81,6 +81,7 @@ class AtomPlusAtomToMolecule(
                     direction,
                     velocity,
                     energy = 0f,
+                    environment = atom1!!.getEnvironment(),
                 )
             }
 
@@ -94,6 +95,7 @@ class AtomPlusAtomToMolecule(
                     direction,
                     velocity,
                     energy = 0f,
+                    environment = atom1!!.getEnvironment(),
                 )
             }
 
@@ -107,6 +109,7 @@ class AtomPlusAtomToMolecule(
                     direction,
                     10f,
                     energy = resultPhotonEnergy,
+                    environment = atom1!!.getEnvironment(),
                 )
             }
 

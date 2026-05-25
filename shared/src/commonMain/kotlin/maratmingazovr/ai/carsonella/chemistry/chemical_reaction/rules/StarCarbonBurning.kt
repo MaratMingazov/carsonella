@@ -104,6 +104,7 @@ class StarCarbonBurning(
                     direction,
                     velocity,
                     energy = 0f,
+                    environment = a1.getEnvironment(),
                 )
             }
         }
@@ -119,6 +120,7 @@ class StarCarbonBurning(
                 direction,
                 10f,
                 energy = resultPhotonEnergy,
+                environment = a1.getEnvironment(),
             )
         }
 

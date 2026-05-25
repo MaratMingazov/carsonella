@@ -117,11 +117,12 @@ class PhotoIonization (
             val electronVelocity = 10 + 0.2f * freeEnergy
             val electronEnergy = 0f
 
+            val env = entity!!.getEnvironment()
             return ReactionOutcome(
                 consumed = listOf(photon!!, entity!!),
                 spawn = listOf {
-                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy)
-                    entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy)
+                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy, env)
+                    entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy, env)
                 },
                 description = "$id: ${entityElement.details.label} + ${photonElement.details.label} -> ${ion.details.label} + ${electron.details.label}"
             )

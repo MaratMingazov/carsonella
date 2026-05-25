@@ -29,7 +29,6 @@ class EntityGenerator(
     private val pendingRequests: MutableList<ReactionRequest>, // буфер запросов реакций, дренится в фазе Resolve каждого tick'а
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
-    private val worldEnvironment: IEnvironment,
     override val random: Random,
 ) : IEntityGenerator {
 
@@ -39,10 +38,9 @@ class EntityGenerator(
         direction: Vec2D,
         velocity: Float,
         energy: Float,
-        environment: IEnvironment?,
+        environment: IEnvironment,
     ): Entity<*> {
 
-        val targetEnvironment = environment ?: worldEnvironment
         val entity = when(element.details.type) {
             SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
             Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
@@ -56,12 +54,12 @@ class EntityGenerator(
                 this.getEnvironment().removeEnvChild(this)
                 entities.remove(this)
             }
-            setEnvironment(targetEnvironment)
+            setEnvironment(environment)
             setNeighbors { getEnvironment().getEnvChildren().filter { it !== this }  } // простой вариант; для больших N потом сделаем spatial grid
             setRequestReaction {  reagents -> pendingRequests.add(ReactionRequest(reagents)) }
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
-        targetEnvironment.addEnvChild(entity)
+        environment.addEnvChild(entity)
         //if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
         return entity
     }

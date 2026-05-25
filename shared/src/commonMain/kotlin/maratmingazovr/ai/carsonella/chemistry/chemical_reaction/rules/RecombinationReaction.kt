@@ -80,6 +80,7 @@ class RecombinationReaction(
                     direction,
                     10f,
                     energy = resultPhotonEnergy,
+                    environment = atom1!!.getEnvironment(),
                 )
             },
             description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"

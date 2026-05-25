@@ -181,6 +181,7 @@ class StarCNOCycle(
                     direction,
                     velocity,
                     energy = 0f,
+                    environment = a1.getEnvironment(),
                 )
             }
         }
@@ -197,6 +198,7 @@ class StarCNOCycle(
                 direction,
                 10f,
                 energy = resultPhotonEnergy,
+                environment = a1.getEnvironment(),
             )
         }
 

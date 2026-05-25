@@ -120,6 +120,7 @@ class StarPPChain(
                     direction,
                     velocity,
                     energy = 0f,
+                    environment = a1.getEnvironment(),
                 )
             }
         }
@@ -136,6 +137,7 @@ class StarPPChain(
                 direction,
                 10f,
                 energy = resultPhotonEnergy,
+                environment = a1.getEnvironment(),
             )
         }
 

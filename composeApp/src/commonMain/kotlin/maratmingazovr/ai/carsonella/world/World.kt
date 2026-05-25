@@ -36,14 +36,14 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, environment, random)
+    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
 
 
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
     fun start() {
-        entityGenerator.createEntity(element = Element.Star, position = Position(800f, 400f),  direction = randomDirection(random), velocity = 0f, energy = 0f)
+        entityGenerator.createEntity(element = Element.Star, position = Position(800f, 400f),  direction = randomDirection(random), velocity = 0f, energy = 0f, environment = environment)
         //val recombinationModule1 = entityGenerator.createEntity(element = Element.RECOMBINATION_MODULE, position = Position(300f, 250f),  direction = randomDirection(random), velocity = 0f, energy = 0f) as RecombinationModule
 
 //        val module1 = entityGenerator.createEntity(element = Element.SPACE_MODULE, position = Position(300f, 300f),  direction = randomDirection(), velocity = 0f, energy = 0f) as SpaceModule

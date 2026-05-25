@@ -98,6 +98,7 @@ class Annihilation(
                         photonDirection,
                         10f,
                         energy = photonEnergy,
+                        environment = positronEntity.getEnvironment(),
                     )
                 },
                 {
@@ -110,6 +111,7 @@ class Annihilation(
                         oppositeDirection,
                         10f,
                         energy = photonEnergy,
+                        environment = positronEntity.getEnvironment(),
                     )
                 },
             ),
