@@ -5,8 +5,8 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.MG_24_ION_12
-import maratmingazovr.ai.carsonella.chemistry.Element.NA_23_ION_11
+import maratmingazovr.ai.carsonella.chemistry.Element.MAGNESIUM_24_ION_12
+import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23_ION_11
 import maratmingazovr.ai.carsonella.chemistry.Element.NEON_20_ION_10
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
@@ -58,8 +58,8 @@ class StarCarbonBurning(
         // Случайно выбираем один из трёх каналов горения углерода.
         val (result, extras) = listOf(
             NEON_20_ION_10 to listOf(HELIUM_4_ION_2),
-            NA_23_ION_11   to listOf(Proton),
-            MG_24_ION_12   to emptyList(),
+            SODIUM_23_ION_11   to listOf(Proton),
+            MAGNESIUM_24_ION_12   to emptyList(),
         ).random(entityGenerator.random)
 
         atom1 = firstAtom
