@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7_ION_4
+import maratmingazovr.ai.carsonella.chemistry.Element.BORON_8_ION_5
 import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
@@ -26,6 +27,14 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  * 1: ³He²⁺ + ⁴He²⁺ -> ⁷Be⁴⁺ + γ   (этот шаг живёт в StarAlphaGammaReaction — через alphaGammaResult у ³He²⁺)
  * 2: ⁷Be⁴⁺ + e⁻ -> ⁷Li³⁺          (захват электрона ядром; в реальности выделяется νₑ, у нас условно — фотон)
  * 3: ⁷Li³⁺ + p -> 2 ⁴He²⁺         (горение лития обратно в гелий)
+ *
+ * Ветвь pp-III (редкая, ~0.1% после ⁷Be⁴⁺):
+ * 1: ⁷Be⁴⁺ + p -> ⁸B⁵⁺ + γ        (захват протона на бериллий-7; ⁸B нестабилен)
+ * 2: ⁸B⁵⁺ -> ⁸Be⁴⁺ + e⁺ + νₑ     (β⁺-распад бора-8; живёт в generic BetaPlusDecay)
+ *
+ * Внутри одного firstAtomElement может быть несколько кандидатов на secondElement — перебираются по порядку,
+ * первый найденный поблизости побеждает. Для ⁷Be⁴⁺ приоритет — захват электрона (pp-II ~99.9%), затем
+ * захват протона (pp-III ~0.1%).
  */
 class StarPPChain(
     private val entityGenerator: IEntityGenerator,
@@ -50,38 +59,43 @@ class StarPPChain(
         if (!firstAtom.state().value.alive) return false
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
-        // В зависимости от первого реагента определяем какой второй реагент нужен и что родится.
+        // В зависимости от первого реагента определяем какие варианты второго реагента возможны и что родится.
         // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaGammaReaction
         // через alphaGammaResult на ³He²⁺.
-        val (secondElement, result, extras) = when (firstAtomElement) {
-            Proton            -> Triple(Proton,         DEUTERIUM_ION,    emptyList<Element>())
-            DEUTERIUM_ION     -> Triple(Proton,         HELIUM_3_ION_2,   emptyList())
-            HELIUM_3_ION_2    -> Triple(HELIUM_3_ION_2, HELIUM_4_ION_2,   listOf(Proton, Proton))
-            BERYLLIUM_7_ION_4 -> Triple(ELECTRON,       LITHIUM_7_ION_3,  emptyList())
-            LITHIUM_7_ION_3   -> Triple(Proton,         HELIUM_4_ION_2,   listOf(HELIUM_4_ION_2))
+        // Для ⁷Be⁴⁺ возможны две ветки: + e⁻ → ⁷Li³⁺ (pp-II, доминирует) либо + p → ⁸B⁵⁺ (pp-III, редкая).
+        val candidates: List<Triple<Element, Element, List<Element>>> = when (firstAtomElement) {
+            Proton            -> listOf(Triple(Proton,         DEUTERIUM_ION,    emptyList()))
+            DEUTERIUM_ION     -> listOf(Triple(Proton,         HELIUM_3_ION_2,   emptyList()))
+            HELIUM_3_ION_2    -> listOf(Triple(HELIUM_3_ION_2, HELIUM_4_ION_2,   listOf(Proton, Proton)))
+            BERYLLIUM_7_ION_4 -> listOf(
+                Triple(ELECTRON, LITHIUM_7_ION_3, emptyList()),
+                Triple(Proton,   BORON_8_ION_5,   emptyList()),
+            )
+            LITHIUM_7_ION_3   -> listOf(Triple(Proton,         HELIUM_4_ION_2,   listOf(HELIUM_4_ION_2)))
             else -> return false
         }
 
-        // Ищем ближайший подходящий второй реагент
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
-            .filter { it.state().value.element == secondElement }
-            .filter { it.state().value.alive }
-            .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
-            .minByOrNull { it.second }
-            ?: return false
+        // Перебираем кандидатов в порядке приоритета — первый найденный поблизости побеждает.
+        for ((secondElement, result, extras) in candidates) {
+            val (secondAtom, distanceSquare) = reagents
+                .drop(1)
+                .filter { it.state().value.element == secondElement }
+                .filter { it.state().value.alive }
+                .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
+                .minByOrNull { it.second }
+                ?: continue
 
-        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
+            if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) continue
 
-        return if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
-            atom1 = firstAtom
-            atom2 = secondAtom
-            resultElement = result
-            extraElements = extras
-            true
-        } else {
-            false
+            if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
+                atom1 = firstAtom
+                atom2 = secondAtom
+                resultElement = result
+                extraElements = extras
+                return true
+            }
         }
+        return false
     }
 
     override fun weight() = 0f
