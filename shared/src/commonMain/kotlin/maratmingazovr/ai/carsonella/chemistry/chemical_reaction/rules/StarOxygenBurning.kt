@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.Neutron
+import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOSPHORUS_31_ION_15
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
@@ -60,7 +60,7 @@ class StarOxygenBurning(
         val (result, extras) = listOf(
             SILICON_28_ION_14    to listOf(HELIUM_4_ION_2),
             PHOSPHORUS_31_ION_15 to listOf(Proton),
-            SULFUR_31_ION_16     to listOf(Neutron),
+            SULFUR_31_ION_16     to listOf(NEUTRON),
         ).random(entityGenerator.random)
 
         atom1 = firstAtom
