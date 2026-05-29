@@ -11,15 +11,20 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SILICON_28_ION_14
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31_ION_16
+import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32_ION_16
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
  * Oxygen burning — горение кислорода внутри массивной звезды.
- * Два ядра ¹⁶O сливаются по одному из трёх каналов:
- * 1: ¹⁶O + ¹⁶O → ²⁸Si + ⁴He + γ
- * 2: ¹⁶O + ¹⁶O → ³¹P  + p   + γ
- * 3: ¹⁶O + ¹⁶O → ³¹S  + n   + γ
+ * Два ядра ¹⁶O сливаются по одному из четырёх каналов:
+ * 1: ¹⁶O + ¹⁶O → ²⁸Si + ⁴He + γ   (Q = +9.59 МэВ, доминирующий)
+ * 2: ¹⁶O + ¹⁶O → ³¹P  + p   + γ   (Q = +7.68 МэВ)
+ * 3: ¹⁶O + ¹⁶O → ³¹S  + n   + γ   (Q = +1.50 МэВ, нейтронный канал)
+ * 4: ¹⁶O + ¹⁶O → ³²S        + γ   (Q = +16.54 МэВ, минорный γ-канал)
+ *
+ * Симметрия с StarCarbonBurning: четвёрки каналов (α, p, γ, n) у обеих реакций совпадают
+ * по типу — у углерода ²⁰Ne+α / ²³Na+p / ²⁴Mg+γ / ²³Mg+n, у кислорода ²⁸Si+α / ³¹P+p / ³²S+γ / ³¹S+n.
  */
 class StarOxygenBurning(
     private val entityGenerator: IEntityGenerator,
@@ -56,11 +61,12 @@ class StarOxygenBurning(
 
         if (distanceSquare >= OXYGEN_16_ION_8.details.radius * OXYGEN_16_ION_8.details.radius * 2f) return false
 
-        // Случайно выбираем один из трёх каналов горения кислорода.
+        // Случайно выбираем один из четырёх каналов горения кислорода.
         val (result, extras) = listOf(
             SILICON_28_ION_14    to listOf(HELIUM_4_ION_2),
             PHOSPHORUS_31_ION_15 to listOf(Proton),
             SULFUR_31_ION_16     to listOf(NEUTRON),
+            SULFUR_32_ION_16     to emptyList(),
         ).random(entityGenerator.random)
 
         atom1 = firstAtom
