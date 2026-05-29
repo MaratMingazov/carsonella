@@ -17,7 +17,7 @@
   - ✅ **NeNa-cycle** — ²⁰Ne→²¹Na→²¹Ne→²²Na→²²Ne→²³Na→²⁰Ne+α. β⁺-распады ²¹Na, ²²Na — generic `BetaPlusDecay`.
   - ✅ **MgAl-cycle** — ²⁴Mg→²⁵Al→²⁵Mg→²⁶Al→²⁶Mg→²⁷Al→²⁴Mg+α. β⁺-распады ²⁵Al, ²⁶Al — generic `BetaPlusDecay`.
   - ✅ **Inter-cycle leaks** — ²³Na+p→²⁴Mg+γ (NeNa→MgAl мост, branching 0.01%) и ²⁷Al+p→²⁸Si+γ (MgAl выход в Si, 1%).
-  - ⬜ **(p,n) канал** — расширить `Outcome` до Gamma/Alpha/Neutron + поле `protonNeutronResult`. Главный кандидат для старта: ⁷Li(p,n)⁷Be (вне CNO, нет конфликта с уже работающими циклами).
+  - 🟡 **(p,n) канал** — `Outcome.Neutron` + поле `protonNeutronResult` + третий вес в `branchingWeights`. Подключена ⁷Li(p,n)⁷Be (Q=-1.64 МэВ) — единственный target пока, solo-канал вне CNO. На CNO/NeNa/MgAl target-ядрах (¹³C/¹⁵N/¹⁷O/¹⁸O/²¹Ne/²²Ne/²⁵Mg/²⁶Mg) (p,n) реакции физически существуют, но эндотермичны и потребуют тонкой настройки branching ratios.
   - ⬜ **Hot CNO-I/II/III** — при высокой T протон-захваты обгоняют β⁺-распады. Требует горячую температурную моду.
 
 - 🟡 **α-индуцированные реакции.** Каналы (α,γ), (α,p), (α,n), (α,α). Сейчас работает первый, остальные — по мере появления target-ядер.

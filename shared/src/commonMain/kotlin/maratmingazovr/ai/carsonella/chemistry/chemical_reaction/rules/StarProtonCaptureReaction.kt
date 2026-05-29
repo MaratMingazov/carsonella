@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ALUMINUM_27_ION_13
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15_ION_7
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
@@ -22,22 +23,21 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *
  *   A + p → A′ + γ   (p,γ) — радиативный захват, Z→Z+1, A→A+1
  *   A + p → A′ + ⁴He (p,α) — выброс α, Z→Z-1, A→A-3
+ *   A + p → A′ + n   (p,n) — выброс нейтрона, Z→Z+1, A→A (изобарный сосед)
  *
- * Покрывает все каталитические циклы горения водорода (CNO/NeNa/MgAl), pp-III и
- * hot CNO breakouts. Триггерится по полям `protonGammaResult` и `protonAlphaResult` в
- * Details — структура «что может произойти» хранится там; вероятности «с какой долей и
- * скоростью» захардкожены в этом файле (см. `captureRate` и `branchingWeights`).
+ * Покрывает все каталитические циклы горения водорода (CNO/NeNa/MgAl), pp-III,
+ * hot CNO breakouts и (p,n) каналы s-процесса/spallation. Триггерится по полям
+ * `protonGammaResult`/`protonAlphaResult`/`protonNeutronResult` в Details — структура
+ * «что может произойти» хранится там; вероятности «с какой долей и скоростью»
+ * захардкожены в этом файле (см. `captureRate` и `branchingWeights`).
  *
  * Алгоритм matches():
  *   1. Найти target + ближайший Proton, проверить контакт и TemperatureMode.Star.
  *   2. Применить `captureRate(target)` — bottleneck/slowdown для конкретных target-ядер.
  *      Если roll не прошёл, реакция в этом тике не идёт.
- *   3. Собрать список доступных исходов (γ и/или α) с весами из `branchingWeights(target)`.
+ *   3. Собрать список доступных исходов (γ/α/n) с весами из `branchingWeights(target)`.
  *      Roulette wheel: один roll выбирает один канал. Это математически корректно (в
  *      отличие от двух независимых правил, где случались "оба сработали" / "ни один").
- *
- * Расширение до (p,n) — добавить ветку `Outcome.Neutron`, поле `protonNeutronResult` в
- * Details, третий вес в `branchingWeights`. ⁷Li(p,n)⁷Be — главный кандидат для start'а.
  */
 class StarProtonCaptureReaction(
     private val entityGenerator: IEntityGenerator,
@@ -47,6 +47,7 @@ class StarProtonCaptureReaction(
     private sealed class Outcome {
         data class Gamma(val product: Element) : Outcome()
         data class Alpha(val product: Element) : Outcome()
+        data class Neutron(val product: Element) : Outcome()
     }
 
     private var atom1: Entity<*>? = null
@@ -65,7 +66,8 @@ class StarProtonCaptureReaction(
 
         val gammaResult = firstAtomElement.details.protonGammaResult
         val alphaResult = firstAtomElement.details.protonAlphaResult
-        if (gammaResult == null && alphaResult == null) return false
+        val neutronResult = firstAtomElement.details.protonNeutronResult
+        if (gammaResult == null && alphaResult == null && neutronResult == null) return false
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -83,10 +85,11 @@ class StarProtonCaptureReaction(
         if (!chance(captureRate(firstAtomElement), entityGenerator.random)) return false
 
         // Branching — roulette wheel по доступным каналам.
-        val (gW, aW) = branchingWeights(firstAtomElement)
+        val (gW, aW, nW) = branchingWeights(firstAtomElement)
         val candidates = mutableListOf<Pair<Outcome, Float>>()
         if (gammaResult != null && gW > 0f) candidates += (Outcome.Gamma(gammaResult) as Outcome) to gW
         if (alphaResult != null && aW > 0f) candidates += (Outcome.Alpha(alphaResult) as Outcome) to aW
+        if (neutronResult != null && nW > 0f) candidates += (Outcome.Neutron(neutronResult) as Outcome) to nW
         if (candidates.isEmpty()) return false
 
         val total = candidates.fold(0f) { acc, p -> acc + p.second }
@@ -182,6 +185,39 @@ class StarProtonCaptureReaction(
                     description = "$id (p,α): ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${HELIUM_4_ION_2.details.symbol}",
                 )
             }
+            is Outcome.Neutron -> {
+                val resultElement = outcome.product
+                ReactionOutcome(
+                    consumed = listOf(a1, a2),
+                    spawn = listOf(
+                        {
+                            entityGenerator.createEntity(
+                                resultElement,
+                                resultPosition,
+                                direction,
+                                velocity,
+                                energy = a1.state().value.energy + a2.state().value.energy,
+                                a1.getEnvironment(),
+                            )
+                        },
+                        {
+                            // Нейтрон-отдача по направлению СМ (impulse-split не моделируется).
+                            entityGenerator.createEntity(
+                                NEUTRON,
+                                Position(
+                                    resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
+                                    resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
+                                ),
+                                direction,
+                                20f,
+                                energy = 0f,
+                                environment = a1.getEnvironment(),
+                            )
+                        },
+                    ),
+                    description = "$id (p,n): ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${NEUTRON.details.symbol}",
+                )
+            }
         }
     }
 
@@ -197,20 +233,21 @@ class StarProtonCaptureReaction(
     }
 
     /**
-     * Веса (γ-канал, α-канал) для roulette-wheel branching. Дефолт (1, 1) — равновероятно,
-     * если оба канала установлены. Конкретные значения — физические branching ratios
-     * (сжатые для играбельности — реальные 0.04%/1%/5% доводим до 10% утечек).
+     * Веса (γ-канал, α-канал, n-канал) для roulette-wheel branching. Дефолт (1, 1, 1) —
+     * равновероятно, если несколько каналов установлены. Конкретные значения — физические
+     * branching ratios (сжатые для играбельности — реальные 0.04%/1%/5% доводим до 10%).
+     * Если у target нет соответствующего result-поля, вес игнорируется.
      */
-    private fun branchingWeights(target: Element): Pair<Float, Float> = when (target) {
+    private fun branchingWeights(target: Element): Triple<Float, Float, Float> = when (target) {
         // CNO утечки: 10% (p,γ) уходит в следующий цикл, 90% (p,α) замыкает текущий.
-        NITROGEN_15_ION_7   -> 0.1f to 0.9f  // CNO-I → CNO-II leak vs CNO-I closure
-        OXYGEN_17_ION_8     -> 0.1f to 0.9f  // CNO-II → CNO-III leak vs CNO-II closure
-        OXYGEN_18_ION_8     -> 0.1f to 0.9f  // CNO-III → CNO-IV leak vs CNO-III closure
+        NITROGEN_15_ION_7   -> Triple(0.1f, 0.9f, 0f)  // CNO-I → CNO-II leak vs CNO-I closure
+        OXYGEN_17_ION_8     -> Triple(0.1f, 0.9f, 0f)  // CNO-II → CNO-III leak vs CNO-II closure
+        OXYGEN_18_ION_8     -> Triple(0.1f, 0.9f, 0f)  // CNO-III → CNO-IV leak vs CNO-III closure
         // NeNa/MgAl inter-cycle leaks: ²³Na+p в реальности почти 100% даёт ²⁰Ne+α; редкая
         // утечка в ²⁴Mg+γ — мост в MgAl. У нас 0.01% — заметно реже CNO.
-        SODIUM_23_ION_11    -> 0.0001f to 1.0f
+        SODIUM_23_ION_11    -> Triple(0.0001f, 1.0f, 0f)
         // MgAl → Si: ²⁷Al+p в реальности тоже преимущественно (p,α), но γ-выход побольше.
-        ALUMINUM_27_ION_13  -> 0.01f to 1.0f
-        else                -> 1f to 1f
+        ALUMINUM_27_ION_13  -> Triple(0.01f, 1.0f, 0f)
+        else                -> Triple(1f, 1f, 1f)
     }
 }
