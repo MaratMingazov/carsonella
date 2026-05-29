@@ -12,12 +12,12 @@
 
 - ⬜ **Нечётные-Z элементы выше N.** Al, Cl, K и далее — нужны s-/r-процессы (захват нейтронов в AGB-звёздах и сверхновых) или CNO-продолжения. Свободные нейтроны уже рождаются в (α,n); следующий шаг к s-процессу — (n,γ) захват на ядрах и β⁻-распады нейтрон-избыточных продуктов.
 
-- 🟡 **Каталитическое горение водорода через (p,γ)/(p,α).** Семейство «4p → ⁴He с катализатором». Generic-инфраструктура: поля `protonGammaResult`/`protonAlphaResult` в Details + правила `StarProtonGammaReaction`/`StarProtonAlphaReaction`.
-  - ✅ **Cold CNO-I/II/III/IV** — мигрированы с захардкоженного `StarCNOCycle` на generic-поля. Branching между утечкой и замыканием на ¹⁵N/¹⁷O/¹⁸O сейчас 50/50 (резолвер выбирает случайно с `weight()=0f`) — упрощение от реальных ~10%/90%. Bottleneck ¹⁴N+p (`chance(0.02)`) и slowdown ¹⁶O+p (`chance(0.1)`) временно потеряны.
+- 🟡 **Каталитическое горение водорода через (p,γ)/(p,α).** Семейство «4p → ⁴He с катализатором». Generic-инфраструктура: поля `protonGammaResult`/`protonAlphaResult` в Details + объединённое правило `StarProtonCaptureReaction` (roulette-wheel branching, rate/branching ratios захардкожены по target-ядру).
+  - ✅ **Cold CNO-I/II/III/IV** — branching ~10%/90% на ¹⁵N/¹⁷O/¹⁸O, bottleneck ¹⁴N(p,γ) `rate=0.02`, slowdown ¹⁶O(p,γ) `rate=0.1`.
   - ✅ **NeNa-cycle** — ²⁰Ne→²¹Na→²¹Ne→²²Na→²²Ne→²³Na→²⁰Ne+α. β⁺-распады ²¹Na, ²²Na — generic `BetaPlusDecay`.
   - ✅ **MgAl-cycle** — ²⁴Mg→²⁵Al→²⁵Mg→²⁶Al→²⁶Mg→²⁷Al→²⁴Mg+α. β⁺-распады ²⁵Al, ²⁶Al — generic `BetaPlusDecay`.
-  - ⬜ **Realistic branching ratios** — поля `protonGammaResultChance`/`protonAlphaResultChance` + объединённое правило `StarProtonCaptureReaction` для T-зависимых соотношений и bottleneck/slowdown.
-  - ⬜ **Inter-cycle leaks** — ²³Na+p→²⁴Mg+γ (NeNa→MgAl мост), ²⁷Al+p→²⁸Si+γ (MgAl выход в Si). Ждут infrastructure из предыдущего пункта.
+  - ✅ **Inter-cycle leaks** — ²³Na+p→²⁴Mg+γ (NeNa→MgAl мост, branching 0.01%) и ²⁷Al+p→²⁸Si+γ (MgAl выход в Si, 1%).
+  - ⬜ **(p,n) канал** — расширить `Outcome` до Gamma/Alpha/Neutron + поле `protonNeutronResult`. Главный кандидат для старта: ⁷Li(p,n)⁷Be (вне CNO, нет конфликта с уже работающими циклами).
   - ⬜ **Hot CNO-I/II/III** — при высокой T протон-захваты обгоняют β⁺-распады. Требует горячую температурную моду.
 
 - 🟡 **α-индуцированные реакции.** Каналы (α,γ), (α,p), (α,n), (α,α). Сейчас работает первый, остальные — по мере появления target-ядер.
