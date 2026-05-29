@@ -15,7 +15,7 @@
 - 🟡 **CNO-циклы — катализированное горение водорода.** Семейство «4p → ⁴He с катализатором». Каждый следующий цикл — редкая утечка из предыдущего.
   - ✅ **Cold CNO-I/II/III/IV** — все четыре цикла на тепловых α (T ~ 10⁷ K).
   - ⬜ **Hot CNO-I/II/III** — при высокой T протон-захваты обгоняют β⁺-распады. Требует горячую температурную моду.
-  - ⬜ **NeNa-cycle, MgAl-cycle** — продолжения на нечётные Z (Na, Al).
+  - ✅ **NeNa-cycle, MgAl-cycle** — продолжения на нечётные Z через generic поля `protonGammaResult`/`protonAlphaResult` + правила `StarProtonGammaReaction`/`StarProtonAlphaReaction`. NeNa: ²⁰Ne→²¹Na→²¹Ne→²²Na→²²Ne→²³Na→²⁰Ne+α. MgAl: ²⁴Mg→²⁵Al→²⁵Mg→²⁶Al→²⁶Mg→²⁷Al→²⁴Mg+α. β⁺-распады ²¹Na, ²²Na, ²⁵Al, ²⁶Al — generic `BetaPlusDecay`. Утечки ²³Na+p→²⁴Mg+γ и ²⁷Al+p→²⁸Si+γ пока не подключены (нужен `chance()` branching на тех же target-ядрах).
 
 - 🟡 **α-индуцированные реакции.** Каналы (α,γ), (α,p), (α,n), (α,α). Сейчас работает первый, остальные — по мере появления target-ядер.
   - ✅ **(α,γ)** — главная α-цепочка ⁴He→⁸Be→…→⁵⁶Ni плюс боковые ветки в hot CNO, AGB, α-rich freeze-out. Конкретные реакции — поля `alphaGammaResult` в `Entity.kt`.
