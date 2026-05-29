@@ -5,7 +5,9 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12_ION_6
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.MAGNESIUM_23_ION_12
 import maratmingazovr.ai.carsonella.chemistry.Element.MAGNESIUM_24_ION_12
+import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23_ION_11
 import maratmingazovr.ai.carsonella.chemistry.Element.NEON_20_ION_10
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
@@ -15,10 +17,14 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 /**
  * Carbon burning — горение углерода внутри массивной звезды.
- * Два ядра ¹²C сливаются по одному из трёх каналов:
- * 1: ¹²C + ¹²C → ²⁰Ne + ⁴He + γ
- * 2: ¹²C + ¹²C → ²³Na + p  + γ
- * 3: ¹²C + ¹²C → ²⁴Mg      + γ
+ * Два ядра ¹²C сливаются по одному из четырёх каналов:
+ * 1: ¹²C + ¹²C → ²⁰Ne + ⁴He + γ   (Q = +4.62 МэВ, доминирующий)
+ * 2: ¹²C + ¹²C → ²³Na + p   + γ   (Q = +2.24 МэВ)
+ * 3: ¹²C + ¹²C → ²⁴Mg       + γ   (Q = +13.93 МэВ, минорный γ-канал)
+ * 4: ¹²C + ¹²C → ²³Mg + n   + γ   (Q = −2.60 МэВ, эндотермический — нейтронный источник)
+ *
+ * ²³Mg нестабилен (T½ = 11.3 с, β⁺ → ²³Na) — generic BetaPlusDecay подхватит распад,
+ * поэтому канал 4 в долгосрочной перспективе сливается с каналом 2, плюс свободный нейтрон.
  */
 class StarCarbonBurning(
     private val entityGenerator: IEntityGenerator,
@@ -55,11 +61,12 @@ class StarCarbonBurning(
 
         if (distanceSquare >= CARBON_12_ION_6.details.radius * CARBON_12_ION_6.details.radius * 2f) return false
 
-        // Случайно выбираем один из трёх каналов горения углерода.
+        // Случайно выбираем один из четырёх каналов горения углерода.
         val (result, extras) = listOf(
-            NEON_20_ION_10 to listOf(HELIUM_4_ION_2),
-            SODIUM_23_ION_11   to listOf(Proton),
-            MAGNESIUM_24_ION_12   to emptyList(),
+            NEON_20_ION_10       to listOf(HELIUM_4_ION_2),
+            SODIUM_23_ION_11     to listOf(Proton),
+            MAGNESIUM_24_ION_12  to emptyList(),
+            MAGNESIUM_23_ION_12  to listOf(NEUTRON),
         ).random(entityGenerator.random)
 
         atom1 = firstAtom
