@@ -944,6 +944,10 @@ data class Details(
 
     val alphaNeutronResult: Element? = null, // (α,n) реакция. Ядро ловит ⁴He, выбрасывает нейтрон: A + ⁴He → A′ + n (Z→Z+2, A→A+3). Главный нейтронный источник для s-процесса: ¹⁸O→²¹Ne, ²²Ne→²⁵Mg (weak s-process в массивных звёздах), ²⁵Mg→²⁸Si. Работает в TemperatureMode.Star — He-burning ядро AGB и массивных звёзд.
 
+    val protonGammaResult: Element? = null, // (p,γ) реакция. Ядро ловит протон с радиативным переходом: A + p → A′ + γ (Z→Z+1, A→A+1). Тип реакции, встречающийся в CNO/NeNa/MgAl-циклах (²⁰Ne+p→²¹Na, ²⁴Mg+p→²⁵Al и т.п.), pp-III (⁷Be+p→⁸B) и hot CNO breakouts. Работает в TemperatureMode.Star.
+
+    val protonAlphaResult: Element? = null, // (p,α) реакция. Ядро ловит протон, выбрасывает ⁴He: A + p → A′ + ⁴He (Z→Z-1, A→A-3). Главные применения — замыкания циклов горения водорода: ¹⁵N+p→¹²C+α (CNO-I), ¹⁷O/¹⁸O+p→¹⁴N/¹⁵N+α (CNO-II/III), ²³Na+p→²⁰Ne+α (NeNa), ²⁷Al+p→²⁴Mg+α (MgAl). Работает в TemperatureMode.Star.
+
     val betaPlusDecayResult: Element? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
 )
 

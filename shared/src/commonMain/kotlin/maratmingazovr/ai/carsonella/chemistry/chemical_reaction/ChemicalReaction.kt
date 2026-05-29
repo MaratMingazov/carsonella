@@ -17,6 +17,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIoniz
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaGammaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaNeutronReaction
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarProtonAlphaReaction
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarProtonGammaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCNOCycle
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCarbonBurning
@@ -50,6 +52,8 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         Annihilation(entityGenerator), // e⁻ + e⁺ → 2γ — без неё позитроны от β⁺-распада копились бы вечно
         StarAlphaGammaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
         StarAlphaNeutronReaction(entityGenerator), // (α,n) в звезде: ¹⁸O→²¹Ne, ²²Ne→²⁵Mg, ²⁵Mg→²⁸Si. Главный нейтронный источник для s-процесса
+        StarProtonGammaReaction(entityGenerator), // (p,γ) в звезде: catalyst + p → heavier + γ. Используется для NeNa, MgAl, hot CNO breakouts. CNO-I/II/III/IV пока живёт в StarCNOCycle отдельно
+        StarProtonAlphaReaction(entityGenerator), // (p,α) в звезде: catalyst + p → lighter + α. Замыкания каталитических циклов NeNa (²³Na→²⁰Ne) и MgAl (²⁷Al→²⁴Mg). CNO-замыкания пока в StarCNOCycle
         AlphaProtonReaction(entityGenerator), // (α,p) в космосе: A + ⁴He → A′ + p. Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919)
         StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p, плюс pp-II финал ⁷Be+e⁻→⁷Li, ⁷Li+p→2⁴He
         StarCNOCycle(entityGenerator), // CNO-цикл: ¹²C+p→¹³N, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵N+p→¹²C+⁴He; β⁺-распады ¹³N/¹⁵O живут в BetaPlusDecay
