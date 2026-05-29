@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
@@ -70,6 +71,7 @@ class SubAtom(
             ELECTRON -> initElectron(environment, neighbors)
             Proton -> initProton(environment, neighbors)
             POSITRON -> initPositron(environment, neighbors)
+            NEUTRON -> initNeutron(environment)
             else -> throw NotImplementedError()
         }
     }
@@ -103,6 +105,15 @@ class SubAtom(
             .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 5000f }
             .takeIf { it.isNotEmpty() }
             ?.let {requestReaction(listOf(this) + it) }
+    }
+
+    // Нейтрон электрически нейтрален → не реагирует на кулоновские силы (нет applyForce).
+    // Реакции с участием нейтрона (n,γ-захват, (α,n) и т.п.) запрашиваются другими реагентами —
+    // сам нейтрон requestReaction не вызывает, чтобы не дублировать запросы.
+    private fun initNeutron(environment: IEnvironment) {
+        reduceVelocity()
+        applyNewPosition()
+        checkBorders(environment)
     }
 
     // Поведение идентично протону: движение под действием сил + запрос реакции с близкими соседями.

@@ -25,7 +25,7 @@ class SubAtomRenderer(
             Element.ELECTRON -> drawElectron(drawScope, state)
             Element.POSITRON -> drawPositron(drawScope, state)
             Element.Proton -> drawProton(drawScope, state, phase)
-            Element.Neutron -> drawProton(drawScope, state, phase)
+            Element.NEUTRON -> drawNeutron(drawScope, state, phase)
             else -> throw NotImplementedError()
         }
     }
@@ -100,6 +100,38 @@ class SubAtomRenderer(
                 radius = radius
             )
             drawCircle(brush = brush, center = p, radius = radius)
+        }
+    }
+
+    // Нейтрон: тот же серый «нуклон»-градиент с вибрацией, что у протона, плюс белая «n»
+    // поверх — чтобы визуально различать заряженный/нейтральный нуклоны.
+    private fun drawNeutron(
+        drawScope: DrawScope,
+        state: SubAtomState,
+        phase: Float,
+    ) {
+        val amp = 2f
+        val idSeed = (state.id % 1000).toFloat()
+        val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
+        val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
+        val p = state.position.toOffset() + Offset(dx, dy)
+
+        with(drawScope) {
+            val radius = 10f
+            val brush = Brush.radialGradient(
+                colors = listOf(Color.Gray, Color.Gray.copy(alpha = 0.5f), Color.Transparent),
+                center = p,
+                radius = radius,
+            )
+            drawCircle(brush = brush, center = p, radius = radius)
+            val textLayoutResult = textMeasurer.measure(
+                text = "n",
+                style = TextStyle(color = Color.White, fontSize = 10.sp),
+            )
+            drawText(
+                textLayoutResult,
+                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
+            )
         }
     }
 }
