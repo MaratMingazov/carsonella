@@ -13,17 +13,20 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *   A + p → A′ + γ   (Z → Z+1, A → A+1)
  *
  * Тип реакции, встречающийся в:
- *  · CNO/NeNa/MgAl-циклах горения водорода (²⁰Ne+p→²¹Na, ²⁴Mg+p→²⁵Al, ²²Ne+p→²³Na и т.п.)
- *  · pp-III (⁷Be+p→⁸B)
+ *  · CNO-I/II/III/IV (¹²C+p→¹³N, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵N+p→¹⁶O, ¹⁶O+p→¹⁷F, ¹⁷O+p→¹⁸F, ¹⁸O+p→¹⁹F)
+ *  · NeNa-cycle (²⁰Ne+p→²¹Na, ²¹Ne+p→²²Na, ²²Ne+p→²³Na)
+ *  · MgAl-cycle (²⁴Mg+p→²⁵Al, ²⁵Mg+p→²⁶Al, ²⁶Mg+p→²⁷Al)
+ *  · pp-III (⁷Be+p→⁸B, пока живёт в захардкоженном StarPPChain)
  *  · hot CNO breakouts (¹³N+p→¹⁴O при высокой T)
  *
  * Generic-правило: триггерится по полю Details.protonGammaResult. Работает только в
- * TemperatureMode.Star — нужен достаточный кинетический импульс протона для преодоления
- * кулоновского барьера ядра, а это происходит при звёздных T.
+ * TemperatureMode.Star.
  *
- * Сейчас CNO-I/II/III/IV живёт в отдельном захардкоженном правиле StarCNOCycle (там branching
- * через chance() на ¹⁵N/¹⁷O/¹⁸O). Это правило используется для NeNa/MgAl циклов; CNO в него
- * мигрирует отдельной задачей.
+ * Branching между (p,γ) и (p,α) на одних target-ядрах (¹⁵N/¹⁷O/¹⁸O в CNO, ²³Na в NeNa,
+ * ²⁷Al в MgAl) сейчас решается резолвером равновероятно — оба правила matches() возвращают
+ * true, резолвер выбирает один случайно (`weight()=0f`). Это упрощение: реальное соотношение
+ * (p,γ)/(p,α) на каждом target-ядре T-зависимо (от ~0.04% до 10%). Будущее улучшение — поле
+ * protonGammaResultChance в Details + общий roll внутри одного объединённого правила.
  */
 class StarProtonGammaReaction(
     private val entityGenerator: IEntityGenerator,

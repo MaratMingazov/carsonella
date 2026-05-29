@@ -21,8 +21,11 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
  *  · MgAl:    ²⁷Al+p→²⁴Mg+α
  *
  * Generic-правило: триггерится по полю Details.protonAlphaResult. Работает только в
- * TemperatureMode.Star. Сейчас CNO-замыкания живут в захардкоженном StarCNOCycle —
- * это правило используется для NeNa/MgAl; CNO мигрирует отдельно.
+ * TemperatureMode.Star.
+ *
+ * Branching с (p,γ) на тех же target-ядрах (¹⁵N/¹⁷O/¹⁸O) решается резолвером равновероятно
+ * (`weight()=0f`) — упрощение от реальных T-зависимых соотношений. См. док у
+ * StarProtonGammaReaction.
  */
 class StarProtonAlphaReaction(
     private val entityGenerator: IEntityGenerator,

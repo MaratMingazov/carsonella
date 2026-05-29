@@ -20,7 +20,6 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaN
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarProtonAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarProtonGammaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCNOCycle
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCarbonBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarOxygenBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPPChain
@@ -56,7 +55,6 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarProtonAlphaReaction(entityGenerator), // (p,α) в звезде: catalyst + p → lighter + α. Замыкания каталитических циклов NeNa (²³Na→²⁰Ne) и MgAl (²⁷Al→²⁴Mg). CNO-замыкания пока в StarCNOCycle
         AlphaProtonReaction(entityGenerator), // (α,p) в космосе: A + ⁴He → A′ + p. Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919)
         StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p, плюс pp-II финал ⁷Be+e⁻→⁷Li, ⁷Li+p→2⁴He
-        StarCNOCycle(entityGenerator), // CNO-цикл: ¹²C+p→¹³N, ¹³C+p→¹⁴N, ¹⁴N+p→¹⁵O, ¹⁵N+p→¹²C+⁴He; β⁺-распады ¹³N/¹⁵O живут в BetaPlusDecay
         StarCarbonBurning(entityGenerator), // горение углерода: ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg
         StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
 
