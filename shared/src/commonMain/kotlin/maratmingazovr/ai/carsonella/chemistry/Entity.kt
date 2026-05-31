@@ -206,6 +206,7 @@ enum class Element() {
     BORON_8_ION_5, BORON_8_ION_4, BORON_8_ION_3, BORON_8_ION_2, BORON_8_ION_1, BORON_8,
     CARBON_12_ION_6, CARBON_12_ION_5, CARBON_12_ION_4, CARBON_12_ION_3, CARBON_12_ION_2, CARBON_12_ION_1, CARBON_12,
     CARBON_13_ION_6, CARBON_13_ION_5, CARBON_13_ION_4, CARBON_13_ION_3, CARBON_13_ION_2, CARBON_13_ION_1, CARBON_13,
+    CARBON_14_ION_6, CARBON_14_ION_5, CARBON_14_ION_4, CARBON_14_ION_3, CARBON_14_ION_2, CARBON_14_ION_1, CARBON_14,
     NITROGEN_13_ION_7, NITROGEN_13_ION_6, NITROGEN_13_ION_5, NITROGEN_13_ION_4, NITROGEN_13_ION_3, NITROGEN_13_ION_2, NITROGEN_13_ION_1, NITROGEN_13,
     NITROGEN_14_ION_7, NITROGEN_14_ION_6, NITROGEN_14_ION_5, NITROGEN_14_ION_4, NITROGEN_14_ION_3, NITROGEN_14_ION_2, NITROGEN_14_ION_1, NITROGEN_14,
     NITROGEN_15_ION_7, NITROGEN_15_ION_6, NITROGEN_15_ION_5, NITROGEN_15_ION_4, NITROGEN_15_ION_3, NITROGEN_15_ION_2, NITROGEN_15_ION_1, NITROGEN_15,
@@ -305,6 +306,8 @@ data class Details(
     val protonNeutronResult: Element? = null, // (p,n) реакция. Ядро ловит протон, выбрасывает нейтрон: A + p → A′ + n (Z→Z+1, A→A). Превращает изотоп в изобарный сосед с большим Z. В основном эндотермические — нужны высокие T (HotStar условия). Главный пример: ⁷Li(p,n)⁷Be (Q=-1.64 МэВ).
 
     val neutronGammaResult: Element? = null, // (n,γ) реакция. Ядро ловит нейтрон с радиативным переходом: A + n → A′ + γ (Z→Z, A→A+1). Главный механизм s-процесса — через цепочку (n,γ) рождаются все элементы тяжелее железа. Нет кулоновского барьера — идёт при любых T где есть свободные нейтроны. Цикл воспроизводства нейтронов: ¹²C(n,γ)¹³C(α,n)¹⁶O.
+
+    val neutronProtonResult: Element? = null, // (n,p) реакция. Ядро ловит нейтрон, выбрасывает протон: A + n → A′ + p (Z→Z-1, A→A). Изобарный сосед с меньшим Z. Главный пример: ¹⁴N(n,p)¹⁴C — космогенный источник ¹⁴C (радиоуглеродное датирование). ¹⁴C β⁻-нестабилен → замыкает петлю ¹⁴N(n,p)¹⁴C(β⁻)¹⁴N.
 
     val betaPlusDecayResult: Element? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
 

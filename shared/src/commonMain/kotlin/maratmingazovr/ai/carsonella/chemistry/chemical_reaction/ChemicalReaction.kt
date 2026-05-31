@@ -19,6 +19,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaGammaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarAlphaNeutronReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarNeutronGammaReaction
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarNeutronProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarProtonCaptureReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCarbonBurning
@@ -54,6 +55,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarAlphaGammaReaction(entityGenerator), // в недрах звезд элементы могут захватывать альфа частицы (ядра гелия) для образования более тяжелых элементов
         StarAlphaNeutronReaction(entityGenerator), // (α,n) в звезде: ¹⁸O→²¹Ne, ²²Ne→²⁵Mg, ²⁵Mg→²⁸Si. Главный нейтронный источник для s-процесса
         StarNeutronGammaReaction(entityGenerator), // (n,γ) в звезде: основа s-процесса. Захват нейтрона ядром, без кулоновского барьера. Цикл воспроизводства нейтронов через ¹²C(n,γ)¹³C(α,n)¹⁶O
+        StarNeutronProtonReaction(entityGenerator), // (n,p) в звезде: A + n → A′ + p (Z→Z-1). ¹⁴N(n,p)¹⁴C — космогенный радиоуглерод; с β⁻ замыкает петлю ¹⁴N(n,p)¹⁴C(β⁻)¹⁴N
         StarProtonCaptureReaction(entityGenerator), // Объединённое (p,γ)/(p,α) в звезде. Покрывает CNO, NeNa, MgAl. Branching и rate захардкожены по target-ядру внутри правила; target+продукт берутся из Details. Roulette-wheel — один roll выбирает канал
         AlphaProtonReaction(entityGenerator), // (α,p) в космосе: A + ⁴He → A′ + p. Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919)
         StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p, плюс pp-II финал ⁷Be+e⁻→⁷Li, ⁷Li+p→2⁴He
