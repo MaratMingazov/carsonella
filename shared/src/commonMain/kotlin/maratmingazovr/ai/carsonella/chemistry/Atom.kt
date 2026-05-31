@@ -84,6 +84,9 @@ class Atom(
 
         // β⁺-нестабильные изотопы (¹³N, ¹⁵O и т.п.) всегда зовут себя в резолвер — там их подхватит BetaPlusDecay.
         if (state.value.element.details.betaPlusDecayResult != null) { requestReaction(listOf(this)) }
+
+        // β⁻-нестабильные изотопы (нейтрон-избыточные продукты (n,γ), напр. ³¹Si) — аналогично, их подхватит BetaMinusDecay.
+        if (state.value.element.details.betaMinusDecayResult != null) { requestReaction(listOf(this)) }
     }
 
 

@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Annihilation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.BetaMinusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.PhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -45,6 +46,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         PhotoDissociation(entityGenerator), // деление молекулы на атомы под действием света
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
         BetaPlusDecay(entityGenerator), // β⁺-распад протон-избыточных ядер (¹³N → ¹³C + e⁺, ¹⁵O → ¹⁵N + e⁺)
+        BetaMinusDecay(entityGenerator), // β⁻-распад нейтрон-избыточных ядер (³¹Si → ³¹P + e⁻) — толкает s-процесс вверх по Z
 
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),
