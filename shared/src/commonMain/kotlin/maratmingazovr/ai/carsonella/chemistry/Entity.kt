@@ -21,13 +21,17 @@ interface EntityState<State : EntityState<State>> {
     var direction: Vec2D
     var velocity: Float
     var energy: Float
+    // Рефакторинг «ионизация → состояние», этап 1: число электронов как динамическое состояние.
+    // Пока логикой не используется — заполняется из details.e при создании, copyWith лишь сохраняет.
+    var electrons: Int
 
     fun copyWith(
         alive: Boolean = this.alive,
         position: Position = this.position,
         direction: Vec2D = this.direction,
         velocity: Float = this.velocity,
-        energy: Float = this.energy
+        energy: Float = this.energy,
+        electrons: Int = this.electrons,
     ): State
 
 }
