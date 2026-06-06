@@ -127,9 +127,9 @@ class RecombinationModule(
 ): SpaceModule(id, element, position, direction, velocity, energy) {
 
     override fun step() {
-        reagent1 = findReagent(predicate = { it.state().value.element.details.recombinationElement != null}, reagent1)
+        reagent1 = findReagent(predicate = { canGainElectron(it.state().value.element, it.state().value.electrons)}, reagent1)
         reagent2 = findReagent(predicate = { it.state().value.element == Element.ELECTRON }, reagent2)
 
-        updateChildrenAndRadius(needToExcludePredicate = {!(it.state().value.element == Element.ELECTRON || it.state().value.element.details.recombinationElement != null)})
+        updateChildrenAndRadius(needToExcludePredicate = {!(it.state().value.element == Element.ELECTRON || canGainElectron(it.state().value.element, it.state().value.electrons))})
     }
 }

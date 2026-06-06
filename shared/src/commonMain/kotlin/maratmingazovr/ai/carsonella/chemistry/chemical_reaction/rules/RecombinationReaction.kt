@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
 // «Ион ловит электрон, излучает фотон».
@@ -24,8 +25,12 @@ class RecombinationReaction(
         val firstAtomPosition = reagents.first().state().value.position
         val firstAtomElement = firstAtom.state().value.element
         if (!firstAtom.state().value.alive) return false
-        if (firstAtomElement.details.recombinationElement == null) return false // значит элемент не участвует в рекомбинации
-        if (firstAtomElement.details.recombinationElement!!.details.energyLevels.isEmpty()) return false
+        val firstElectrons = firstAtom.state().value.electrons
+        if (!canGainElectron(firstAtomElement, firstElectrons)) return false // значит элемент не участвует в рекомбинации
+        // уровни состояния-результата (на 1 электрон больше); для протона результат — HYDROGEN
+        val recombinedLevels = if (firstAtomElement == Element.Proton) Element.HYDROGEN.energyLevels(1)
+                               else firstAtomElement.energyLevels(firstElectrons + 1)
+        if (recombinedLevels.isEmpty()) return false
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)

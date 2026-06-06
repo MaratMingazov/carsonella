@@ -53,6 +53,9 @@ class AlphaProtonReaction(
 
         val firstElement = first.state().value.element
         if (firstElement.details.alphaProtonResult == null) return false
+        // Только в каноническом заряде константы (рефакторинг ионизации 2C): не даём рекомбинировавшему голому
+        // ядру сработать с потерей электронов; полный перенос электронов — на 2C2. Сейчас всегда true (no-op).
+        if (first.state().value.electrons != firstElement.details.e) return false
 
         val firstPosition = first.state().value.position
         val (alphaCandidate, distanceSquare) = reagents

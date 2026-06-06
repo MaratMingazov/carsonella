@@ -35,6 +35,9 @@ class BetaPlusDecay(
         val first = reagents.first()
         if (!first.state().value.alive) return false
         if (first.state().value.element.details.betaPlusDecayResult == null) return false
+        // Только в каноническом заряде константы (рефакторинг ионизации 2C): рекомбинировавшее голое ядро не
+        // распадается с потерей электронов; перенос электронов — на 2C2. Сейчас всегда true (no-op).
+        if (first.state().value.electrons != first.state().value.element.details.e) return false
 
         if (!chance(0.02f, entityGenerator.random)) return false
 

@@ -344,6 +344,11 @@ private fun chargeSuffix(charge: Int): String = when {
 private fun stripCharge(symbol: String): String =
     if (symbol.endsWith("⁺")) symbol.dropLast(1).trimEnd { it in SUPERSCRIPT_DIGITS } else symbol
 
+// Может ли частица принять ещё электрон (рекомбинация): протон → H, либо атом-ион (электронов меньше Z).
+// На текущих данных это ровно множество «details.recombinationElement != null». Опора рефакторинга ионизации (2C).
+fun canGainElectron(element: Element, electrons: Int): Boolean =
+    element == Element.Proton || (element.details.type == ElementType.Atom && electrons < element.details.p)
+
 data class Details(
     val type: ElementType,
     val symbol: String,

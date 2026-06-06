@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -24,17 +25,27 @@ class AtomPlusAtomToMolecule(
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
 
+    // Реагент подходит: для атома-цели — тот же изотоп и нейтральный (electrons==Z); для молекулы — точное совпадение.
+    // Изотоп+нейтраль вместо точной константы: после переключателя цикла нейтральный атом может иметь не «нейтральную»
+    // константу (рекомбинировал из голого ядра). Сейчас (electrons==details.e) множество то же → no-op.
+    private fun matchesReagent(e: Entity<*>, target: Element): Boolean {
+        val el = e.state().value.element
+        return if (target.details.type == ElementType.Atom)
+            el.details.p == target.details.p && el.details.n == target.details.n && e.state().value.electrons == target.details.p
+        else el == target
+    }
+
     override fun matches(reagents: List<Entity<*>>) : Boolean {
         atom1 = null
         atom2 = null
         if (reagents.size < 2) return false
         val firstAtom = reagents.first()
         val firstAtomPosition = reagents.first().state().value.position
-        if (firstAtom.state().value.element != element1) return false
+        if (!matchesReagent(firstAtom, element1)) return false
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == element2 }
+            .filter { matchesReagent(it, element2) }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }

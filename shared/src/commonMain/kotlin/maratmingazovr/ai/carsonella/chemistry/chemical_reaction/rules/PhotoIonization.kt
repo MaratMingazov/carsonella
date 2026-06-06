@@ -37,9 +37,8 @@ class PhotoIonization (
 
         val first = reagents.first()
         val firstElement = first.state().value.element
-        val levels = firstElement.details.energyLevels
+        val levels = firstElement.energyLevels(first.state().value.electrons)
         if (levels.isEmpty()) return false
-        if (firstElement.details.ion == null) return false
         if (!first.state().value.alive) return false
         val others = reagents.drop(1)
         val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
