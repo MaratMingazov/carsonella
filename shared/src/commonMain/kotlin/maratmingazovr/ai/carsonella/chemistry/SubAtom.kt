@@ -26,7 +26,7 @@ data class SubAtomState(
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
         return """
-            |${element.details.label}: $id
+            |${element.label(electrons)}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
             |Velocity ${round(velocity * 100) / 100}
             |Energy ${round(energy * 100) / 100}

@@ -283,12 +283,46 @@ enum class Element() {
 
     val details: Details get() = detailsMap[this]!!
 
+    // Символ/лейбл как функция от числа электронов (рефакторинг ионизации, шаг 2B).
+    // Для атомов вычисляем заряд (p − electrons); у не-атомов символ/лейбл фиксированы — отдаём литерал.
+    fun symbol(electrons: Int): String =
+        if (details.type == ElementType.Atom) baseSymbolMap.getValue(this) + chargeSuffix(details.p - electrons)
+        else details.symbol
+
+    fun label(electrons: Int): String =
+        if (details.type == ElementType.Atom) "${nameMap.getValue(this)} (${symbol(electrons)})"
+        else details.label
+
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
         private val detailsMap: Map<Element, Details> = lightElementsDetails() + heavyElementsDetails() + heaviestElementsDetails()
+
+        // База для symbol(e)/label(e). Пока каталог не свёрнут — выводим из существующих symbol/label
+        // срезанием (на шаге 2C станут хранимыми полями изотопа). Считаются один раз.
+        private val baseSymbolMap: Map<Element, String> =
+            entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
+        private val nameMap: Map<Element, String> =
+            entries.filter { it.details.type == ElementType.Atom }.associateWith { it.details.label.substringBefore(" (") }
     }
 
 }
+
+private const val SUPERSCRIPT_DIGITS = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+
+// Число → надстрочные цифры: 29 → "²⁹".
+private fun sup(n: Int): String = n.toString().map { SUPERSCRIPT_DIGITS[it - '0'] }.joinToString("")
+
+// Надстрочный заряд иона: 0 → "", 1 → "⁺", n≥2 → "ⁿ⁺" (конвенция: +1 без цифры).
+private fun chargeSuffix(charge: Int): String = when {
+    charge <= 0 -> ""
+    charge == 1 -> "⁺"
+    else -> sup(charge) + "⁺"
+}
+
+// Базовый символ нуклида без заряда: срезаем хвостовой "⁺" и хвостовые надстрочные цифры заряда.
+// Массовый индекс-префикс ("¹²C") не трогается — он стоит перед буквой элемента.
+private fun stripCharge(symbol: String): String =
+    if (symbol.endsWith("⁺")) symbol.dropLast(1).trimEnd { it in SUPERSCRIPT_DIGITS } else symbol
 
 data class Details(
     val type: ElementType,

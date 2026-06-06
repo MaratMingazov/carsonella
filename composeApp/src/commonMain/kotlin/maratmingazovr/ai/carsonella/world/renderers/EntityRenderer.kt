@@ -66,7 +66,7 @@ class EntityRenderer(
                 )
             )
 
-            val textLayoutResult = textMeasurer.measure(text = entityState.element.details.symbol, style = TextStyle(color = Color.Black, fontSize = 10.sp))
+            val textLayoutResult = textMeasurer.measure(text = entityState.element.symbol(entityState.electrons), style = TextStyle(color = Color.Black, fontSize = 10.sp))
 
             drawText(
                 textLayoutResult,
