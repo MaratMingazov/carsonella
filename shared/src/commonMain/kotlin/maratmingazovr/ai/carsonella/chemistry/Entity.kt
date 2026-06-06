@@ -128,6 +128,12 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(energy = clamped)
     }
 
+    // Зеркало setEnergy для числа электронов (рефакторинг ионизации, шаг 2C-prep).
+    // Пока не вызывается — нужен переключателю цикла (createEntity(...).also { it.setElectrons(n) }).
+    fun setElectrons(electrons: Int) {
+        state().value = state().value.copyWith(electrons = electrons)
+    }
+
     fun addVelocity(moreVelocity: Float) {
         state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
     }
@@ -293,6 +299,13 @@ enum class Element() {
         if (details.type == ElementType.Atom) "${nameMap.getValue(this)} (${symbol(electrons)})"
         else details.label
 
+    // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, шаг 2C-prep).
+    // Берёт таблицу того ион-состояния этого же изотопа (тот же (p,n)), у которого столько электронов —
+    // реальные данные каталога. Нужен переключателю цикла, т.к. после него у иона Element = нейтральная
+    // константа, а details.energyLevels дало бы таблицу нейтрала. Пока не вызывается.
+    fun energyLevels(electrons: Int): List<Float> =
+        energyLevelsByNucleus[details.p to details.n]?.get(electrons) ?: details.energyLevels
+
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
         private val detailsMap: Map<Element, Details> = lightElementsDetails() + heavyElementsDetails() + heaviestElementsDetails()
@@ -303,6 +316,13 @@ enum class Element() {
             entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
         private val nameMap: Map<Element, String> =
             entries.filter { it.details.type == ElementType.Atom }.associateWith { it.details.label.substringBefore(" (") }
+
+        // (p,n) → (число электронов → energyLevels). Группирует ион-состояния каждого изотопа по нуклиду.
+        // Опора для Element.energyLevels(electrons). (p,n) уникальны на нуклид.
+        private val energyLevelsByNucleus: Map<Pair<Int, Int>, Map<Int, List<Float>>> =
+            entries.filter { it.details.type == ElementType.Atom }
+                .groupBy { it.details.p to it.details.n }
+                .mapValues { (_, sibs) -> sibs.associate { it.details.e to it.details.energyLevels } }
     }
 
 }
