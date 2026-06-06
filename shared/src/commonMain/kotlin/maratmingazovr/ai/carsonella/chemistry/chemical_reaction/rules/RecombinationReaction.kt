@@ -57,38 +57,55 @@ class RecombinationReaction(
 
     override fun produce(): ReactionOutcome {
 
-        val (direction,velocity) = calculateNewEntityDirectionAndVelocity(atom1!!, atom2!!)
-        val resultPosition = atom1!!.state().value.position
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
-        val resultElement = atom1Element.details.recombinationElement!!
-        val resultPhotonEnergy = atom1Element.details.recombinationElement!!.details.energyLevels.last()
+        val electrons = atom1!!.state().value.electrons
+        val resultPosition = atom1!!.state().value.position
+        val electronEnergy = atom2!!.state().value.energy
+        val env = atom1!!.getEnvironment()
 
+        // Протий — особый случай: p⁺ + e⁻ → HYDROGEN (атом). Element/класс меняется (element неизменяем) →
+        // consume + spawn (со слиянием импульса протона и электрона).
+        if (atom1Element == Element.Proton) {
+            val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1!!, atom2!!)
+            val photonEnergy = Element.HYDROGEN.energyLevels(1).last()
+            val radius = Element.HYDROGEN.details.radius
+            return ReactionOutcome(
+                consumed = listOf(atom1!!, atom2!!),
+                spawn = listOf {
+                    entityGenerator.createEntity(
+                        Element.HYDROGEN, resultPosition, direction, velocity,
+                        energy = atom1!!.state().value.energy + electronEnergy, env,
+                    )
+                    entityGenerator.createEntity(
+                        Element.PHOTON,
+                        Position(resultPosition.x + 1.5f * direction.x * radius, resultPosition.y + 1.5f * direction.y * radius),
+                        direction, 10f, energy = photonEnergy, environment = env,
+                    )
+                },
+                description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${Element.HYDROGEN.symbol(Element.HYDROGEN.details.e)} + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
+            )
+        }
 
+        // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, +энергия e⁻), вылетает фотон.
+        val resultElectrons = electrons + 1
+        val photonEnergy = atom1Element.energyLevels(resultElectrons).last()
+        val direction = atom1!!.state().value.direction
+        val radius = atom1Element.details.radius
         return ReactionOutcome(
-            consumed = listOf(atom1!!, atom2!!),
+            consumed = listOf(atom2!!),
+            updateState = listOf {
+                atom1!!.setElectrons(resultElectrons)
+                atom1!!.addEnergy(electronEnergy)
+            },
             spawn = listOf {
                 entityGenerator.createEntity(
-                    resultElement,
-                    resultPosition,
-                    direction,
-                    velocity,
-                    energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
-                    atom1!!.getEnvironment(),
-                )
-                entityGenerator.createEntity(
                     Element.PHOTON,
-                    Position(
-                        resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
-                        resultPosition.y + 1.5f * direction.y * resultElement.details.radius
-                    ),
-                    direction,
-                    10f,
-                    energy = resultPhotonEnergy,
-                    environment = atom1!!.getEnvironment(),
+                    Position(resultPosition.x + 1.5f * direction.x * radius, resultPosition.y + 1.5f * direction.y * radius),
+                    direction, 10f, energy = photonEnergy, environment = env,
                 )
             },
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(electrons)} + ${atom2Element.details.symbol} -> ${atom1Element.symbol(resultElectrons)} + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
         )
     }
 }

@@ -2,7 +2,9 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import kotlin.math.abs
@@ -84,6 +86,7 @@ class PhotoIonization (
          */
         val entityEnergy = entity!!.state().value.energy
         val entityElement = entity!!.state().value.element
+        val electrons = entity!!.state().value.electrons
         val photonEnergy = photon!!.state().value.energy
         val photonElement = photon!!.state().value.element
         val level = matchedLevel
@@ -94,36 +97,45 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon!!),
                 updateState = listOf { entity!!.setEnergy(level) },
-                description = "$id: ${entityElement.details.label} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.details.label} (${level}eV)"
+                description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.label(electrons)} (${level}eV)"
             )
         } else {
-            val energyIonization = entity!!.state().value.element.details.energyLevels.last()
+            val energyIonization = entityElement.energyLevels(electrons).last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
             val entityPosition = entity!!.state().value.position
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
-
-            val ion = entityElement.details.ion!!
-            val ionPosition = entityPosition.plus(Position(-1f * entityElement.details.radius, 0f))
-            val ionDirection = entityDirection
-            val ionVelocity = entityVelocity
-            val ionEnergy = 0f
-
-            val electron = ELECTRON
-            val electronPosition = entityPosition.plus(Position(1f * entityElement.details.radius, 0f))
-            val electronDirection = entityDirection
+            val radius = entityElement.details.radius
+            val electronPosition = entityPosition.plus(Position(1f * radius, 0f))
             val electronVelocity = 10 + 0.2f * freeEnergy
-            val electronEnergy = 0f
-
             val env = entity!!.getEnvironment()
+
+            // Протий — особый случай: ион водорода это частица Proton (SubAtom), а не «H с 0 электронов».
+            // Сменить Element/класс через updateState нельзя (element неизменяем), поэтому здесь consume + spawn.
+            if (entityElement == HYDROGEN) {
+                val ionPosition = entityPosition.plus(Position(-1f * radius, 0f))
+                return ReactionOutcome(
+                    consumed = listOf(photon!!, entity!!),
+                    spawn = listOf {
+                        entityGenerator.createEntity(Proton, ionPosition, entityDirection, entityVelocity, 0f, env)
+                        entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env)
+                    },
+                    description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${Proton.details.label} + ${ELECTRON.details.label}"
+                )
+            }
+
+            // Element НЕ меняется — тот же атом теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
             return ReactionOutcome(
-                consumed = listOf(photon!!, entity!!),
-                spawn = listOf {
-                    entityGenerator.createEntity(ion, ionPosition, ionDirection, ionVelocity, ionEnergy, env)
-                    entityGenerator.createEntity(electron, electronPosition, electronDirection, electronVelocity, electronEnergy, env)
+                consumed = listOf(photon!!),
+                updateState = listOf {
+                    entity!!.setElectrons(electrons - 1)
+                    entity!!.setEnergy(0f)
                 },
-                description = "$id: ${entityElement.details.label} + ${photonElement.details.label} -> ${ion.details.label} + ${electron.details.label}"
+                spawn = listOf {
+                    entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env)
+                },
+                description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${entityElement.label(electrons - 1)} + ${ELECTRON.details.label}"
             )
         }
     }
