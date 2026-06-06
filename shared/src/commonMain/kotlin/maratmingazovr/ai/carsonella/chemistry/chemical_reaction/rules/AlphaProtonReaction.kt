@@ -85,7 +85,7 @@ class AlphaProtonReaction(
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(t, a)
         val resultPosition = t.state().value.position
         val resultRadius = resultElement.details.radius
-        val freedAlphaElectrons = alphaElement.details.e
+        val freedAlphaElectrons = a.state().value.electrons
 
         val spawnList = mutableListOf<() -> Entity<*>>()
         spawnList += {

@@ -148,7 +148,7 @@ interface Entity<State : EntityState<State>> :
      */
     fun calculateForce(elements: List<Entity<*>>): Vec2D {
         val fVector = Vec2D(0f, 0f)
-        val myElectronsCount = state().value.element.details.e
+        val myElectronsCount = state().value.electrons
         val myProtonsCount = state().value.element.details.p
         val myRadius = state().value.element.details.radius
         val myMass = state().value.element.details.mass
@@ -168,7 +168,7 @@ interface Entity<State : EntityState<State>> :
 
             // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
             // Если электроны есть у обоих элементов, то будут отталкиваться
-            val elementElectronsCount = element.state().value.element.details.e
+            val elementElectronsCount = element.state().value.electrons
             val fAttraction = if (myElectronsCount > 0) { // отлично, у меня есть электроны. Проверим электроны соседа
                 if (elementElectronsCount > 0) { (myElectronsCount+elementElectronsCount) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
                 else { 0f } // у него электронов нет, я ничего не буду делать, пусть он сам притянется если нужно
@@ -181,7 +181,7 @@ interface Entity<State : EntityState<State>> :
             val gravityForce = 0
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
-            val elementProtonsCount = element.state().value.element.details.e
+            val elementProtonsCount = element.state().value.electrons // NB: исторически читает электроны (был details.e), не протоны — поведение сохранено; fix на details.p отдельным шагом
             val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) { (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f) } else 0f
 
             val fScalar = fAttraction + fRepulsion + gravityForce
