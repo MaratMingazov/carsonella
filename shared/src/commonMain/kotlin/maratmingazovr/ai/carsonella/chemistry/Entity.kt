@@ -298,15 +298,18 @@ enum class Element() {
         if (details.type == ElementType.Atom) "${nameMap.getValue(this)} (${symbol(electrons)})"
         else details.label
 
-    // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, 2C2b).
-    // Таблица переехала на изотоп: details.energyLevelsByElectrons[electrons]. Голым/несуществующим
-    // состояниям соответствует пустой список — вызыватели трактуют это как «нельзя ионизировать».
+    // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, 2C2b-4).
+    // Зависят только от Z, не от N → одна лестница на элемент (energyLevelsByZ по details.p), общая
+    // для всех изотопов. Голым/несуществующим состояниям — пустой список («нельзя ионизировать»).
     fun energyLevels(electrons: Int): List<Float> =
-        details.energyLevelsByElectrons.getOrNull(electrons) ?: emptyList()
+        energyLevelsByZ[details.p]?.getOrNull(electrons) ?: emptyList()
 
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
         private val detailsMap: Map<Element, Details> = lightElementsDetails() + heavyElementsDetails() + heaviestElementsDetails()
+
+        // Энергетические лестницы ионизации по Z (одна на элемент, общая для изотопов). Опора energyLevels(electrons).
+        private val energyLevelsByZ: Map<Int, List<List<Float>>> = energyLevelsTable()
 
         // База для symbol(e)/label(e). Пока каталог не свёрнут — выводим из существующих symbol/label
         // срезанием (на шаге 2C станут хранимыми полями изотопа). Считаются один раз.
@@ -351,9 +354,6 @@ data class Details(
     val radius: Float = 20f,
     val description: String = "",
 
-    // Энергетические уровни по числу электронов (рефакторинг ионизации 2C2b): индекс = electrons,
-    // значение = уровни этого зарядового состояния (реальные данные каталога).
-    val energyLevelsByElectrons: List<List<Float>> = listOf(),
 
     val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
     val dissociationElements: List<Element> = listOf(), // Элементы, которые получаются в результате диссоциации
