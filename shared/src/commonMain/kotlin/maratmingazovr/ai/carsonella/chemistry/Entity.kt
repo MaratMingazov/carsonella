@@ -299,12 +299,11 @@ enum class Element() {
         if (details.type == ElementType.Atom) "${nameMap.getValue(this)} (${symbol(electrons)})"
         else details.label
 
-    // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, шаг 2C-prep).
-    // Берёт таблицу того ион-состояния этого же изотопа (тот же (p,n)), у которого столько электронов —
-    // реальные данные каталога. Нужен переключателю цикла, т.к. после него у иона Element = нейтральная
-    // константа, а details.energyLevels дало бы таблицу нейтрала. Пока не вызывается.
+    // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, 2C2b).
+    // Таблица переехала на изотоп: details.energyLevelsByElectrons[electrons]. Голым/несуществующим
+    // состояниям соответствует пустой список — вызыватели трактуют это как «нельзя ионизировать».
     fun energyLevels(electrons: Int): List<Float> =
-        energyLevelsByNucleus[details.p to details.n]?.get(electrons) ?: details.energyLevels
+        details.energyLevelsByElectrons.getOrNull(electrons) ?: emptyList()
 
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
@@ -316,13 +315,6 @@ enum class Element() {
             entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
         private val nameMap: Map<Element, String> =
             entries.filter { it.details.type == ElementType.Atom }.associateWith { it.details.label.substringBefore(" (") }
-
-        // (p,n) → (число электронов → energyLevels). Группирует ион-состояния каждого изотопа по нуклиду.
-        // Опора для Element.energyLevels(electrons). (p,n) уникальны на нуклид.
-        private val energyLevelsByNucleus: Map<Pair<Int, Int>, Map<Int, List<Float>>> =
-            entries.filter { it.details.type == ElementType.Atom }
-                .groupBy { it.details.p to it.details.n }
-                .mapValues { (_, sibs) -> sibs.associate { it.details.e to it.details.energyLevels } }
     }
 
 }
@@ -361,6 +353,9 @@ data class Details(
     val description: String = "",
 
     val energyLevels: List<Float> = listOf(), // Столько энергии нужно, чтобы выбить электрон у элемента. Энергетические уровни атома. Атом может принимать только такие кванты энергии
+    // Энергетические уровни по числу электронов (рефакторинг ионизации 2C2b): индекс = electrons,
+    // значение = уровни этого зарядового состояния (реальные данные, переехавшие с ион-строк).
+    val energyLevelsByElectrons: List<List<Float>> = listOf(),
     val ion: Element? = null, // Если этот параметр указан, значит элемент может отдавать электрон. Положительно заряженный ион, который образуется, когда мы выбиваем электрон у элемента. Ионизация.
     val recombinationElement: Element? = null,  // Такой элемент получится, если элемент получит электрон
     val recombinationEnergy: Float? = null, // Столько энергии выделится, если элемент получит электрон
