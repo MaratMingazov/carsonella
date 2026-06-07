@@ -21,8 +21,8 @@ interface EntityState<State : EntityState<State>> {
     var direction: Vec2D
     var velocity: Float
     var energy: Float
-    // Рефакторинг «ионизация → состояние», этап 1: число электронов как динамическое состояние.
-    // Пока логикой не используется — заполняется из details.e при создании, copyWith лишь сохраняет.
+    // Число электронов как динамическое состояние (рефакторинг «ионизация → состояние»): задаёт заряд,
+    // символ и energyLevels; цикл ионизации/рекомбинации крутит его. Дефолт при создании — details.e.
     var electrons: Int
 
     fun copyWith(
@@ -128,8 +128,8 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(energy = clamped)
     }
 
-    // Зеркало setEnergy для числа электронов (рефакторинг ионизации, шаг 2C-prep).
-    // Пока не вызывается — нужен переключателю цикла (createEntity(...).also { it.setElectrons(n) }).
+    // Зеркало setEnergy для числа электронов. Используется циклом ионизации/рекомбинации
+    // (PhotoIonization/RecombinationReaction) через updateState — меняет заряд, не подменяя Element.
     fun setElectrons(electrons: Int) {
         state().value = state().value.copyWith(electrons = electrons)
     }
@@ -306,7 +306,7 @@ enum class Element() {
 
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
-        private val detailsMap: Map<Element, Details> = lightElementsDetails() + heavyElementsDetails() + heaviestElementsDetails()
+        private val detailsMap: Map<Element, Details> = elementDetails()
 
         // Энергетические лестницы ионизации по Z (одна на элемент, общая для изотопов). Опора energyLevels(electrons).
         private val energyLevelsByZ: Map<Int, List<List<Float>>> = energyLevelsTable()

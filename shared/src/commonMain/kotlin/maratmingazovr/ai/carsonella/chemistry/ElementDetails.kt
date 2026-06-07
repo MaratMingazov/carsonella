@@ -6,14 +6,14 @@ import maratmingazovr.ai.carsonella.chemistry.Element.*
  * Каталог [Details] для всех элементов — статическая «таблица Менделеева» проекта.
  * Вынесен из Entity.kt, чтобы отделить данные от доменных типов и поведения. После
  * сворачивания ион-состояний (рефакторинг 2C2b) — одна строка на изотоп (заряд живёт в
- * state.electrons; уровни — в energyLevelsByElectrons по числу электронов). Делёж
- * light/heavy/heaviest — ради лимита JVM 64KB на байткод одного метода-инициализатора.
+ * state.electrons; уровни ионизации — в energyLevelsTable() по Z). Каталог свёрнут и
+ * умещается в одну функцию elementDetails() (лимит JVM 64KB на метод больше не грозит).
  *
  * `Element.*` импортирован, чтобы константы (SILICON_31 и т.п.) резолвились без префикса.
  * Ключ `Element.Star` пишем явно: без-префиксный `Star` ушёл бы в одноимённый класс из этого же пакета.
  */
 
-internal fun lightElementsDetails(): Map<Element, Details> = mapOf(
+internal fun elementDetails(): Map<Element, Details> = mapOf(
     // --- субатомные частицы ---
     PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           mass = 0f,  e = 0, p = 0, n = 0, radius = 5f),
     ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        mass = 0.1f,e = 1, p = 0, n = 0, radius = 5f),
@@ -66,10 +66,7 @@ internal fun lightElementsDetails(): Map<Element, Details> = mapOf(
     SULFUR_31               to Details (type = ElementType.Atom, symbol = "³¹S",       label = "Sulfur (³¹S)",         mass = 31f, e = 16, p = 16, n = 15,  description = "Сера", betaPlusDecayResult = PHOSPHORUS_31),
     SULFUR_32               to Details (type = ElementType.Atom, symbol = "³²S",      label = "Sulfur (³²S)",         mass = 32f, e = 16, p = 16, n = 16,  description = "Сера", alphaGammaResult = ARGON_36),
     ARGON_36                to Details (type = ElementType.Atom, symbol = "³⁶Ar",     label = "Argon (³⁶Ar)",         mass = 36f, e = 18, p = 18, n = 18,  description = "Аргон", alphaGammaResult = CALCIUM_40),
-)
-
-internal fun heavyElementsDetails(): Map<Element, Details> = mapOf(
-    CALCIUM_40              to Details (type = ElementType.Atom, symbol = "⁴⁰Ca",     label = "Calcium (⁴⁰Ca)",       mass = 40f, e = 20, p = 20, n = 20,  description = "Кальций", alphaGammaResult = TITANIUM_44),
+    CALCIUM_40             to Details (type = ElementType.Atom, symbol = "⁴⁰Ca",     label = "Calcium (⁴⁰Ca)",       mass = 40f, e = 20, p = 20, n = 20,  description = "Кальций", alphaGammaResult = TITANIUM_44),
     TITANIUM_44             to Details (type = ElementType.Atom, symbol = "⁴⁴Ti",     label = "Titanium (⁴⁴Ti)",      mass = 44f, e = 22, p = 22, n = 22,  description = "Титан", alphaGammaResult = CHROMIUM_48),
     TITANIUM_48             to Details (type = ElementType.Atom, symbol = "⁴⁸Ti",     label = "Titanium (⁴⁸Ti)",      mass = 48f, e = 22, p = 22, n = 26,  description = "Титан", alphaGammaResult = CHROMIUM_52),
     VANADIUM_48             to Details (type = ElementType.Atom, symbol = "⁴⁸V",       label = "Vanadium (⁴⁸V)",       mass = 48f, e = 23, p = 23, n = 25,  description = "Ванадий", betaPlusDecayResult = TITANIUM_48, alphaGammaResult = MANGANESE_52),
@@ -81,11 +78,7 @@ internal fun heavyElementsDetails(): Map<Element, Details> = mapOf(
     IRON_57                 to Details (type = ElementType.Atom, symbol = "⁵⁷Fe",      label = "Iron (⁵⁷Fe)",          mass = 57f, e = 26, p = 26, n = 31,  description = "Железо", neutronGammaResult = IRON_58),
     IRON_58                 to Details (type = ElementType.Atom, symbol = "⁵⁸Fe",      label = "Iron (⁵⁸Fe)",          mass = 58f, e = 26, p = 26, n = 32,  description = "Железо", neutronGammaResult = IRON_59),
     IRON_59                 to Details (type = ElementType.Atom, symbol = "⁵⁹Fe",      label = "Iron (⁵⁹Fe)",          mass = 59f, e = 26, p = 26, n = 33,  description = "Железо", betaMinusDecayResult = COBALT_59),
-    )
-
-// Третья часть каталога (Co и тяжелее + молекулы) — отделена от heavyElementsDetails ради лимита JVM 64KB на байткод метода-инициализатора (как и light/heavy). При дальнейшем росте s-цепочки добавляй четвёртую функцию.
-internal fun heaviestElementsDetails(): Map<Element, Details> = mapOf(
-    COBALT_56               to Details (type = ElementType.Atom, symbol = "⁵⁶Co",      label = "Cobalt (⁵⁶Co)",        mass = 56f, e = 27, p = 27, n = 29,  description = "Кобальт", betaPlusDecayResult = IRON_56),
+    COBALT_56              to Details (type = ElementType.Atom, symbol = "⁵⁶Co",      label = "Cobalt (⁵⁶Co)",        mass = 56f, e = 27, p = 27, n = 29,  description = "Кобальт", betaPlusDecayResult = IRON_56),
     COBALT_59               to Details (type = ElementType.Atom, symbol = "⁵⁹Co",      label = "Cobalt (⁵⁹Co)",        mass = 59f, e = 27, p = 27, n = 32,  description = "Кобальт", neutronGammaResult = COBALT_60),
     COBALT_60               to Details (type = ElementType.Atom, symbol = "⁶⁰Co",      label = "Cobalt (⁶⁰Co)",        mass = 60f, e = 27, p = 27, n = 33,  description = "Кобальт", betaMinusDecayResult = NICKEL_60),
     NICKEL_56               to Details (type = ElementType.Atom, symbol = "⁵⁶Ni",      label = "Nickel (⁵⁶Ni)",        mass = 56f, e = 28, p = 28, n = 28,  description = "Никель", betaPlusDecayResult = COBALT_56),

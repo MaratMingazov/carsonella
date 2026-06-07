@@ -16,7 +16,7 @@ data class StarState(
     override var direction: Vec2D,
     override var velocity: Float,
     override var energy: Float,
-    override var electrons: Int = element.details.e, // этап 1 рефакторинга ионизации: пока заполняется из details.e и не используется логикой
+    override var electrons: Int = element.details.e, // динамическое число электронов (заряд); дефолт = details.e
 ) : EntityState<StarState> {
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
