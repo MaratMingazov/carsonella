@@ -26,6 +26,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarEmissi
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarCarbonBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarOxygenBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPPChain
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPhotodisintegration
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
@@ -63,6 +64,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarPPChain(entityGenerator), // pp-цепочка: p+p→D⁺, D⁺+p→³He²⁺, ³He²⁺+³He²⁺→⁴He²⁺+2p, плюс pp-II финал ⁷Be+e⁻→⁷Li, ⁷Li+p→2⁴He
         StarCarbonBurning(entityGenerator), // горение углерода: ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg
         StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
+        StarPhotodisintegration(entityGenerator), // (γ,X) в звезде: развал ядра жёстким γ — обратное к (α,γ)/(p,γ)/(n,γ). Сердце горения кремния: ²⁸Si(γ,α)²⁴Mg высвобождает α для α-цепочки к Fe
 
         // Реакции атомов
         AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
