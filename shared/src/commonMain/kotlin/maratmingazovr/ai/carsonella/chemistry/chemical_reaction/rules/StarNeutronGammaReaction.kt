@@ -75,6 +75,8 @@ class StarNeutronGammaReaction(
         val atom1Element = a1.state().value.element
         val atom2Element = a2.state().value.element
         val resultElement = atom1Element.details.neutronGammaResult!!
+        // Перенос электронной оболочки на продукт (2C2): (n,γ) не меняет Z → кламп no-op, shake-off не нужен.
+        val resultElectrons = minOf(a1.state().value.electrons, resultElement.details.p)
         val resultPhotonEnergy = 1000f
 
         return ReactionOutcome(
@@ -88,6 +90,7 @@ class StarNeutronGammaReaction(
                         velocity,
                         energy = a1.state().value.energy + a2.state().value.energy,
                         a1.getEnvironment(),
+                        electrons = resultElectrons,
                     )
                 },
                 {
@@ -104,7 +107,7 @@ class StarNeutronGammaReaction(
                     )
                 },
             ),
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]",
+            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} → ${resultElement.symbol(resultElectrons)} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]",
         )
     }
 }

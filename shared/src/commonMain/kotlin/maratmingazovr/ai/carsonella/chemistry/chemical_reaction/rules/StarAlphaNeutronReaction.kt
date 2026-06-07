@@ -3,7 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
@@ -45,7 +45,7 @@ class StarAlphaNeutronReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == HELIUM_4_ION_2 }
+            .filter { it.state().value.element == HELIUM_4 }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
@@ -74,6 +74,8 @@ class StarAlphaNeutronReaction(
         val atom1Element = a1.state().value.element
         val atom2Element = a2.state().value.element
         val resultElement = atom1Element.details.alphaNeutronResult!!
+        // Перенос электронной оболочки на продукт (2C2): (α,n) повышает Z → кламп no-op, shake-off не нужен.
+        val resultElectrons = minOf(a1.state().value.electrons, resultElement.details.p)
 
         return ReactionOutcome(
             consumed = listOf(a1, a2),
@@ -86,6 +88,7 @@ class StarAlphaNeutronReaction(
                         velocity,
                         energy = a1.state().value.energy + a2.state().value.energy,
                         a1.getEnvironment(),
+                        electrons = resultElectrons,
                     )
                 },
                 {
@@ -104,7 +107,7 @@ class StarAlphaNeutronReaction(
                     )
                 },
             ),
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${Element.NEUTRON.details.symbol}",
+            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} → ${resultElement.symbol(resultElectrons)} + ${Element.NEUTRON.details.symbol}",
         )
     }
 }

@@ -36,6 +36,7 @@ open class SpaceModule(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    electrons: Int = element.details.e,
     protected val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<SpaceModuleState>,
@@ -54,6 +55,7 @@ open class SpaceModule(
             direction = direction,
             velocity = velocity,
             energy = energy,
+            electrons = electrons,
         )
     )
 
@@ -124,7 +126,8 @@ class RecombinationModule(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
-): SpaceModule(id, element, position, direction, velocity, energy) {
+    electrons: Int = element.details.e,
+): SpaceModule(id, element, position, direction, velocity, energy, electrons) {
 
     override fun step() {
         reagent1 = findReagent(predicate = { canGainElectron(it.state().value.element, it.state().value.electrons)}, reagent1)

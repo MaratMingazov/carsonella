@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -35,9 +36,6 @@ class BetaPlusDecay(
         val first = reagents.first()
         if (!first.state().value.alive) return false
         if (first.state().value.element.details.betaPlusDecayResult == null) return false
-        // Только в каноническом заряде константы (рефакторинг ионизации 2C): рекомбинировавшее голое ядро не
-        // распадается с потерей электронов; перенос электронов — на 2C2. Сейчас всегда true (no-op).
-        if (first.state().value.electrons != first.state().value.element.details.e) return false
 
         if (!chance(0.02f, entityGenerator.random)) return false
 
@@ -53,32 +51,53 @@ class BetaPlusDecay(
         val childElement = parentElement.details.betaPlusDecayResult!!
         val parentPosition = parent.state().value.position
         val parentRadius = parentElement.details.radius
+        // Перенос оболочки на продукт (2C2): β⁺ понижает Z на 1 (p→n) → если родитель почти нейтрален,
+        // лишний электрон не помещается на продукт и улетает свободным e⁻ (shake-off). Вылетающий e⁺ —
+        // продукт распада ядра.
+        val parentElectrons = parent.state().value.electrons
+        val childElectrons = minOf(parentElectrons, childElement.details.p)
+        val shakeOff = parentElectrons - childElectrons
 
+        val spawnList = mutableListOf<() -> Entity<*>>()
+        spawnList += {
+            entityGenerator.createEntity(
+                childElement,
+                parentPosition,
+                parent.state().value.direction,
+                parent.state().value.velocity,
+                energy = parent.state().value.energy,
+                environment = parent.getEnvironment(),
+                electrons = childElectrons,
+            )
+        }
+        spawnList += {
+            entityGenerator.createEntity(
+                POSITRON,
+                Position(parentPosition.x + parentRadius, parentPosition.y),
+                randomDirection(entityGenerator.random),
+                20f,
+                energy = 0f,
+                environment = parent.getEnvironment(),
+            )
+        }
+        repeat(shakeOff) {
+            spawnList += {
+                entityGenerator.createEntity(
+                    ELECTRON,
+                    Position(parentPosition.x - parentRadius, parentPosition.y),
+                    randomDirection(entityGenerator.random),
+                    20f,
+                    energy = 0f,
+                    environment = parent.getEnvironment(),
+                )
+            }
+        }
+
+        val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(parent),
-            spawn = listOf(
-                {
-                    entityGenerator.createEntity(
-                        childElement,
-                        parentPosition,
-                        parent.state().value.direction,
-                        parent.state().value.velocity,
-                        energy = parent.state().value.energy,
-                        environment = parent.getEnvironment(),
-                    )
-                },
-                {
-                    entityGenerator.createEntity(
-                        POSITRON,
-                        Position(parentPosition.x + parentRadius, parentPosition.y),
-                        randomDirection(entityGenerator.random),
-                        20f,
-                        energy = 0f,
-                        environment = parent.getEnvironment(),
-                    )
-                },
-            ),
-            description = "$id: ${parentElement.details.symbol} → ${childElement.details.symbol} + ${POSITRON.details.symbol}",
+            spawn = spawnList,
+            description = "$id: ${parentElement.symbol(parentElectrons)} → ${childElement.symbol(childElectrons)} + ${POSITRON.details.symbol}$electronTail",
         )
     }
 }

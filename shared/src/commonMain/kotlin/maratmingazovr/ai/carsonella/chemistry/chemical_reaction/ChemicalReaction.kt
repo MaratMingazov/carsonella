@@ -35,7 +35,7 @@ import kotlin.random.Random
 
 interface IEntityGenerator {
     val random: Random
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment): Entity<*>
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int = element.details.e): Entity<*>
 }
 
 

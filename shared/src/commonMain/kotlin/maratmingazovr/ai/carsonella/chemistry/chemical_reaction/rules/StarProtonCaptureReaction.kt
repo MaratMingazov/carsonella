@@ -4,19 +4,21 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ALUMINUM_27_ION_13
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.ALUMINUM_27
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14_ION_7
-import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15_ION_7
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16_ION_8
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17_ION_8
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18_ION_8
+import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14
+import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17
+import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
-import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23_ION_11
+import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * Star proton capture — объединённое generic-правило для всех (p,X) реакций в звезде:
@@ -118,10 +120,15 @@ class StarProtonCaptureReaction(
         val resultPosition = a1.state().value.position
         val atom1Element = a1.state().value.element
         val atom2Element = a2.state().value.element
+        // Перенос электронной оболочки на продукт (2C2): продукт наследует электроны target-ядра,
+        // но не больше своего Z. (p,γ)/(p,n) повышают Z → кламп no-op; (p,α) понижает Z → лишние
+        // электроны улетают свободными e⁻ (shake-off). Захваченный протон голый, испущенная α — голая.
+        val parentElectrons = a1.state().value.electrons
 
         return when (outcome) {
             is Outcome.Gamma -> {
                 val resultElement = outcome.product
+                val resultElectrons = minOf(parentElectrons, resultElement.details.p)
                 val resultPhotonEnergy = 1000f
                 ReactionOutcome(
                     consumed = listOf(a1, a2),
@@ -134,6 +141,7 @@ class StarProtonCaptureReaction(
                                 velocity,
                                 energy = a1.state().value.energy + a2.state().value.energy,
                                 a1.getEnvironment(),
+                                electrons = resultElectrons,
                             )
                         },
                         {
@@ -150,43 +158,62 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,γ): ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${PHOTON.details.symbol}",
+                    description = "$id (p,γ): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${PHOTON.details.symbol}",
                 )
             }
             is Outcome.Alpha -> {
                 val resultElement = outcome.product
+                val resultElectrons = minOf(parentElectrons, resultElement.details.p)
+                val shakeOff = parentElectrons - resultElectrons
+                val spawnList = mutableListOf<() -> Entity<*>>()
+                spawnList += {
+                    entityGenerator.createEntity(
+                        resultElement,
+                        resultPosition,
+                        direction,
+                        velocity,
+                        energy = a1.state().value.energy + a2.state().value.energy,
+                        a1.getEnvironment(),
+                        electrons = resultElectrons,
+                    )
+                }
+                spawnList += {
+                    // Испущенная α — голое ядро ⁴He²⁺ (electrons = 0).
+                    entityGenerator.createEntity(
+                        HELIUM_4,
+                        Position(
+                            resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
+                            resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
+                        ),
+                        direction,
+                        20f,
+                        energy = 0f,
+                        environment = a1.getEnvironment(),
+                        electrons = 0,
+                    )
+                }
+                repeat(shakeOff) {
+                    spawnList += {
+                        entityGenerator.createEntity(
+                            ELECTRON,
+                            Position(resultPosition.x, resultPosition.y + resultElement.details.radius),
+                            randomDirection(entityGenerator.random),
+                            20f,
+                            energy = 0f,
+                            environment = a1.getEnvironment(),
+                        )
+                    }
+                }
+                val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
                 ReactionOutcome(
                     consumed = listOf(a1, a2),
-                    spawn = listOf(
-                        {
-                            entityGenerator.createEntity(
-                                resultElement,
-                                resultPosition,
-                                direction,
-                                velocity,
-                                energy = a1.state().value.energy + a2.state().value.energy,
-                                a1.getEnvironment(),
-                            )
-                        },
-                        {
-                            entityGenerator.createEntity(
-                                HELIUM_4_ION_2,
-                                Position(
-                                    resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
-                                    resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
-                                ),
-                                direction,
-                                20f,
-                                energy = 0f,
-                                environment = a1.getEnvironment(),
-                            )
-                        },
-                    ),
-                    description = "$id (p,α): ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${HELIUM_4_ION_2.details.symbol}",
+                    spawn = spawnList,
+                    description = "$id (p,α): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${HELIUM_4.symbol(0)}$electronTail",
                 )
             }
             is Outcome.Neutron -> {
                 val resultElement = outcome.product
+                val resultElectrons = minOf(parentElectrons, resultElement.details.p)
                 ReactionOutcome(
                     consumed = listOf(a1, a2),
                     spawn = listOf(
@@ -198,6 +225,7 @@ class StarProtonCaptureReaction(
                                 velocity,
                                 energy = a1.state().value.energy + a2.state().value.energy,
                                 a1.getEnvironment(),
+                                electrons = resultElectrons,
                             )
                         },
                         {
@@ -215,7 +243,7 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,n): ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${NEUTRON.details.symbol}",
+                    description = "$id (p,n): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${NEUTRON.details.symbol}",
                 )
             }
         }
@@ -227,9 +255,9 @@ class StarProtonCaptureReaction(
      * CNO-I) и slowdown (¹⁶O(p,γ)¹⁷F).
      */
     private fun captureRate(target: Element): Float = when (target) {
-        NITROGEN_14_ION_7 -> 0.02f  // CNO-I bottleneck — сжато до x50 от реальных ~1000×
-        OXYGEN_16_ION_8   -> 0.10f  // CNO-II slowdown
-        else              -> 1.0f
+        NITROGEN_14 -> 0.02f  // CNO-I bottleneck — сжато до x50 от реальных ~1000×
+        OXYGEN_16   -> 0.10f  // CNO-II slowdown
+        else        -> 1.0f
     }
 
     /**
@@ -240,14 +268,14 @@ class StarProtonCaptureReaction(
      */
     private fun branchingWeights(target: Element): Triple<Float, Float, Float> = when (target) {
         // CNO утечки: 10% (p,γ) уходит в следующий цикл, 90% (p,α) замыкает текущий.
-        NITROGEN_15_ION_7   -> Triple(0.1f, 0.9f, 0f)  // CNO-I → CNO-II leak vs CNO-I closure
-        OXYGEN_17_ION_8     -> Triple(0.1f, 0.9f, 0f)  // CNO-II → CNO-III leak vs CNO-II closure
-        OXYGEN_18_ION_8     -> Triple(0.1f, 0.9f, 0f)  // CNO-III → CNO-IV leak vs CNO-III closure
+        NITROGEN_15   -> Triple(0.1f, 0.9f, 0f)  // CNO-I → CNO-II leak vs CNO-I closure
+        OXYGEN_17     -> Triple(0.1f, 0.9f, 0f)  // CNO-II → CNO-III leak vs CNO-II closure
+        OXYGEN_18     -> Triple(0.1f, 0.9f, 0f)  // CNO-III → CNO-IV leak vs CNO-III closure
         // NeNa/MgAl inter-cycle leaks: ²³Na+p в реальности почти 100% даёт ²⁰Ne+α; редкая
         // утечка в ²⁴Mg+γ — мост в MgAl. У нас 0.01% — заметно реже CNO.
-        SODIUM_23_ION_11    -> Triple(0.0001f, 1.0f, 0f)
+        SODIUM_23     -> Triple(0.0001f, 1.0f, 0f)
         // MgAl → Si: ²⁷Al+p в реальности тоже преимущественно (p,α), но γ-выход побольше.
-        ALUMINUM_27_ION_13  -> Triple(0.01f, 1.0f, 0f)
+        ALUMINUM_27   -> Triple(0.01f, 1.0f, 0f)
         else                -> Triple(1f, 1f, 1f)
     }
 }

@@ -41,6 +41,7 @@ class SubAtom(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    electrons: Int = element.details.e,
 ):
     Entity<SubAtomState>,
     DeathNotifiable by OnDeathSupport(),
@@ -57,7 +58,8 @@ class SubAtom(
             position = position,
             direction = direction,
             velocity = velocity,
-            energy = energy
+            energy = energy,
+            electrons = electrons,
             )
     )
 

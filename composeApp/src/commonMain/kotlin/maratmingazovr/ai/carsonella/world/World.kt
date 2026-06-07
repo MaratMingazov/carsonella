@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
@@ -31,12 +32,12 @@ class World(
     val palette =  mutableStateListOf(
         Element.PHOTON, Element.ELECTRON, Element.Proton,
         Element.HYDROGEN, Element.OXYGEN_16,
-        Element.H2, Element.OXYGEN_16_ION_8,
+        Element.H2,
         Element.Star, Element.SPACE_MODULE
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
-    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
+    val entityGenerator: IEntityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
 
 
 

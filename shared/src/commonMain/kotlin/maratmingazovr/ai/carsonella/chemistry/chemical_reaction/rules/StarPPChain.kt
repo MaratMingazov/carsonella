@@ -3,13 +3,13 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7_ION_4
-import maratmingazovr.ai.carsonella.chemistry.Element.BORON_8_ION_5
-import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM_ION
+import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7
+import maratmingazovr.ai.carsonella.chemistry.Element.BORON_8
+import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
-import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7_ION_3
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -64,14 +64,14 @@ class StarPPChain(
         // через alphaGammaResult на ³He²⁺.
         // Для ⁷Be⁴⁺ возможны две ветки: + e⁻ → ⁷Li³⁺ (pp-II, доминирует) либо + p → ⁸B⁵⁺ (pp-III, редкая).
         val candidates: List<Triple<Element, Element, List<Element>>> = when (firstAtomElement) {
-            Proton            -> listOf(Triple(Proton,         DEUTERIUM_ION,    emptyList()))
-            DEUTERIUM_ION     -> listOf(Triple(Proton,         HELIUM_3_ION_2,   emptyList()))
-            HELIUM_3_ION_2    -> listOf(Triple(HELIUM_3_ION_2, HELIUM_4_ION_2,   listOf(Proton, Proton)))
-            BERYLLIUM_7_ION_4 -> listOf(
-                Triple(ELECTRON, LITHIUM_7_ION_3, emptyList()),
-                Triple(Proton,   BORON_8_ION_5,   emptyList()),
+            Proton      -> listOf(Triple(Proton,    DEUTERIUM, emptyList()))
+            DEUTERIUM   -> listOf(Triple(Proton,    HELIUM_3,  emptyList()))
+            HELIUM_3    -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(Proton, Proton)))
+            BERYLLIUM_7 -> listOf(
+                Triple(ELECTRON, LITHIUM_7, emptyList()),
+                Triple(Proton,   BORON_8,   emptyList()),
             )
-            LITHIUM_7_ION_3   -> listOf(Triple(Proton,         HELIUM_4_ION_2,   listOf(HELIUM_4_ION_2)))
+            LITHIUM_7   -> listOf(Triple(Proton,    HELIUM_4,  listOf(HELIUM_4)))
             else -> return false
         }
 
@@ -105,6 +105,10 @@ class StarPPChain(
         val a2 = atom2!!
         val result = resultElement!!
         val extras = extraElements
+        // Перенос оболочки на продукт (2C2): наследует электроны первого реагента-ядра, не больше Z
+        // продукта. В звезде ядра голые → 0. PP многоканальна (синтез + захват e⁻ в ядро), поэтому без
+        // обобщённого shake-off; кламп лишь страхует от аниона в краевых случаях.
+        val resultElectrons = minOf(a1.state().value.electrons, result.details.p)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
         val resultPosition = a1.state().value.position
@@ -121,6 +125,7 @@ class StarPPChain(
                 velocity,
                 energy = a1.state().value.energy + a2.state().value.energy,
                 a1.getEnvironment(),
+                electrons = resultElectrons,
             )
         }
 
@@ -135,6 +140,7 @@ class StarPPChain(
                     velocity,
                     energy = 0f,
                     environment = a1.getEnvironment(),
+                    electrons = 0,
                 )
             }
         }
@@ -158,7 +164,7 @@ class StarPPChain(
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = spawnList,
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${result.details.symbol} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} -> ${result.symbol(resultElectrons)} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

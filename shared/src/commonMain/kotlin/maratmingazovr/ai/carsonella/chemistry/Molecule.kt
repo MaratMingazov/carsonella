@@ -35,6 +35,7 @@ class Molecule(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    electrons: Int = element.details.e,
 ):
     Entity<MoleculeState>,
     DeathNotifiable by OnDeathSupport(),
@@ -52,6 +53,7 @@ class Molecule(
             direction = direction,
             velocity = velocity,
             energy = energy,
+            electrons = electrons,
         )
     )
 

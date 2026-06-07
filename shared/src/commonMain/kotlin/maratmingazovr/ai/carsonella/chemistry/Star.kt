@@ -36,6 +36,7 @@ class Star(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    electrons: Int = element.details.e,
     private val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<StarState>,
@@ -54,6 +55,7 @@ class Star(
             direction = direction,
             velocity = velocity,
             energy = energy,
+            electrons = electrons,
         )
     )
     private var radiusCounter = element.details.radius

@@ -36,9 +36,6 @@ class BetaMinusDecay(
         val first = reagents.first()
         if (!first.state().value.alive) return false
         if (first.state().value.element.details.betaMinusDecayResult == null) return false
-        // Только в каноническом заряде константы (рефакторинг ионизации 2C): рекомбинировавшее голое ядро не
-        // распадается с потерей электронов; перенос электронов — на 2C2. Сейчас всегда true (no-op).
-        if (first.state().value.electrons != first.state().value.element.details.e) return false
 
         if (!chance(0.02f, entityGenerator.random)) return false
 
@@ -54,6 +51,9 @@ class BetaMinusDecay(
         val childElement = parentElement.details.betaMinusDecayResult!!
         val parentPosition = parent.state().value.position
         val parentRadius = parentElement.details.radius
+        // Перенос оболочки на продукт (2C2): β⁻ повышает Z на 1 (n→p) → электроны помещаются, кламп no-op.
+        // Вылетающий e⁻ — продукт распада ядра, а не shake-off оболочки.
+        val childElectrons = minOf(parent.state().value.electrons, childElement.details.p)
 
         return ReactionOutcome(
             consumed = listOf(parent),
@@ -66,6 +66,7 @@ class BetaMinusDecay(
                         parent.state().value.velocity,
                         energy = parent.state().value.energy,
                         environment = parent.getEnvironment(),
+                        electrons = childElectrons,
                     )
                 },
                 {
@@ -79,7 +80,7 @@ class BetaMinusDecay(
                     )
                 },
             ),
-            description = "$id: ${parentElement.details.symbol} → ${childElement.details.symbol} + ${ELECTRON.details.symbol}",
+            description = "$id: ${parentElement.symbol(parent.state().value.electrons)} → ${childElement.symbol(childElectrons)} + ${ELECTRON.details.symbol}",
         )
     }
 }

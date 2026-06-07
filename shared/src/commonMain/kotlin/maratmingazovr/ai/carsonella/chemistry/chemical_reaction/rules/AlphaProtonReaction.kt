@@ -5,8 +5,6 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_1
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -53,15 +51,12 @@ class AlphaProtonReaction(
 
         val firstElement = first.state().value.element
         if (firstElement.details.alphaProtonResult == null) return false
-        // Только в каноническом заряде константы (рефакторинг ионизации 2C): не даём рекомбинировавшему голому
-        // ядру сработать с потерей электронов; полный перенос электронов — на 2C2. Сейчас всегда true (no-op).
-        if (first.state().value.electrons != firstElement.details.e) return false
 
         val firstPosition = first.state().value.position
         val (alphaCandidate, distanceSquare) = reagents
             .drop(1)
             .filter { it.state().value.alive }
-            .filter { it.state().value.element in alphaForms }
+            .filter { it.state().value.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
@@ -88,6 +83,9 @@ class AlphaProtonReaction(
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(t, a)
         val resultPosition = t.state().value.position
         val resultRadius = resultElement.details.radius
+        // Перенос оболочки (2C2): электроны target остаются на продукте (Z+1 → кламп no-op),
+        // а электроны α освобождаются как свободные e⁻ (shake-off α — существующая модель).
+        val targetElectrons = minOf(t.state().value.electrons, resultElement.details.p)
         val freedAlphaElectrons = a.state().value.electrons
 
         val spawnList = mutableListOf<() -> Entity<*>>()
@@ -99,6 +97,7 @@ class AlphaProtonReaction(
                 velocity,
                 energy = t.state().value.energy + a.state().value.energy,
                 environment = t.getEnvironment(),
+                electrons = targetElectrons,
             )
         }
         spawnList += {
@@ -133,11 +132,7 @@ class AlphaProtonReaction(
         return ReactionOutcome(
             consumed = listOf(t, a),
             spawn = spawnList,
-            description = "$id: ${targetElement.details.symbol} + ${alphaElement.details.symbol} → ${resultElement.details.symbol} + ${Proton.details.symbol}$electronTail",
+            description = "$id: ${targetElement.symbol(t.state().value.electrons)} + ${alphaElement.symbol(a.state().value.electrons)} → ${resultElement.symbol(targetElectrons)} + ${Proton.details.symbol}$electronTail",
         )
-    }
-
-    companion object {
-        private val alphaForms = setOf(HELIUM_4_ION_2, HELIUM_4_ION_1, HELIUM_4)
     }
 }

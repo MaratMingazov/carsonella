@@ -39,15 +39,16 @@ class EntityGenerator(
         velocity: Float,
         energy: Float,
         environment: IEnvironment,
+        electrons: Int,
     ): Entity<*> {
 
         val entity = when(element.details.type) {
-            SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
-            RecombinationModule -> RecombinationModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy)
+            SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            RecombinationModule -> RecombinationModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
         }.apply {
             entities.add(this)
             setOnDeath {

@@ -3,7 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4_ION_2
+import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 
@@ -30,7 +30,7 @@ class StarAlphaGammaReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == HELIUM_4_ION_2 }
+            .filter { it.state().value.element == HELIUM_4 }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
@@ -58,6 +58,9 @@ class StarAlphaGammaReaction(
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
         val resultElement = atom1Element.details.alphaGammaResult!!
+        // Перенос электронной оболочки на продукт (2C2): наследует электроны родителя-ядра,
+        // но не больше своего Z. (α,γ) повышает Z → кламп здесь no-op, shake-off не нужен.
+        val resultElectrons = minOf(atom1!!.state().value.electrons, resultElement.details.p)
         val resultPhotonEnergy = 1000f
 
 
@@ -71,6 +74,7 @@ class StarAlphaGammaReaction(
                     velocity,
                     energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
                     atom1!!.getEnvironment(),
+                    electrons = resultElectrons,
                 )
                 entityGenerator.createEntity(
                     Element.PHOTON,
@@ -84,7 +88,7 @@ class StarAlphaGammaReaction(
                     environment = atom1!!.getEnvironment(),
                 )
             },
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${resultElement.details.symbol} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(atom1!!.state().value.electrons)} + ${atom2Element.symbol(atom2!!.state().value.electrons)} -> ${resultElement.symbol(resultElectrons)} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

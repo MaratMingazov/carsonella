@@ -43,6 +43,7 @@ class Atom(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
+    electrons: Int = element.details.e,
 ):
     Entity<AtomState>,
     DeathNotifiable by OnDeathSupport(),
@@ -60,6 +61,7 @@ class Atom(
             direction = direction,
             velocity = velocity,
             energy = energy,
+            electrons = electrons,
         )
     )
 

@@ -2,10 +2,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * (n,p) — захват нейтрона с испусканием протона:
@@ -73,37 +75,57 @@ class StarNeutronProtonReaction(
         val atom1Element = a1.state().value.element
         val atom2Element = a2.state().value.element
         val resultElement = atom1Element.details.neutronProtonResult!!
+        // Перенос электронной оболочки на продукт (2C2): (n,p) понижает Z на 1 → если родитель почти
+        // нейтрален, лишний электрон не помещается на продукт и улетает свободным e⁻ (shake-off).
+        val parentElectrons = a1.state().value.electrons
+        val resultElectrons = minOf(parentElectrons, resultElement.details.p)
+        val shakeOff = parentElectrons - resultElectrons
 
+        val spawnList = mutableListOf<() -> Entity<*>>()
+        spawnList += {
+            entityGenerator.createEntity(
+                resultElement,
+                resultPosition,
+                direction,
+                velocity,
+                energy = a1.state().value.energy + a2.state().value.energy,
+                a1.getEnvironment(),
+                electrons = resultElectrons,
+            )
+        }
+        spawnList += {
+            // Протон-отдача вылетает по направлению движения СМ — отдельный degree of
+            // freedom импульса между продуктами в проекте не моделируется (см. StarPPChain).
+            entityGenerator.createEntity(
+                Proton,
+                Position(
+                    resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
+                    resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
+                ),
+                direction,
+                20f,
+                energy = 0f,
+                environment = a1.getEnvironment(),
+            )
+        }
+        repeat(shakeOff) {
+            spawnList += {
+                entityGenerator.createEntity(
+                    ELECTRON,
+                    Position(resultPosition.x, resultPosition.y + resultElement.details.radius),
+                    randomDirection(entityGenerator.random),
+                    20f,
+                    energy = 0f,
+                    environment = a1.getEnvironment(),
+                )
+            }
+        }
+
+        val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(a1, a2),
-            spawn = listOf(
-                {
-                    entityGenerator.createEntity(
-                        resultElement,
-                        resultPosition,
-                        direction,
-                        velocity,
-                        energy = a1.state().value.energy + a2.state().value.energy,
-                        a1.getEnvironment(),
-                    )
-                },
-                {
-                    // Протон-отдача вылетает по направлению движения СМ — отдельный degree of
-                    // freedom импульса между продуктами в проекте не моделируется (см. StarPPChain).
-                    entityGenerator.createEntity(
-                        Proton,
-                        Position(
-                            resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
-                            resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
-                        ),
-                        direction,
-                        20f,
-                        energy = 0f,
-                        environment = a1.getEnvironment(),
-                    )
-                },
-            ),
-            description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} → ${resultElement.details.symbol} + ${Proton.details.symbol}",
+            spawn = spawnList,
+            description = "$id: ${atom1Element.symbol(parentElectrons)} + ${atom2Element.symbol(a2.state().value.electrons)} → ${resultElement.symbol(resultElectrons)} + ${Proton.details.symbol}$electronTail",
         )
     }
 }
