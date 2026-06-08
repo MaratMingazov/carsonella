@@ -210,6 +210,7 @@ enum class Element() {
     HELIUM_3,
     HELIUM_4,
     LITHIUM_7,
+    LITHIUM_8,
     BERYLLIUM_7,
     BERYLLIUM_8,
     BORON_8,
