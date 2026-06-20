@@ -22,7 +22,6 @@ import maratmingazovr.ai.carsonella.world.save.WorldSnapshotDto
 import maratmingazovr.ai.carsonella.world.save.readSaveFile
 import maratmingazovr.ai.carsonella.world.save.writeSaveFile
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
@@ -48,9 +47,7 @@ class World(
     // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
     var tick: Long = 0L
         private set
-    // Конкретный генератор нужен для загрузки (createEntityWithId); наружу отдаём через интерфейс.
-    private val _entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
-    val entityGenerator: IEntityGenerator = _entityGenerator
+    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
 
     // Отложенная загрузка: load() кладёт сюда слепок, а применяется он внутри тика —
     // чтобы «тик оставался единственным писателем мира» (см. README, технические TODO).
@@ -223,7 +220,7 @@ class World(
                 logs += "${currentTime()}: load: неизвестный элемент ${e.element}, пропущен"
                 return@forEach
             }
-            byId[e.id] = _entityGenerator.createEntityWithId(
+            byId[e.id] = entityGenerator.createEntityWithId(
                 id = e.id,
                 element = element,
                 position = Position(e.x, e.y),
