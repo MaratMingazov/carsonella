@@ -71,6 +71,12 @@ interface Entity<State : EntityState<State>> :
         )
     }
 
+    // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
+    // спокойно осталась там, куда её положили, а не улетела по инерции.
+    fun moveTo(position: Position) {
+        state().value = state().value.copyWith(position = position, velocity = 0f)
+    }
+
     fun reduceVelocity() {
         if (state().value.velocity < 0.1f) {
             state().value = state().value.copyWith(velocity = 0f)

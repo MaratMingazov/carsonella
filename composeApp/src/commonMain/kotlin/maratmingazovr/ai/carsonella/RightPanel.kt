@@ -29,6 +29,7 @@ import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
@@ -186,26 +187,44 @@ private fun SceneCanvas(
     modifier: Modifier = Modifier
 ) {
 
+    // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
+    // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
+    val entitiesLatest = rememberUpdatedState(entitiesState)
+    val onHoverLatest = rememberUpdatedState(onHover)
+    val onSelectLatest = rememberUpdatedState(onSelect)
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .pointerInput(entitiesState) {
+            .pointerInput(Unit) {
                 awaitPointerEventScope {
+                    var draggingId: Long? = null
                     while (true) {
                         val e = awaitPointerEvent()               // получаем событие
                         val change = e.changes.firstOrNull() ?: continue
 
-                        // 1) hover: всегда обновляем позицию курсора
-                        onHover(change.position)
+                        // hover: всегда обновляем позицию курсора
+                        onHoverLatest.value(change.position)
 
-                        // 2) если это отпускание (клик) — выбираем под курсором
-                        if (change.changedToUp()) {
-                            val selectedId = hitTest(entitiesState, change.position)
-                            onSelect(selectedId) // если оставляешь логику через hoveredId
-
-                            // Если у
+                        // нажали прямо на частицу → берём её «в руку»
+                        if (change.changedToDown()) {
+                            draggingId = hitTest(entitiesLatest.value, change.position)
                         }
-                        // по желанию: change.consume() если хочешь прекратить дальнейшую доставку
+
+                        // тянем: частица следует за курсором (подведёшь e⁻ к иону → рекомбинация)
+                        if (draggingId != null && change.pressed) {
+                            world.moveEntityTo(draggingId!!, Position(change.position.x, change.position.y))
+                            change.consume()
+                        }
+
+                        // отпустили
+                        if (change.changedToUp()) {
+                            if (draggingId != null) {
+                                draggingId = null                 // положили частицу
+                            } else {
+                                onSelectLatest.value(hitTest(entitiesLatest.value, change.position)) // обычный клик = выбор
+                            }
+                        }
                     }
                 }
             }

@@ -107,6 +107,12 @@ class World(
         entities.find { it.state().value.id == entityId }?.run { applyForce(force) }
     }
 
+    // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
+    // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
+    fun moveEntityTo(entityId: Long, position: Position) {
+        entities.find { it.state().value.id == entityId }?.moveTo(position)
+    }
+
     /**
      * Экспоненциальное сглаживание: новый = α*текущее + (1-α)*предыдущее
      * alpha: 0.05..0.3 — мягкое сглаживание; 0.5 — более «живое».
