@@ -45,7 +45,13 @@ fun App() {
 
         DragDropContainer {
             Row(Modifier.fillMaxSize()) {
-                LeftPanel(palette = world.palette, selectedElementId = selectedId, entitiesState = entitiesState)
+                LeftPanel(
+                    palette = world.palette,
+                    selectedElementId = selectedId,
+                    entitiesState = entitiesState,
+                    onSave = { world.save() },
+                    onLoad = { world.load() },
+                )
 
                 RightPanel(
                     accept = { it.element in Element.entries },

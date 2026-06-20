@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +23,8 @@ fun LeftPanel(
     palette: List<Element>,
     selectedElementId: Long?,
     entitiesState: List<EntityState<*>>,
+    onSave: () -> Unit,
+    onLoad: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -37,6 +40,10 @@ fun LeftPanel(
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onSave, modifier = Modifier.weight(1f)) { Text("Save") }
+            Button(onClick = onLoad, modifier = Modifier.weight(1f)) { Text("Load") }
+        }
         ElementsPalette(items = palette)
         Spacer(Modifier.weight(1f))
         SelectedEntityPanel(selectedElementId, entitiesState)
