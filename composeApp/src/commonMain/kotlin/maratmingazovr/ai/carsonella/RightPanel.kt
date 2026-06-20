@@ -32,6 +32,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -198,7 +199,8 @@ private fun SceneCanvas(
             .fillMaxWidth()
             .pointerInput(Unit) {
                 awaitPointerEventScope {
-                    var draggingId: Long? = null
+                    var candidateId: Long? = null   // частица под курсором в момент нажатия
+                    var holding = false             // подняли ли её реально (после начала движения)
                     while (true) {
                         val e = awaitPointerEvent()               // получаем событие
                         val change = e.changes.firstOrNull() ?: continue
@@ -206,24 +208,28 @@ private fun SceneCanvas(
                         // hover: всегда обновляем позицию курсора
                         onHoverLatest.value(change.position)
 
-                        // нажали прямо на частицу → берём её «в руку»
+                        // нажали — запоминаем, что под курсором (но ещё не поднимаем)
                         if (change.changedToDown()) {
-                            draggingId = hitTest(entitiesLatest.value, change.position)
+                            candidateId = hitTest(entitiesLatest.value, change.position)
+                            holding = false
                         }
 
-                        // тянем: частица следует за курсором (подведёшь e⁻ к иону → рекомбинация)
-                        if (draggingId != null && change.pressed) {
-                            world.moveEntityTo(draggingId!!, Position(change.position.x, change.position.y))
+                        // потащили: на первом смещении «поднимаем» частицу, дальше она следует за курсором
+                        if (candidateId != null && change.pressed && change.positionChanged()) {
+                            if (!holding) { world.pickUpEntity(candidateId!!); holding = true }
+                            world.moveEntityTo(candidateId!!, Position(change.position.x, change.position.y))
                             change.consume()
                         }
 
                         // отпустили
                         if (change.changedToUp()) {
-                            if (draggingId != null) {
-                                draggingId = null                 // положили частицу
+                            if (holding) {
+                                world.dropHeldEntity()            // положили — снова взаимодействует
                             } else {
-                                onSelectLatest.value(hitTest(entitiesLatest.value, change.position)) // обычный клик = выбор
+                                onSelectLatest.value(hitTest(entitiesLatest.value, change.position)) // клик без движения = выбор
                             }
+                            candidateId = null
+                            holding = false
                         }
                     }
                 }

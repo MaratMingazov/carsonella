@@ -47,6 +47,10 @@ class World(
     // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
     var tick: Long = 0L
         private set
+    // Частица, которую игрок держит «в руке» (тащит мышью). Пока поднята — не шагает (ничего не
+    // инициирует) и убрана из детей среды (её никто не видит как соседа → ни сил, ни реакций).
+    var heldEntityId: Long? = null
+        private set
     val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
 
     // Отложенная загрузка: load() кладёт сюда слепок, а применяется он внутри тика —
@@ -88,7 +92,7 @@ class World(
                 // если кто-то добавит сущность во время шага
                 val snapshot = entities.toList()
                 snapshot.forEach { entity ->
-                    if (entity.state().value.alive) entity.step()
+                    if (entity.state().value.alive && entity.state().value.id != heldEntityId) entity.step()
                 }
 
                 // Resolve phase — обрабатываем все запросы, накопленные за tick
@@ -111,6 +115,21 @@ class World(
     // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
     fun moveEntityTo(entityId: Long, position: Position) {
         entities.find { it.state().value.id == entityId }?.moveTo(position)
+    }
+
+    // «Поднять» частицу: помечаем held (тик перестаёт её шагать) и убираем из детей среды,
+    // чтобы соседи её не видели — пока в руке, она ни с кем не взаимодействует.
+    fun pickUpEntity(entityId: Long) {
+        val entity = entities.find { it.state().value.id == entityId } ?: return
+        heldEntityId = entityId
+        entity.getEnvironment().removeEnvChild(entity)
+    }
+
+    // «Положить»: возвращаем в детей среды и снимаем held — частица снова взаимодействует.
+    fun dropHeldEntity() {
+        val id = heldEntityId ?: return
+        entities.find { it.state().value.id == id }?.let { it.getEnvironment().addEnvChild(it) }
+        heldEntityId = null
     }
 
     /**
@@ -254,7 +273,9 @@ class World(
     }
 
     fun runReaction(reactionRequest: ReactionRequest) {
-        val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
+        // Поднятую частицу исключаем из реагентов (страховка от устаревшего запроса прошлого тика).
+        val reagents = reactionRequest.reagents.filter { it.state().value.id != heldEntityId }
+        val result = _chemicalReactionResolver.resolve(reagents) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
 
         result.consumed.forEach { it.destroy() }
