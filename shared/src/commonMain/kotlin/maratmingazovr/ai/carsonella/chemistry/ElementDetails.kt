@@ -317,7 +317,11 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     LEAD_205                to Details (type = ElementType.Atom, symbol = "²⁰⁵Pb", label = "Lead (²⁰⁵Pb)", mass = 205f, e = 82, p = 82, n = 123, description = "Свинец", neutronGammaResult = LEAD_206),
     LEAD_206                to Details (type = ElementType.Atom, symbol = "²⁰⁶Pb", label = "Lead (²⁰⁶Pb)", mass = 206f, e = 82, p = 82, n = 124, description = "Свинец", neutronGammaResult = LEAD_207),
     LEAD_207                to Details (type = ElementType.Atom, symbol = "²⁰⁷Pb", label = "Lead (²⁰⁷Pb)", mass = 207f, e = 82, p = 82, n = 125, description = "Свинец", neutronGammaResult = LEAD_208),
-    LEAD_208                to Details (type = ElementType.Atom, symbol = "²⁰⁸Pb", label = "Lead (²⁰⁸Pb)", mass = 208f, e = 82, p = 82, n = 126, description = "Свинец"),
+    LEAD_208                to Details (type = ElementType.Atom, symbol = "²⁰⁸Pb", label = "Lead (²⁰⁸Pb)", mass = 208f, e = 82, p = 82, n = 126, description = "Свинец", neutronGammaResult = LEAD_209),
+    LEAD_209                to Details (type = ElementType.Atom, symbol = "²⁰⁹Pb", label = "Lead (²⁰⁹Pb)", mass = 209f, e = 82, p = 82, n = 127, description = "Свинец", betaMinusDecayResult = BISMUTH_209),
+    BISMUTH_209             to Details (type = ElementType.Atom, symbol = "²⁰⁹Bi", label = "Bismuth (²⁰⁹Bi)", mass = 209f, e = 83, p = 83, n = 126, description = "Висмут", neutronGammaResult = BISMUTH_210),
+    BISMUTH_210             to Details (type = ElementType.Atom, symbol = "²¹⁰Bi", label = "Bismuth (²¹⁰Bi)", mass = 210f, e = 83, p = 83, n = 127, description = "Висмут", betaMinusDecayResult = POLONIUM_210),
+    POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", mass = 210f, e = 84, p = 84, n = 126, description = "Полоний", alphaDecayResult = LEAD_206),
 
     Element.Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE            to Details (type = ElementType.SpaceModule,         symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),

@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.H2
 import maratmingazovr.ai.carsonella.chemistry.Element.O2
 import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Annihilation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.BetaMinusDecay
@@ -50,6 +51,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         SpontaneousEmission(entityGenerator), // элемент в возбужденном состоянии может излучить фотон
         BetaPlusDecay(entityGenerator), // β⁺-распад протон-избыточных ядер (¹³N → ¹³C + e⁺, ¹⁵O → ¹⁵N + e⁺)
         BetaMinusDecay(entityGenerator), // β⁻-распад нейтрон-избыточных ядер (³¹Si → ³¹P + e⁻) — толкает s-процесс вверх по Z
+        AlphaDecay(entityGenerator), // α-распад: ²¹⁰Po → ²⁰⁶Pb + ⁴He — замыкает свинцово-висмутовый цикл s-процесса
 
         StarEmission(entityGenerator),
         RecombinationReaction(entityGenerator),
