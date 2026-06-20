@@ -37,6 +37,10 @@ class World(
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
+    // Счётчик тиков — «время симуляции». Один tick = tickMs (16 мс). Растёт каждый кадр цикла.
+    // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
+    var tick: Long = 0L
+        private set
     val entityGenerator: IEntityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
 
 
@@ -63,6 +67,7 @@ class World(
         _scope.launch {
             val tickMs = 16L
             while (true) {
+                tick++
 
                 // снимок, чтобы не падать на ConcurrentModificationException
                 // если кто-то добавит сущность во время шага
