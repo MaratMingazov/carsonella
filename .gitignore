@@ -3,3 +3,5 @@
 .kotlin
 build
 *.pdf
+# Файлы сохранений мира (runtime, не коммитим)
+saves/
