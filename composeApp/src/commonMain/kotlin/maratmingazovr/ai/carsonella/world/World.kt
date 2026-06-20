@@ -19,6 +19,8 @@ import maratmingazovr.ai.carsonella.world.save.EntityDto
 import maratmingazovr.ai.carsonella.world.save.EnvironmentDto
 import maratmingazovr.ai.carsonella.world.save.WorldJson
 import maratmingazovr.ai.carsonella.world.save.WorldSnapshotDto
+import maratmingazovr.ai.carsonella.world.save.readSaveFile
+import maratmingazovr.ai.carsonella.world.save.writeSaveFile
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
@@ -46,9 +48,13 @@ class World(
     // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
     var tick: Long = 0L
         private set
-    val entityGenerator: IEntityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
+    // Конкретный генератор нужен для загрузки (createEntityWithId); наружу отдаём через интерфейс.
+    private val _entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
+    val entityGenerator: IEntityGenerator = _entityGenerator
 
-
+    // Отложенная загрузка: load() кладёт сюда слепок, а применяется он внутри тика —
+    // чтобы «тик оставался единственным писателем мира» (см. README, технические TODO).
+    private var _pendingSnapshot: WorldSnapshotDto? = null
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
@@ -72,6 +78,13 @@ class World(
         _scope.launch {
             val tickMs = 16L
             while (true) {
+
+                // Load phase — если запрошена загрузка, применяем слепок до шага сущностей
+                _pendingSnapshot?.let { snap ->
+                    applySnapshot(snap)
+                    _pendingSnapshot = null
+                }
+
                 tick++
 
                 // снимок, чтобы не падать на ConcurrentModificationException
@@ -113,8 +126,8 @@ class World(
      */
     fun toSnapshot(): WorldSnapshotDto {
         val saved = entities.toList().filter {
-            val type = it.state().value.element.details.type
-            type != ElementType.SpaceModule && type != ElementType.RecombinationModule
+            val s = it.state().value
+            s.alive && s.element.details.type != ElementType.SpaceModule && s.element.details.type != ElementType.RecombinationModule
         }
         val savedIds = saved.mapTo(mutableSetOf()) { it.state().value.id }
 
@@ -136,7 +149,7 @@ class World(
             )
         }
 
-        val summary = saved.filter { it.state().value.alive }
+        val summary = saved
             .groupingBy { it.state().value.element.name }
             .eachCount()
 
@@ -158,6 +171,85 @@ class World(
     /** Слепок мира в виде JSON-строки. */
     fun toJson(): String = WorldJson.encode(toSnapshot())
 
+    /**
+     * Сохранить мир в файл. Чтение состояния (toSnapshot) — операция только-на-чтение,
+     * поэтому делается прямо здесь, без ожидания тика. Возвращает путь к файлу или null при ошибке.
+     */
+    fun save(name: String = DEFAULT_SAVE_NAME): String? = try {
+        val path = writeSaveFile(name, toJson())
+        logs += "${currentTime()}: saved → $path"
+        path
+    } catch (ex: Exception) {
+        logs += "${currentTime()}: save error: ${ex.message}"
+        null
+    }
+
+    /**
+     * Запросить загрузку из файла. Сам слепок применяется в начале следующего тика
+     * (см. Load phase в start()) — чтобы мир менял только тик.
+     */
+    fun load(name: String = DEFAULT_SAVE_NAME) {
+        val text = readSaveFile(name)
+        if (text == null) {
+            logs += "${currentTime()}: load: файл $name не найден"
+            return
+        }
+        _pendingSnapshot = try {
+            WorldJson.decode(text)
+        } catch (ex: Exception) {
+            logs += "${currentTime()}: load: ошибка разбора $name: ${ex.message}"
+            null
+        }
+    }
+
+    /**
+     * Применить слепок: полностью заменить текущий мир загруженным. Вызывается из тика
+     * (и напрямую из тестов — потому internal, а не private).
+     * Пересоздаём сущности в два прохода: сначала все в корневой среде, затем проводим дерево
+     * (детей звёзд переносим в их родителя по parentId).
+     */
+    internal fun applySnapshot(dto: WorldSnapshotDto) {
+        // 1. Чистим текущий мир (старые сущности и дети корневой среды — под снос)
+        entities.clear()
+        environment.getEnvChildren().toList().forEach { environment.removeEnvChild(it) }
+        _pendingRequests.clear()
+
+        // 2. Пересоздаём живые сущности с их исходными id; пока все в корневой среде
+        val byId = mutableMapOf<Long, Entity<*>>()
+        dto.entities.filter { it.alive }.forEach { e ->
+            val element = try {
+                Element.valueOf(e.element)
+            } catch (ex: IllegalArgumentException) {
+                logs += "${currentTime()}: load: неизвестный элемент ${e.element}, пропущен"
+                return@forEach
+            }
+            byId[e.id] = _entityGenerator.createEntityWithId(
+                id = e.id,
+                element = element,
+                position = Position(e.x, e.y),
+                direction = Vec2D(e.dirX, e.dirY),
+                velocity = e.velocity,
+                energy = e.energy,
+                environment = environment,
+                electrons = e.electrons,
+            )
+        }
+
+        // 3. Проводим дерево среды: детей переносим из корня в родителя (звезду)
+        dto.entities.forEach { e ->
+            val parentId = e.parentId ?: return@forEach
+            val child = byId[e.id] ?: return@forEach
+            val parent = byId[parentId] ?: return@forEach
+            child.updateMyEnvironment(parent)
+        }
+
+        // 4. Восстанавливаем счётчики
+        _idGen.resetTo(dto.idGenNext)
+        tick = dto.tick
+
+        logs += "${currentTime()}: world loaded (tick=${dto.tick}, entities=${byId.size})"
+    }
+
     fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
@@ -165,6 +257,10 @@ class World(
         result.consumed.forEach { it.destroy() }
         result.spawn.forEach { it() }
         result.updateState.forEach { it() }
+    }
+
+    companion object {
+        const val DEFAULT_SAVE_NAME = "world.json"
     }
 }
 

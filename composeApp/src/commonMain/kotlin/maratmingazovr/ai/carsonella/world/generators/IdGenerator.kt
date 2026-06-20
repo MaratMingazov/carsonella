@@ -11,4 +11,7 @@ class IdGenerator() {
 
     /** Следующий id, который выдаст nextId() — для сохранения состояния генератора. */
     fun peekNext(): Long = current.value
+
+    /** Восстановить счётчик при загрузке сохранения — чтобы новые id не конфликтовали с загруженными. */
+    fun resetTo(value: Long) { current.value = value }
 }

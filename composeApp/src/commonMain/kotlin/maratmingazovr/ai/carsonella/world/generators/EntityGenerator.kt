@@ -40,15 +40,31 @@ class EntityGenerator(
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
+    ): Entity<*> = createEntityWithId(idGen.nextId(), element, position, direction, velocity, energy, environment, electrons)
+
+    /**
+     * То же, что createEntity, но с заранее заданным id вместо idGen.nextId().
+     * Нужно при загрузке сохранения: id должны совпасть с сохранёнными, чтобы корректно
+     * восстановить дерево среды (parentId ссылается на id родителя).
+     */
+    fun createEntityWithId(
+        id: Long,
+        element: Element,
+        position: Position,
+        direction: Vec2D,
+        velocity: Float,
+        energy: Float,
+        environment: IEnvironment,
+        electrons: Int = element.details.e,
     ): Entity<*> {
 
         val entity = when(element.details.type) {
-            SubAtom -> SubAtom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Atom -> Atom(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Molecule -> Molecule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Star -> Star(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            SpaceModule -> SpaceModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            RecombinationModule -> RecombinationModule(id = idGen.nextId(), element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            SubAtom -> SubAtom(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Atom -> Atom(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Molecule -> Molecule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            Star -> Star(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            SpaceModule -> SpaceModule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            RecombinationModule -> RecombinationModule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
         }.apply {
             entities.add(this)
             setOnDeath {
