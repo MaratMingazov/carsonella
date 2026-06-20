@@ -8,4 +8,7 @@ class IdGenerator() {
     fun nextId(): Long {
         return current.value++
     }
+
+    /** Следующий id, который выдаст nextId() — для сохранения состояния генератора. */
+    fun peekNext(): Long = current.value
 }

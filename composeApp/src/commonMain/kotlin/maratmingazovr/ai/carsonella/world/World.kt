@@ -12,8 +12,13 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
+import maratmingazovr.ai.carsonella.world.save.EntityDto
+import maratmingazovr.ai.carsonella.world.save.EnvironmentDto
+import maratmingazovr.ai.carsonella.world.save.WorldJson
+import maratmingazovr.ai.carsonella.world.save.WorldSnapshotDto
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.randomDirection
@@ -100,6 +105,58 @@ class World(
         alpha * current + (1f - alpha) * prev
 
 
+
+    /**
+     * Снимок мира для сохранения. Маппинг «живой мир → DTO».
+     * Модули (SpaceModule/RecombinationModule) пока пропускаем. Дерево среды передаём через parentId:
+     * если родитель сущности — звезда (она же среда), пишем её id; иначе (корневой Environment) — null.
+     */
+    fun toSnapshot(): WorldSnapshotDto {
+        val saved = entities.toList().filter {
+            val type = it.state().value.element.details.type
+            type != ElementType.SpaceModule && type != ElementType.RecombinationModule
+        }
+        val savedIds = saved.mapTo(mutableSetOf()) { it.state().value.id }
+
+        val entityDtos = saved.map { e ->
+            val s = e.state().value
+            // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
+            // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
+            val parentId = (e.getEnvironment() as? Entity<*>)?.state()?.value?.id?.takeIf { it in savedIds }
+            EntityDto(
+                id = s.id,
+                element = s.element.name,
+                alive = s.alive,
+                x = s.position.x, y = s.position.y,
+                dirX = s.direction.x, dirY = s.direction.y,
+                velocity = s.velocity,
+                energy = s.energy,
+                electrons = s.electrons,
+                parentId = parentId,
+            )
+        }
+
+        val summary = saved.filter { it.state().value.alive }
+            .groupingBy { it.state().value.element.name }
+            .eachCount()
+
+        return WorldSnapshotDto(
+            tick = tick,
+            seed = _seed,
+            idGenNext = _idGen.peekNext(),
+            environment = EnvironmentDto(
+                centerX = environment.getEnvCenter().x,
+                centerY = environment.getEnvCenter().y,
+                radius = environment.getEnvRadius(),
+                temperature = environment.getEnvTemperature().name,
+            ),
+            entities = entityDtos,
+            summary = summary,
+        )
+    }
+
+    /** Слепок мира в виде JSON-строки. */
+    fun toJson(): String = WorldJson.encode(toSnapshot())
 
     fun runReaction(reactionRequest: ReactionRequest) {
         val result = _chemicalReactionResolver.resolve(reactionRequest.reagents) ?: return
