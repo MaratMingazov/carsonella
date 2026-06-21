@@ -63,7 +63,7 @@ fun ElementsPalette(items: List<Element>, modifier: Modifier = Modifier) {
                         Modifier
                             .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) { Text(el.label(el.details.e).toAsciiSymbols()) }
+                    ) { Text(el.label(el.details.e)) }
                 }
             }
         }
@@ -90,6 +90,6 @@ fun SelectedEntityPanel(
         val selectedElement = selectedElementFlow
 
         Spacer(Modifier.height(8.dp))
-        Text(selectedElement.toString().toAsciiSymbols(), style = MaterialTheme.typography.bodySmall)
+        Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
     }
 }

@@ -321,7 +321,7 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     BISMUTH_210             to Details (type = ElementType.Atom, symbol = "²¹⁰Bi", label = "Bismuth (²¹⁰Bi)", mass = 210f, e = 83, p = 83, n = 127, description = "Висмут", betaMinusDecayResult = POLONIUM_210),
     POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", mass = 210f, e = 84, p = 84, n = 126, description = "Полоний", alphaDecayResult = LEAD_206),
 
-    Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 200f),
+    Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
     SPACE_MODULE            to Details (type = ElementType.SpaceModule,         symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),
     RECOMBINATION_MODULE    to Details (type = ElementType.RecombinationModule, symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),
 

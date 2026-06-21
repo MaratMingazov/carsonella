@@ -12,7 +12,6 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
-import maratmingazovr.ai.carsonella.toAsciiSymbols
 
 /**
  * Светящаяся палитра (CPK-вдохновлённая), подобранная под тёмный фон.
@@ -93,7 +92,7 @@ fun DrawScope.drawFloatingLabel(
     text: String,
 ) {
     val layout = textMeasurer.measure(
-        text = text.toAsciiSymbols(),
+        text = text,
         style = TextStyle(color = Color.White, fontSize = 11.sp),
     )
     val w = layout.size.width.toFloat()
