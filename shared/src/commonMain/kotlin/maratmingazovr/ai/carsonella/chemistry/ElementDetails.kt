@@ -15,12 +15,12 @@ import maratmingazovr.ai.carsonella.chemistry.Element.*
 
 internal fun elementDetails(): Map<Element, Details> = mapOf(
     // --- субатомные частицы ---
-    PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           mass = 0f,  e = 0, p = 0, n = 0, radius = 5f),
-    ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        mass = 0.1f,e = 1, p = 0, n = 0, radius = 5f),
+    PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           mass = 0f,  e = 0, p = 0, n = 0, radius = 10f),
+    ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        mass = 0.1f,e = 1, p = 0, n = 0, radius = 10f),
     Proton                  to Details (type = ElementType.SubAtom,     symbol = "p⁺",          label = "Proton (p⁺)",          mass = 1f,  e = 0, p = 1, n = 0, radius = 10f, neutronGammaResult = DEUTERIUM),
     NEUTRON                 to Details (type = ElementType.SubAtom,     symbol = "n",           label = "Neutron (n)",          mass = 1f,  e = 0, p = 0, n = 1, radius = 10f),
     // Позитрон — фундаментальная античастица электрона; p = 1 здесь это маркер положительного единичного заряда (для calculateForce), а не «содержит протон».
-    POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        mass = 0.1f,e = 0, p = 1, n = 0, radius = 5f),
+    POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        mass = 0.1f,e = 0, p = 1, n = 0, radius = 10f),
 
     // --- атомы ---
     HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",           label = "Hydrogen (H)",         mass = 1f, e = 1, p = 1, n = 0,      description = "Водород"),
@@ -321,7 +321,7 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     BISMUTH_210             to Details (type = ElementType.Atom, symbol = "²¹⁰Bi", label = "Bismuth (²¹⁰Bi)", mass = 210f, e = 83, p = 83, n = 127, description = "Висмут", betaMinusDecayResult = POLONIUM_210),
     POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", mass = 210f, e = 84, p = 84, n = 126, description = "Полоний", alphaDecayResult = LEAD_206),
 
-    Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 100f),
+    Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         mass = 1f, e = 1, p = 1, n = 0, radius = 200f),
     SPACE_MODULE            to Details (type = ElementType.SpaceModule,         symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),
     RECOMBINATION_MODULE    to Details (type = ElementType.RecombinationModule, symbol = ".",       label = "SpaceModule",  mass = 1f, e = 1, p = 1, n = 0, radius = 30f),
 
