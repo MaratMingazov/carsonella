@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
@@ -75,7 +76,7 @@ fun RightPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color.White)
+                    .background(Color(0xFF03040A))
                     .padding(4.dp)
                     .focusRequester(focusRequester) // для обработки клавиш клавиутуры
                     .focusable() // важно!
@@ -172,6 +173,9 @@ private fun TemperatureBadge(temperatureKelvin: Float, modifier: Modifier = Modi
     }
 }
 
+// Тусклая фоновая звезда: позиция нормирована (0..1), масштабируется под размер канвы.
+private data class StarDot(val nx: Float, val ny: Float, val radius: Float, val alpha: Float)
+
 @Composable
 private fun SceneCanvas(
     world: World,
@@ -193,6 +197,19 @@ private fun SceneCanvas(
     val entitiesLatest = rememberUpdatedState(entitiesState)
     val onHoverLatest = rememberUpdatedState(onHover)
     val onSelectLatest = rememberUpdatedState(onSelect)
+
+    // Тусклые звёзды фона: позиции нормированы (0..1), генерируем один раз сидированным RNG.
+    val stars = remember {
+        val rnd = kotlin.random.Random(42)
+        List(140) {
+            StarDot(
+                nx = rnd.nextFloat(),
+                ny = rnd.nextFloat(),
+                radius = 0.4f + rnd.nextFloat() * 1.1f,
+                alpha = 0.15f + rnd.nextFloat() * 0.5f,
+            )
+        }
+    }
 
     Canvas(
         modifier = modifier
@@ -235,12 +252,26 @@ private fun SceneCanvas(
                 }
             }
     ) {
-        // фон
-        drawRect(Color.White, size = size)
+        // тёмный космический фон: радиальный градиент + редкие тусклые звёзды
+        drawRect(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF0B1026), Color(0xFF03040A)),
+                center = Offset(size.width / 2f, size.height / 2f),
+                radius = kotlin.math.max(size.width, size.height) * 0.75f,
+            ),
+            size = size,
+        )
+        stars.forEach { s ->
+            drawCircle(
+                color = Color.White.copy(alpha = s.alpha),
+                radius = s.radius,
+                center = Offset(s.nx * size.width, s.ny * size.height),
+            )
+        }
 
         // граница корневого environment
         drawCircle(
-            color = Color.LightGray,
+            color = Color.White.copy(alpha = 0.10f),
             center = world.environment.getEnvCenter().toOffset(),
             radius = world.environment.getEnvRadius(),
             style = Stroke(width = 1f)
@@ -266,7 +297,7 @@ private fun SceneCanvas(
             entitiesState.firstOrNull { it.id == id }?.let { selectedEntity ->
                 val selectedEntityPosition = selectedEntity.position.toOffset()
                 drawCircle(
-                    color = Color.Blue.copy(alpha = 0.8f),
+                    color = Color(0xFF80E8FF).copy(alpha = 0.9f),
                     center = selectedEntityPosition,
                     radius = 18f,
                     style = Stroke(width = 3f)
