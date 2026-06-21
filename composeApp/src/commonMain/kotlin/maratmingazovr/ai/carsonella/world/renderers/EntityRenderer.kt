@@ -5,9 +5,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.AtomState
 import maratmingazovr.ai.carsonella.chemistry.MoleculeState
@@ -61,13 +58,9 @@ class EntityRenderer(
             // плотное ядро
             drawCircle(color = color.copy(alpha = 0.9f), center = position, radius = baseRadius * 0.35f)
 
-            // символ — только при наведении/выборе (чисто и медитативно)
+            // символ — только при наведении/выборе, всплывает над частицей
             if (showLabel) {
-                val textLayoutResult = textMeasurer.measure(text = entityState.element.symbol(entityState.electrons), style = TextStyle(color = Color.White, fontSize = 10.sp))
-                drawText(
-                    textLayoutResult,
-                    topLeft = Offset(position.x - textLayoutResult.size.width / 2, position.y - textLayoutResult.size.height / 2)
-                )
+                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.element.symbol(entityState.electrons))
             }
         }
     }

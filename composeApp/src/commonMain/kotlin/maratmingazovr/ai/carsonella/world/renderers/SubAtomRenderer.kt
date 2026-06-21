@@ -4,9 +4,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.toOffset
@@ -55,7 +52,7 @@ class SubAtomRenderer(
         with(drawScope) {
             drawGlow(p, radius = radius, color = color)
             drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = radius * 0.35f)
-            if (showLabel) drawLabel(p, label)
+            if (showLabel) drawFloatingLabel(textMeasurer, p, radius, label)
         }
     }
 
@@ -76,18 +73,7 @@ class SubAtomRenderer(
         with(drawScope) {
             drawGlow(p, radius = 11f, color = color)
             drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = 3.5f)
-            if (showLabel) drawLabel(p, label)
+            if (showLabel) drawFloatingLabel(textMeasurer, p, 11f, label)
         }
-    }
-
-    private fun DrawScope.drawLabel(p: Offset, text: String) {
-        val textLayoutResult = textMeasurer.measure(
-            text = text,
-            style = TextStyle(color = Color.White, fontSize = 10.sp),
-        )
-        drawText(
-            textLayoutResult,
-            topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
-        )
     }
 }

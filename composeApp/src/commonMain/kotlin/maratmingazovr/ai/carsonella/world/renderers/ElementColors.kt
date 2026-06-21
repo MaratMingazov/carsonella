@@ -1,11 +1,18 @@
 package maratmingazovr.ai.carsonella.world.renderers
 
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.toAsciiSymbols
 
 /**
  * Светящаяся палитра (CPK-вдохновлённая), подобранная под тёмный фон.
@@ -73,4 +80,31 @@ fun DrawScope.drawGlow(center: Offset, radius: Float, color: Color, intensity: F
         radius = radius,
     )
     drawCircle(brush = brush, radius = radius, center = center)
+}
+
+/**
+ * Подпись частицы, всплывающая НАД ней (а не поверх ядра), с тёмной подложкой для читаемости.
+ * Символы приводятся к ASCII (в вебе нет глифов надстрочных/подстрочных).
+ */
+fun DrawScope.drawFloatingLabel(
+    textMeasurer: TextMeasurer,
+    center: Offset,
+    aboveRadius: Float,
+    text: String,
+) {
+    val layout = textMeasurer.measure(
+        text = text.toAsciiSymbols(),
+        style = TextStyle(color = Color.White, fontSize = 11.sp),
+    )
+    val w = layout.size.width.toFloat()
+    val h = layout.size.height.toFloat()
+    val x = center.x - w / 2f
+    val y = center.y - aboveRadius - 6f - h
+    drawRoundRect(
+        color = Color.Black.copy(alpha = 0.55f),
+        topLeft = Offset(x - 4f, y - 2f),
+        size = Size(w + 8f, h + 4f),
+        cornerRadius = CornerRadius(4f, 4f),
+    )
+    drawText(layout, topLeft = Offset(x, y))
 }

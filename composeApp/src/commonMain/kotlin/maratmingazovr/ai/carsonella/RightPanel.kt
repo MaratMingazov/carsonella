@@ -403,7 +403,7 @@ fun ConsolePanel(
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             items(logs.size) { i ->
                 Text(
-                    logs[i],
+                    logs[i].toAsciiSymbols(),
                     color = Color(0xFF212121),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace
