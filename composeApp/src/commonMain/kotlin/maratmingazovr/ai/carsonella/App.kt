@@ -41,7 +41,15 @@ fun App() {
         var selectedId by remember { mutableStateOf<Long?>(null) }
 
 
-        val entitiesState = world.entities.map { atom -> val atomsState by atom.state().collectAsState(); atomsState } // каждый кадр мы обновляем состояние сущностей
+        // collectAsState вызывается в цикле, поэтому каждый элемент оборачиваем в key(id):
+        // слот подписки привязан к сущности (по id), а не к позиции в списке. Без этого при
+        // рождении/смерти частиц слоты «съезжают» и часть подписок теряется → сущность (в т.ч.
+        // звезда) может перестать перерисовываться.
+        val entitiesState = world.entities.map { atom ->
+            key(atom.state().value.id) {
+                val atomsState by atom.state().collectAsState(); atomsState
+            }
+        }
 
         DragDropContainer {
             Row(Modifier.fillMaxSize()) {
