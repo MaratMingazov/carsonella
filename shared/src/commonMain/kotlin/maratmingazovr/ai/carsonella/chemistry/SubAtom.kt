@@ -82,10 +82,16 @@ class SubAtom(
 
     private fun initPhoton(environment: IEnvironment) {
         applyNewPosition()
-        // Фотон и Электрон разрушаются, если вылетают за пределы поля
-        if (state.value.element in listOf(PHOTON, ELECTRON)) {
-            val distanceSquare = state.value.position.distanceSquareTo(environment.getEnvCenter())
-            if (distanceSquare > environment.getEnvRadius() * environment.getEnvRadius()) {
+        // Фотон достиг границы своей среды?
+        val distanceSquare = state.value.position.distanceSquareTo(environment.getEnvCenter())
+        if (distanceSquare > environment.getEnvRadius() * environment.getEnvRadius()) {
+            // Если среда — частица-контейнер (звезда/модуль), она выпускает фотон в свою внешнюю
+            // среду: свет уходит из звезды в космос (тот же приём updateMyEnvironment, что и в StarEmission).
+            // Если это корневая среда (не Entity) — фотон покидает мир и гаснет.
+            val container = environment as? Entity<*>
+            if (container != null) {
+                updateMyEnvironment(container.getEnvironment())
+            } else {
                 destroy()
             }
         }
