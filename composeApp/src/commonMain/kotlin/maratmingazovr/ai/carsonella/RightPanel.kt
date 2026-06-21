@@ -278,8 +278,8 @@ private fun SceneCanvas(
 //        world.environment.setWorldWidth(size.width)
 //        world.environment.setWorldHeight(size.height)
 
-        // отрисовка сущностей
-        entitiesState.forEach { renderer.render(this, it, phase, phase2) }
+        // отрисовка сущностей; символ показываем только у наведённой/выбранной
+        entitiesState.forEach { renderer.render(this, it, phase, phase2, showLabel = it.id == hoveredId || it.id == selectedId) }
 
         // подсветка ховера
         hoveredId?.let { id ->

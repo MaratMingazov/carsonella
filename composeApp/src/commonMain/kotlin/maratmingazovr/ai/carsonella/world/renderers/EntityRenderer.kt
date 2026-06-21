@@ -3,9 +3,7 @@ package maratmingazovr.ai.carsonella.world.renderers
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -29,13 +27,14 @@ class EntityRenderer(
         entityState: EntityState<*>,
         phase: Float,
         phase2: Float,
+        showLabel: Boolean = false,
     ) {
         when (entityState) {
-            is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase)
-            is AtomState -> drawEntity(drawScope, entityState, phase)
-            is MoleculeState -> drawEntity(drawScope, entityState, phase)
+            is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
+            is AtomState -> drawEntity(drawScope, entityState, phase, showLabel)
+            is MoleculeState -> drawEntity(drawScope, entityState, phase, showLabel)
             is StarState -> drawStar(drawScope, entityState, phase, phase2)
-            is SpaceModuleState -> drawEntity(drawScope, entityState, phase)
+            is SpaceModuleState -> drawEntity(drawScope, entityState, phase, showLabel)
 
         }
     }
@@ -44,6 +43,7 @@ class EntityRenderer(
         drawScope: DrawScope,
         entityState: EntityState<*>,
         phase: Float,
+        showLabel: Boolean,
     ) {
         // параметры вибрации
         val amp = 1f + entityState.energy                  // амплитуда в пикселях
@@ -52,26 +52,23 @@ class EntityRenderer(
         val dy = amp * kotlin.math.sin(phase + idSeed)
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
+        val color = ElementColors.glow(entityState.element)
+        val baseRadius = entityState.element.details.radius
+
         with(drawScope) {
-            drawCircle(
-                color = Color.Black,
-                center = position,
-                radius = entityState.element.details.radius,
-                style = Stroke(
-                    width = 1f,
-                    pathEffect = PathEffect.dashPathEffect(
-                        intervals = floatArrayOf(10f, 5f), // длина штриха, длина пробела
-                        phase = 0f // смещение начала узора
-                    )
+            // мягкое свечение (ярче, если частица возбуждена)
+            drawGlow(position, baseRadius * 1.5f, color, intensity = 1f + entityState.energy * 0.05f)
+            // плотное ядро
+            drawCircle(color = color.copy(alpha = 0.9f), center = position, radius = baseRadius * 0.35f)
+
+            // символ — только при наведении/выборе (чисто и медитативно)
+            if (showLabel) {
+                val textLayoutResult = textMeasurer.measure(text = entityState.element.symbol(entityState.electrons), style = TextStyle(color = Color.White, fontSize = 10.sp))
+                drawText(
+                    textLayoutResult,
+                    topLeft = Offset(position.x - textLayoutResult.size.width / 2, position.y - textLayoutResult.size.height / 2)
                 )
-            )
-
-            val textLayoutResult = textMeasurer.measure(text = entityState.element.symbol(entityState.electrons), style = TextStyle(color = Color.Black, fontSize = 10.sp))
-
-            drawText(
-                textLayoutResult,
-                topLeft = Offset(position.x - textLayoutResult.size.width / 2, position.y - textLayoutResult.size.height / 2)
-            )
+            }
         }
     }
 
@@ -94,10 +91,14 @@ class EntityRenderer(
         val pulsingRadius = baseRadius + pulse
 
         with(drawScope) {
-
-            // радиальный градиент: от красного на границе к прозрачному в центре
+            // тёплое светило: бело-жёлтое ядро → оранжевый → красный → прозрачность, с пульсом
             val gradientBrush = Brush.radialGradient(
-                colors = listOf(Color.Red, Color.Transparent),
+                colorStops = arrayOf(
+                    0.0f to Color(0xFFFFF6E0),
+                    0.3f to Color(0xFFFFC04D),
+                    0.6f to Color(0xFFFF6A3D),
+                    1.0f to Color.Transparent,
+                ),
                 center = position,
                 radius = pulsingRadius
             )
@@ -108,13 +109,6 @@ class EntityRenderer(
                 center = position,
                 radius = pulsingRadius
             )
-
-//            drawCircle(
-//                color = Color.Black,
-//                center = position,
-//                radius = entityState.element.radius,
-//                style = Stroke(width = 1f,)
-//            )
         }
     }
 }

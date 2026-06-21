@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.world.renderers
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
@@ -19,13 +18,14 @@ class SubAtomRenderer(
         drawScope: DrawScope,
         state: SubAtomState,
         phase: Float,
+        showLabel: Boolean,
     ) {
         when (state.element) {
             Element.PHOTON -> drawPhoton(drawScope, state)
-            Element.ELECTRON -> drawElectron(drawScope, state)
-            Element.POSITRON -> drawPositron(drawScope, state)
-            Element.Proton -> drawProton(drawScope, state, phase)
-            Element.NEUTRON -> drawNeutron(drawScope, state, phase)
+            Element.ELECTRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "−", showLabel = showLabel)
+            Element.POSITRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "+", showLabel = showLabel)
+            Element.Proton -> drawNucleon(drawScope, state, phase, label = "+", showLabel = showLabel)
+            Element.NEUTRON -> drawNucleon(drawScope, state, phase, label = "n", showLabel = showLabel)
             else -> throw NotImplementedError()
         }
     }
@@ -36,102 +36,58 @@ class SubAtomRenderer(
     ) {
         val p = state.position.toOffset()
         with(drawScope) {
-            drawCircle(color = Color.Black, center = p, radius = 5f)
+            // яркая искра света: маленькое свечение + плотное ядро
+            drawGlow(p, radius = 8f, color = ElementColors.glow(state.element), intensity = 1.2f)
+            drawCircle(color = Color(0xFFFFFDF0), center = p, radius = 2.5f)
         }
     }
 
-    private fun drawElectron(
+    // Электрон / позитрон: свечение цвета заряда + символ по наведению.
+    private fun drawChargedSubAtom(
         drawScope: DrawScope,
         state: SubAtomState,
+        radius: Float,
+        label: String,
+        showLabel: Boolean,
     ) {
         val p = state.position.toOffset()
-        val radius = 7f
+        val color = ElementColors.glow(state.element)
         with(drawScope) {
-            drawCircle(color = Color.Blue, center = p, radius = radius)
-            val textLayoutResult = textMeasurer.measure(
-                text = "−",
-                style = TextStyle(color = Color.White, fontSize = 10.sp),
-            )
-            drawText(
-                textLayoutResult,
-                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
-            )
+            drawGlow(p, radius = radius, color = color)
+            drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = radius * 0.35f)
+            if (showLabel) drawLabel(p, label)
         }
     }
 
-    private fun drawPositron(
-        drawScope: DrawScope,
-        state: SubAtomState,
-    ) {
-        val p = state.position.toOffset()
-        val radius = 7f
-        with(drawScope) {
-            drawCircle(color = Color.Red, center = p, radius = radius)
-            val textLayoutResult = textMeasurer.measure(
-                text = "+",
-                style = TextStyle(color = Color.White, fontSize = 10.sp),
-            )
-            drawText(
-                textLayoutResult,
-                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
-            )
-        }
-    }
-
-    private fun drawProton(
+    // Протон / нейтрон: «нуклон» со свечением и лёгкой вибрацией; символ по наведению.
+    private fun drawNucleon(
         drawScope: DrawScope,
         state: SubAtomState,
         phase: Float,
-    ) {
-
-        // параметры вибрации
-        val amp = 2f                  // амплитуда в пикселях
-        val idSeed = (state.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
-        val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
-        val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
-        val p = state.position.toOffset()  + Offset(dx, dy)
-
-
-        with(drawScope) {
-            val radius = 10f
-            val brush = Brush.radialGradient(
-                colors = listOf(Color.Gray, Color.Gray.copy(alpha = 0.5f), Color.Transparent),
-                center = p,
-                radius = radius
-            )
-            drawCircle(brush = brush, center = p, radius = radius)
-        }
-    }
-
-    // Нейтрон: тот же серый «нуклон»-градиент с вибрацией, что у протона, плюс белая «n»
-    // поверх — чтобы визуально различать заряженный/нейтральный нуклоны.
-    private fun drawNeutron(
-        drawScope: DrawScope,
-        state: SubAtomState,
-        phase: Float,
+        label: String,
+        showLabel: Boolean,
     ) {
         val amp = 2f
         val idSeed = (state.id % 1000).toFloat()
         val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
         val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
         val p = state.position.toOffset() + Offset(dx, dy)
-
+        val color = ElementColors.glow(state.element)
         with(drawScope) {
-            val radius = 10f
-            val brush = Brush.radialGradient(
-                colors = listOf(Color.Gray, Color.Gray.copy(alpha = 0.5f), Color.Transparent),
-                center = p,
-                radius = radius,
-            )
-            drawCircle(brush = brush, center = p, radius = radius)
-            val textLayoutResult = textMeasurer.measure(
-                text = "n",
-                style = TextStyle(color = Color.White, fontSize = 10.sp),
-            )
-            drawText(
-                textLayoutResult,
-                topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
-            )
+            drawGlow(p, radius = 11f, color = color)
+            drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = 3.5f)
+            if (showLabel) drawLabel(p, label)
         }
+    }
+
+    private fun DrawScope.drawLabel(p: Offset, text: String) {
+        val textLayoutResult = textMeasurer.measure(
+            text = text,
+            style = TextStyle(color = Color.White, fontSize = 10.sp),
+        )
+        drawText(
+            textLayoutResult,
+            topLeft = Offset(p.x - textLayoutResult.size.width / 2, p.y - textLayoutResult.size.height / 2),
+        )
     }
 }
