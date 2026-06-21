@@ -79,7 +79,7 @@ class Star(
         reduceVelocity()
         checkBorders(environment)
 
-        radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
+        //radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
 
         // это нужно будет, если солнце будет поглощать элементы
 //                neighbors
