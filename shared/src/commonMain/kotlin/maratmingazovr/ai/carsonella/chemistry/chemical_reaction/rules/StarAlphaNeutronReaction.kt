@@ -104,6 +104,7 @@ class StarAlphaNeutronReaction(
                         20f,
                         energy = 0f,
                         environment = a1.getEnvironment(),
+                        electrons = 0,
                     )
                 },
             ),

@@ -134,6 +134,7 @@ class StarOxygenBurning(
                     20f,
                     energy = 0f,
                     environment = a1.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }
@@ -150,6 +151,7 @@ class StarOxygenBurning(
                 10f,
                 energy = resultPhotonEnergy,
                 environment = a1.getEnvironment(),
+                electrons = 0,
             )
         }
 

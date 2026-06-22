@@ -586,7 +586,6 @@ data class Details(
     val symbol: String,
     val label: String,
     val mass: Float,
-    val e: Int, // Количество электронов в элементе
     val p: Int, // Количество протонов в элементе
     val n: Int, // Количество нейтронов в элементе
     val radius: Float = 20f,

@@ -63,7 +63,7 @@ fun ElementsPalette(items: List<Element>, modifier: Modifier = Modifier) {
                         Modifier
                             .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
                             .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) { Text(el.label(el.details.e)) }
+                    ) { Text(el.label(el.details.p)) }
                 }
             }
         }

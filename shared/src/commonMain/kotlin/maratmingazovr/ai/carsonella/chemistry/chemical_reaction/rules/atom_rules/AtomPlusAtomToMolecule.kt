@@ -17,8 +17,6 @@ class AtomPlusAtomToMolecule(
     private val resultElement: Element,
     private val resultPhotonEnergy: Float = 0f, // в результате реакции может выделяться энергия в виде фотонов в эВ.
     private val temperatureMode: TemperatureMode = TemperatureMode.Space,
-    private val resultElement2: Element? = null,
-    private val resultElement3: Element? = null,
 ) : ReactionRule {
     override val id = "AtomPlusAtomToMolecule"
 
@@ -72,6 +70,7 @@ class AtomPlusAtomToMolecule(
         val resultPosition = atom1!!.state().value.position
         val atom1Element = atom1!!.state().value.element
         val atom2Element = atom2!!.state().value.element
+        val resultElectrons = atom1!!.state().value.electrons + atom2!!.state().value.electrons
 
         spawnList += {
             entityGenerator.createEntity(
@@ -81,35 +80,8 @@ class AtomPlusAtomToMolecule(
                 velocity,
                 energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
                 atom1!!.getEnvironment(),
+                electrons = resultElectrons,
             )
-        }
-
-        if (resultElement2 != null) {
-            spawnList += {
-                entityGenerator.createEntity(
-                    resultElement2,
-                    Position(resultPosition.x + 1.5f * direction.x * resultElement.details.radius,resultPosition.y),
-                    direction,
-                    velocity,
-                    energy = 0f,
-                    environment = atom1!!.getEnvironment(),
-                )
-            }
-
-        }
-
-        if (resultElement3 != null) {
-            spawnList += {
-                entityGenerator.createEntity(
-                    resultElement3,
-                    Position(resultPosition.x - 1.5f * direction.x * resultElement.details.radius,resultPosition.y),
-                    direction,
-                    velocity,
-                    energy = 0f,
-                    environment = atom1!!.getEnvironment(),
-                )
-            }
-
         }
 
         if (resultPhotonEnergy > 0) {
@@ -121,6 +93,7 @@ class AtomPlusAtomToMolecule(
                     10f,
                     energy = resultPhotonEnergy,
                     environment = atom1!!.getEnvironment(),
+                    electrons = 0,
                 )
             }
 

@@ -158,6 +158,7 @@ class StarPPChain(
                 10f,
                 energy = resultPhotonEnergy,
                 environment = a1.getEnvironment(),
+                electrons = 0,
             )
         }
 

@@ -23,7 +23,7 @@ data class AtomState(
     override var direction: Vec2D,
     override var velocity: Float,
     override var energy: Float,
-    override var electrons: Int = element.details.e, // динамическое число электронов (заряд); дефолт = details.e
+    override var electrons: Int,
 ) : EntityState<AtomState> {
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
@@ -43,7 +43,7 @@ class Atom(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
-    electrons: Int = element.details.e,
+    electrons: Int,
 ):
     Entity<AtomState>,
     DeathNotifiable by OnDeathSupport(),

@@ -78,6 +78,7 @@ class BetaPlusDecay(
                 20f,
                 energy = 0f,
                 environment = parent.getEnvironment(),
+                electrons = 0,
             )
         }
         repeat(shakeOff) {
@@ -89,6 +90,7 @@ class BetaPlusDecay(
                     20f,
                     energy = 0f,
                     environment = parent.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }

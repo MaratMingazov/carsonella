@@ -113,6 +113,7 @@ class AlphaProtonReaction(
                 20f,
                 energy = 0f,
                 environment = t.getEnvironment(),
+                electrons = 0,
             )
         }
         repeat(freedAlphaElectrons) {
@@ -124,6 +125,7 @@ class AlphaProtonReaction(
                     20f,
                     energy = 0f,
                     environment = t.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }

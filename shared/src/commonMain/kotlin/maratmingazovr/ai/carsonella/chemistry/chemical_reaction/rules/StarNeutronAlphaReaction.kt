@@ -123,6 +123,7 @@ class StarNeutronAlphaReaction(
                     20f,
                     energy = 0f,
                     environment = a1.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }

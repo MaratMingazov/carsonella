@@ -77,6 +77,7 @@ class BetaMinusDecay(
                         20f,
                         energy = 0f,
                         environment = parent.getEnvironment(),
+                        electrons = 1,
                     )
                 },
             ),

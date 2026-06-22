@@ -132,6 +132,7 @@ class StarPhotodisintegration(
                 entityGenerator.createEntity(
                     ELECTRON, Position(position.x, position.y + radius),
                     randomDirection(entityGenerator.random), 20f, energy = 0f, environment = a.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }

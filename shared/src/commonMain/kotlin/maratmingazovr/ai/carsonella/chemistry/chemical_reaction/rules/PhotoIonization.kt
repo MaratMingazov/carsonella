@@ -118,8 +118,8 @@ class PhotoIonization (
                 return ReactionOutcome(
                     consumed = listOf(photon!!, entity!!),
                     spawn = listOf {
-                        entityGenerator.createEntity(Proton, ionPosition, entityDirection, entityVelocity, 0f, env)
-                        entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env)
+                        entityGenerator.createEntity(Proton, ionPosition, entityDirection, entityVelocity, 0f, env, electrons = 0)
+                        entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env, electrons = 1)
                     },
                     description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${Proton.details.label} + ${ELECTRON.details.label}"
                 )
@@ -133,7 +133,7 @@ class PhotoIonization (
                     entity!!.setEnergy(0f)
                 },
                 spawn = listOf {
-                    entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env)
+                    entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env, electrons = 1)
                 },
                 description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${entityElement.label(electrons - 1)} + ${ELECTRON.details.label}"
             )

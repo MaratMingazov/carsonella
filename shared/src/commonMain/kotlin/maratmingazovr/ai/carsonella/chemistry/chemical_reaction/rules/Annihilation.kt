@@ -99,6 +99,7 @@ class Annihilation(
                         10f,
                         energy = photonEnergy,
                         environment = positronEntity.getEnvironment(),
+                        electrons = 0,
                     )
                 },
                 {
@@ -112,6 +113,7 @@ class Annihilation(
                         10f,
                         energy = photonEnergy,
                         environment = positronEntity.getEnvironment(),
+                        electrons = 0,
                     )
                 },
             ),

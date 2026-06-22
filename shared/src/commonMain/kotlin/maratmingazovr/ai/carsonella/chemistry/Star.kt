@@ -16,7 +16,7 @@ data class StarState(
     override var direction: Vec2D,
     override var velocity: Float,
     override var energy: Float,
-    override var electrons: Int = element.details.e, // динамическое число электронов (заряд); дефолт = details.e
+    override var electrons: Int,
 ) : EntityState<StarState> {
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
@@ -36,7 +36,7 @@ class Star(
     direction: Vec2D,
     velocity: Float,
     energy: Float,
-    electrons: Int = element.details.e,
+    electrons: Int,
     private val children: MutableList<Entity<*>> = mutableListOf(),
 ):
     Entity<StarState>,

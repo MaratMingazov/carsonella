@@ -75,6 +75,7 @@ class SpontaneousEmission(
                     40f,
                     energy = energyToExpose,
                     environment = entity!!.getEnvironment(),
+                    electrons = 0,
                 )
             },
             description = "$id: ${entityElement.details.label} -> ${Element.PHOTON.details.symbol} [$energyToExpose ev]",

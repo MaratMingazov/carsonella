@@ -85,7 +85,7 @@ class WorldLoadJvmTest {
             element = maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN,
             position = maratmingazovr.ai.carsonella.Position(0f, 0f),
             direction = maratmingazovr.ai.carsonella.Vec2D(1f, 0f),
-            velocity = 0f, energy = 0f, environment = world.environment,
+            velocity = 0f, energy = 0f, environment = world.environment, electrons = 1,
         )
         assertEquals(3L, created.state().value.id)
     }

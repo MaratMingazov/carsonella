@@ -106,6 +106,7 @@ class StarNeutronProtonReaction(
                 20f,
                 energy = 0f,
                 environment = a1.getEnvironment(),
+                electrons = 0,
             )
         }
         repeat(shakeOff) {
@@ -117,6 +118,7 @@ class StarNeutronProtonReaction(
                     20f,
                     energy = 0f,
                     environment = a1.getEnvironment(),
+                    electrons = 1,
                 )
             }
         }

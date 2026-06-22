@@ -155,6 +155,7 @@ class StarProtonCaptureReaction(
                                 10f,
                                 energy = resultPhotonEnergy,
                                 environment = a1.getEnvironment(),
+                                electrons = 0,
                             )
                         },
                     ),
@@ -201,6 +202,7 @@ class StarProtonCaptureReaction(
                             20f,
                             energy = 0f,
                             environment = a1.getEnvironment(),
+                            electrons = 1,
                         )
                     }
                 }
@@ -240,6 +242,7 @@ class StarProtonCaptureReaction(
                                 20f,
                                 energy = 0f,
                                 environment = a1.getEnvironment(),
+                                electrons = 0,
                             )
                         },
                     ),

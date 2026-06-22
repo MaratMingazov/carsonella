@@ -59,7 +59,8 @@ class StarEmission (
                         randomDirection(entityGenerator.random),
                         2f,
                         energy = 0f,
-                        environment = entity!!
+                        environment = entity!!,
+                        electrons = if (resultElement == Element.ELECTRON) 1 else 0,
                     )
                 },
             )

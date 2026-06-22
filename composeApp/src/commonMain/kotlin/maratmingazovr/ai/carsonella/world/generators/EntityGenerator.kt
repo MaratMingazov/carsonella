@@ -55,7 +55,7 @@ class EntityGenerator(
         velocity: Float,
         energy: Float,
         environment: IEnvironment,
-        electrons: Int = element.details.e,
+        electrons: Int,
     ): Entity<*> {
 
         val entity = when(element.details.type) {

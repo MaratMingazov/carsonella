@@ -88,6 +88,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityVelocity,
                         energy = 0f,
                         environment = env,
+                        electrons = dissociationElement1.details.p, // нейтральный осколок
                     )
                     entityGenerator.createEntity(
                         dissociationElement2,
@@ -96,6 +97,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
                         entityVelocity,
                         energy = 0f,
                         environment = env,
+                        electrons = dissociationElement2.details.p, // нейтральный осколок
                     )
                 },
             )
