@@ -144,10 +144,20 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
     }
 
+    // Масса частицы — сумма протонов и нейтронов (p + n). Раньше хранилась в Details.mass,
+    // но всегда равнялась p + n, поэтому поле убрано в пользу вычисления.
+    // Электрон — исключение: у него p = n = 0, но массу считаем 1 (физически не совсем корректно,
+    // но пока этого достаточно для расчётов импульса).
+    fun mass(): Float {
+        val element = state().value.element
+        if (element == Element.ELECTRON) return 1f
+        return (element.details.p + element.details.n).toFloat()
+    }
+
     fun applyForce(force: Vec2D) {
 
-        if (state().value.element.details.mass < 0.001f) return
-        val a = force.div(state().value.element.details.mass)
+        if (mass() < 0.001f) return
+        val a = force.div(mass())
         val newVelocityVector = state().value.direction.times(state().value.velocity).plus(a)
         val newVelocity = newVelocityVector.length()
         val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else state().value.direction
@@ -163,7 +173,7 @@ interface Entity<State : EntityState<State>> :
         val myElectronsCount = state().value.electrons
         val myProtonsCount = state().value.element.details.p
         val myRadius = state().value.element.details.radius
-        val myMass = state().value.element.details.mass
+        val myMass = mass()
         if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
         elements.forEach { element ->
@@ -173,7 +183,7 @@ interface Entity<State : EntityState<State>> :
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.state().value.element.details.radius
-            val elementMass = element.state().value.element.details.mass
+            val elementMass = element.mass()
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
             if (distance2 > maxRadius2) return@forEach // вне радиуса действия
@@ -589,7 +599,6 @@ data class Details(
     val type: ElementType,
     val symbol: String,
     val label: String,
-    val mass: Float,
     val p: Int, // Количество протонов в элементе
     val n: Int, // Количество нейтронов в элементе
     val radius: Float = 20f,

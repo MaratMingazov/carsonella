@@ -105,7 +105,7 @@ class StarEmission (
                     reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
                     // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
-                    val mass = reagent.state().value.element.details.mass
+                    val mass = reagent.mass()
                     reagent.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
                 }

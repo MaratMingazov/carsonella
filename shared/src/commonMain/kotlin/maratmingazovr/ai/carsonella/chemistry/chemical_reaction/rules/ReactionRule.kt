@@ -28,8 +28,8 @@ interface ReactionRule {
      * Учитываем скорости направления и массу этих частиц
      */
     fun calculateNewEntityDirectionAndVelocity(entity1: Entity<*>, entity2: Entity<*>,) : Pair<Vec2D, Float> {
-        val electronMass = entity1.state().value.element.details.mass
-        val protonMass = entity2.state().value.element.details.mass
+        val electronMass = entity1.mass()
+        val protonMass = entity2.mass()
         val sumMass = electronMass + protonMass
 
         val electronVelocityVector = entity1.state().value.direction.times(entity1.state().value.velocity)
