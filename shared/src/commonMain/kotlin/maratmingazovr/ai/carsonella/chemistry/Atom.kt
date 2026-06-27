@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
@@ -90,6 +91,9 @@ class Atom(
 
         // β⁻-нестабильные изотопы (нейтрон-избыточные продукты (n,γ), напр. ³¹Si) — аналогично, их подхватит BetaMinusDecay.
         if (state.value.element.details.betaMinusDecayResult != null) { requestReaction(listOf(this)) }
+
+        // В недрах звезды (TemperatureMode.Star) атом тепловой ионизуется — зовёт себя, StarThermalIonization сорвёт электрон.
+        if (state.value.electrons > 0 && getEnvironment().getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
 
 
