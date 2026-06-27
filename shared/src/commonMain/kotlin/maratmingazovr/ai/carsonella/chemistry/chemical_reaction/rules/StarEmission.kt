@@ -1,5 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -90,11 +92,24 @@ class StarEmission (
             val updateList = mutableListOf<() -> Unit>()
             var description = ""
             if (reagent != null) {
-//                updateList += {
-//                    reagent.updateMyEnvironment(entity!!.getEnvironment())
-//                    reagent.addVelocity(1f)
-//                }
-//                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
+                updateList += {
+                    val star = entity!!
+                    val center = star.state().value.position
+                    val pos = reagent.state().value.position
+                    // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),
+                    // чтобы звезда не засосала его обратно тем же тиком. Нормальный выброс (импульс) — позже.
+                    var outward = Vec2D(pos.x - center.x, pos.y - center.y)
+                    if (outward.length() < 1e-6f) outward = randomDirection(entityGenerator.random)
+                    outward.normalizeInPlace()
+                    val ejectDistance = star.state().value.element.details.radius + 20f
+                    reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
+                    // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
+                    // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
+                    val mass = reagent.state().value.element.details.mass
+                    reagent.applyForce(outward.times(mass * 2f))
+                    reagent.updateMyEnvironment(star.getEnvironment())
+                }
+                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
             }
             return ReactionOutcome(updateState = updateList, description = description)
         }
