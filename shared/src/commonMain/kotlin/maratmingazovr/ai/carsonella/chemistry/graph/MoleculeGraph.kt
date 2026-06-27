@@ -98,7 +98,85 @@ data class MoleculeGraph(
             if (count == 1) symbol else "$symbol$count"
         }
     }
+
+    /**
+     * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы
+     * при любой перенумерации узлов и РАЗНАЯ у разных молекул.
+     *
+     * Чем отличается от [formula]:
+     *  - [formula] — это СОСТАВ: сколько каких атомов («C2H6O»). Грубый отпечаток; связность теряется,
+     *    поэтому формула НЕ различает изомеры — у этанола и диметилового эфира она одна (C2H6O).
+     *  - [canonical] — это СТРУКТУРА: кто с кем соединён и какой кратностью. Различает изомеры:
+     *    этанол (C–C–O) и эфир (C–O–C) дают РАЗНЫЕ ключи. Аналогия: формула — «8 красных кубиков
+     *    Lego, 4 синих» (детали), канон — хеш точного чертежа сборки (та же горсть деталей, разная
+     *    форма → разный хеш).
+     *
+     * Зачем нужен: сравнить «это та же молекула?», ключ в Map/реестре, дедупликация, различение изомеров.
+     *
+     * Реализация — НАИВНАЯ (перебор, §5.1 дока): перебрать все перенумерации узлов, для каждой собрать
+     * сериализацию (изотопы в новом порядке + рёбра, перемапленные/нормализованные/отсортированные,
+     * с кратностью), взять лексикографически минимальную. Точно и просто, но O(n!) — годится только для
+     * малых молекул; для крупных позже заменим на Морган-подобный алгоритм (Стадия 2), отсюда гард.
+     *
+     * Токен узла — полный изотоп ([Element.name]), поэтому канон РАЗЛИЧАЕТ изотопы (²H ≠ H, ¹³C ≠ ¹²C),
+     * в отличие от формулы, которая их схлопывает. Заряд молекулы в ключ не входит — это динамическое
+     * состояние сущности; канон описывает структуру (как изотоп атома не меняется от ионизации).
+     */
+    fun canonical(): String {
+        require(nodes.size <= CANONICAL_MAX_NODES) {
+            "Наивная каноникализация перебором рассчитана на малые молекулы (<= $CANONICAL_MAX_NODES узлов); " +
+                "для крупных нужен Морган-подобный алгоритм (Стадия 2). Узлов: ${nodes.size}"
+        }
+        val n = nodes.size
+        if (n == 0) return ""
+
+        val tokens = nodes.map { it.isotope.name }                 // токен узла = полный изотоп
+        val localIdToIndex = HashMap<Int, Int>()                   // localId -> позиция 0..n-1
+        nodes.forEachIndexed { i, node -> localIdToIndex[node.localId] = i }
+        // рёбра в терминах исходных индексов (0..n-1) — для быстрого перемаппинга на каждой перестановке
+        val edges = bonds.map { Triple(localIdToIndex.getValue(it.atom1), localIdToIndex.getValue(it.atom2), it.order) }
+
+        val perm = IntArray(n)        // perm[newIndex] = исходный индекс узла
+        val newPos = IntArray(n)      // newPos[origIndex] = newIndex (обратное к perm)
+        val used = BooleanArray(n)
+        var best: String? = null
+
+        fun serialize(): String {
+            val sb = StringBuilder()
+            for (newIdx in 0 until n) sb.append(tokens[perm[newIdx]]).append(',')
+            sb.append('|')
+            val remapped = edges.map { (a, b, order) ->
+                val lo = minOf(newPos[a], newPos[b])
+                val hi = maxOf(newPos[a], newPos[b])
+                Triple(lo, hi, order)
+            }.sortedWith(compareBy({ it.first }, { it.second }, { it.third }))
+            for ((lo, hi, order) in remapped) sb.append(lo).append('-').append(hi).append(':').append(order).append(';')
+            return sb.toString()
+        }
+
+        fun recurse(newIdx: Int) {
+            if (newIdx == n) {
+                val s = serialize()
+                if (best == null || s < best!!) best = s
+                return
+            }
+            for (orig in 0 until n) {
+                if (!used[orig]) {
+                    used[orig] = true
+                    perm[newIdx] = orig
+                    newPos[orig] = newIdx
+                    recurse(newIdx + 1)
+                    used[orig] = false
+                }
+            }
+        }
+        recurse(0)
+        return best!!
+    }
 }
+
+/** Потолок наивного перебора O(n!) в [MoleculeGraph.canonical]; выше — Морган (Стадия 2). */
+private const val CANONICAL_MAX_NODES = 9
 
 /**
  * «Голый» символ элемента без масс-индекса и заряда: ²H→H, ¹²C→C, ³He→He.

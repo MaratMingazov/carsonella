@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 
 /**
  * Тесты ядра графа (Стадия 0): агрегаты (mass/protons/formula) и инварианты конструктора.
@@ -148,5 +149,88 @@ class MoleculeGraphTest {
                 bonds = listOf(Bond(0, 1, order = 4)),   // нет четверных связей в нашей химии
             )
         }
+    }
+
+    // --- каноникализация ---
+
+    // Диметиловый эфир CH₃–O–CH₃: тот же состав C₂H₆O, что у этанола, но связность C–O–C.
+    private fun dimethylEther() = MoleculeGraph(
+        nodes = listOf(
+            AtomNode(0, Element.CARBON_12),
+            AtomNode(1, Element.CARBON_12),
+            AtomNode(2, Element.OXYGEN_16),
+            AtomNode(3, Element.HYDROGEN),
+            AtomNode(4, Element.HYDROGEN),
+            AtomNode(5, Element.HYDROGEN),
+            AtomNode(6, Element.HYDROGEN),
+            AtomNode(7, Element.HYDROGEN),
+            AtomNode(8, Element.HYDROGEN),
+        ),
+        bonds = listOf(
+            Bond(0, 2, order = 1),   // C–O
+            Bond(1, 2, order = 1),   // C–O (кислород центральный)
+            Bond(0, 3, order = 1),
+            Bond(0, 4, order = 1),
+            Bond(0, 5, order = 1),
+            Bond(1, 6, order = 1),
+            Bond(1, 7, order = 1),
+            Bond(1, 8, order = 1),
+        ),
+    )
+
+    @Test
+    fun canonicalIsInvariantToNumbering() {
+        // Та же вода, но узлы пронумерованы иначе и перечислены в другом порядке.
+        val waterRenumbered = MoleculeGraph(
+            nodes = listOf(
+                AtomNode(5, Element.HYDROGEN),
+                AtomNode(7, Element.OXYGEN_16),
+                AtomNode(9, Element.HYDROGEN),
+            ),
+            bonds = listOf(
+                Bond(9, 7, order = 1),
+                Bond(5, 7, order = 1),
+            ),
+        )
+        assertEquals(water().canonical(), waterRenumbered.canonical())
+    }
+
+    @Test
+    fun ethanolAndDimethylEtherShareFormulaButDifferInCanonical() {
+        // Одинаковый состав...
+        assertEquals(ethanol().formula(), dimethylEther().formula())   // оба C2H6O
+        // ...но разная структура → разные канонические ключи (изомеры различаются).
+        assertNotEquals(ethanol().canonical(), dimethylEther().canonical())
+    }
+
+    @Test
+    fun bondOrderAffectsCanonical() {
+        // O=O (двойная, молекула кислорода) и O–O (одинарная, перекисная связь) — те же атомы,
+        // разные вещества. Канон обязан их различать.
+        val o2 = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 2)),
+        )
+        val peroxideBond = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        )
+        assertNotEquals(o2.canonical(), peroxideBond.canonical())
+    }
+
+    @Test
+    fun canonicalIsStable() {
+        // Идемпотентность: повторный вызов даёт ту же строку.
+        assertEquals(ethanol().canonical(), ethanol().canonical())
+    }
+
+    @Test
+    fun canonicalRejectsTooLargeMolecules() {
+        // Наивный перебор O(n!) ограничен гардом; 10 изолированных узлов → отказ.
+        val tooBig = MoleculeGraph(
+            nodes = (0..9).map { AtomNode(it, Element.HYDROGEN) },
+            bonds = emptyList(),
+        )
+        assertFailsWith<IllegalArgumentException> { tooBig.canonical() }
     }
 }
