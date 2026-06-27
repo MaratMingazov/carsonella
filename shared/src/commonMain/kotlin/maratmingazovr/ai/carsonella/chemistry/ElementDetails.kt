@@ -6,7 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.*
  * Каталог [Details] для всех элементов — статическая «таблица Менделеева» проекта.
  * Вынесен из Entity.kt, чтобы отделить данные от доменных типов и поведения. После
  * сворачивания ион-состояний (рефакторинг 2C2b) — одна строка на изотоп (заряд живёт в
- * state.electrons; уровни ионизации — в energyLevelsTable() по Z). Каталог свёрнут и
+ * state.electrons; уровни ионизации — в atomEnergyLevelsTable() по Z). Каталог свёрнут и
  * умещается в одну функцию elementDetails() (лимит JVM 64KB на метод больше не грозит).
  *
  * `Element.*` импортирован, чтобы константы (SILICON_31 и т.п.) резолвились без префикса.
@@ -339,7 +339,7 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
 // Энергетические уровни ионизации по элементу (Z), а не по изотопу: зависят только от Z, не от N
 // (рефакторинг ионизации 2C2b-4). Индекс внешнего списка = число электронов; значение = пороги/уровни
 // этого зарядового состояния. Одна лестница на элемент — общая для всех его изотопов (Element.energyLevels).
-internal fun energyLevelsTable(): Map<Int, List<List<Float>>> = mapOf(
+internal fun atomEnergyLevelsTable(): Map<Int, List<List<Float>>> = mapOf(
     1 to listOf(listOf(), listOf(10.2f, 12.09f, 13.6f)),
     2 to listOf(listOf(), listOf(40.8f, 48.36f, 54.42f), listOf(21.22f, 23.09f, 24.59f)),
     3 to listOf(listOf(), listOf(91.8f, 108.81f, 122.4f), listOf(62.22f, 69.61f, 75.64f), listOf(1.85f, 3.83f, 5.39f)),

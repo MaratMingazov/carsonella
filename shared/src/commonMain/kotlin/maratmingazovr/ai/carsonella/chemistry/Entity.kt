@@ -537,17 +537,21 @@ enum class Element() {
         else details.label
 
     // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, 2C2b-4).
-    // Зависят только от Z, не от N → одна лестница на элемент (energyLevelsByZ по details.p), общая
-    // для всех изотопов. Голым/несуществующим состояниям — пустой список («нельзя ионизировать»).
+    // Зависят только от Z, не от N → одна лестница на элемент (atomEnergyLevelsByZ по details.p), общая
+    // для всех изотопов и только для атомов. Голым/несуществующим состояниям — пустой список («нельзя ионизировать»).
     fun energyLevels(electrons: Int): List<Float> =
-        energyLevelsByZ[details.p]?.getOrNull(electrons) ?: emptyList()
+        if (details.type == ElementType.Atom) {
+            atomEnergyLevelsByZ[details.p]?.getOrNull(electrons) ?: emptyList()
+        } else {
+            emptyList()
+        }
 
     companion object {
         // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
         private val detailsMap: Map<Element, Details> = elementDetails()
 
         // Энергетические лестницы ионизации по Z (одна на элемент, общая для изотопов). Опора energyLevels(electrons).
-        private val energyLevelsByZ: Map<Int, List<List<Float>>> = energyLevelsTable()
+        private val atomEnergyLevelsByZ: Map<Int, List<List<Float>>> = atomEnergyLevelsTable()
 
         // База для symbol(e)/label(e). Пока каталог не свёрнут — выводим из существующих symbol/label
         // срезанием (на шаге 2C станут хранимыми полями изотопа). Считаются один раз.

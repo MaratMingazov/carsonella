@@ -4,11 +4,6 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
-import maratmingazovr.ai.carsonella.chemistry.Element.H2
-import maratmingazovr.ai.carsonella.chemistry.Element.O2
-import maratmingazovr.ai.carsonella.chemistry.Element.H2O
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaProtonReaction
@@ -29,7 +24,6 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarOxygen
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPPChain
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPhotodisintegration
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomPlusAtomToMolecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 import kotlin.random.Random
@@ -67,11 +61,6 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarCarbonBurning(entityGenerator), // горение углерода: ¹²C+¹²C → ²⁰Ne+⁴He / ²³Na+p / ²⁴Mg
         StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
         StarPhotodisintegration(entityGenerator), // (γ,X) в звезде: развал ядра жёстким γ — обратное к (α,γ)/(p,γ)/(n,γ). Сердце горения кремния: ²⁸Si(γ,α)²⁴Mg высвобождает α для α-цепочки к Fe
-
-        // Реакции атомов
-        AtomPlusAtomToMolecule(entityGenerator, HYDROGEN, HYDROGEN, H2, 4.5f),
-        AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, OXYGEN_16, O2),
-        AtomPlusAtomToMolecule(entityGenerator, OXYGEN_16, H2, H2O),
 
     )
 

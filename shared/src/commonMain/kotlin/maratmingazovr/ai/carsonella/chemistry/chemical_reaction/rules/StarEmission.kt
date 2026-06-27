@@ -16,10 +16,12 @@ class StarEmission (
 
     private var entity : Entity<*>? = null
     private var entityReagents: List<Entity<*>> = listOf()
+    private var absorbReagents: List<Entity<*>> = listOf()
 
     override fun matches(reagents: List<Entity<*>>): Boolean {
         entity = null
         entityReagents = listOf()
+        absorbReagents = listOf()
 
         if (reagents.isEmpty()) return false
 
@@ -27,22 +29,38 @@ class StarEmission (
         val firstElement = first.state().value.element
         if (firstElement != Element.Star) return false
         if (!first.state().value.alive) return false
+        entity = first
 
+        // Поглощение: запрос вида [звезда + соседи снаружи] — втягиваем их сразу, без chance.
+        val external = reagents.drop(1).filter { it.state().value.alive && it.getEnvironment() !== first }
+        if (external.isNotEmpty()) {
+            absorbReagents = external
+            return true
+        }
+
+        // Иначе запрос [звезда] — ветка генерации/выброса (редкое событие).
         if (!chance(0.012f, entityGenerator.random)) return false
 
-        val starAtoms = first
+        entityReagents = first
             .getEnvChildren()
-            .filter{reagent -> reagent.state().value.alive}
-
-
-        entity = first
-        entityReagents = starAtoms
+            .filter { reagent -> reagent.state().value.alive }
         return true
     }
 
     override fun weight() = 0f
 
     override fun produce(): ReactionOutcome {
+
+        // Поглощение: внешние реагенты у поверхности становятся детьми звезды (updateMyEnvironment(star)).
+        // alive-гард — на случай, если реагент уже потреблён другим запросом в этом же тике.
+        if (absorbReagents.isNotEmpty()) {
+            val star = entity!!
+            return ReactionOutcome(
+                updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
+                description = "$id: ${Element.Star.details.symbol} <- " +
+                    absorbReagents.joinToString { it.state().value.element.details.symbol },
+            )
+        }
 
         /*
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
@@ -72,11 +90,11 @@ class StarEmission (
             val updateList = mutableListOf<() -> Unit>()
             var description = ""
             if (reagent != null) {
-                updateList += {
-                    reagent.updateMyEnvironment(entity!!.getEnvironment())
-                    reagent.addVelocity(1f)
-                }
-                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
+//                updateList += {
+//                    reagent.updateMyEnvironment(entity!!.getEnvironment())
+//                    reagent.addVelocity(1f)
+//                }
+//                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
             }
             return ReactionOutcome(updateState = updateList, description = description)
         }

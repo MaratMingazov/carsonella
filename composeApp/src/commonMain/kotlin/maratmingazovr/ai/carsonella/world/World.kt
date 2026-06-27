@@ -125,10 +125,12 @@ class World(
         entity.getEnvironment().removeEnvChild(entity)
     }
 
-    // «Положить»: возвращаем в детей среды и снимаем held — частица снова взаимодействует.
+    // «Положить»: переселяем частицу в космос (world.environment) и снимаем held — частица снова
+    // взаимодействует. Пересчёт среды по позиции дропа пока упрощён: всегда world.environment,
+    // поэтому вытащенная из звезды частица реально остаётся в космосе, а не затягивается обратно.
     fun dropHeldEntity() {
         val id = heldEntityId ?: return
-        entities.find { it.state().value.id == id }?.let { it.getEnvironment().addEnvChild(it) }
+        entities.find { it.state().value.id == id }?.updateMyEnvironment(environment)
         heldEntityId = null
     }
 

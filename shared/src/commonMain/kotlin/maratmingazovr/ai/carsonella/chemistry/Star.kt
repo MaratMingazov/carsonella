@@ -79,14 +79,17 @@ class Star(
         reduceVelocity()
         checkBorders(environment)
 
-        radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
+        //radiusCounter = if (radiusCounter < 20) { state.value.element.details.radius } else { radiusCounter - 1 }
 
-        // это нужно будет, если солнце будет поглощать элементы
-//                neighbors
-//                    .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < (radius + 10) * (radius + 10) }
-//                    .takeIf { it.isNotEmpty() }
-//                    ?.let { requestReaction(listOf(this) + it) }
+        // Поглощение: живые соседи снаружи звезды, коснувшиеся поверхности → StarEmission втянет их внутрь.
+        neighbors
+            .filter { it.state().value.alive }
+            .filter { it.getEnvironment() !== this }
+            .filter { state.value.position.distanceSquareTo(it.state().value.position) < (radius + 10) * (radius + 10) }
+            .takeIf { it.isNotEmpty() }
+            ?.let { requestReaction(listOf(this) + it) }
 
+        // Эмиссия/генерация: солнце создаёт протоны/электроны и выбрасывает накопленное наружу.
         requestReaction(listOf(this))
     }
 
