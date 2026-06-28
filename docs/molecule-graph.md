@@ -60,8 +60,31 @@ C2_H6_O_DIMETHYL_ETHER  to Details(symbol = "CH₃OCH₃", mass=46, e=26, p=26, 
 
 Плюсы: маленькие шаги, живой движок не ломаем. Минус: какое-то время два представления сосуществуют — нужен чистый мост (см. §4).
 
-### 3b. Заменить целиком — отложено
-Ввести `Species = Atomic(isotope, electrons) | Molecular(graph)` вместо `element` во всём движке. Чище в пределе (единая модель), но это большой разовый рефактор рендера/сил/реакций/save-load. Не сейчас.
+### 3b. Заменить `element` на `Species` — В РАБОТЕ (инкрементально)
+Идентичность сущности = sealed `Species` вместо голого `Element`. Делаем НЕ большим разовым рефактором,
+а по шагам, через шов: у `EntityState` остаётся геттер `element`, работающий для не-молекул, поэтому
+весь не-молекулярный код (ядерные реакции, рендер, save-load) не трогается.
+
+**Сделано:** `Species = Elemental(Element) | Molecular(MoleculeGraph)` (граф у молекулы non-null by
+construction); агрегаты (масса/радиус/протоны/символ) считаются по `Species`. Дальше — молекулы
+создаются как `Molecular(graph)` через фабрику, и enum-молекулы (`H2O`/`O2`/…) + член `ElementType.Molecule`
+уходят, когда молекулы полностью переедут на граф.
+
+**Будущий шаг — богатая таксономия `Species` (выпилить `ElementType`):** позже расщепить `Elemental`
+на физические виды, чтобы «вид материи» стал type-safe (исчерпывающий `when`) и тег `Details.type` стал не нужен:
+```kotlin
+sealed interface Species {
+    data class Elementary(/* частица */) : Species  // фотон / электрон / протон / нейтрон / позитрон
+    data class Nuclear(val element: Element) : Species  // атомы (изотоп — носитель p/n/radius/symbol)
+    data class Molecular(val graph: MoleculeGraph) : Species
+}
+```
+Нюансы того захода:
+- классификация `Element → вид` не исчезает — переезжает в фабрику `Species.of(element)` / `when(element)`;
+  места, держащие голый `Element` (`Element.symbol()`, `canGainElectron`, термоионизация), должны получать `Species`;
+- сам `Element` остаётся — как носитель `p/n/radius/symbol`/ядерных реакций внутри `Nuclear`/`Elementary`;
+- **Star/модули — не материя, а контейнеры среды** (`IEnvironment` с детьми) → в таксономию материи не
+  входят; для них классификация (или отдельный тип) остаётся, так что `ElementType` уйдёт не весь разом.
 
 ## 4. Мост enum ↔ граф
 
