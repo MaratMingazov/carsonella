@@ -13,7 +13,13 @@ import maratmingazovr.ai.carsonella.chemistry.MoleculeState
 import maratmingazovr.ai.carsonella.chemistry.SpaceModuleState
 import maratmingazovr.ai.carsonella.chemistry.StarState
 import maratmingazovr.ai.carsonella.chemistry.SubAtomState
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
+
+private const val ATOM_RADIUS = 8f             // радиус кружка атома внутри молекулы
+private const val BOND_LINE_SPACING = 3f       // сдвиг параллельных линий для двойных/тройных связей
+private const val LABEL_ABOVE = 26f            // на сколько поднять подпись над молекулой
+private val BOND_COLOR = Color(0xFFB0BEC5)     // нейтральный цвет связи
 
 class EntityRenderer(
     private val textMeasurer: TextMeasurer,
@@ -31,7 +37,7 @@ class EntityRenderer(
         when (entityState) {
             is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
             is AtomState -> drawEntity(drawScope, entityState, phase, showLabel)
-            is MoleculeState -> drawEntity(drawScope, entityState, phase, showLabel)
+            is MoleculeState -> drawMolecule(drawScope, entityState, phase, showLabel)
             is StarState -> drawStar(drawScope, entityState, phase, phase2)
             is SpaceModuleState -> drawEntity(drawScope, entityState, phase, showLabel)
 
@@ -104,6 +110,55 @@ class EntityRenderer(
                 center = position,
                 radius = pulsingRadius
             )
+        }
+    }
+
+    // Молекула рисуется структурно: атомы-кружки по раскладке графа + связи-линии (кратность = число линий).
+    fun drawMolecule(
+        drawScope: DrawScope,
+        entityState: MoleculeState,
+        phase: Float,
+        showLabel: Boolean,
+    ) {
+        val species = entityState.species
+        if (species !is Species.Molecular) { drawEntity(drawScope, entityState, phase, showLabel); return }
+        val graph = species.graph
+
+        val amp = 1f + entityState.energy
+        val idSeed = (entityState.id % 1000).toFloat()
+        val jitter = Offset(amp * kotlin.math.cos(phase + idSeed), amp * kotlin.math.sin(phase + idSeed))
+        val center = entityState.position.toOffset() + jitter
+
+        val offsets = MoleculeLayout.layout(graph)
+
+        with(drawScope) {
+            // связи (под атомами)
+            graph.bonds.forEach { bond ->
+                drawBond(center + offsets.getValue(bond.atom1), center + offsets.getValue(bond.atom2), bond.order)
+            }
+            // атомы — цвет по элементу
+            graph.nodes.forEach { node ->
+                val p = center + offsets.getValue(node.localId)
+                val color = ElementColors.glow(Species.Elemental(node.isotope))
+                drawGlow(p, ATOM_RADIUS * 1.4f, color, intensity = 1f + entityState.energy * 0.05f)
+                drawCircle(color = color.copy(alpha = 0.95f), center = p, radius = ATOM_RADIUS)
+            }
+            // подпись-формула над молекулой при наведении/выборе
+            if (showLabel) {
+                drawFloatingLabel(textMeasurer, center, LABEL_ABOVE, species.displaySymbol(entityState.electrons))
+            }
+        }
+    }
+
+    // Связь: order параллельных линий (двойная/тройная — со сдвигом перпендикулярно связи).
+    private fun DrawScope.drawBond(a: Offset, b: Offset, order: Int) {
+        val dir = b - a
+        val len = dir.getDistance()
+        val perp = if (len > 1e-3f) Offset(-dir.y / len, dir.x / len) else Offset(0f, 1f)
+        val firstShift = -(order - 1) / 2f
+        for (i in 0 until order) {
+            val shift = perp * ((firstShift + i) * BOND_LINE_SPACING)
+            drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = 2f)
         }
     }
 }
