@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.math.round
 
 
@@ -34,7 +35,7 @@ data class MoleculeState(
 
 class Molecule(
     id: Long,
-    element: Element,
+    graph: MoleculeGraph,
     position: Position,
     direction: Vec2D,
     velocity: Float,
@@ -51,7 +52,7 @@ class Molecule(
     private var state = MutableStateFlow(
         MoleculeState(
             id = id,
-            species = Species.Elemental(element),
+            species = Species.Molecular(graph),
             alive = true,
             position = position,
             direction = direction,

@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.AlphaProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.Annihilation
@@ -32,7 +33,11 @@ import kotlin.random.Random
 
 interface IEntityGenerator {
     val random: Random
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity<*>
+    fun createEntity(species: Species, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity<*>
+
+    // Удобная перегрузка для Elemental — вызовы по Element (атомы/частицы/звезда/модули) не трогаем.
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity<*> =
+        createEntity(Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
 }
 
 

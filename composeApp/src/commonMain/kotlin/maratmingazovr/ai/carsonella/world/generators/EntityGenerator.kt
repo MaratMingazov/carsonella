@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
@@ -33,14 +34,14 @@ class EntityGenerator(
 ) : IEntityGenerator {
 
     override fun createEntity(
-        element: Element,
+        species: Species,
         position: Position,
         direction: Vec2D,
         velocity: Float,
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
-    ): Entity<*> = createEntityWithId(idGen.nextId(), element, position, direction, velocity, energy, environment, electrons)
+    ): Entity<*> = createEntityWithId(idGen.nextId(), species, position, direction, velocity, energy, environment, electrons)
 
     /**
      * То же, что createEntity, но с заранее заданным id вместо idGen.nextId().
@@ -49,7 +50,7 @@ class EntityGenerator(
      */
     fun createEntityWithId(
         id: Long,
-        element: Element,
+        species: Species,
         position: Position,
         direction: Vec2D,
         velocity: Float,
@@ -58,13 +59,16 @@ class EntityGenerator(
         electrons: Int,
     ): Entity<*> {
 
-        val entity = when(element.details.type) {
-            SubAtom -> SubAtom(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Atom -> Atom(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Molecule -> Molecule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            Star -> Star(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            SpaceModule -> SpaceModule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            RecombinationModule -> RecombinationModule(id = id, element = element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+        val entity = when (species) {
+            is Species.Molecular -> Molecule(id = id, graph = species.graph, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+            is Species.Elemental -> when (species.element.details.type) {
+                SubAtom -> SubAtom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+                Atom -> Atom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+                Star -> Star(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+                SpaceModule -> SpaceModule(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+                RecombinationModule -> RecombinationModule(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+                Molecule -> throw UnsupportedOperationException("Молекулы образуются реакциями как Species.Molecular(graph), не спавнятся по элементу")
+            }
         }.apply {
             entities.add(this)
             setOnDeath {
@@ -77,8 +81,19 @@ class EntityGenerator(
             setLogger { log -> logs += "${currentTime()}: $log" }
         }
         environment.addEnvChild(entity)
-        //if(!palette.contains(entity.state().value.element)) palette.add(entity.state().value.element)
         return entity
     }
+
+    // Перегрузка по Element — для загрузки сейвов (в них только Elemental) и прочих вызовов по элементу.
+    fun createEntityWithId(
+        id: Long,
+        element: Element,
+        position: Position,
+        direction: Vec2D,
+        velocity: Float,
+        energy: Float,
+        environment: IEnvironment,
+        electrons: Int,
+    ): Entity<*> = createEntityWithId(id, Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
 
 }

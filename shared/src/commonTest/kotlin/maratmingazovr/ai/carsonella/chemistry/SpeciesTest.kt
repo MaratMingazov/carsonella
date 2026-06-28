@@ -1,5 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry
 
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -48,5 +50,20 @@ class SpeciesTest {
     @Test
     fun formulaPrettyUsesSubscripts() {
         assertEquals("H₂O", water.formulaPretty())
+    }
+
+    @Test
+    fun moleculeEntityCarriesMolecularSpecies() {
+        val m = Molecule(
+            id = 1L,
+            graph = water,
+            position = Position(0f, 0f),
+            direction = Vec2D(0f, 0f),
+            velocity = 0f,
+            energy = 0f,
+            electrons = 10,
+        )
+        assertEquals(Species.Molecular(water), m.state().value.species)
+        assertEquals(18f, m.mass())   // mass() идёт через species → graph
     }
 }
