@@ -26,6 +26,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPPChai
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarPhotodisintegration
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StarThermalIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.RecombinationReaction
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.CovalentBondFormation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 import kotlin.random.Random
@@ -68,6 +69,9 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarOxygenBurning(entityGenerator), // горение кислорода: ¹⁶O+¹⁶O → ²⁸Si+⁴He / ³¹P+p / ³¹S+n
         StarPhotodisintegration(entityGenerator), // (γ,X) в звезде: развал ядра жёстким γ — обратное к (α,γ)/(p,γ)/(n,γ). Сердце горения кремния: ²⁸Si(γ,α)²⁴Mg высвобождает α для α-цепочки к Fe
         StarThermalIonization(entityGenerator), // тепловая ионизация в недрах звезды: атом теряет по электрону за тик до голого ядра (плазма)
+
+        // --- образование молекул (граф) ---
+        CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → молекула-граф
 
     )
 
