@@ -38,7 +38,6 @@ class World(
     val palette =  mutableStateListOf(
         Element.PHOTON,
         Element.HYDROGEN, Element.OXYGEN_16,
-        Element.H2,
         Element.Star, Element.SPACE_MODULE
     )
     val entities =  mutableStateListOf<Entity<*>>()

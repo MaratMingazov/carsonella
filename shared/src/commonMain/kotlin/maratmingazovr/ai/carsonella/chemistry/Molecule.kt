@@ -9,7 +9,7 @@ import kotlin.math.round
 
 data class MoleculeState(
     override val id: Long,
-    override val element: Element,
+    override val species: Species,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
@@ -47,7 +47,7 @@ class Molecule(
     private var state = MutableStateFlow(
         MoleculeState(
             id = id,
-            element = element,
+            species = Species.Elemental(element),
             alive = true,
             position = position,
             direction = direction,

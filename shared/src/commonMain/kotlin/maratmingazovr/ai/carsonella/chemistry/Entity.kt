@@ -15,14 +15,18 @@ import kotlin.math.sqrt
 interface EntityState<State : EntityState<State>> {
 
     val id: Long
-    val element: Element
+    val species: Species
+    // Совместимость на время §3b-миграции: код для Elemental (атомы/частицы/звезда/модули) читает
+    // .element как раньше. У Molecular элемента нет — её структура и агрегаты считаются из графа.
+    val element: Element get() = (species as? Species.Elemental)?.element
+        ?: error("Molecular species не имеет Element — читай его граф")
     var alive: Boolean
     var position: Position
     var direction: Vec2D
     var velocity: Float
     var energy: Float
     // Число электронов как динамическое состояние (рефакторинг «ионизация → состояние»): задаёт заряд,
-    // символ и energyLevels; цикл ионизации/рекомбинации крутит его. Дефолт при создании — details.e.
+    // символ и energyLevels; цикл ионизации/рекомбинации крутит его.
     var electrons: Int
 
     fun copyWith(

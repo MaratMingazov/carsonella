@@ -10,7 +10,7 @@ import kotlin.math.round
 
 data class StarState(
     override val id: Long,
-    override val element: Element,
+    override val species: Species,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
@@ -49,7 +49,7 @@ class Star(
     private var state = MutableStateFlow(
         StarState(
             id = id,
-            element = element,
+            species = Species.Elemental(element),
             alive = true,
             position = position,
             direction = direction,
