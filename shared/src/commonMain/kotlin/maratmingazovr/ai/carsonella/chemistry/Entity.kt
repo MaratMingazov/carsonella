@@ -148,15 +148,9 @@ interface Entity<State : EntityState<State>> :
         state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
     }
 
-    // Масса частицы — сумма протонов и нейтронов (p + n). Раньше хранилась в Details.mass,
-    // но всегда равнялась p + n, поэтому поле убрано в пользу вычисления.
-    // Электрон — исключение: у него p = n = 0, но массу считаем 1 (физически не совсем корректно,
-    // но пока этого достаточно для расчётов импульса).
-    fun mass(): Float {
-        val element = state().value.element
-        if (element == Element.ELECTRON) return 1f
-        return (element.details.p + element.details.n).toFloat()
-    }
+    // Масса считается из species (см. Species.mass): для атома/частицы — p+n (электрон — особый
+    // случай), для молекулы — сумма по графу. Раньше хранилась в Details.mass, но всегда равнялась p+n.
+    fun mass(): Float = state().value.species.mass()
 
     fun applyForce(force: Vec2D) {
 
