@@ -12,6 +12,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.Species
 
 /**
  * Светящаяся палитра (CPK-вдохновлённая), подобранная под тёмный фон.
@@ -51,7 +52,12 @@ object ElementColors {
         20 to Color(0xFFA8C0A0), // Ca — серо-зелёный
     )
 
-    fun glow(element: Element): Color = when (element) {
+    fun glow(species: Species): Color = when (species) {
+        is Species.Molecular -> MOLECULE
+        is Species.Elemental -> glowElement(species.element)
+    }
+
+    private fun glowElement(element: Element): Color = when (element) {
         Element.PHOTON -> PHOTON
         Element.ELECTRON -> ELECTRON
         Element.POSITRON -> POSITRON

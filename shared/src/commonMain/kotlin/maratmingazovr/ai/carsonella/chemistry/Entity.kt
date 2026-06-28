@@ -169,8 +169,8 @@ interface Entity<State : EntityState<State>> :
     fun calculateForce(elements: List<Entity<*>>): Vec2D {
         val fVector = Vec2D(0f, 0f)
         val myElectronsCount = state().value.electrons
-        val myProtonsCount = state().value.element.details.p
-        val myRadius = state().value.element.details.radius
+        val myProtonsCount = state().value.species.protons()
+        val myRadius = state().value.species.radius()
         val myMass = mass()
         if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
@@ -180,7 +180,7 @@ interface Entity<State : EntityState<State>> :
             val ry = state().value.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
-            val elementRadius = element.state().value.element.details.radius
+            val elementRadius = element.state().value.species.radius()
             val elementMass = element.mass()
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга

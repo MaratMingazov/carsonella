@@ -34,7 +34,7 @@ class SubAtomRenderer(
         val p = state.position.toOffset()
         with(drawScope) {
             // яркая искра света: маленькое свечение + плотное ядро
-            drawGlow(p, radius = 8f, color = ElementColors.glow(state.element), intensity = 1.2f)
+            drawGlow(p, radius = 8f, color = ElementColors.glow(state.species), intensity = 1.2f)
             drawCircle(color = Color(0xFFFFFDF0), center = p, radius = 2.5f)
         }
     }
@@ -48,7 +48,7 @@ class SubAtomRenderer(
         showLabel: Boolean,
     ) {
         val p = state.position.toOffset()
-        val color = ElementColors.glow(state.element)
+        val color = ElementColors.glow(state.species)
         with(drawScope) {
             drawGlow(p, radius = radius, color = color)
             drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = radius * 0.35f)
@@ -69,7 +69,7 @@ class SubAtomRenderer(
         val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
         val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
         val p = state.position.toOffset() + Offset(dx, dy)
-        val color = ElementColors.glow(state.element)
+        val color = ElementColors.glow(state.species)
         with(drawScope) {
             drawGlow(p, radius = 11f, color = color)
             drawCircle(color = color.copy(alpha = 0.9f), center = p, radius = 3.5f)

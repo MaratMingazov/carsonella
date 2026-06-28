@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
+import maratmingazovr.ai.carsonella.chemistry.radius
+import maratmingazovr.ai.carsonella.chemistry.displaySymbol
 import maratmingazovr.ai.carsonella.chemistry.AtomState
 import maratmingazovr.ai.carsonella.chemistry.MoleculeState
 import maratmingazovr.ai.carsonella.chemistry.SpaceModuleState
@@ -49,8 +51,8 @@ class EntityRenderer(
         val dy = amp * kotlin.math.sin(phase + idSeed)
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
-        val color = ElementColors.glow(entityState.element)
-        val baseRadius = entityState.element.details.radius
+        val color = ElementColors.glow(entityState.species)
+        val baseRadius = entityState.species.radius()
 
         with(drawScope) {
             // мягкое свечение (ярче, если частица возбуждена)
@@ -60,7 +62,7 @@ class EntityRenderer(
 
             // символ — только при наведении/выборе, всплывает над частицей
             if (showLabel) {
-                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.element.symbol(entityState.electrons))
+                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.species.displaySymbol(entityState.electrons))
             }
         }
     }
@@ -79,7 +81,7 @@ class EntityRenderer(
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
-        val baseRadius = entityState.element.details.radius + 5f   // базовый радиус круга
+        val baseRadius = entityState.species.radius() + 5f   // базовый радиус круга
         val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 
