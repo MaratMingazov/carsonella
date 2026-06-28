@@ -131,7 +131,7 @@ if (withAndroid) {
 
 compose.desktop {
     application {
-        mainClass = "maratmingazovr.ai.kotlinmultiplatformdemo.MainKt"
+        mainClass = "maratmingazovr.ai.carsonella.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
