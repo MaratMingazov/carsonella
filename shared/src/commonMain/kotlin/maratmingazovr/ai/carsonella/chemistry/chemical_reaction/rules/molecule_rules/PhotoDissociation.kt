@@ -1,7 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
 import maratmingazovr.ai.carsonella.Position
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -20,32 +19,12 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
 
 
     override fun matches(reagents: List<Entity<*>>) : Boolean {
-        entity = null
-        photon = null
-
-        if (reagents.size < 2) return false
-
-        val first = reagents.first()
-        val firstElement = first.state().value.element
-        if (firstElement.details.energyBondDissociation == null) return false
-        if (firstElement.details.dissociationElements.isEmpty()) return false
-        if (!first.state().value.alive) return false
-        val others = reagents.drop(1)
-        val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
-
-        val (nearestPhoton, distance) = others
-            .asSequence()
-            .filter { it.state().value.element == PHOTON }
-            .filter { it.state().value.alive }
-            .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
-            .minByOrNull { it.second }
-            ?: return false
-
-        if (distance <= activationDistanceSquare) {
-            entity = first
-            photon = nearestPhoton
-            return true
-        }
+        // ДОРМАНТ (§6 docs/molecule-graph.md). Правило временно отключено: старый matches читал
+        // enum-поля (details.energyBondDissociation / dissociationElements) и шов .element реагентов —
+        // и падал на граф-молекулах. Enum-молекулы больше не спавнятся (живых входов нет), а граф-
+        // диссоциация — отдельный рефактор: какая связь рвётся, надо вычислять ИЗ ГРАФА, а не из
+        // хардкодженного dissociationElements. До него правило не матчится. produce() ниже сохранён
+        // как референс старого поведения (порог энергии, спавн осколков) для будущей граф-версии.
         return false
     }
 

@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -30,7 +31,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class StarOxygenBurning(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
 
     override val id = "StarOxygenBurning"
 
@@ -39,7 +40,7 @@ class StarOxygenBurning(
     private var resultElement : Element? = null
     private var extraElements : List<Element> = emptyList()
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         atom1 = null
         atom2 = null
         resultElement = null
@@ -158,7 +159,11 @@ class StarOxygenBurning(
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = spawnList,
-            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} -> ${result.symbol(resultElectrons)} + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} -> ${
+                result.symbol(
+                    resultElectrons
+                )
+            } + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

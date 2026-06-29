@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -7,17 +7,18 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 // «Ион ловит электрон, излучает фотон».
 class RecombinationReaction(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "Recombination"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
 
-    override fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
         atom1 = null
         atom2 = null
         if (reagents.size < 2) return false
@@ -79,11 +80,18 @@ class RecombinationReaction(
                     )
                     entityGenerator.createEntity(
                         Element.PHOTON,
-                        Position(resultPosition.x + 1.5f * direction.x * radius, resultPosition.y + 1.5f * direction.y * radius),
+                        Position(
+                            resultPosition.x + 1.5f * direction.x * radius,
+                            resultPosition.y + 1.5f * direction.y * radius
+                        ),
                         direction, 10f, energy = photonEnergy, environment = env, electrons = 0,
                     )
                 },
-                description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${Element.HYDROGEN.symbol(1)} + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
+                description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${
+                    Element.HYDROGEN.symbol(
+                        1
+                    )
+                } + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
             )
         }
 
@@ -101,11 +109,18 @@ class RecombinationReaction(
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    Position(resultPosition.x + 1.5f * direction.x * radius, resultPosition.y + 1.5f * direction.y * radius),
+                    Position(
+                        resultPosition.x + 1.5f * direction.x * radius,
+                        resultPosition.y + 1.5f * direction.y * radius
+                    ),
                     direction, 10f, energy = photonEnergy, environment = env, electrons = 0,
                 )
             },
-            description = "$id: ${atom1Element.symbol(electrons)} + ${atom2Element.details.symbol} -> ${atom1Element.symbol(resultElectrons)} + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(electrons)} + ${atom2Element.details.symbol} -> ${
+                atom1Element.symbol(
+                    resultElectrons
+                )
+            } + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
         )
     }
 }

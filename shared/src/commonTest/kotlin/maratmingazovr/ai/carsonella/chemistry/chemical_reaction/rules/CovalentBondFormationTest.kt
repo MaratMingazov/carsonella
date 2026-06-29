@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.CovalentBondFormation
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals

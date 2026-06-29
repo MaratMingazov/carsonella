@@ -1,13 +1,13 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -34,13 +34,13 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class AlphaProtonReaction(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "AlphaProtonReaction"
 
     private var target: Entity<*>? = null
     private var alpha: Entity<*>? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         target = null
         alpha = null
         if (reagents.size < 2) return false
@@ -134,7 +134,11 @@ class AlphaProtonReaction(
         return ReactionOutcome(
             consumed = listOf(t, a),
             spawn = spawnList,
-            description = "$id: ${targetElement.symbol(t.state().value.electrons)} + ${alphaElement.symbol(a.state().value.electrons)} → ${resultElement.symbol(targetElectrons)} + ${Proton.details.symbol}$electronTail",
+            description = "$id: ${targetElement.symbol(t.state().value.electrons)} + ${alphaElement.symbol(a.state().value.electrons)} → ${
+                resultElement.symbol(
+                    targetElectrons
+                )
+            } + ${Proton.details.symbol}$electronTail",
         )
     }
 }

@@ -1,22 +1,24 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
-import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.radius
 
 /**
  * Образование ковалентной связи (§6, Шаг 3a): два близких нейтральных лёгких атома со свободными
  * валентными слотами → одна двухатомная молекула.
  *
  * ВЫЧИСЛЯЕМОЕ правило, а не попарная таблица: годится для любой пары лёгких атомов. Идентичность
- * продукта — его граф ([Species.Molecular]), не enum-константа. Многоатомные реагенты
+ * продукта — его граф ([maratmingazovr.ai.carsonella.chemistry.Species.Molecular]), не enum-константа. Многоатомные реагенты
  * (атом+молекула → вода) — следующий шаг (3b).
  */
 class CovalentBondFormation(
@@ -101,7 +103,15 @@ class CovalentBondFormation(
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = listOf {
-                entityGenerator.createEntity(Species.Molecular(graph), midpoint, direction, velocity, energy, env, electrons)
+                entityGenerator.createEntity(
+                    Species.Molecular(graph),
+                    midpoint,
+                    direction,
+                    velocity,
+                    energy,
+                    env,
+                    electrons
+                )
             },
             description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty()}",
         )

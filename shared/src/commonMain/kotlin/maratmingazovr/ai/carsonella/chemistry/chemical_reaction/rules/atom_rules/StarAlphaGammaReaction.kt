@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -6,19 +6,20 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 
 // альфа-захват
 // «Внутри звезды ион ловит ⁴He, превращается в более тяжёлый элемент».
 class StarAlphaGammaReaction(
     private val entityGenerator: IEntityGenerator,      // вот сюда нужно будет передать лямбду, с помощью которой можно создать молекулу водорода H2
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "AlphaReaction"
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
 
-    override fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
         atom1 = null
         atom2 = null
         if (reagents.size < 2) return false
@@ -89,7 +90,11 @@ class StarAlphaGammaReaction(
                     electrons = 0,
                 )
             },
-            description = "$id: ${atom1Element.symbol(atom1!!.state().value.electrons)} + ${atom2Element.symbol(atom2!!.state().value.electrons)} -> ${resultElement.symbol(resultElectrons)} + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
+            description = "$id: ${atom1Element.symbol(atom1!!.state().value.electrons)} + ${atom2Element.symbol(atom2!!.state().value.electrons)} -> ${
+                resultElement.symbol(
+                    resultElectrons
+                )
+            } + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
         )
     }
 }

@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -18,6 +18,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -43,7 +44,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class StarProtonCaptureReaction(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "StarProtonCaptureReaction"
 
     private sealed class Outcome {
@@ -56,7 +57,7 @@ class StarProtonCaptureReaction(
     private var atom2: Entity<*>? = null
     private var chosenOutcome: Outcome? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         atom1 = null
         atom2 = null
         chosenOutcome = null
@@ -159,7 +160,11 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,γ): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${PHOTON.details.symbol}",
+                    description = "$id (p,γ): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
+                        resultElement.symbol(
+                            resultElectrons
+                        )
+                    } + ${PHOTON.details.symbol}",
                 )
             }
             is Outcome.Alpha -> {
@@ -210,7 +215,11 @@ class StarProtonCaptureReaction(
                 ReactionOutcome(
                     consumed = listOf(a1, a2),
                     spawn = spawnList,
-                    description = "$id (p,α): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${HELIUM_4.symbol(0)}$electronTail",
+                    description = "$id (p,α): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
+                        resultElement.symbol(
+                            resultElectrons
+                        )
+                    } + ${HELIUM_4.symbol(0)}$electronTail",
                 )
             }
             is Outcome.Neutron -> {
@@ -246,7 +255,11 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,n): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${resultElement.symbol(resultElectrons)} + ${NEUTRON.details.symbol}",
+                    description = "$id (p,n): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
+                        resultElement.symbol(
+                            resultElectrons
+                        )
+                    } + ${NEUTRON.details.symbol}",
                 )
             }
         }

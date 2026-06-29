@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.collections.List
 
@@ -13,14 +14,14 @@ import kotlin.collections.List
 // Либо при большой концентрации  излучает элементы наружку в космос
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "StarEmission"
 
     private var entity : Entity<*>? = null
     private var entityReagents: List<Entity<*>> = listOf()
     private var absorbReagents: List<Entity<*>> = listOf()
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
         entityReagents = listOf()
         absorbReagents = listOf()
@@ -60,7 +61,7 @@ class StarEmission (
             return ReactionOutcome(
                 updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
                 description = "$id: ${Element.Star.details.symbol} <- " +
-                    absorbReagents.joinToString { it.state().value.element.details.symbol },
+                        absorbReagents.joinToString { it.state().value.element.details.symbol },
             )
         }
 

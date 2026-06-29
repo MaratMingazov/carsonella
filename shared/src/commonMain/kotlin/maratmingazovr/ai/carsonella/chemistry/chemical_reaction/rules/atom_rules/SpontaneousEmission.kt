@@ -6,7 +6,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -23,13 +22,13 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class SpontaneousEmission(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "Luminescence"
 
     private var entity : Entity<*>? = null
 
 
-    override fun matches(reagents: List<Entity<*>>) : Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
         entity = null
 
         if (reagents.size != 1) return false

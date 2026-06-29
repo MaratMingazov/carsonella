@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import kotlin.math.abs
 
 // Допуск при сопоставлении энергии фотона с уровнем атома. Нужен потому, что фотон, рождённый
@@ -22,7 +23,7 @@ private const val ENERGY_EPSILON = 0.01f
  */
 class PhotoIonization (
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "PhotoIonization"
 
     private var entity : Entity<*>? = null
@@ -30,7 +31,7 @@ class PhotoIonization (
     // null означает «ионизация» (energy >= top level), Float — точный уровень, на который нужно «снапнуть» entity
     private var matchedLevel : Float? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
         photon = null
         matchedLevel = null
@@ -97,7 +98,11 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon!!),
                 updateState = listOf { entity!!.setEnergy(level) },
-                description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${entityElement.label(electrons)} (${level}eV)"
+                description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${
+                    entityElement.label(
+                        electrons
+                    )
+                } (${level}eV)"
             )
         } else {
             val energyIonization = entityElement.energyLevels(electrons).last()
@@ -118,8 +123,24 @@ class PhotoIonization (
                 return ReactionOutcome(
                     consumed = listOf(photon!!, entity!!),
                     spawn = listOf {
-                        entityGenerator.createEntity(Proton, ionPosition, entityDirection, entityVelocity, 0f, env, electrons = 0)
-                        entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env, electrons = 1)
+                        entityGenerator.createEntity(
+                            Proton,
+                            ionPosition,
+                            entityDirection,
+                            entityVelocity,
+                            0f,
+                            env,
+                            electrons = 0
+                        )
+                        entityGenerator.createEntity(
+                            ELECTRON,
+                            electronPosition,
+                            entityDirection,
+                            electronVelocity,
+                            0f,
+                            env,
+                            electrons = 1
+                        )
                     },
                     description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${Proton.details.label} + ${ELECTRON.details.label}"
                 )
@@ -133,9 +154,21 @@ class PhotoIonization (
                     entity!!.setEnergy(0f)
                 },
                 spawn = listOf {
-                    entityGenerator.createEntity(ELECTRON, electronPosition, entityDirection, electronVelocity, 0f, env, electrons = 1)
+                    entityGenerator.createEntity(
+                        ELECTRON,
+                        electronPosition,
+                        entityDirection,
+                        electronVelocity,
+                        0f,
+                        env,
+                        electrons = 1
+                    )
                 },
-                description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${entityElement.label(electrons - 1)} + ${ELECTRON.details.label}"
+                description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${
+                    entityElement.label(
+                        electrons - 1
+                    )
+                } + ${ELECTRON.details.label}"
             )
         }
     }

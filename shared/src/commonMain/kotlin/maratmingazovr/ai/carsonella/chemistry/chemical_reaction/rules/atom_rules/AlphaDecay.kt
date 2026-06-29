@@ -1,10 +1,11 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -20,12 +21,12 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class AlphaDecay(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "AlphaDecay"
 
     private var entity: Entity<*>? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
 
         if (reagents.size != 1) return false
@@ -76,7 +77,11 @@ class AlphaDecay(
                     )
                 },
             ),
-            description = "$id: ${parentElement.symbol(parent.state().value.electrons)} → ${childElement.symbol(childElectrons)} + ${HELIUM_4.details.symbol}",
+            description = "$id: ${parentElement.symbol(parent.state().value.electrons)} → ${
+                childElement.symbol(
+                    childElectrons
+                )
+            } + ${HELIUM_4.details.symbol}",
         )
     }
 }

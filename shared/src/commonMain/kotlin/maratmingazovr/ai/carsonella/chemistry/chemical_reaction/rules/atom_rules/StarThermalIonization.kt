@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -29,12 +30,12 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class StarThermalIonization(
     private val entityGenerator: IEntityGenerator,
-) : ReactionRule {
+) : AtomReactionRule() {
     override val id = "StarThermalIonization"
 
     private var entity: Entity<*>? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
 
         if (reagents.size != 1) return false
@@ -64,8 +65,24 @@ class StarThermalIonization(
             return ReactionOutcome(
                 consumed = listOf(atom),
                 spawn = listOf {
-                    entityGenerator.createEntity(Element.Proton, position, atom.state().value.direction, atom.state().value.velocity, 0f, env, electrons = 0)
-                    entityGenerator.createEntity(Element.ELECTRON, electronPosition, randomDirection(entityGenerator.random), 10f, 0f, env, electrons = 1)
+                    entityGenerator.createEntity(
+                        Element.Proton,
+                        position,
+                        atom.state().value.direction,
+                        atom.state().value.velocity,
+                        0f,
+                        env,
+                        electrons = 0
+                    )
+                    entityGenerator.createEntity(
+                        Element.ELECTRON,
+                        electronPosition,
+                        randomDirection(entityGenerator.random),
+                        10f,
+                        0f,
+                        env,
+                        electrons = 1
+                    )
                 },
                 description = "$id: ${element.label(electrons)} -> ${Element.Proton.details.label} + ${Element.ELECTRON.details.label}",
             )
@@ -75,7 +92,15 @@ class StarThermalIonization(
         return ReactionOutcome(
             updateState = listOf { atom.setElectrons(electrons - 1) },
             spawn = listOf {
-                entityGenerator.createEntity(Element.ELECTRON, electronPosition, randomDirection(entityGenerator.random), 10f, 0f, env, electrons = 1)
+                entityGenerator.createEntity(
+                    Element.ELECTRON,
+                    electronPosition,
+                    randomDirection(entityGenerator.random),
+                    10f,
+                    0f,
+                    env,
+                    electrons = 1
+                )
             },
             description = "$id: ${element.label(electrons)} -> ${element.label(electrons - 1)} + ${Element.ELECTRON.details.label}",
         )
