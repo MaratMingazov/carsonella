@@ -18,7 +18,7 @@ import kotlin.math.round
 
 data class AtomState(
     override val id: Long,
-    override val species: Species,
+    override val species: Species.Elemental,
     override var alive: Boolean,
     override var position: Position,
     override var direction: Vec2D,
@@ -26,6 +26,8 @@ data class AtomState(
     override var energy: Float,
     override var electrons: Int,
 ) : EntityState<AtomState> {
+    // species сужен до Elemental (атом — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
+    override val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
         return """
