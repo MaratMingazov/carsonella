@@ -212,7 +212,7 @@ interface Entity<State : EntityState<State>> :
     }
 }
 
-enum class ElementType { SubAtom, Atom, Molecule, Star, SpaceModule, RecombinationModule }
+enum class ElementType { SubAtom, Atom, Molecule, Star }
 
 enum class Element() {
     // --- субатомные частицы ---
@@ -518,19 +518,17 @@ enum class Element() {
     POLONIUM_210,
 
 
-    Star,
-    SPACE_MODULE,
-    RECOMBINATION_MODULE,
+    Star;
 
-    // Молекулы
-    C2_H6_O_ETHANOL,
-    C2_H6_O_DIMETHYL_ETHER,
-
-    C_H4,
-
-    O2,
-    H2O,
-    H2;
+//    // Молекулы
+//    C2_H6_O_ETHANOL,
+//    C2_H6_O_DIMETHYL_ETHER,
+//
+//    C_H4,
+//
+//    O2,
+//    H2O,
+//    H2;
 
     val details: Details get() = detailsMap[this]!!
 

@@ -37,8 +37,8 @@ class World(
     val environment = Environment(Position(800f, 400f), 500f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.PHOTON,
-        Element.HYDROGEN, Element.OXYGEN_16,
-        Element.Star, Element.SPACE_MODULE
+        Element.HYDROGEN,
+        Element.OXYGEN_16,
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
@@ -148,10 +148,7 @@ class World(
      * если родитель сущности — звезда (она же среда), пишем её id; иначе (корневой Environment) — null.
      */
     fun toSnapshot(): WorldSnapshotDto {
-        val saved = entities.toList().filter {
-            val s = it.state().value
-            s.alive && s.element.details.type != ElementType.SpaceModule && s.element.details.type != ElementType.RecombinationModule
-        }
+        val saved = entities.toList().filter {it.state().value.alive }
         val savedIds = saved.mapTo(mutableSetOf()) { it.state().value.id }
 
         val entityDtos = saved.map { e ->

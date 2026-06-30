@@ -322,18 +322,16 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", p = 84, n = 126, description = "Полоний", alphaDecayResult = LEAD_206),
 
     Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         p = 1, n = 0, radius = 100f),
-    SPACE_MODULE            to Details (type = ElementType.SpaceModule,         symbol = ".",       label = "SpaceModule",  p = 1, n = 0, radius = 30f),
-    RECOMBINATION_MODULE    to Details (type = ElementType.RecombinationModule, symbol = ".",       label = "SpaceModule",  p = 1, n = 0, radius = 30f),
 
-    // Молекулы
-    C2_H6_O_ETHANOL         to Details (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
-    C2_H6_O_DIMETHYL_ETHER  to Details (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", p = 26, n = 20, description = "Диметиловый Эфир."),
-
-    C_H4                    to Details (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
-
-    O2                      to Details (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", p = 16, n = 16),
-    H2O                     to Details (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", p = 10, n = 8),
-    H2                      to Details (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", p = 2, n = 0, energyBondDissociation = 4.5f, dissociationElements = listOf(Element.HYDROGEN, Element.HYDROGEN)),
+//    // Молекулы
+//    C2_H6_O_ETHANOL         to Details (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
+//    C2_H6_O_DIMETHYL_ETHER  to Details (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", p = 26, n = 20, description = "Диметиловый Эфир."),
+//
+//    C_H4                    to Details (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
+//
+//    O2                      to Details (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", p = 16, n = 16),
+//    H2O                     to Details (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", p = 10, n = 8),
+//    H2                      to Details (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", p = 2, n = 0, energyBondDissociation = 4.5f, dissociationElements = listOf(Element.HYDROGEN, Element.HYDROGEN)),
 )
 
 // Энергетические уровни ионизации по элементу (Z), а не по изотопу: зависят только от Z, не от N

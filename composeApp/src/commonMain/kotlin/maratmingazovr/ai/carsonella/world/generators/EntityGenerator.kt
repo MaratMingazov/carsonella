@@ -8,12 +8,11 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Molecule
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
-import maratmingazovr.ai.carsonella.chemistry.ElementType.SpaceModule
-import maratmingazovr.ai.carsonella.chemistry.ElementType.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.RecombinationModule
 import maratmingazovr.ai.carsonella.chemistry.SpaceModule
@@ -65,8 +64,6 @@ class EntityGenerator(
                 SubAtom -> SubAtom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
                 Atom -> Atom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
                 Star -> Star(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-                SpaceModule -> SpaceModule(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-                RecombinationModule -> RecombinationModule(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
                 Molecule -> throw UnsupportedOperationException("Молекулы образуются реакциями как Species.Molecular(graph), не спавнятся по элементу")
             }
         }.apply {
