@@ -5,6 +5,9 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.displaySymbol
+import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -29,8 +32,10 @@ class StarEmission (
         if (reagents.isEmpty()) return false
 
         val first = reagents.first()
-        val firstElement = first.state().value.element
-        if (firstElement != Element.Star) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val species = first.state().value.species
+        if (species !is Species.Elemental) return false
+        if (species.element != Element.Star) return false
         if (!first.state().value.alive) return false
         entity = first
 
@@ -61,7 +66,7 @@ class StarEmission (
             return ReactionOutcome(
                 updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
                 description = "$id: ${Element.Star.details.symbol} <- " +
-                        absorbReagents.joinToString { it.state().value.element.details.symbol },
+                        absorbReagents.joinToString { it.state().value.species.displaySymbol(it.state().value.electrons) },
             )
         }
 
@@ -102,7 +107,7 @@ class StarEmission (
                     var outward = Vec2D(pos.x - center.x, pos.y - center.y)
                     if (outward.length() < 1e-6f) outward = randomDirection(entityGenerator.random)
                     outward.normalizeInPlace()
-                    val ejectDistance = star.state().value.element.details.radius + 20f
+                    val ejectDistance = star.state().value.species.radius() + 20f
                     reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
                     // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
@@ -110,7 +115,7 @@ class StarEmission (
                     reagent.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
                 }
-                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.element.details.symbol}"
+                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.species.displaySymbol(reagent.state().value.electrons)}"
             }
             return ReactionOutcome(updateState = updateList, description = description)
         }

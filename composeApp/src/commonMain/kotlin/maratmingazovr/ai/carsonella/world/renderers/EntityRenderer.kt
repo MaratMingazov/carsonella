@@ -10,7 +10,6 @@ import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.chemistry.displaySymbol
 import maratmingazovr.ai.carsonella.chemistry.AtomState
 import maratmingazovr.ai.carsonella.chemistry.MoleculeState
-import maratmingazovr.ai.carsonella.chemistry.SpaceModuleState
 import maratmingazovr.ai.carsonella.chemistry.StarState
 import maratmingazovr.ai.carsonella.chemistry.SubAtomState
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -39,7 +38,6 @@ class EntityRenderer(
             is AtomState -> drawEntity(drawScope, entityState, phase, showLabel)
             is MoleculeState -> drawMolecule(drawScope, entityState, phase, showLabel)
             is StarState -> drawStar(drawScope, entityState, phase, phase2)
-            is SpaceModuleState -> drawEntity(drawScope, entityState, phase, showLabel)
 
         }
     }

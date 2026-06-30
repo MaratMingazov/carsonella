@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -26,16 +27,21 @@ class SpontaneousEmission(
     override val id = "Luminescence"
 
     private var entity : Entity<*>? = null
+    private var subjectElement: Element? = null   // запомнен в matchesAtoms — produce не вычисляет заново
 
 
     override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
         entity = null
+        subjectElement = null
 
         if (reagents.size != 1) return false
         val first = reagents.first()
         if (!first.state().value.alive) return false
 
-        val firstElement = first.state().value.element
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val species = first.state().value.species
+        if (species !is Species.Elemental) return false
+        val firstElement = species.element
         val levels = firstElement.energyLevels(first.state().value.electrons)
         if (levels.isEmpty()) return false
         if (first.state().value.energy == 0f) return false
@@ -44,6 +50,7 @@ class SpontaneousEmission(
         if (!chance(0.02f, entityGenerator.random)) return false // в этом случае он с определенной вероятностью избавится от этой энергии
 
         entity = first
+        subjectElement = firstElement
         return true
     }
 
@@ -53,7 +60,7 @@ class SpontaneousEmission(
 
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity!!.state().value.energy
-        val entityElement = entity!!.state().value.element
+        val entityElement = subjectElement!!   // запомнили в matchesAtoms
         val levels = entityElement.energyLevels(entity!!.state().value.electrons)
         val index = levels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")

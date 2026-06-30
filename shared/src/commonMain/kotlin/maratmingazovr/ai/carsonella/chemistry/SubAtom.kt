@@ -24,7 +24,7 @@ data class SubAtomState(
     override var electrons: Int,
 ) : EntityState<SubAtomState> {
     // species сужен до Elemental (субатомная частица — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
-    override val element: Element get() = species.element
+    val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
         return """

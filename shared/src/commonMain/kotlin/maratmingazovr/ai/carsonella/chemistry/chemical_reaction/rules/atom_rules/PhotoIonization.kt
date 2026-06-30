@@ -1,11 +1,13 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import kotlin.math.abs
@@ -28,18 +30,25 @@ class PhotoIonization (
 
     private var entity : Entity<*>? = null
     private var photon : Entity<*>? = null
+    private var entityEl : Element? = null   // элементы реагентов, запомненные в matchesAtoms — produce не вычисляет заново
+    private var photonEl : Element? = null
     // null означает «ионизация» (energy >= top level), Float — точный уровень, на который нужно «снапнуть» entity
     private var matchedLevel : Float? = null
 
     override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
         photon = null
+        entityEl = null
+        photonEl = null
         matchedLevel = null
 
         if (reagents.size < 2) return false
 
         val first = reagents.first()
-        val firstElement = first.state().value.element
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val firstSpecies = first.state().value.species
+        if (firstSpecies !is Species.Elemental) return false
+        val firstElement = firstSpecies.element
         val levels = firstElement.energyLevels(first.state().value.electrons)
         if (levels.isEmpty()) return false
         if (!first.state().value.alive) return false
@@ -48,7 +57,10 @@ class PhotoIonization (
 
         val (nearestPhoton, distance) = others
             .asSequence()
-            .filter { it.state().value.element == PHOTON }
+            .filter {
+                val sp = it.state().value.species
+                sp is Species.Elemental && sp.element == PHOTON
+            }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
             .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
@@ -62,6 +74,8 @@ class PhotoIonization (
         if (expectedEnergy >= levels.last() - ENERGY_EPSILON) {
             entity = first
             photon = nearestPhoton
+            entityEl = firstElement
+            photonEl = PHOTON
             matchedLevel = null
             return true
         }
@@ -71,6 +85,8 @@ class PhotoIonization (
         if (matched != null) {
             entity = first
             photon = nearestPhoton
+            entityEl = firstElement
+            photonEl = PHOTON
             matchedLevel = matched
             return true
         }
@@ -86,10 +102,10 @@ class PhotoIonization (
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
         val entityEnergy = entity!!.state().value.energy
-        val entityElement = entity!!.state().value.element
+        val entityElement = entityEl!!   // запомнили в matchesAtoms
         val electrons = entity!!.state().value.electrons
         val photonEnergy = photon!!.state().value.energy
-        val photonElement = photon!!.state().value.element
+        val photonElement = photonEl!!
         val level = matchedLevel
 
         if (level != null) {

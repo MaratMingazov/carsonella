@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -34,18 +35,25 @@ class StarThermalIonization(
     override val id = "StarThermalIonization"
 
     private var entity: Entity<*>? = null
+    private var subjectElement: Element? = null   // запомнен в matchesAtoms — produce не вычисляет заново
 
     override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
+        subjectElement = null
 
         if (reagents.size != 1) return false
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        if (first.state().value.element.details.type != ElementType.Atom) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val species = first.state().value.species
+        if (species !is Species.Elemental) return false
+        val element = species.element
+        if (element.details.type != ElementType.Atom) return false
         if (first.state().value.electrons <= 0) return false
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
 
         entity = first
+        subjectElement = element
         return true
     }
 
@@ -53,7 +61,7 @@ class StarThermalIonization(
 
     override fun produce(): ReactionOutcome {
         val atom = entity!!
-        val element = atom.state().value.element
+        val element = subjectElement!!   // запомнили в matchesAtoms
         val electrons = atom.state().value.electrons
         val position = atom.state().value.position
         val radius = element.details.radius

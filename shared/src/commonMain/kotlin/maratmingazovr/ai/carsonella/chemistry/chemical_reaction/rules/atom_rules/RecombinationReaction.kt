@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -17,15 +18,22 @@ class RecombinationReaction(
 
     private var atom1 : Entity<*>? = null
     private var atom2 : Entity<*>? = null
+    private var atom1El : Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
+    private var atom2El : Element? = null
 
     override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
         atom1 = null
         atom2 = null
+        atom1El = null
+        atom2El = null
         if (reagents.size < 2) return false
         val firstAtom = reagents.first()
         val firstAtomPosition = reagents.first().state().value.position
-        val firstAtomElement = firstAtom.state().value.element
         if (!firstAtom.state().value.alive) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val firstSpecies = firstAtom.state().value.species
+        if (firstSpecies !is Species.Elemental) return false
+        val firstAtomElement = firstSpecies.element
         val firstElectrons = firstAtom.state().value.electrons
         if (!canGainElectron(firstAtomElement, firstElectrons)) return false // значит элемент не участвует в рекомбинации
         // уровни состояния-результата (на 1 электрон больше); для протона результат — HYDROGEN
@@ -35,7 +43,10 @@ class RecombinationReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == ELECTRON }
+            .filter {
+                val sp = it.state().value.species
+                sp is Species.Elemental && sp.element == ELECTRON
+            }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
@@ -43,11 +54,15 @@ class RecombinationReaction(
 
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
-        val secondAtomElement = secondAtom.state().value.element
+        val secondSpecies = secondAtom.state().value.species
+        if (secondSpecies !is Species.Elemental) return false
+        val secondAtomElement = secondSpecies.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
             atom1 = firstAtom
             atom2 = secondAtom
+            atom1El = firstAtomElement
+            atom2El = secondAtomElement
             true
         } else {
             false
@@ -58,8 +73,8 @@ class RecombinationReaction(
 
     override fun produce(): ReactionOutcome {
 
-        val atom1Element = atom1!!.state().value.element
-        val atom2Element = atom2!!.state().value.element
+        val atom1Element = atom1El!!   // запомнили в matchesAtoms
+        val atom2Element = atom2El!!
         val electrons = atom1!!.state().value.electrons
         val resultPosition = atom1!!.state().value.position
         val electronEnergy = atom2!!.state().value.energy

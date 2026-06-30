@@ -2,10 +2,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -42,20 +44,30 @@ class StarNeutronAlphaReaction(
 
     private var atom1: Entity<*>? = null
     private var atom2: Entity<*>? = null
+    private var atom1El: Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
+    private var atom2El: Element? = null
 
     override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         atom1 = null
         atom2 = null
+        atom1El = null
+        atom2El = null
         if (reagents.size < 2) return false
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        val firstAtomElement = firstAtom.state().value.element
         if (!firstAtom.state().value.alive) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val firstSpecies = firstAtom.state().value.species
+        if (firstSpecies !is Species.Elemental) return false
+        val firstAtomElement = firstSpecies.element
         if (firstAtomElement.details.neutronAlphaResult == null) return false
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == NEUTRON }
+            .filter {
+                val sp = it.state().value.species
+                sp is Species.Elemental && sp.element == NEUTRON
+            }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
@@ -67,6 +79,8 @@ class StarNeutronAlphaReaction(
 
         atom1 = firstAtom
         atom2 = secondAtom
+        atom1El = firstAtomElement
+        atom2El = NEUTRON   // второй реагент — нейтрон по фильтру
         return true
     }
 
@@ -77,8 +91,8 @@ class StarNeutronAlphaReaction(
         val a2 = atom2!!
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
         val resultPosition = a1.state().value.position
-        val atom1Element = a1.state().value.element
-        val atom2Element = a2.state().value.element
+        val atom1Element = atom1El!!   // запомнили в matchesAtoms
+        val atom2Element = atom2El!!
         val resultElement = atom1Element.details.neutronAlphaResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,α) понижает Z на 2 → лишние электроны
         // (если родитель близок к нейтральному) не помещаются на продукт и улетают свободными e⁻ (shake-off).

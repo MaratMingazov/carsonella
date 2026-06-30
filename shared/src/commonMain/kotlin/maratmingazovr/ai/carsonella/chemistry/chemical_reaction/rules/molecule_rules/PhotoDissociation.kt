@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
@@ -36,7 +37,11 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
          *  Энергетический порог молекулы.
          *  Если в молекулу прилетел фотон, то молекула либо заберет эту энергию, либо сама распадется
          */
-        val energyDissociation = entity!!.state().value.element.details.energyBondDissociation!!
+        // Дормант (см. matches): produce не вызывается. Narrow до Elemental, чтобы компилироваться без шва EntityState.
+        val species = entity!!.state().value.species
+        if (species !is Species.Elemental) return ReactionOutcome()
+        val entityElement = species.element
+        val energyDissociation = entityElement.details.energyBondDissociation!!
         val entityEnergy = entity!!.state().value.energy
         val photonEnergy = photon!!.state().value.energy
 
@@ -49,7 +54,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator, ) : React
         } else {
             // пройден энергетический порог. Происходит диссоциация
             val entityPosition = entity!!.state().value.position
-            val entityElement = entity!!.state().value.element
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
             val dissociationElements = entityElement.details.dissociationElements

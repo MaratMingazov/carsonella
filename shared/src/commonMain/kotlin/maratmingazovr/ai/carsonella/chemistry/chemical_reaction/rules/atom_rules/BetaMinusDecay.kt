@@ -2,8 +2,10 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -29,18 +31,25 @@ class BetaMinusDecay(
     override val id = "BetaMinusDecay"
 
     private var entity: Entity<*>? = null
+    private var subjectElement: Element? = null   // запомнен в matchesAtoms — produce не вычисляет заново
 
     override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         entity = null
+        subjectElement = null
 
         if (reagents.size != 1) return false
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        if (first.state().value.element.details.betaMinusDecayResult == null) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val species = first.state().value.species
+        if (species !is Species.Elemental) return false
+        val element = species.element
+        if (element.details.betaMinusDecayResult == null) return false
 
         if (!chance(0.02f, entityGenerator.random)) return false
 
         entity = first
+        subjectElement = element
         return true
     }
 
@@ -48,7 +57,7 @@ class BetaMinusDecay(
 
     override fun produce(): ReactionOutcome {
         val parent = entity!!
-        val parentElement = parent.state().value.element
+        val parentElement = subjectElement!!   // запомнили в matchesAtoms
         val childElement = parentElement.details.betaMinusDecayResult!!
         val parentPosition = parent.state().value.position
         val parentRadius = parentElement.details.radius

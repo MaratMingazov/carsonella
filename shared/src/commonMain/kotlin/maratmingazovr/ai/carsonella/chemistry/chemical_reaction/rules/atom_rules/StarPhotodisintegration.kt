@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -47,17 +48,22 @@ class StarPhotodisintegration(
 
     private var atom: Entity<*>? = null
     private var photon: Entity<*>? = null
+    private var atomEl: Element? = null   // элемент мишени, запомненный в matchesAtoms — produce не вычисляет заново
     private var chosen: Channel? = null
 
     override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
         atom = null
         photon = null
+        atomEl = null
         chosen = null
         if (reagents.size < 2) return false
 
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        val element = first.state().value.element
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val firstSpecies = first.state().value.species
+        if (firstSpecies !is Species.Elemental) return false
+        val element = firstSpecies.element
 
         // Доступные обратные каналы — реверс полей захвата (N — продукт какого-то захвата P→N).
         val candidates = buildList {
@@ -70,7 +76,10 @@ class StarPhotodisintegration(
         val firstPosition = first.state().value.position
         val (nearestPhoton, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == PHOTON }
+            .filter {
+                val sp = it.state().value.species
+                sp is Species.Elemental && sp.element == PHOTON
+            }
             .filter { it.state().value.alive }
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
@@ -79,11 +88,12 @@ class StarPhotodisintegration(
 
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
         if (nearestPhoton.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (distanceSquare >= first.state().value.element.details.radius * PHOTON.details.radius * 2f) return false
+        if (distanceSquare >= element.details.radius * PHOTON.details.radius * 2f) return false
         if (!chance(RATE, entityGenerator.random)) return false
 
         atom = first
         photon = nearestPhoton
+        atomEl = element
         chosen = candidates.random(entityGenerator.random)
         return true
     }
@@ -97,7 +107,7 @@ class StarPhotodisintegration(
         val parent = channel.parent
         val ejected = channel.ejected
 
-        val atomElement = a.state().value.element
+        val atomElement = atomEl!!   // запомнили в matchesAtoms
         val position = a.state().value.position
         val direction = a.state().value.direction
         val velocity = a.state().value.velocity

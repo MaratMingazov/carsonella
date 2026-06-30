@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
@@ -42,14 +43,20 @@ class Annihilation(
 
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        if (first.state().value.element != POSITRON) return false
+        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        val species = first.state().value.species
+        if (species !is Species.Elemental) return false
+        if (species.element != POSITRON) return false
 
         val positronPosition = first.state().value.position
         val positronRadius = POSITRON.details.radius
 
         val (nearestElectron, distanceSquare) = reagents
             .drop(1)
-            .filter { it.state().value.element == ELECTRON }
+            .filter {
+                val sp = it.state().value.species
+                sp is Species.Elemental && sp.element == ELECTRON
+            }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(positronPosition) }
             .minByOrNull { it.second }

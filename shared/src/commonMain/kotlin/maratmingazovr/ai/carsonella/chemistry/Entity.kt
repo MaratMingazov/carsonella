@@ -16,10 +16,6 @@ interface EntityState<State : EntityState<State>> {
 
     val id: Long
     val species: Species
-    // Совместимость на время §3b-миграции: код для Elemental (атомы/частицы/звезда/модули) читает
-    // .element как раньше. У Molecular элемента нет — её структура и агрегаты считаются из графа.
-    val element: Element get() = (species as? Species.Elemental)?.element
-        ?: error("Molecular species не имеет Element — читай его граф")
     var alive: Boolean
     var position: Position
     var direction: Vec2D
