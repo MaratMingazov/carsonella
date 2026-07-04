@@ -23,7 +23,7 @@ abstract class AtomReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity<*>>): Boolean {
         if (reagents.firstOrNull()?.state()?.value?.species !is Species.Elemental) return false
-        return matchesAtoms(reagents.filter { it.state().value.species is Species.Elemental })
+        return matchesAtoms(reagents)
     }
 
     /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Elemental]. */

@@ -26,9 +26,10 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarPhotodisintegration
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarThermalIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.RecombinationReaction
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.CovalentBondFormation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.CovalentBondFormation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculeGrowth
 import kotlin.random.Random
 
 
@@ -71,7 +72,8 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarThermalIonization(entityGenerator), // тепловая ионизация в недрах звезды: атом теряет по электрону за тик до голого ядра (плазма)
 
         // --- образование молекул (граф) ---
-        CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → молекула-граф
+        CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → двухатомная молекула-граф
+        MoleculeGrowth(entityGenerator), // рост молекулы (3b): молекула со свободным слотом + атом/молекула → бо́льшая молекула (O–H + H → H₂O)
 
     )
 

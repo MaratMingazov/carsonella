@@ -76,6 +76,66 @@ data class MoleculeGraph(
     fun protons(): Int = nodes.sumOf { it.isotope.details.p }
 
     /**
+     * Свободные валентные слоты узла [localId] = валентность изотопа − сумма кратностей инцидентных связей.
+     * Примеры: O в ·OH (одна связь O–H) → 2 − 1 = 1; O в H₂O (две связи) → 0; C в ·CH₃ → 4 − 3 = 1.
+     *
+     * Слот > 0 ⇒ атом может образовать ещё связь (рост, 3b) или усилить существующую (3c). Электроны тут
+     * ни при чём: узел — это изотоп, валентность берётся для нейтрального атома (как в 3a, [Element.valence]).
+     */
+    fun freeSlots(localId: Int): Int {
+        val node = nodes.firstOrNull { it.localId == localId }
+            ?: error("Узла с localId=$localId нет в графе")
+        val used = bonds.sumOf { if (it.atom1 == localId || it.atom2 == localId) it.order else 0 }
+        return node.isotope.valence() - used
+    }
+
+    /** Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать). */
+    fun hasFreeSlot(): Boolean = nodes.any { freeSlots(it.localId) > 0 }
+
+    /**
+     * localId узла со свободным слотом для новой связи — наименьший среди кандидатов (детерминированно),
+     * либо null, если свободных слотов нет. Межатомную геометрию внутри молекулы физика пока не моделирует,
+     * поэтому узел выбирается детерминированно, а не «ближайший к партнёру» (см. 3b в docs/molecule-graph.md).
+     */
+    fun firstFreeSlotNode(): Int? = nodes.map { it.localId }.filter { freeSlots(it) > 0 }.minOrNull()
+
+    /**
+     * Слияние двух молекул в одну (рост, 3b): этот граф остаётся якорем (его нумерация не меняется), к нему
+     * дописывается [other], а между узлом [thisNode] (в нумерации этого графа) и узлом [otherNode]
+     * (в нумерации [other]) добавляется связь кратности [bondOrder].
+     *
+     * Узлы [other] переиндексируются: `localId += offset`, где `offset` больше любого localId этого графа —
+     * чтобы локальные нумерации не столкнулись (у обоих может быть узел 0). Топология при этом НЕ меняется,
+     * это лишь переименование меток (см. [canonical]). Зеркало диссоциации: рост склеивает графы, распад их
+     * разрезает (одна графовая хирургия). СШИВАЕТ графы именно новое ребро — без него вышли бы две несвязные
+     * компоненты (формально две молекулы) в одном списке узлов.
+     *
+     * Пример ·OH + H· → H₂O:
+     * ```
+     * this  = ·OH:  nodes [O@0, H@1], bonds [(0–1)]      other = H·: nodes [H@0], bonds []
+     * thisNode = 0 (O), otherNode = 0 (H), bondOrder = 1
+     *   offset       = max(0,1) + 1 = 2
+     *   shiftedNodes = [H@0] → [H@2]                      (узлы other в свободный диапазон)
+     *   shiftedBonds = []                                 (внутренних связей у атома нет)
+     *   newBond      = Bond(0, 0+2=2, 1)                  ← сшивает O(0) и H(2)
+     *   → nodes [O@0, H@1, H@2], bonds [(0–1), (0–2)]     = H₂O
+     * ```
+     *
+     * merge — чистая операция и НЕ проверяет валентность: что у [thisNode]/[otherNode] есть свободный слот,
+     * гарантирует вызывающий (правило роста через [freeSlots]). Атом-партнёр оборачивается в тривиальный
+     * одноузловой граф и сливается тем же merge (атом = вырожденная молекула, §8).
+     */
+    fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
+        require(nodes.any { it.localId == thisNode }) { "Узла thisNode=$thisNode нет в этом графе" }
+        require(other.nodes.any { it.localId == otherNode }) { "Узла otherNode=$otherNode нет в other" }
+        val offset = nodes.maxOf { it.localId } + 1
+        val shiftedNodes = other.nodes.map { AtomNode(it.localId + offset, it.isotope) }
+        val shiftedBonds = other.bonds.map { Bond(it.atom1 + offset, it.atom2 + offset, it.order) }
+        val newBond = Bond(thisNode, otherNode + offset, bondOrder)
+        return MoleculeGraph(nodes = nodes + shiftedNodes, bonds = bonds + shiftedBonds + newBond)
+    }
+
+    /**
      * Брутто-формула в системе Хилла: сначала C, затем H, затем остальные элементы по алфавиту;
      * если углерода нет — все элементы по алфавиту. Счётчик 1 опускается. Примеры: H2O, CH4, C2H6O.
      * Изотопы одного элемента схлопываются (²H считается как H).

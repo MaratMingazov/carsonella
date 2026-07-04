@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
