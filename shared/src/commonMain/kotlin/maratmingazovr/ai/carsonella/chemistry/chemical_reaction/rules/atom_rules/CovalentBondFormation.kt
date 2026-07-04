@@ -112,7 +112,7 @@ class CovalentBondFormation(
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {
                 // скорость фотона — как в SpontaneousEmission; направление случайное (излучение изотропно)
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
+                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 10f, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

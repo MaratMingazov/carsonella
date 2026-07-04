@@ -78,7 +78,10 @@ class Molecule(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        if (state.value.energy > 0) { requestReaction(listOf(this)) }
+        // Усиление связи (3c): если у молекулы есть ненасыщенная связь — запрашиваем реакцию сама с собой
+        // (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт на запросах с соседями (partner-first).
+        val graph = (state.value.species as? Species.Molecular)?.graph
+        if (graph?.strengthenableBonds()?.isNotEmpty() == true) { requestReaction(listOf(this)) }
     }
 
 

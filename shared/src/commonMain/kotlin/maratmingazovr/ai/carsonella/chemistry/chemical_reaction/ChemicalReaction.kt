@@ -30,6 +30,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculeGrowth
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
 import kotlin.random.Random
 
 
@@ -74,6 +75,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         // --- образование молекул (граф) ---
         CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → двухатомная молекула-граф
         MoleculeGrowth(entityGenerator), // рост молекулы (3b): молекула со свободным слотом + атом/молекула → бо́льшая молекула (O–H + H → H₂O)
+        BondStrengthening(entityGenerator), // усиление связи (3c): ненасыщенная связь молекулы 1→2→3 (O–O → O=O, N₂ → N≡N)
 
     )
 

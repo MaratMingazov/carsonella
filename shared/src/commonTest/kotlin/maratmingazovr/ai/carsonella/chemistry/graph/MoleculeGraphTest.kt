@@ -265,6 +265,46 @@ class MoleculeGraphTest {
         }
     }
 
+    // --- усиление связи (3c) ---
+
+    @Test
+    fun strengthenBondIncrementsOrder() {
+        // O–O (одинарная) → O=O (двойная).
+        val oo = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        )
+        val doubled = oo.strengthenBond(0, 1)
+        assertEquals(2, doubled.bonds.single().order)
+        assertFalse(doubled.hasFreeSlot())   // O=O насыщен
+    }
+
+    @Test
+    fun strengthenableBondsNeedsBothEndsFree() {
+        val ooSingle = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        )
+        assertEquals(1, ooSingle.strengthenableBonds().size)              // оба O свободны → усиливаема
+        assertTrue(ooSingle.strengthenBond(0, 1).strengthenableBonds().isEmpty())   // O=O — оба насыщены
+        assertTrue(water().strengthenableBonds().isEmpty())              // в воде у O–H конец H насыщен
+    }
+
+    @Test
+    fun strengthenBondRejectsUnknownBond() {
+        assertFailsWith<IllegalArgumentException> { water().strengthenBond(1, 2) }   // связи H–H в воде нет
+    }
+
+    @Test
+    fun strengthenBondRespectsOrderCeiling() {
+        // N≡N (тройная) усилить нельзя — order 4 невалиден (инвариант конструктора).
+        val n2 = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.NITROGEN_14), AtomNode(1, Element.NITROGEN_14)),
+            bonds = listOf(Bond(0, 1, order = 3)),
+        )
+        assertFailsWith<IllegalArgumentException> { n2.strengthenBond(0, 1) }
+    }
+
     // --- инварианты конструктора ---
 
     @Test
