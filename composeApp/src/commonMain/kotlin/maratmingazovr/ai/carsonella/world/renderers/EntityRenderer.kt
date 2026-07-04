@@ -59,10 +59,7 @@ class EntityRenderer(
         val baseRadius = entityState.species.radius()
 
         with(drawScope) {
-            // мягкое свечение (ярче, если частица возбуждена)
-            drawGlow(position, baseRadius * 1.5f, color, intensity = 1f + entityState.energy * 0.05f)
-            // плотное ядро
-            drawCircle(color = color.copy(alpha = 0.9f), center = position, radius = baseRadius * 0.35f)
+            drawAtomOrb(position, baseRadius, color, entityState.energy)
 
             // символ — только при наведении/выборе, всплывает над частицей
             if (showLabel) {
@@ -134,18 +131,25 @@ class EntityRenderer(
             graph.bonds.forEach { bond ->
                 drawBond(center + offsets.getValue(bond.atom1), center + offsets.getValue(bond.atom2), bond.order)
             }
-            // атомы — цвет по элементу
+            // атомы — цвет по элементу; тот же «светящийся шар», что у одиночного атома, только компактный
             graph.nodes.forEach { node ->
                 val p = center + offsets.getValue(node.localId)
                 val color = ElementColors.glow(Species.Elemental(node.isotope))
-                drawGlow(p, ATOM_RADIUS * 1.4f, color, intensity = 1f + entityState.energy * 0.05f)
-                drawCircle(color = color.copy(alpha = 0.95f), center = p, radius = ATOM_RADIUS)
+                drawAtomOrb(p, ATOM_RADIUS, color, entityState.energy)
             }
             // подпись-формула над молекулой при наведении/выборе
             if (showLabel) {
                 drawFloatingLabel(textMeasurer, center, LABEL_ABOVE, species.displaySymbol(entityState.electrons))
             }
         }
+    }
+
+    // Атом как «светящийся шар»: широкое мягкое гало + маленькое плотное ядро. Единый стиль для
+    // одиночного атома и для узла молекулы — отличается только базовый радиус (в молекуле он компактный,
+    // ATOM_RADIUS, чтобы связи-линии не тонули в гало).
+    private fun DrawScope.drawAtomOrb(center: Offset, baseRadius: Float, color: Color, energy: Float) {
+        drawGlow(center, baseRadius * 1.5f, color, intensity = 1f + energy * 0.05f)          // мягкое свечение
+        drawCircle(color = color.copy(alpha = 0.9f), center = center, radius = baseRadius * 0.35f)  // плотное ядро
     }
 
     // Связь: order параллельных линий (двойная/тройная — со сдвигом перпендикулярно связи).
