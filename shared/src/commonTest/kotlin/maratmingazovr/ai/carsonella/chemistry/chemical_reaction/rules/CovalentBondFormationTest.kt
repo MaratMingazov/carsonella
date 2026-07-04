@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.CovalentBondFormation
+import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,15 +23,16 @@ import kotlin.test.assertTrue
  */
 class CovalentBondFormationTest {
 
-    // Фейковый генератор: ловит species, переданный в createEntity (заглушку-сущность отдаём обратно).
+    // Фейковый генератор: копит все спавны (species + energy) — теперь их два: молекула + фотон связи.
     private class CapturingGenerator : IEntityGenerator {
         override val random = Random(0)
-        var captured: Species? = null
+        data class Spawned(val species: Species, val energy: Float)
+        val spawned = mutableListOf<Spawned>()
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
         ): Entity<*> {
-            captured = species
+            spawned += Spawned(species, energy)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
     }
@@ -54,11 +56,13 @@ class CovalentBondFormationTest {
         val outcome = rule.produce()
         assertEquals(listOf<Entity<*>>(h1, h2), outcome.consumed)   // оба реагента поглощаются
 
-        outcome.spawn.forEach { it() }                              // выполнить спавн → ловим species
-        val species = gen.captured
-        assertTrue(species is Species.Molecular)
-        assertEquals("H2", (species as Species.Molecular).graph.formula())
-        assertEquals(2f, species.graph.mass())
+        outcome.spawn.forEach { it() }                              // выполнить спавны → молекула + фотон
+        val molecule = gen.spawned.map { it.species }.filterIsInstance<Species.Molecular>().single()
+        assertEquals("H2", molecule.graph.formula())
+        assertEquals(2f, molecule.graph.mass())
+        // Образование связи экзотермично → фотон с энергией связи H–H (радиационная ассоциация).
+        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        assertEquals(BondEnergy.of(Element.HYDROGEN, Element.HYDROGEN, 1), photon.energy)
     }
 
     @Test

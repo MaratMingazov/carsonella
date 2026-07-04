@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -11,7 +12,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.radius
+import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * Образование ковалентной связи (§6, Шаг 3a): два близких нейтральных лёгких атома со свободными
@@ -100,20 +103,24 @@ class CovalentBondFormation(
             bonds = listOf(Bond(0, 1, order = 1)),
         )
 
+        // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
+        // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
+        val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
+        val spawn = mutableListOf<() -> Entity<*>>(
+            { entityGenerator.createEntity(Species.Molecular(graph), midpoint, direction, velocity, energy, env, electrons) },
+        )
+        if (bondEnergy != null && bondEnergy > 0f) {
+            spawn += {
+                // скорость фотона — как в SpontaneousEmission; направление случайное (излучение изотропно)
+                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
+            }
+        }
+
         return ReactionOutcome(
             consumed = listOf(a1, a2),
-            spawn = listOf {
-                entityGenerator.createEntity(
-                    Species.Molecular(graph),
-                    midpoint,
-                    direction,
-                    velocity,
-                    energy,
-                    env,
-                    electrons
-                )
-            },
-            description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty()}",
+            spawn = spawn,
+            description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty()}" +
+                (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }
 }

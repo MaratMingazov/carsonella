@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
+import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
@@ -27,14 +28,13 @@ class MoleculeGrowthTest {
 
     private class CapturingGenerator : IEntityGenerator {
         override val random = Random(0)
-        var captured: Species? = null
-        var capturedElectrons: Int? = null
+        data class Spawned(val species: Species, val energy: Float, val electrons: Int)
+        val spawned = mutableListOf<Spawned>()
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
         ): Entity<*> {
-            captured = species
-            capturedElectrons = electrons
+            spawned += Spawned(species, energy, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
     }
@@ -79,12 +79,15 @@ class MoleculeGrowthTest {
         assertEquals(listOf<Entity<*>>(oh, h), outcome.consumed)
 
         outcome.spawn.forEach { it() }
-        val species = gen.captured
-        assertTrue(species is Species.Molecular)
-        assertEquals("H2O", (species as Species.Molecular).graph.formula())
-        assertEquals(18f, species.graph.mass())
-        assertFalse(species.graph.hasFreeSlot())          // вода насыщена
-        assertEquals(10, gen.capturedElectrons)           // 9 (·OH) + 1 (H) — сохранение электронов
+        val product = gen.spawned.single { it.species is Species.Molecular }
+        val graph = (product.species as Species.Molecular).graph
+        assertEquals("H2O", graph.formula())
+        assertEquals(18f, graph.mass())
+        assertFalse(graph.hasFreeSlot())                  // вода насыщена
+        assertEquals(10, product.electrons)               // 9 (·OH) + 1 (H) — сохранение электронов
+        // новая связь O–H экзотермична → фотон с её энергией
+        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        assertEquals(BondEnergy.of(Element.OXYGEN_16, Element.HYDROGEN, 1), photon.energy)
     }
 
     @Test
@@ -98,10 +101,14 @@ class MoleculeGrowthTest {
         assertTrue(rule.matchesMolecule(listOf(oh1, oh2)))
         rule.produce().spawn.forEach { it() }
 
-        val species = gen.captured as Species.Molecular
-        assertEquals("H2O2", species.graph.formula())
-        assertEquals(34f, species.graph.mass())
-        assertEquals(18, gen.capturedElectrons)           // 9 + 9
+        val product = gen.spawned.single { it.species is Species.Molecular }
+        val graph = (product.species as Species.Molecular).graph
+        assertEquals("H2O2", graph.formula())
+        assertEquals(34f, graph.mass())
+        assertEquals(18, product.electrons)               // 9 + 9
+        // новая связь O–O → фотон с её энергией
+        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        assertEquals(BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 1), photon.energy)
     }
 
     @Test

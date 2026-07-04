@@ -38,6 +38,7 @@ class World(
         Element.PHOTON,
         Element.HYDROGEN,
         Element.OXYGEN_16,
+        Element.CARBON_12,
     )
     val entities =  mutableStateListOf<Entity<*>>()
     val logs =  mutableStateListOf<String>()
