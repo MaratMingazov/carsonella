@@ -111,8 +111,11 @@ class CovalentBondFormation(
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {
-                // скорость фотона — как в SpontaneousEmission; направление случайное (излучение изотропно)
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 10f, energy = bondEnergy, environment = env, electrons = 0)
+                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик он покидает
+                // радиус активации молекулы. Иначе на следующем тике PhotoDissociation поймал бы его и распустил
+                // молекулу обратно (энергия фотона = энергии связи = порогу распада) — бесконечный цикл
+                // образование↔распад. Направление случайное (излучение изотропно).
+                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

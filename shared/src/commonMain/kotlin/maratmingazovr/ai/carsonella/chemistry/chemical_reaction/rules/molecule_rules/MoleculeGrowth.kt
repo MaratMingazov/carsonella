@@ -127,7 +127,10 @@ class MoleculeGrowth(
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 10f, energy = bondEnergy, environment = env, electrons = 0)
+                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик покидает
+                // радиус активации, иначе PhotoDissociation тут же распустил бы молекулу обратно (энергия фотона =
+                // энергии связи = порогу распада) — бесконечный цикл образование↔распад.
+                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 
