@@ -429,4 +429,101 @@ class MoleculeGraphTest {
         )
         assertFailsWith<IllegalArgumentException> { tooBig.canonical() }
     }
+
+    // --- разрыв связи (split, зеркало merge) ---
+
+    // H₂O₂ (перекись): H(0)–O(1)–O(2)–H(3). Слабейшая связь — центральная O–O.
+    private fun peroxide() = MoleculeGraph(
+        nodes = listOf(
+            AtomNode(0, Element.HYDROGEN),
+            AtomNode(1, Element.OXYGEN_16),
+            AtomNode(2, Element.OXYGEN_16),
+            AtomNode(3, Element.HYDROGEN),
+        ),
+        bonds = listOf(Bond(0, 1, order = 1), Bond(1, 2, order = 1), Bond(2, 3, order = 1)),
+    )
+
+    @Test
+    fun splitWaterByOhGivesHydroxylAndHydrogen() {
+        // H₂O рвём O–H(1) → ·OH + H·. Продукты — из топологии.
+        val parts = water().split(0, 1)
+        assertEquals(2, parts.size)
+        assertEquals(setOf("HO", "H"), parts.map { it.formula() }.toSet())   // ·OH и одиночный H
+        val oh = parts.first { it.nodes.size == 2 }
+        assertEquals(hydroxyl().canonical(), oh.canonical())                 // осколок = тот же ·OH
+        assertEquals(3, parts.sumOf { it.nodes.size })                       // атомы сохранены (2 + 1)
+    }
+
+    @Test
+    fun splitReindexesEachComponentToZeroBased() {
+        // ·OH-осколок собран из узлов O@0, H@2 → localId должны стать 0-based (0,1), а не {0,2}.
+        val parts = water().split(0, 1)
+        for (part in parts) {
+            assertEquals((0 until part.nodes.size).toList(), part.nodes.map { it.localId })
+        }
+    }
+
+    @Test
+    fun splitByOObondOfPeroxideGivesTwoHydroxyls() {
+        // H–O–O–H рвём центральную O–O(1,2) → два ·OH.
+        val parts = peroxide().split(1, 2)
+        assertEquals(2, parts.size)
+        parts.forEach { assertEquals(hydroxyl().canonical(), it.canonical()) }
+    }
+
+    @Test
+    fun splitPreservesBondOrderInFragments() {
+        // CO₂ (O=C=O): C(0)=O(1), C(0)=O(2). Рвём одну C=O(0,1) → [C=O (order 2), O].
+        val co2 = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.CARBON_12), AtomNode(1, Element.OXYGEN_16), AtomNode(2, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 2), Bond(0, 2, order = 2)),
+        )
+        val parts = co2.split(0, 1)
+        assertEquals(2, parts.size)
+        val co = parts.first { it.nodes.size == 2 }
+        assertEquals(2, co.bonds.single().order)   // оставшаяся C=O сохранила кратность 2
+    }
+
+    @Test
+    fun splitOfRingEdgeKeepsGraphConnected() {
+        // Кольцо C(0)–C(1)–C(2)–C(0): разрыв одного ребра НЕ делит граф (это раскрытие кольца, не распад).
+        val ring = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.CARBON_12), AtomNode(1, Element.CARBON_12), AtomNode(2, Element.CARBON_12)),
+            bonds = listOf(Bond(0, 1, order = 1), Bond(1, 2, order = 1), Bond(2, 0, order = 1)),
+        )
+        val parts = ring.split(0, 1)
+        assertEquals(1, parts.size)                    // одна компонента — кольцо раскрылось в цепь
+        assertEquals(3, parts.single().nodes.size)
+        assertEquals(2, parts.single().bonds.size)     // осталось 2 ребра из 3
+    }
+
+    @Test
+    fun splitRejectsUnknownBond() {
+        assertFailsWith<IllegalArgumentException> { water().split(1, 2) }   // связи H–H в воде нет
+    }
+
+    // --- порог диссоциации (weakestBond / dissociationEnergy) ---
+
+    @Test
+    fun dissociationEnergyOfWaterIsOhBond() {
+        // В воде обе связи O–H (4.80 эВ) — порог равен энергии O–H, слабейшая связь это O–H.
+        assertEquals(4.80f, water().dissociationEnergy)
+        val weakest = water().weakestBond!!
+        assertTrue(weakest == Bond(0, 1, 1) || weakest == Bond(0, 2, 1))
+    }
+
+    @Test
+    fun weakestBondPicksLowestEnergyAmongMixedBonds() {
+        // H–O–O–H: O–H = 4.80, O–O = 1.51 → слабейшая (и порог) — центральная O–O.
+        assertEquals(1.51f, peroxide().dissociationEnergy)
+        assertEquals(Bond(1, 2, 1), peroxide().weakestBond)
+    }
+
+    @Test
+    fun dissociationEnergyIsNullWhenNoBonds() {
+        // Одноузловой граф (атом) — связей нет, порога распада нет.
+        val atom = MoleculeGraph(nodes = listOf(AtomNode(0, Element.OXYGEN_16)), bonds = emptyList())
+        assertEquals(null, atom.dissociationEnergy)
+        assertEquals(null, atom.weakestBond)
+    }
 }

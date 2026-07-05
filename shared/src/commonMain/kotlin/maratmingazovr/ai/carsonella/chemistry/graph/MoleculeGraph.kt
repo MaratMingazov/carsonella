@@ -14,7 +14,8 @@ import maratmingazovr.ai.carsonella.chemistry.Element
  * сущности (`state.electrons`), как у атома сегодня; в графе их нет. Поэтому узел — это лишь изотоп.
  *
  * Изолированное ядро: движок (рендер, силы, реакции, save/load) его пока не использует.
- * Из движка переиспользуем только [Element] — словарь изотопов (протоны/нейтроны/символ через details).
+ * Переиспользуем из пакета два статических примитива: [Element] (словарь изотопов: p/n/символ через
+ * details) и [BondEnergy] (каталог энергий связи — для порога диссоциации [dissociationEnergy]).
  */
 
 /** Узел графа — атом конкретного изотопа. [isotope] несёт протоны/нейтроны/символ через [Element.details]. */
@@ -79,6 +80,30 @@ data class MoleculeGraph(
 
     /** Сумма протонов всех узлов. Кэшируется один раз (граф иммутабелен) — см. [mass]. */
     val protons: Int = nodes.sumOf { it.isotope.details.p }
+
+    /** Изотоп узла по [AtomNode.localId] (localId ≠ индекс списка после [merge]/[split]). Кэш — граф иммутабелен. */
+    private val isotopeById: Map<Int, Element> = nodes.associate { it.localId to it.isotope }
+
+    /**
+     * Слабейшая связь молекулы и её энергия — ПОРОГ ДИССОЦИАЦИИ. Кэш один раз (граф иммутабелен,
+     * каталог [BondEnergy] статичен) — как [mass]/[protons], чтобы правило распада не пересчитывало порог
+     * каждый тик. Слабейшая связь требует меньше всего энергии → рвётся первой (§6 docs/molecule-graph.md).
+     *
+     * `null`, если связей нет ИЛИ тип связи не в каталоге (для CHNO не случается, но `Float?` честно это выражает).
+     *
+     * NB (на будущее, когда появятся кольца): «слабейшая связь» ≠ «слабейший мост». Рёберное кольцо при
+     * разрыве не делит молекулу ([split] вернёт одну компоненту), поэтому порог тогда придётся считать по
+     * слабейшему МОСТУ. Пока граф — дерево/цепь, любая связь — мост, различие не важно.
+     */
+    private val weakestBondAndEnergy: Pair<Bond, Float>? = bonds
+        .mapNotNull { b -> BondEnergy.of(isotopeById.getValue(b.atom1), isotopeById.getValue(b.atom2), b.order)?.let { e -> b to e } }
+        .minByOrNull { it.second }
+
+    /** Слабейшая связь — её рвёт диссоциация (§6). `null`: связей нет / тип не в каталоге. */
+    val weakestBond: Bond? = weakestBondAndEnergy?.first
+
+    /** Порог диссоциации — энергия слабейшей связи, эВ. `null`: связей нет / тип не в каталоге. */
+    val dissociationEnergy: Float? = weakestBondAndEnergy?.second
 
     /**
      * Свободные валентные слоты узла [localId] = валентность изотопа − сумма кратностей инцидентных связей.
@@ -160,6 +185,60 @@ data class MoleculeGraph(
         require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
         val newBonds = bonds.map { if (sameBond(it, atom1, atom2)) Bond(it.atom1, it.atom2, it.order + 1) else it }
         return MoleculeGraph(nodes = nodes, bonds = newBonds)
+    }
+
+    /**
+     * Разрыв связи — ЗЕРКАЛО [merge] (одна графовая хирургия: рост склеивает графы, распад их разрезает).
+     * Убираем ребро [atom1]–[atom2] и возвращаем связные компоненты — каждую самостоятельным подграфом
+     * с переиндексацией localId в 0-based (merge сдвигает номера в свободный диапазон — split компактит
+     * обратно). Топология компонент НЕ меняется, это лишь перенумерация меток (см. [canonical]).
+     *
+     * Обычно (граф — дерево/цепь, любая связь — мост) даёт РОВНО две компоненты: H₂O рвём O–H → [·OH, H·].
+     * Краевой случай — КОЛЬЦО: если удаляемое ребро в цикле, граф остаётся связным → ОДНА компонента
+     * (это не распад, а раскрытие кольца); проверка связности ловит это естественно. Колец пока нет.
+     *
+     * split — чистая операция, энергетику НЕ проверяет: КАКУЮ связь рвать ([weakestBond]) и хватает ли
+     * энергии, решает вызывающий (правило PhotoDissociation/StarDissociation). Осколок из одного узла
+     * выйдет одноузловым графом (атом = вырожденная молекула, §8) — вызывающий обернёт его в Elemental.
+     */
+    fun split(atom1: Int, atom2: Int): List<MoleculeGraph> {
+        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
+        val remaining = bonds.filterNot { sameBond(it, atom1, atom2) }
+
+        // Связные компоненты по оставшимся рёбрам (BFS). Порядок обхода — по списку nodes → детерминизм.
+        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
+        for (bond in remaining) {
+            adjacency.getValue(bond.atom1).add(bond.atom2)
+            adjacency.getValue(bond.atom2).add(bond.atom1)
+        }
+        val visited = HashSet<Int>()
+        val components = mutableListOf<List<Int>>()
+        for (node in nodes) {
+            if (!visited.add(node.localId)) continue
+            val component = mutableListOf(node.localId)
+            val queue = ArrayDeque(listOf(node.localId))
+            while (queue.isNotEmpty()) {
+                val id = queue.removeFirst()
+                for (neighbor in adjacency.getValue(id)) {
+                    if (visited.add(neighbor)) { component.add(neighbor); queue.add(neighbor) }
+                }
+            }
+            components.add(component)
+        }
+
+        // Каждую компоненту — в самостоятельный подграф с переиндексацией 0-based (порядок узлов — из nodes).
+        return components.map { componentIds ->
+            val idSet = componentIds.toHashSet()
+            val subNodes = nodes.filter { it.localId in idSet }
+            val remap = HashMap<Int, Int>()
+            subNodes.forEachIndexed { i, n -> remap[n.localId] = i }
+            MoleculeGraph(
+                nodes = subNodes.mapIndexed { i, n -> AtomNode(i, n.isotope) },
+                bonds = remaining
+                    .filter { it.atom1 in idSet && it.atom2 in idSet }
+                    .map { Bond(remap.getValue(it.atom1), remap.getValue(it.atom2), it.order) },
+            )
+        }
     }
 
     private fun sameBond(bond: Bond, a: Int, b: Int): Boolean =
