@@ -69,11 +69,16 @@ data class MoleculeGraph(
         }
     }
 
-    /** Масса молекулы — сумма нуклонов (p + n) всех узлов, как [Element]-масса для атомов. */
-    fun mass(): Float = nodes.sumOf { it.isotope.details.p + it.isotope.details.n }.toFloat()
+    /**
+     * Масса молекулы — сумма нуклонов (p + n) всех узлов, как [Element]-масса для атомов.
+     * Кэшируется один раз при построении: граф иммутабелен, значение не меняется за его жизнь
+     * (при росте [merge]/усилении связи создаётся новый граф со своим кэшем). Читается на каждый
+     * шаг физики через [Species.mass] — поэтому property, а не пересчёт.
+     */
+    val mass: Float = nodes.sumOf { it.isotope.details.p + it.isotope.details.n }.toFloat()
 
-    /** Сумма протонов всех узлов. */
-    fun protons(): Int = nodes.sumOf { it.isotope.details.p }
+    /** Сумма протонов всех узлов. Кэшируется один раз (граф иммутабелен) — см. [mass]. */
+    val protons: Int = nodes.sumOf { it.isotope.details.p }
 
     /**
      * Свободные валентные слоты узла [localId] = валентность изотопа − сумма кратностей инцидентных связей.

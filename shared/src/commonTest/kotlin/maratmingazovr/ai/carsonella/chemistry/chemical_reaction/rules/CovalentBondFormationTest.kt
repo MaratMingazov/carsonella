@@ -59,7 +59,7 @@ class CovalentBondFormationTest {
         outcome.spawn.forEach { it() }                              // выполнить спавны → молекула + фотон
         val molecule = gen.spawned.map { it.species }.filterIsInstance<Species.Molecular>().single()
         assertEquals("H2", molecule.graph.formula())
-        assertEquals(2f, molecule.graph.mass())
+        assertEquals(2f, molecule.graph.mass)
         // Образование связи экзотермично → фотон с энергией связи H–H (радиационная ассоциация).
         val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
         assertEquals(BondEnergy.of(Element.HYDROGEN, Element.HYDROGEN, 1), photon.energy)

@@ -26,13 +26,13 @@ private const val MOLECULE_RADIUS = 20f
 /** Масса: для атома/частицы — p+n (электрон — особый случай 1f); для молекулы — сумма по графу. */
 fun Species.mass(): Float = when (this) {
     is Species.Elemental -> if (element == Element.ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
-    is Species.Molecular -> graph.mass()
+    is Species.Molecular -> graph.mass
 }
 
 /** Сумма протонов: из Details (Elemental) или из графа (Molecular). */
 fun Species.protons(): Int = when (this) {
     is Species.Elemental -> element.details.p
-    is Species.Molecular -> graph.protons()
+    is Species.Molecular -> graph.protons
 }
 
 /** Радиус для физики/рендера: из Details (Elemental) или константа (Molecular). */

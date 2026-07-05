@@ -74,16 +74,16 @@ class MoleculeGraphTest {
     // --- масса / протоны ---
 
     @Test
-    fun waterMassIs18() = assertEquals(18f, water().mass())   // O16(16) + H(1) + H(1)
+    fun waterMassIs18() = assertEquals(18f, water().mass)   // O16(16) + H(1) + H(1)
 
     @Test
-    fun waterProtonsAre10() = assertEquals(10, water().protons())   // 8 + 1 + 1
+    fun waterProtonsAre10() = assertEquals(10, water().protons)   // 8 + 1 + 1
 
     @Test
-    fun methaneMassIs16() = assertEquals(16f, methane().mass())   // C12(12) + 4*H(1)
+    fun methaneMassIs16() = assertEquals(16f, methane().mass)   // C12(12) + 4*H(1)
 
     @Test
-    fun methaneProtonsAre10() = assertEquals(10, methane().protons())   // 6 + 4*1
+    fun methaneProtonsAre10() = assertEquals(10, methane().protons)   // 6 + 4*1
 
     // --- формула (система Хилла) ---
 
@@ -108,7 +108,7 @@ class MoleculeGraphTest {
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
         assertEquals("H2O", heavyWater.formula())
-        assertEquals(20f, heavyWater.mass())   // O16(16) + D(2) + D(2) — масса другая, формула та же
+        assertEquals(20f, heavyWater.mass)   // O16(16) + D(2) + D(2) — масса другая, формула та же
     }
 
     // --- свободные слоты (3b) ---
@@ -205,7 +205,7 @@ class MoleculeGraphTest {
         // ·OH + H· → H₂O: связываем слот O (узел 0) с атомом H.
         val result = hydroxyl().merge(atomGraph(Element.HYDROGEN), thisNode = 0, otherNode = 0, bondOrder = 1)
         assertEquals("H2O", result.formula())
-        assertEquals(18f, result.mass())
+        assertEquals(18f, result.mass)
         assertEquals(water().canonical(), result.canonical())   // та же молекула, что собранная вручную
         assertFalse(result.hasFreeSlot())                        // закрытая оболочка
     }
@@ -217,7 +217,7 @@ class MoleculeGraphTest {
         assertEquals(4, result.nodes.size)
         assertEquals(4, result.nodes.map { it.localId }.toSet().size)   // все localId уникальны
         assertEquals("H2O2", result.formula())
-        assertEquals(34f, result.mass())                                // 2*O16 + 2*H = 32+2
+        assertEquals(34f, result.mass)                                // 2*O16 + 2*H = 32+2
         assertFalse(result.hasFreeSlot())                               // оба O насыщены (по 2 связи)
     }
 
