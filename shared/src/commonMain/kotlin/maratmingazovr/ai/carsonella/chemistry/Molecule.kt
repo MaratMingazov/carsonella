@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -82,6 +83,11 @@ class Molecule(
         // (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт на запросах с соседями (partner-first).
         val graph = (state.value.species as? Species.Molecular)?.graph
         if (graph?.strengthenableBonds()?.isNotEmpty() == true) { requestReaction(listOf(this)) }
+
+        // В звезде (TemperatureMode.Star) молекула термически распадается — зовёт себя, StarDissociation
+        // рвёт слабейшую связь (зеркало StarThermalIonization у атома). Зов безусловный: даже насыщенная
+        // молекула (у неё strengthenableBonds пусто) обязана распасться в звезде.
+        if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
 
 
