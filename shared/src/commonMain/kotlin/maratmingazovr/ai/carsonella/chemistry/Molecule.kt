@@ -11,12 +11,12 @@ import kotlin.math.round
 data class MoleculeState(
     override val id: Long,
     override val species: Species,
-    override var alive: Boolean,
-    override var position: Position,
-    override var direction: Vec2D,
-    override var velocity: Float,
-    override var energy: Float,
-    override var electrons: Int,
+    override val alive: Boolean,
+    override val position: Position,
+    override val direction: Vec2D,
+    override val velocity: Float,
+    override val energy: Float,
+    override val electrons: Int,
 ) : EntityState<MoleculeState> {
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {

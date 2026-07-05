@@ -16,15 +16,19 @@ interface EntityState<State : EntityState<State>> {
 
     val id: Long
     val species: Species
-    var alive: Boolean
-    var position: Position
-    var direction: Vec2D
-    var velocity: Float
-    var energy: Float
+    val alive: Boolean
+    val position: Position
+    val direction: Vec2D
+    val velocity: Float
+    val energy: Float
     // Число электронов как динамическое состояние (рефакторинг «ионизация → состояние»): задаёт заряд,
     // символ и energyLevels; цикл ионизации/рекомбинации крутит его.
-    var electrons: Int
+    val electrons: Int
 
+    /**
+     * Мы должны каждый раз создавать новый объект потому что используем MutableStateFlow.
+     * StateFlow уведомляет подписчиков (Compose UI - рисует частицы) только когда .value присваивается новый объект
+     */
     fun copyWith(
         alive: Boolean = this.alive,
         position: Position = this.position,

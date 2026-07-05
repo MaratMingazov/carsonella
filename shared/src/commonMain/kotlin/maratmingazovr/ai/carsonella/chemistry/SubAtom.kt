@@ -16,12 +16,12 @@ import kotlin.math.round
 data class SubAtomState(
     override val id: Long,
     override val species: Species.Elemental,
-    override var alive: Boolean,
-    override var position: Position,
-    override var direction: Vec2D,
-    override var velocity: Float,
-    override var energy: Float,
-    override var electrons: Int,
+    override val alive: Boolean,
+    override val position: Position,
+    override val direction: Vec2D,
+    override val velocity: Float,
+    override val energy: Float,
+    override val electrons: Int,
 ) : EntityState<SubAtomState> {
     // species сужен до Elemental (субатомная частица — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
     val element: Element get() = species.element
