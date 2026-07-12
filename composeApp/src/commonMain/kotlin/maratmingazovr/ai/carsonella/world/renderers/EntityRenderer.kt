@@ -19,6 +19,19 @@ private const val ATOM_RADIUS = 8f             // радиус кружка ат
 private const val BOND_LINE_SPACING = 3f       // сдвиг параллельных линий для двойных/тройных связей
 private const val LABEL_ABOVE = 26f            // на сколько поднять подпись над молекулой
 private val BOND_COLOR = Color(0xFFB0BEC5)     // нейтральный цвет связи
+private const val CORE_RADIUS_MAX = 1f         // ядро — крошечный маркер центра (реальное ядро ≈ точка, ~1/100000 атома; не в масштабе)
+
+// Масштаб отрисовки: пикселей на 1 пм. Пока зафиксирован на «пикометровом» (самом мелком)
+// масштабе — 1px = 1пм, атомы в натуральную величину. Позже станет параметром (ползунок zoom).
+private const val PX_PER_PM = 1f
+
+// Радиус ОДИНОЧНОГО атома для отрисовки: реальный ван-дер-ваальсов радиус (размер несвязанного
+// атома), переведённый в пиксели. Для сущностей без vdw-радиуса (звезда, фолбэк молекулы) —
+// старый Species.radius().
+private fun Species.displayRadiusPx(): Float = when (this) {
+    is Species.Elemental -> radius()
+    is Species.Molecular -> radius()
+}
 
 class EntityRenderer(
     private val textMeasurer: TextMeasurer,
@@ -56,7 +69,7 @@ class EntityRenderer(
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         val color = ElementColors.glow(entityState.species)
-        val baseRadius = entityState.species.radius()
+        val baseRadius = entityState.species.displayRadiusPx()
 
         with(drawScope) {
             drawAtomOrb(position, baseRadius, color, entityState.energy)
@@ -149,7 +162,7 @@ class EntityRenderer(
     // ATOM_RADIUS, чтобы связи-линии не тонули в гало).
     private fun DrawScope.drawAtomOrb(center: Offset, baseRadius: Float, color: Color, energy: Float) {
         drawGlow(center, baseRadius * 1.5f, color, intensity = 1f + energy * 0.05f)          // мягкое свечение
-        drawCircle(color = color.copy(alpha = 0.9f), center = center, radius = baseRadius * 0.35f)  // плотное ядро
+        drawCircle(color = color.copy(alpha = 0.9f), center = center, radius = baseRadius * 0.25f)  // плотное ядро
     }
 
     // Связь: order параллельных линий (двойная/тройная — со сдвигом перпендикулярно связи).
