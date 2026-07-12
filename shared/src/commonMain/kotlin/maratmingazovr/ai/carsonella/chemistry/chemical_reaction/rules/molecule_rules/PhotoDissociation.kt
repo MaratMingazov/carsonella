@@ -66,7 +66,15 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         return true
     }
 
-    override fun weight() = 0f
+    // Распад ЭНДОТЕРМИЧЕН — вес отрицательный (контракт weight = энергия реакции со знаком): разрыв связи
+    // «стоит» dissociationEnergy. Так распад проигрывает любой ассоциации (рост/усиление, «+») и побеждает
+    // только когда строить нечего (напр. насыщенная O=O + фотон — единственный совпавший вариант).
+    override fun weight(): Float {
+        val mol = molecule ?: return 0f
+        val graph = (mol.state().value.species as Species.Molecular).graph
+        val threshold = graph.dissociationEnergy ?: return 0f
+        return -threshold
+    }
 
     override fun produce(): ReactionOutcome {
         val mol = molecule!!

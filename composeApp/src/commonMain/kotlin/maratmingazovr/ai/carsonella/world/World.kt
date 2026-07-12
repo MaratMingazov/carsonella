@@ -94,11 +94,16 @@ class World(
                     if (entity.state().value.alive && entity.state().value.id != heldEntityId) entity.step()
                 }
 
-                // Resolve phase — обрабатываем все запросы, накопленные за tick
+                // Resolve phase — группируем запросы по ИНИЦИАТОРУ (первый реагент) и применяем ОДИН
+                // лучший исход на инициатора (объект делает ≤1 реакцию за тик). Так рост и усиление одной
+                // молекулы конкурируют в одном resolve() и выбираются по weight. groupBy сохраняет порядок
+                // первого появления инициатора → детерминизм.
                 // - toList() — снимок, чтобы быть устойчивыми, если runReaction сам положит новый запрос (сейчас не кладёт, но защищаемся).
                 val requests = _pendingRequests.toList()
                 _pendingRequests.clear()
-                requests.forEach { runReaction(it) }
+                requests
+                    .groupBy { it.reagents.first().state().value.id }
+                    .forEach { (_, reqs) -> runReaction(reqs) }
 
                 delay(tickMs)
             }
@@ -280,10 +285,13 @@ class World(
         logs += "${currentTime()}: world loaded (tick=${dto.tick}, entities=${byId.size})"
     }
 
-    fun runReaction(reactionRequest: ReactionRequest) {
+    // Все запросы ОДНОГО инициатора за тик. Резолвер выберет один лучший исход по weight.
+    fun runReaction(requests: List<ReactionRequest>) {
         // Поднятую частицу исключаем из реагентов (страховка от устаревшего запроса прошлого тика).
-        val reagents = reactionRequest.reagents.filter { it.state().value.id != heldEntityId }
-        val result = _chemicalReactionResolver.resolve(reagents) ?: return
+        val reagentLists = requests
+            .map { req -> req.reagents.filter { it.state().value.id != heldEntityId } }
+            .filter { it.isNotEmpty() }
+        val result = _chemicalReactionResolver.resolve(reagentLists) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
 
         result.consumed.forEach { it.destroy() }

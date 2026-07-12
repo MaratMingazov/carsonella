@@ -58,14 +58,15 @@ class MoleculeReagentCrashTest {
     fun resolverDoesNotThrowWhenMoleculeIsSubject() {
         val resolver = ChemicalReactionResolver(StubGenerator())
         // субъект — молекула, сосед — атом: до фикса .element на reagents.first() бросал
-        assertNull(resolver.resolve(listOf(h2Molecule(0f), atom(Element.HYDROGEN, 1f, electrons = 1))))
+        // resolve теперь принимает списки запросов одного инициатора → оборачиваем один запрос в listOf
+        assertNull(resolver.resolve(listOf(listOf(h2Molecule(0f), atom(Element.HYDROGEN, 1f, electrons = 1)))))
     }
 
     @Test
     fun resolverDoesNotThrowWhenMoleculeIsNeighbor() {
         val resolver = ChemicalReactionResolver(StubGenerator())
         // субъект — атом, сосед — молекула: до фикса перебор соседей по .element бросал
-        assertNull(resolver.resolve(listOf(atom(Element.HYDROGEN, 0f, electrons = 1), h2Molecule(1f))))
+        assertNull(resolver.resolve(listOf(listOf(atom(Element.HYDROGEN, 0f, electrons = 1), h2Molecule(1f)))))
     }
 
     @Test

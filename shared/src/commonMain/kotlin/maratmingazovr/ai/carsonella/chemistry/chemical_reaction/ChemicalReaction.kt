@@ -82,24 +82,33 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
     )
 
     /**
-     * 1 - Прогоняем наши реагенты по всему списку правил химических реакций.
-     *     Определяем какие реакции в принципе возможны
-     * 2 - Если ни одна реакция невозможна, возвращаем null
-     * 3 - Если нашли несколько возможных реакций, то определяем какая из них наиболее вероятна
-     * 4 - Выполняем химическую реакцию и возвращаем результат
+     * Разрешение реакций ОДНОГО инициатора: на вход — все списки реагентов, которые он запросил за тик
+     * (первый элемент каждого — сам инициатор). За тик объект делает ≤1 реакцию (после первой он
+     * `destroy()`), поэтому среди ВСЕХ совпавших реакций всех его запросов выбираем ОДНУ — с максимальным
+     * `weight` (случайно среди равных). Так рост и усиление одной молекулы, приходящие разными запросами,
+     * наконец конкурируют в одном месте (см. docs/molecule-graph.md, §6, «рост vs усиление»).
+     *
+     * 1 - для каждого запроса гоняем реагенты по всем правилам, отбираем возможные;
+     * 2 - победитель запроса (max weight, тай-брейк случайно) СРАЗУ производится через produce() —
+     *     пока поля правила свежие после matches(); иначе стохастический matches() (напр. chance() у
+     *     распадов) при повторном матче перебросил бы кубик;
+     * 3 - среди победителей всех запросов берём исход с наибольшим weight.
+     *
+     * produce() без побочек (spawn/updateState — отложенные лямбды, исполняет World только для
+     * применённого исхода), поэтому исходы проигравших запросов безвредно отбрасываются.
      */
-    fun resolve(reagents: List<Entity<*>>): ReactionOutcome? {
-        val applicableRules = rules.filter { it.matches(reagents) }
-        if (applicableRules.isEmpty()) return null
-        // Сначала вычисляем веса для всех подходящих правил
-        val weighted = applicableRules.map { it to it.weight() }
-        // Находим максимальный вес
-        val maxWeight = weighted.maxOf { it.second }
-        // Отбираем все правила с максимальным весом
-        val topRules = weighted.filter { it.second == maxWeight }.map { it.first }
-        // Выбираем случайное из них
-        val chosenRule = topRules.random(entityGenerator.random)
-        // val chosenRule = applicableRules.map { it to it.weight() }.maxBy { it.second }.first
-        return chosenRule.produce()
+    fun resolve(requestsOfOneInitiator: List<List<Entity<*>>>): ReactionOutcome? {
+        var best: Pair<ReactionOutcome, Float>? = null
+        for (reagents in requestsOfOneInitiator) {
+            val applicableRules = rules.filter { it.matches(reagents) }
+            if (applicableRules.isEmpty()) continue
+            val weighted = applicableRules.map { it to it.weight() }
+            val maxWeight = weighted.maxOf { it.second }
+            // Отбираем правила с максимальным весом и выбираем случайное из них
+            val chosenRule = weighted.filter { it.second == maxWeight }.map { it.first }.random(entityGenerator.random)
+            val outcome = chosenRule.produce()   // produce СРАЗУ, пока поля правила свежие
+            if (best == null || maxWeight > best.second) best = outcome to maxWeight
+        }
+        return best?.first
     }
 }

@@ -96,7 +96,20 @@ class MoleculeGrowth(
             is Species.Elemental -> MoleculeGraph(listOf(AtomNode(0, species.element)), emptyList())
         }
 
-    override fun weight() = 0f
+    // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
+    // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),
+    // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Поля выставлены в matchesMolecule.
+    override fun weight(): Float {
+        val mol = molecule ?: return 0f
+        val partnerEntity = partner ?: return 0f
+        val molGraph = (mol.state().value.species as Species.Molecular).graph
+        val partnerGraph = graphOf(partnerEntity)
+        val molNode = molGraph.firstFreeSlotNode() ?: return 0f
+        val partnerNode = partnerGraph.firstFreeSlotNode() ?: return 0f
+        val molIso = molGraph.nodes.first { it.localId == molNode }.isotope
+        val partnerIso = partnerGraph.nodes.first { it.localId == partnerNode }.isotope
+        return BondEnergy.of(molIso, partnerIso, order = 1) ?: 0f
+    }
 
     override fun produce(): ReactionOutcome {
         val mol = molecule!!

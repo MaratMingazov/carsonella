@@ -44,7 +44,19 @@ class BondStrengthening(
         return true
     }
 
-    override fun weight() = 0f
+    // Прирост энергии связи E(k+1) − E(k) — экзотермично, «+» (контракт weight = энергия реакции со
+    // знаком). Сравнивается с ростом в одном resolve(): у кислорода усиление O=O (3.65) бьёт рост O–O
+    // (1.51) → O₂, у углерода рост (C–H 4.28) бьёт усиление C=C (2.77) → цепи. Поля из matchesMolecule.
+    override fun weight(): Float {
+        val mol = molecule ?: return 0f
+        val b = bond ?: return 0f
+        val graph = (mol.state().value.species as Species.Molecular).graph
+        val isoA = graph.nodes.first { it.localId == b.atom1 }.isotope
+        val isoB = graph.nodes.first { it.localId == b.atom2 }.isotope
+        val hi = BondEnergy.of(isoA, isoB, b.order + 1) ?: return 0f
+        val lo = BondEnergy.of(isoA, isoB, b.order) ?: return 0f
+        return hi - lo
+    }
 
     override fun produce(): ReactionOutcome {
         val mol = molecule!!
