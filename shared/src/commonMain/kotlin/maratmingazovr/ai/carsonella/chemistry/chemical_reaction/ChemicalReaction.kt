@@ -29,6 +29,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.CovalentBondFormation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MolecularPhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculeGrowth
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.StarDissociation
@@ -78,6 +79,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         MoleculeGrowth(entityGenerator), // рост молекулы (3b): молекула со свободным слотом + атом/молекула → бо́льшая молекула (O–H + H → H₂O)
         BondStrengthening(entityGenerator), // усиление связи (3c): ненасыщенная связь молекулы 1→2→3 (O–O → O=O, N₂ → N≡N)
         StarDissociation(entityGenerator), // распад в звезде: молекула в Star-среде рвёт слабейшую связь за тик, рекурсивно до атомов
+        MolecularPhotoIonization(entityGenerator), // отрыв электрона от молекулы под действием света (E ≥ IP): молекула → катион + e⁻
 
     )
 

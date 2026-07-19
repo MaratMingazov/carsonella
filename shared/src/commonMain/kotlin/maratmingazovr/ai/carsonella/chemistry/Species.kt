@@ -41,8 +41,10 @@ fun Species.radius(): Float = when (this) {
     is Species.Molecular -> MOLECULE_RADIUS
 }
 
-/** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула с подстрочными. */
+/** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула с подстрочными + заряд. */
 fun Species.displaySymbol(electrons: Int): String = when (this) {
     is Species.Elemental -> element.symbol(electrons)
-    is Species.Molecular -> graph.formulaPretty
+    // Заряд молекулы — динамика (protons − electrons), а не структура: formulaPretty остаётся чистой
+    // формулой, суффикс заряда добавляем здесь. Зеркало атома (baseSymbol + chargeSuffix), тот же хелпер.
+    is Species.Molecular -> graph.formulaPretty + chargeSuffix(graph.protons - electrons)
 }

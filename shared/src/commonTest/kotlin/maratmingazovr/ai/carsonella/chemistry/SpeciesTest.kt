@@ -30,7 +30,8 @@ class SpeciesTest {
         assertEquals(18f, m.mass())              // 16 + 1 + 1
         assertEquals(10, m.protons())            // 8 + 1 + 1
         assertEquals(20f, m.radius())            // константа для молекулы
-        assertEquals("H₂O", m.displaySymbol(0))  // подстрочная формула
+        assertEquals("H₂O", m.displaySymbol(10)) // нейтральная (electrons = protons = 10): формула без заряда
+        assertEquals("H₂O⁺", m.displaySymbol(9)) // катион +1 (electrons = 9): заряд из protons − electrons
     }
 
     @Test
