@@ -49,7 +49,7 @@ class SpeciesTest {
 
     @Test
     fun formulaPrettyUsesSubscripts() {
-        assertEquals("H₂O", water.formulaPretty())
+        assertEquals("H₂O", water.formulaPretty)
     }
 
     @Test

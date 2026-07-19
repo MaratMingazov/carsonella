@@ -148,7 +148,7 @@ class MoleculeGrowth(
         return ReactionOutcome(
             consumed = listOf(mol, partnerEntity),
             spawn = spawn,
-            description = "$id: ${molGraph.formulaPretty()} + ${partnerGraph.formulaPretty()} -> ${merged.formulaPretty()}" +
+            description = "$id: ${molGraph.formulaPretty} + ${partnerGraph.formulaPretty} -> ${merged.formulaPretty}" +
                 (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

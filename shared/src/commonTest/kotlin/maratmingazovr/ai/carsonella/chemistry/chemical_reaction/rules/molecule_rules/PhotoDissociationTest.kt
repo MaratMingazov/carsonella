@@ -87,7 +87,7 @@ class PhotoDissociationTest {
         assertEquals(2, gen.spawned.size)
         val oh = gen.spawned.single { it.species is Species.Molecular }
         val h = gen.spawned.single { it.species is Species.Elemental }
-        assertEquals("HO", (oh.species as Species.Molecular).graph.formula())  // ·OH
+        assertEquals("HO", (oh.species as Species.Molecular).graph.formula)  // ·OH
         assertEquals(Element.HYDROGEN, (h.species as Species.Elemental).element)
         assertEquals(10, oh.electrons + h.electrons)                           // электроны сохранены (9 + 1)
         assertEquals(9, oh.electrons)
@@ -114,7 +114,7 @@ class PhotoDissociationTest {
 
         assertEquals(2, gen.spawned.size)
         assertTrue(gen.spawned.all { it.species is Species.Molecular })            // оба осколка — молекулы ·OH
-        gen.spawned.forEach { assertEquals("HO", (it.species as Species.Molecular).graph.formula()) }
+        gen.spawned.forEach { assertEquals("HO", (it.species as Species.Molecular).graph.formula) }
         assertEquals(18, gen.spawned.sumOf { it.electrons })                       // 9 + 9
     }
 

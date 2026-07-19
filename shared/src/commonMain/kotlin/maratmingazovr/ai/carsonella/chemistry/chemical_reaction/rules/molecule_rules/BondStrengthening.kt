@@ -88,7 +88,7 @@ class BondStrengthening(
         return ReactionOutcome(
             consumed = listOf(mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty()} связь ${b.atom1}-${b.atom2} ${b.order}→${b.order + 1}" +
+            description = "$id: ${graph.formulaPretty} связь ${b.atom1}-${b.atom2} ${b.order}→${b.order + 1}" +
                 (released?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

@@ -64,7 +64,7 @@ class BondStrengtheningTest {
         outcome.spawn.forEach { it() }
         val product = gen.spawned.single { it.species is Species.Molecular }
         val graph = (product.species as Species.Molecular).graph
-        assertEquals("O2", graph.formula())
+        assertEquals("O2", graph.formula)
         assertEquals(2, graph.bonds.single().order)     // O–O → O=O
         assertFalse(graph.hasFreeSlot)                // O=O насыщен
         assertEquals(16, product.electrons)             // электроны сохранены

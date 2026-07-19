@@ -44,5 +44,5 @@ fun Species.radius(): Float = when (this) {
 /** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула с подстрочными. */
 fun Species.displaySymbol(electrons: Int): String = when (this) {
     is Species.Elemental -> element.symbol(electrons)
-    is Species.Molecular -> graph.formulaPretty()
+    is Species.Molecular -> graph.formulaPretty
 }

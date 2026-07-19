@@ -67,7 +67,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         return ReactionOutcome(
             consumed = listOf(mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty()} (звезда) -> " + fragments.joinToString(" + ") { it.formulaPretty() },
+            description = "$id: ${graph.formulaPretty} (звезда) -> " + fragments.joinToString(" + ") { it.formulaPretty },
         )
     }
 }

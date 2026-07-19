@@ -109,8 +109,8 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         return ReactionOutcome(
             consumed = listOf(ph, mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty()} + γ[${ph.state().value.energy}eV] -> " +
-                fragments.joinToString(" + ") { it.formulaPretty() },
+            description = "$id: ${graph.formulaPretty} + γ[${ph.state().value.energy}eV] -> " +
+                fragments.joinToString(" + ") { it.formulaPretty },
         )
     }
 }

@@ -81,7 +81,7 @@ class MoleculeGrowthTest {
         outcome.spawn.forEach { it() }
         val product = gen.spawned.single { it.species is Species.Molecular }
         val graph = (product.species as Species.Molecular).graph
-        assertEquals("H2O", graph.formula())
+        assertEquals("H2O", graph.formula)
         assertEquals(18f, graph.mass)
         assertFalse(graph.hasFreeSlot)                  // вода насыщена
         assertEquals(10, product.electrons)               // 9 (·OH) + 1 (H) — сохранение электронов
@@ -103,7 +103,7 @@ class MoleculeGrowthTest {
 
         val product = gen.spawned.single { it.species is Species.Molecular }
         val graph = (product.species as Species.Molecular).graph
-        assertEquals("H2O2", graph.formula())
+        assertEquals("H2O2", graph.formula)
         assertEquals(34f, graph.mass)
         assertEquals(18, product.electrons)               // 9 + 9
         // новая связь O–O → фотон с её энергией

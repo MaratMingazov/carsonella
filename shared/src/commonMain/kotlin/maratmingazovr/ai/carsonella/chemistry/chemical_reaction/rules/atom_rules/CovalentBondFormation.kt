@@ -122,7 +122,7 @@ class CovalentBondFormation(
         return ReactionOutcome(
             consumed = listOf(a1, a2),
             spawn = spawn,
-            description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty()}" +
+            description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty}" +
                 (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

@@ -167,7 +167,7 @@ class World(
                 // отдаём формулу, на загрузке отсеётся как «неизвестный элемент» (graph-save — отдельный рефактор).
                 element = when (val sp = s.species) {
                     is Species.Elemental -> sp.element.name
-                    is Species.Molecular -> sp.graph.formula()
+                    is Species.Molecular -> sp.graph.formula
                 },
                 alive = s.alive,
                 x = s.position.x, y = s.position.y,
@@ -183,7 +183,7 @@ class World(
             .groupingBy {
                 when (val sp = it.state().value.species) {
                     is Species.Elemental -> sp.element.name
-                    is Species.Molecular -> sp.graph.formula()
+                    is Species.Molecular -> sp.graph.formula
                 }
             }
             .eachCount()

@@ -233,7 +233,7 @@ data class MoleculeGraph(
      * если углерода нет — все элементы по алфавиту. Счётчик 1 опускается. Примеры: H2O, CH4, C2H6O.
      * Изотопы одного элемента схлопываются (²H считается как H).
      */
-    fun formula(): String {
+    val formula: String = run {
         val counts = HashMap<String, Int>()
         for (node in nodes) {
             val symbol = bareSymbol(node.isotope)
@@ -246,7 +246,7 @@ data class MoleculeGraph(
         } else {
             counts.keys.sorted()
         }
-        return ordered.joinToString("") { symbol ->
+        ordered.joinToString("") { symbol ->
             val count = counts.getValue(symbol)
             if (count == 1) symbol else "$symbol$count"
         }
@@ -254,21 +254,21 @@ data class MoleculeGraph(
 
     /**
      * Формула с подстрочными индексами для показа: H2O → H₂O, C2H6O → C₂H₆O.
-     * ASCII-форма ([formula]) остаётся для идентичности/ключей; эта — только для UI.
+     * ASCII-форма (formula) остаётся для идентичности/ключей; эта — только для UI.
      */
-    fun formulaPretty(): String {
+    val formulaPretty: String = run {
         val subscripts = "₀₁₂₃₄₅₆₇₈₉"
-        return formula().map { c -> if (c in '0'..'9') subscripts[c - '0'] else c }.joinToString("")
+        formula.map { c -> if (c in '0'..'9') subscripts[c - '0'] else c }.joinToString("")
     }
 
     /**
      * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы
      * при любой перенумерации узлов и РАЗНАЯ у разных молекул.
      *
-     * Чем отличается от [formula]:
-     *  - [formula] — это СОСТАВ: сколько каких атомов («C2H6O»). Грубый отпечаток; связность теряется,
+     * Чем отличается от formula:
+     *  - formula — это СОСТАВ: сколько каких атомов («C2H6O»). Грубый отпечаток; связность теряется,
      *    поэтому формула НЕ различает изомеры — у этанола и диметилового эфира она одна (C2H6O).
-     *  - [canonical] — это СТРУКТУРА: кто с кем соединён и какой кратностью. Различает изомеры:
+     *  - canonical — это СТРУКТУРА: кто с кем соединён и какой кратностью. Различает изомеры:
      *    этанол (C–C–O) и эфир (C–O–C) дают РАЗНЫЕ ключи. Аналогия: формула — «8 красных кубиков
      *    Lego, 4 синих» (детали), канон — хеш точного чертежа сборки (та же горсть деталей, разная
      *    форма → разный хеш).

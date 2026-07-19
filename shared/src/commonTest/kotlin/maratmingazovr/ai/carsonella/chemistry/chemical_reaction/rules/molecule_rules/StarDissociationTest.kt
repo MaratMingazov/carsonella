@@ -76,7 +76,7 @@ class StarDissociationTest {
         assertEquals(2, gen.spawned.size)
         val oh = gen.spawned.single { it.species is Species.Molecular }
         val h = gen.spawned.single { it.species is Species.Elemental }
-        assertEquals("HO", (oh.species as Species.Molecular).graph.formula())
+        assertEquals("HO", (oh.species as Species.Molecular).graph.formula)
         assertEquals(Element.HYDROGEN, (h.species as Species.Elemental).element)
         assertEquals(10, oh.electrons + h.electrons)          // электроны сохранены (9 + 1)
     }

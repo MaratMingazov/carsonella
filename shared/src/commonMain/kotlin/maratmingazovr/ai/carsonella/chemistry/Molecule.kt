@@ -22,7 +22,7 @@ data class MoleculeState(
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
         val title = when (val s = species) {
-            is Species.Molecular -> s.graph.formulaPretty()
+            is Species.Molecular -> s.graph.formulaPretty
             is Species.Elemental -> s.element.label(electrons)
         }
         return """

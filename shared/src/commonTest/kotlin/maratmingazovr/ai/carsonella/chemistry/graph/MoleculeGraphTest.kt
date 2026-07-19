@@ -88,13 +88,13 @@ class MoleculeGraphTest {
     // --- формула (система Хилла) ---
 
     @Test
-    fun waterFormulaIsH2O() = assertEquals("H2O", water().formula())   // нет углерода → по алфавиту
+    fun waterFormulaIsH2O() = assertEquals("H2O", water().formula)   // нет углерода → по алфавиту
 
     @Test
-    fun methaneFormulaIsCH4() = assertEquals("CH4", methane().formula())   // C, затем H
+    fun methaneFormulaIsCH4() = assertEquals("CH4", methane().formula)   // C, затем H
 
     @Test
-    fun ethanolFormulaIsC2H6O() = assertEquals("C2H6O", ethanol().formula())   // C, H, затем O
+    fun ethanolFormulaIsC2H6O() = assertEquals("C2H6O", ethanol().formula)   // C, H, затем O
 
     @Test
     fun deuteriumCountsAsHydrogenInFormula() {
@@ -107,7 +107,7 @@ class MoleculeGraphTest {
             ),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
-        assertEquals("H2O", heavyWater.formula())
+        assertEquals("H2O", heavyWater.formula)
         assertEquals(20f, heavyWater.mass)   // O16(16) + D(2) + D(2) — масса другая, формула та же
     }
 
@@ -204,7 +204,7 @@ class MoleculeGraphTest {
     fun mergeHydroxylAndHydrogenMakesWater() {
         // ·OH + H· → H₂O: связываем слот O (узел 0) с атомом H.
         val result = hydroxyl().merge(atomGraph(Element.HYDROGEN), thisNode = 0, otherNode = 0, bondOrder = 1)
-        assertEquals("H2O", result.formula())
+        assertEquals("H2O", result.formula)
         assertEquals(18f, result.mass)
         assertEquals(water().canonical(), result.canonical())   // та же молекула, что собранная вручную
         assertFalse(result.hasFreeSlot)                        // закрытая оболочка
@@ -216,7 +216,7 @@ class MoleculeGraphTest {
         val result = hydroxyl().merge(hydroxyl(), thisNode = 0, otherNode = 0, bondOrder = 1)
         assertEquals(4, result.nodes.size)
         assertEquals(4, result.nodes.map { it.localId }.toSet().size)   // все localId уникальны
-        assertEquals("H2O2", result.formula())
+        assertEquals("H2O2", result.formula)
         assertEquals(34f, result.mass)                                // 2*O16 + 2*H = 32+2
         assertFalse(result.hasFreeSlot)                               // оба O насыщены (по 2 связи)
     }
@@ -253,7 +253,7 @@ class MoleculeGraphTest {
                 Bond(1, 5, order = 1),
             ),
         )
-        assertEquals("CH4O", result.formula())
+        assertEquals("CH4O", result.formula)
         assertEquals(methanolRenumbered.canonical(), result.canonical())
         assertFalse(result.hasFreeSlot)
     }
@@ -394,7 +394,7 @@ class MoleculeGraphTest {
     @Test
     fun ethanolAndDimethylEtherShareFormulaButDifferInCanonical() {
         // Одинаковый состав...
-        assertEquals(ethanol().formula(), dimethylEther().formula())   // оба C2H6O
+        assertEquals(ethanol().formula, dimethylEther().formula)   // оба C2H6O
         // ...но разная структура → разные канонические ключи (изомеры различаются).
         assertNotEquals(ethanol().canonical(), dimethylEther().canonical())
     }
@@ -448,7 +448,7 @@ class MoleculeGraphTest {
         // H₂O рвём O–H(1) → ·OH + H·. Продукты — из топологии.
         val parts = water().split(0, 1)
         assertEquals(2, parts.size)
-        assertEquals(setOf("HO", "H"), parts.map { it.formula() }.toSet())   // ·OH и одиночный H
+        assertEquals(setOf("HO", "H"), parts.map { it.formula }.toSet())   // ·OH и одиночный H
         val oh = parts.first { it.nodes.size == 2 }
         assertEquals(hydroxyl().canonical(), oh.canonical())                 // осколок = тот же ·OH
         assertEquals(3, parts.sumOf { it.nodes.size })                       // атомы сохранены (2 + 1)
