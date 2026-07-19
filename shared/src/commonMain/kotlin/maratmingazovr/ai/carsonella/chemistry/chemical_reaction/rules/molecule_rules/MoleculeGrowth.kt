@@ -15,7 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
- * Рост молекулы (§6, Шаг 3b): молекула со свободным валентным слотом притягивает ближайшего соседа,
+ * Рост молекулы: молекула со свободным валентным слотом притягивает ближайшего соседа,
  * у которого тоже есть свободный слот, и сливается с ним в одну бо́льшую молекулу.
  *
  * Субъект — всегда молекула ([MoleculeReactionRule]). Партнёром может быть:
@@ -104,11 +104,9 @@ class MoleculeGrowth(
         val partnerEntity = partner ?: return 0f
         val molGraph = (mol.state().value.species as Species.Molecular).graph
         val partnerGraph = graphOf(partnerEntity)
-        val molNode = molGraph.firstFreeSlotNode() ?: return 0f
-        val partnerNode = partnerGraph.firstFreeSlotNode() ?: return 0f
-        val molIso = molGraph.nodes.first { it.localId == molNode }.isotope
-        val partnerIso = partnerGraph.nodes.first { it.localId == partnerNode }.isotope
-        return BondEnergy.of(molIso, partnerIso, order = 1) ?: 0f
+        val molNode = molGraph.firstFreeSlotAtomNode!!
+        val partnerNode = partnerGraph.firstFreeSlotAtomNode!!
+        return BondEnergy.of(molNode.isotope, partnerNode.isotope, order = 1) ?: 0f
     }
 
     override fun produce(): ReactionOutcome {
@@ -118,9 +116,9 @@ class MoleculeGrowth(
         val partnerGraph = graphOf(partnerEntity)
 
         // matchesMolecule гарантировал свободные слоты у обоих → firstFreeSlotNode не null.
-        val molNode = molGraph.firstFreeSlotNode()!!
-        val partnerNode = partnerGraph.firstFreeSlotNode()!!
-        val merged = molGraph.merge(partnerGraph, thisNode = molNode, otherNode = partnerNode, bondOrder = 1)
+        val molNode = molGraph.firstFreeSlotAtomNode!!
+        val partnerNode = partnerGraph.firstFreeSlotAtomNode!!
+        val merged = molGraph.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(mol, partnerEntity)
         val p1 = mol.state().value.position
@@ -132,10 +130,10 @@ class MoleculeGrowth(
         val env = mol.getEnvironment()
 
         // Образование связи ЭКЗОТЕРМИЧНО: энергию новой связи высвобождаем фотоном (как в CovalentBondFormation).
-        val molIso = molGraph.nodes.first { it.localId == molNode }.isotope
-        val partnerIso = partnerGraph.nodes.first { it.localId == partnerNode }.isotope
+        val molIso = molNode.isotope
+        val partnerIso = partnerNode.isotope
         val bondEnergy = BondEnergy.of(molIso, partnerIso, order = 1)
-        val spawn = mutableListOf<() -> Entity<*>>(
+        val spawn = mutableListOf(
             { entityGenerator.createEntity(Species.Molecular(merged), midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {

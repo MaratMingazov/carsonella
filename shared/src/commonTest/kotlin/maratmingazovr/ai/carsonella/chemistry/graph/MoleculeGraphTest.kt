@@ -177,13 +177,13 @@ class MoleculeGraphTest {
 
     @Test
     fun firstFreeSlotNodePicksSmallestLocalIdWithSlot() {
-        assertEquals(null, water().firstFreeSlotNode())   // закрытая оболочка — слотов нет
+        assertEquals(null, water().firstFreeSlotAtomNode)   // закрытая оболочка — слотов нет
         // H(0)–O(1): водород насыщен, слот на кислороде → берём узел 1, а не 0.
-        val oh = MoleculeGraph(
+        val molecule_OH = MoleculeGraph(
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertEquals(1, oh.firstFreeSlotNode())
+        assertEquals(1, molecule_OH.firstFreeSlotAtomNode!!.localId)
     }
 
     // --- слияние графов (3b, merge) ---
