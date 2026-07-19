@@ -83,16 +83,28 @@ data class MoleculeGraph(
         .minByOrNull { it.second }
 
     /**
+     * Свободные валентные слоты каждого узла: localId → сколько ещё связей узел может образовать/усилить.
+     * Кэшируется один раз при построении (граф иммутабелен): один проход по связям копит «занятые»
+     * слоты (сумма order у инцидентных рёбер), затем `валентность − занятые` на узел. Так [freeSlots],
+     * [hasFreeSlot], [firstFreeSlotNode], [strengthenableBonds] читают слоты за O(1) вместо пересчёта.
+     */
+    private val freeSlotsById: Map<Int, Int> = run {
+        val used = HashMap<Int, Int>()
+        for (bond in bonds) {
+            used[bond.atom1] = (used[bond.atom1] ?: 0) + bond.order
+            used[bond.atom2] = (used[bond.atom2] ?: 0) + bond.order
+        }
+        nodes.associate { it.localId to (it.isotope.valence() - (used[it.localId] ?: 0)) }
+    }
+
+    /**
      * Узнаем есть ли еще валентные слоты у конкретного атома в молекуле (localId - номер узла)
      * Если > 0 значит этот атом в молекуле еще может образовать новую валентную связь, либо усилить сузествующую связь
      * Например, когда Углерод + Углерод -> C-C то теперь либо связь усилится С=С
      * либо образуется еще связь H-C-C
      */
-    fun freeSlots(localId: Int): Int {
-        val node = nodes.firstOrNull { it.localId == localId } ?: error("Узла с localId=$localId нет в графе")
-        val used = bonds.sumOf { if (it.atom1 == localId || it.atom2 == localId) it.order else 0 }
-        return node.isotope.valence() - used
-    }
+    fun freeSlots(localId: Int): Int =
+        freeSlotsById[localId] ?: error("Узла с localId=$localId нет в графе")
 
     /** Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать). */
     val hasFreeSlot: Boolean = nodes.any { freeSlots(it.localId) > 0 }
