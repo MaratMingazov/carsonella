@@ -42,6 +42,13 @@ data class Bond(
     val order: Int,          // кратность 1..3;
 )
 
+/**
+ * Кандидат на замыкание кольца: между узлами [atom1] и [atom2] (оба со свободным слотом, не соседи)
+ * можно добавить связь → цикл размера [ringSize] (= длина кратчайшего пути между ними + 1). См.
+ * [MoleculeGraph.ringClosureCandidates] и [MoleculeGraph.closeRing].
+ */
+data class RingClosureCandidate(val atom1: Int, val atom2: Int, val ringSize: Int)
+
 
 data class MoleculeGraph(
     val nodes: List<AtomNode>,
@@ -174,6 +181,41 @@ data class MoleculeGraph(
         bonds.filter { it.order < 3 && freeSlots(it.atom1) > 0 && freeSlots(it.atom2) > 0 }
 
     /**
+     * Кандидаты на замыкание кольца: пары атомов, у которых у ОБОИХ свободный слот и которые соединены
+     * путём длины `d ≥ RING_MIN_SIZE − 1` (кратчайший путь по графу, BFS). Размер кольца = `d + 1`.
+     *
+     * ПОЛ по размеру = [RING_MIN_SIZE] (5): напряжённые 3–4-кольца НЕ предлагаем вовсе — иначе голая
+     * цепочка из 3 атомов схлопнулась бы в циклопропан ещё до того, как дорастёт до выгодного 5–6 (первая
+     * же возможность замкнуться была бы худшей, напряжённой). Выбор среди 5/6/7+ оставляем энергетическому
+     * weight (см. RingClosure): 5–6 выигрывают по ringStrain. Соседей (`d = 1`) порог `d ≥ 4` отсекает сам.
+     */
+    val ringClosureCandidates: List<RingClosureCandidate> = run {
+        val freeAtoms = nodes.map { it.localId }.filter { (freeSlotsById[it] ?: 0) > 0 }
+        if (freeAtoms.size < 2) return@run emptyList()
+        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
+        for (bond in bonds) {
+            adjacency.getValue(bond.atom1).add(bond.atom2)
+            adjacency.getValue(bond.atom2).add(bond.atom1)
+        }
+        val result = mutableListOf<RingClosureCandidate>()
+        for (start in freeAtoms) {
+            val dist = HashMap<Int, Int>().apply { put(start, 0) }   // кратчайшие расстояния от start (BFS)
+            val queue = ArrayDeque(listOf(start))
+            while (queue.isNotEmpty()) {
+                val cur = queue.removeFirst()
+                val d = dist.getValue(cur)
+                for (nb in adjacency.getValue(cur)) if (nb !in dist) { dist[nb] = d + 1; queue.add(nb) }
+            }
+            for (target in freeAtoms) {
+                if (target <= start) continue                       // каждую неупорядоченную пару один раз
+                val ringSize = (dist[target] ?: continue) + 1       // недостижим (связный граф — не случается) → пропуск
+                if (ringSize >= RING_MIN_SIZE) result.add(RingClosureCandidate(start, target, ringSize))
+            }
+        }
+        result
+    }
+
+    /**
      * Усиление связи (3c): вернуть копию графа, где кратность связи между узлами [atom1] и [atom2]
      * увеличена на 1 (O–O → O=O, N=N → N≡N). Так эмёрджентно рождаются кратные связи, когда рост новым
      * партнёром недоступен/невыгоден (см. правило BondStrengthening).
@@ -183,6 +225,26 @@ data class MoleculeGraph(
         require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
         val newBonds = bonds.map { if (sameBond(it, atom1, atom2)) Bond(it.atom1, it.atom2, it.order + 1) else it }
         return MoleculeGraph(nodes = nodes, bonds = newBonds)
+    }
+
+    /**
+     * Замыкание кольца (Стадия 2): добавить связь между двумя УЖЕ существующими узлами ОДНОГО графа
+     * ([atom1], [atom2]) — так цепь/дерево превращается в цикл (циклопентан, бензол-скелет, дальше листы).
+     * Родственник [merge] (тоже добавляет ребро), но ВНУТРИмолекулярный: узлы не сдвигаются, новый компонент
+     * не рождается. Зеркало — [split] по ребру цикла (раскрытие кольца обратно в цепь).
+     *
+     * Связь ВСЕГДА одинарная (`order = 1`), как и [CovalentBondFormation]/[merge]-рост: кратность эмёрджентна —
+     * если кольцу нужна двойная (ароматика, `C=C`), её потом добавит [strengthenBond] (BondStrengthening).
+     *
+     * Предусловие (гарантирует вызывающий через [ringClosureCandidates]): узлы существуют, ещё НЕ связаны
+     * напрямую (иначе это [strengthenBond]) и у обоих есть свободный слот. Валентность здесь не проверяем.
+     */
+    fun closeRing(atom1: Int, atom2: Int): MoleculeGraph {
+        require(nodes.any { it.localId == atom1 }) { "Узла atom1=$atom1 нет в графе" }
+        require(nodes.any { it.localId == atom2 }) { "Узла atom2=$atom2 нет в графе" }
+        require(atom1 != atom2) { "Кольцо из одного узла невозможно: atom1 == atom2 == $atom1" }
+        require(bonds.none { sameBond(it, atom1, atom2) }) { "Узлы $atom1–$atom2 уже связаны — это усиление, не кольцо" }
+        return MoleculeGraph(nodes = nodes, bonds = bonds + Bond(atom1, atom2, order = 1))
     }
 
     /**
@@ -353,6 +415,13 @@ data class MoleculeGraph(
 
 /** Потолок наивного перебора O(n!) в MoleculeGraph.canonical; выше — Морган (Стадия 2). */
 private const val CANONICAL_MAX_NODES = 9
+
+/**
+ * Минимальный размер кольца, который MoleculeGraph.ringClosureCandidates вообще предлагает. Напряжённые
+ * 3–4-кольца отсекаем полностью (иначе преждевременный циклопропан из голой тройки атомов); 5+ отдаём на
+ * выбор энергетическому weight (см. RingClosure), где ringStrain делает 5–6 выгоднее 7+.
+ */
+private const val RING_MIN_SIZE = 5
 
 /**
  * «Голый» символ элемента без масс-индекса и заряда: ²H→H, ¹²C→C, ³He→He.

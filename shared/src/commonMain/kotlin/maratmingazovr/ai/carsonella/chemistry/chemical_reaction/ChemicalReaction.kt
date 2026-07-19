@@ -32,6 +32,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_r
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MolecularPhotoIonization
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculeGrowth
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.RingClosure
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.StarDissociation
 import kotlin.random.Random
 
@@ -78,6 +79,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → двухатомная молекула-граф
         MoleculeGrowth(entityGenerator), // рост молекулы (3b): молекула со свободным слотом + атом/молекула → бо́льшая молекула (O–H + H → H₂O)
         BondStrengthening(entityGenerator), // усиление связи (3c): ненасыщенная связь молекулы 1→2→3 (O–O → O=O, N₂ → N≡N)
+        RingClosure(entityGenerator), // замыкание кольца: два ненасыщенных атома одной молекулы → цикл (кольцо ≥ 5, weight по ringStrain: 5–6 выгодны)
         StarDissociation(entityGenerator), // распад в звезде: молекула в Star-среде рвёт слабейшую связь за тик, рекурсивно до атомов
         MolecularPhotoIonization(entityGenerator), // отрыв электрона от молекулы под действием света (E ≥ IP): молекула → катион + e⁻
 

@@ -79,10 +79,14 @@ class Molecule(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        // Усиление связи (3c): если у молекулы есть ненасыщенная связь — запрашиваем реакцию сама с собой
-        // (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт на запросах с соседями (partner-first).
+        // Внутримолекулярные реакции (усиление связи 3c ИЛИ замыкание кольца) — запрашиваем реакцию сама с
+        // собой (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт на запросах с соседями
+        // (partner-first). Один self-request покрывает обе: BondStrengthening и RingClosure гейтят size==1
+        // и читают граф, resolve() выбирает между ними по weight.
         val graph = (state.value.species as? Species.Molecular)?.graph
-        if (graph?.strengthenableBonds?.isNotEmpty() == true) { requestReaction(listOf(this)) }
+        if (graph?.strengthenableBonds?.isNotEmpty() == true || graph?.ringClosureCandidates?.isNotEmpty() == true) {
+            requestReaction(listOf(this))
+        }
 
         // В звезде (TemperatureMode.Star) молекула термически распадается — зовёт себя, StarDissociation
         // рвёт слабейшую связь (зеркало StarThermalIonization у атома). Зов безусловный: даже насыщенная
