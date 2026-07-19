@@ -66,7 +66,7 @@ class BondStrengtheningTest {
         val graph = (product.species as Species.Molecular).graph
         assertEquals("O2", graph.formula())
         assertEquals(2, graph.bonds.single().order)     // O–O → O=O
-        assertFalse(graph.hasFreeSlot())                // O=O насыщен
+        assertFalse(graph.hasFreeSlot)                // O=O насыщен
         assertEquals(16, product.electrons)             // электроны сохранены
 
         // усиление экзотермично → фотон на прирост энергии связи E(O=O) − E(O–O)

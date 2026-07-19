@@ -47,7 +47,7 @@ class MoleculeGrowth(
         if (!first.state().value.alive) return false
         // субъект-молекула гарантирован базой; нужен свободный слот, чтобы было куда расти
         val firstGraph = (first.state().value.species as Species.Molecular).graph
-        if (!firstGraph.hasFreeSlot()) return false
+        if (!firstGraph.hasFreeSlot) return false
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false
 
@@ -79,7 +79,7 @@ class MoleculeGrowth(
         val state = entity.state().value
         if (!state.alive) return false
         return when (val species = state.species) {
-            is Species.Molecular -> species.graph.hasFreeSlot()
+            is Species.Molecular -> species.graph.hasFreeSlot
             is Species.Elemental -> {
                 val element = species.element
                 element.details.type == ElementType.Atom &&
