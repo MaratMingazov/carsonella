@@ -152,11 +152,11 @@ data class MoleculeGraph(
     }
 
     /**
-     * Связи, которые можно усилить (3c): `order < 3` И у ОБОИХ концов есть свободный слот (усиление
+     * Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот (усиление
      * order→order+1 занимает по одному слоту у каждого атома). Так, O–O усиливаема (по слоту на каждом O),
      * а звено цепи O–O–O — нет (средний атом насыщен). Пусто → усиливать нечего.
      */
-    fun strengthenableBonds(): List<Bond> =
+    val strengthenableBonds: List<Bond> =
         bonds.filter { it.order < 3 && freeSlots(it.atom1) > 0 && freeSlots(it.atom2) > 0 }
 
     /**
@@ -164,8 +164,6 @@ data class MoleculeGraph(
      * увеличена на 1 (O–O → O=O, N=N → N≡N). Так эмёрджентно рождаются кратные связи, когда рост новым
      * партнёром недоступен/невыгоден (см. правило BondStrengthening).
      *
-     * Предусловие (гарантирует вызывающий, обычно через [strengthenableBonds]): связь существует, её
-     * order < 3, у обоих концов есть свободный слот. Потолок 3 страхует инвариант конструктора.
      */
     fun strengthenBond(atom1: Int, atom2: Int): MoleculeGraph {
         require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }

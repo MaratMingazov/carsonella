@@ -38,7 +38,7 @@ class BondStrengthening(
         if (!first.state().value.alive) return false
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false   // в звезде молекул нет
         val graph = (first.state().value.species as Species.Molecular).graph
-        val candidate = graph.strengthenableBonds().firstOrNull() ?: return false
+        val candidate = graph.strengthenableBonds.firstOrNull() ?: return false
         molecule = first
         bond = candidate
         return true

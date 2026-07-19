@@ -285,9 +285,9 @@ class MoleculeGraphTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertEquals(1, ooSingle.strengthenableBonds().size)              // оба O свободны → усиливаема
-        assertTrue(ooSingle.strengthenBond(0, 1).strengthenableBonds().isEmpty())   // O=O — оба насыщены
-        assertTrue(water().strengthenableBonds().isEmpty())              // в воде у O–H конец H насыщен
+        assertEquals(1, ooSingle.strengthenableBonds.size)              // оба O свободны → усиливаема
+        assertTrue(ooSingle.strengthenBond(0, 1).strengthenableBonds.isEmpty())   // O=O — оба насыщены
+        assertTrue(water().strengthenableBonds.isEmpty())              // в воде у O–H конец H насыщен
     }
 
     @Test
