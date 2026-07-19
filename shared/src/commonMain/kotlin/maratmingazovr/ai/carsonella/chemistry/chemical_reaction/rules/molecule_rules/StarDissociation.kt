@@ -36,7 +36,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         if (!first.state().value.alive) return false
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
         val graph = (first.state().value.species as Species.Molecular).graph
-        if (graph.weakestBond == null) return false   // рвать нечего (нет связей / тип не в каталоге)
+        if (graph.weakestBondAndEnergy == null) return false   // рвать нечего (нет связей / тип не в каталоге)
         molecule = first
         return true
     }
@@ -46,7 +46,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
     override fun produce(): ReactionOutcome {
         val mol = molecule!!
         val graph = (mol.state().value.species as Species.Molecular).graph
-        val bond = graph.weakestBond!!             // matches гарантировал наличие связи
+        val bond = graph.weakestBondAndEnergy!!.first             // matches гарантировал наличие связи
         val fragments = graph.split(bond.atom1, bond.atom2)
 
         val molPosition = mol.state().value.position

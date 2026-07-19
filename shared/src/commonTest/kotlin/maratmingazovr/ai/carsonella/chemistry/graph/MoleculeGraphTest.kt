@@ -507,23 +507,24 @@ class MoleculeGraphTest {
     @Test
     fun dissociationEnergyOfWaterIsOhBond() {
         // В воде обе связи O–H (4.80 эВ) — порог равен энергии O–H, слабейшая связь это O–H.
-        assertEquals(4.80f, water().dissociationEnergy)
-        val weakest = water().weakestBond!!
-        assertTrue(weakest == Bond(0, 1, 1) || weakest == Bond(0, 2, 1))
+        val weakestBondEnergy = water().weakestBondAndEnergy!!
+        assertEquals(4.80f, weakestBondEnergy.second)
+        val weakestBond = weakestBondEnergy.first
+        assertTrue(weakestBond == Bond(0, 1, 1) || weakestBond == Bond(0, 2, 1))
     }
 
     @Test
     fun weakestBondPicksLowestEnergyAmongMixedBonds() {
         // H–O–O–H: O–H = 4.80, O–O = 1.51 → слабейшая (и порог) — центральная O–O.
-        assertEquals(1.51f, peroxide().dissociationEnergy)
-        assertEquals(Bond(1, 2, 1), peroxide().weakestBond)
+        val weakestBondEnergy = peroxide().weakestBondAndEnergy!!
+        assertEquals(1.51f, weakestBondEnergy.second)
+        assertEquals(Bond(1, 2, 1), weakestBondEnergy.first)
     }
 
     @Test
     fun dissociationEnergyIsNullWhenNoBonds() {
         // Одноузловой граф (атом) — связей нет, порога распада нет.
         val atom = MoleculeGraph(nodes = listOf(AtomNode(0, Element.OXYGEN_16)), bonds = emptyList())
-        assertEquals(null, atom.dissociationEnergy)
-        assertEquals(null, atom.weakestBond)
+        assertEquals(null, atom.weakestBondAndEnergy)
     }
 }

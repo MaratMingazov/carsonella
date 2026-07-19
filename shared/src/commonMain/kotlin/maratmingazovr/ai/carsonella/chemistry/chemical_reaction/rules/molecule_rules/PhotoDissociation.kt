@@ -41,7 +41,8 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val first = reagents.first()
         if (!first.state().value.alive) return false
         val graph = (first.state().value.species as Species.Molecular).graph
-        val threshold = graph.dissociationEnergy ?: return false   // рвать нечего (нет связей / тип не в каталоге)
+        val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return false // проверяем есть ли у молекулы связь, которую можно порвать?
+        val threshold = weakestBondAndEnergy.second
 
         val firstPosition = first.state().value.position
         val radius = first.state().value.species.radius()
@@ -72,7 +73,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
     override fun weight(): Float {
         val mol = molecule ?: return 0f
         val graph = (mol.state().value.species as Species.Molecular).graph
-        val threshold = graph.dissociationEnergy ?: return 0f
+        val threshold = graph.weakestBondAndEnergy?.second ?: return 0f
         return -threshold
     }
 
@@ -80,8 +81,9 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val mol = molecule!!
         val ph = photon!!
         val graph = (mol.state().value.species as Species.Molecular).graph
-        val bond = graph.weakestBond!!             // matches гарантировал dissociationEnergy != null → weakestBond != null
-        val threshold = graph.dissociationEnergy!!
+        val weakestBondAndEnergy = graph.weakestBondAndEnergy!! // matches гарантирует что не null
+        val bond = weakestBondAndEnergy.first
+        val threshold = weakestBondAndEnergy.second
 
         val fragments = graph.split(bond.atom1, bond.atom2)
 
