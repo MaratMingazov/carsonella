@@ -11,7 +11,7 @@ import kotlin.math.round
 
 data class MoleculeState(
     override val id: Long,
-    override val species: Species,
+    override val species: Species.Molecular,
     override val alive: Boolean,
     override val position: Position,
     override val direction: Vec2D,
@@ -19,16 +19,11 @@ data class MoleculeState(
     override val energy: Float,
     override val electrons: Int,
 ) : EntityState<MoleculeState> {
+    val title = species.graph.formulaPretty
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
-        val title = when (val s = species) {
-            is Species.Molecular -> s.graph.formulaPretty
-            is Species.Elemental -> s.element.label(electrons)
-        }
         return """
-            |$title: $id
-            |Position (${position.x.toInt()}, ${position.y.toInt()})
-            |Velocity ${round(velocity * 100) / 100}
+            |$title
             |Energy ${round(energy * 100) / 100}
         """.trimMargin()
     }

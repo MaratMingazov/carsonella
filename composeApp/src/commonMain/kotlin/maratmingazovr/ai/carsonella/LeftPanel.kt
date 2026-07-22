@@ -78,16 +78,14 @@ fun SelectedEntityPanel(
 ) {
     Column(modifier.fillMaxWidth().background(Color.White).padding(8.dp).border(1.dp, Color.LightGray)) {
 
-        Text("Selected", style = MaterialTheme.typography.labelLarge, color = Color.Black)
+        Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
 
-        val selectedElementFlow = entitiesState.firstOrNull { it.id == selectedElementId }
-        if (selectedElementFlow == null) {
+        val selectedElement = entitiesState.firstOrNull { it.id == selectedElementId }
+        if (selectedElement == null) {
             Spacer(Modifier.height(8.dp))
-            Text("Ничего не выбрано", color = Color.Gray)
+            Text("", color = Color.Gray)
             return@Column
         }
-
-        val selectedElement = selectedElementFlow
 
         Spacer(Modifier.height(8.dp))
         Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)

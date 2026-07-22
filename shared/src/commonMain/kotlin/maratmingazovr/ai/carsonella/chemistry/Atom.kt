@@ -31,9 +31,10 @@ data class AtomState(
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
         return """
-            |${element.label(electrons)}: $id
-            |Position (${position.x.toInt()}, ${position.y.toInt()})
-            |Velocity ${round(velocity * 100) / 100}
+            |${element.label(electrons)}
+            |Protons: ${element.details.p}
+            |Neutrons: ${element.details.n}
+            |Electrons: $electrons
             |Energy ${round(energy * 100) / 100}
         """.trimMargin()
     }
