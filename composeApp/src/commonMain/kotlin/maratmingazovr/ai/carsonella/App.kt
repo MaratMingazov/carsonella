@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.rememberTextMeasurer
+import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
@@ -59,11 +60,17 @@ fun App() {
                     entitiesState = entitiesState,
                     onSave = { world.save() },
                     onLoad = { world.load() },
+                    onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
                 )
 
                 RightPanel(
                     accept = { it.element in Element.entries },
-                    onDrop = { data, localPos -> world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = 0f, environment = world.environment, electrons = data.element.details.p) },
+                    // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
+                    // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
+                    onDrop = { data, localPos ->
+                        val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
+                        world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = data.element.details.p)
+                    },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
                     hoveredId = hoveredId,

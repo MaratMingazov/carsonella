@@ -27,12 +27,16 @@ data class SubAtomState(
     val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
     override fun toString(): String {
-        return """
+        val base = """
             |${element.label(electrons)}: $id
             |Position (${position.x.toInt()}, ${position.y.toInt()})
             |Velocity ${round(velocity * 100) / 100}
             |Energy ${round(energy * 100) / 100}
         """.trimMargin()
+        // LightBand и длина волны осмысленны только у фотона (у него energy — это E=hν). У протона,
+        // электрона и т.п. energy к свету не относится, поэтому строку не добавляем и функцию не зовём.
+        if (element != PHOTON) return base
+        return "$base\nСпектр: ${lightBandFromEnergyEv(energy).label}"
     }
 }
 
@@ -146,4 +150,70 @@ class SubAtom(
         notifyDeath()
     }
 
+}
+
+// --- Физика фотона: что можно узнать из одной лишь энергии ---
+// energy — единственный источник правды; длина волны и «тип света» из неё выводятся, не хранятся.
+// Живёт пока рядом с SubAtom (фотон — субатомная частица); вынесем в отдельный файл, если разрастётся.
+
+/**
+ * Связь энергии фотона и длины волны: E = hc / λ. Энергия в модели в эВ, длину волны считаем в нм.
+ * В этих единицах hc свёрнуто в одну константу: E[эВ] · λ[нм] = 1239.841984 эВ·нм (CODATA).
+ */
+const val PHOTON_HC_EV_NM = 1239.841984f
+
+// Энергия фотона по умолчанию при создании из палитры: красный H-α (1.89 эВ ≈ 656 нм) — видимый
+// свет ниже порога ионизации водорода. Инвариант: фотон не должен рождаться с нулевой энергией.
+const val DEFAULT_PHOTON_ENERGY_EV = 1.89f
+
+/**
+ * λ[нм] по энергии E[эВ]. У реального фотона энергия всегда > 0, поэтому λ всегда конечна.
+ * E ≤ 0 — это не крайний случай, а баг (фотона с нулевой энергией не существует) → падаем с require,
+ * чтобы источник проблемы всплыл, а не маскировался «нет света».
+ */
+fun wavelengthNmFromEnergyEv(energyEv: Float): Float {
+    require(energyEv > 0f) { "Энергия фотона должна быть > 0, получено: $energyEv" }
+    return PHOTON_HC_EV_NM / energyEv
+}
+
+/**
+ * Диапазон электромагнитного спектра (и цвет внутри видимого). Порядок — по возрастанию энергии.
+ * label — человекочитаемое имя для UI. Позже сюда можно добавить Color для отрисовки фотона.
+ */
+enum class LightBand(val label: String) {
+    RADIO("радио"),
+    MICROWAVE("микроволны"),
+    INFRARED("инфракрасный"),
+    RED("красный"),
+    ORANGE("оранжевый"),
+    YELLOW("жёлтый"),
+    GREEN("зелёный"),
+    BLUE("синий"),
+    VIOLET("фиолетовый"),
+    ULTRAVIOLET("ультрафиолет"),
+    XRAY("рентген"),
+    GAMMA("гамма"),
+}
+
+/**
+ * «Что это за свет» по энергии фотона. Классифицируем через длину волны (границы диапазонов
+ * естественно заданы в нм). У любого реального фотона (E > 0) диапазон определён; E ≤ 0 → require
+ * в wavelengthNmFromEnergyEv упадёт (это баг). Границы видимых цветов — общепринятое приближение.
+ */
+fun lightBandFromEnergyEv(energyEv: Float): LightBand {
+    val nm = wavelengthNmFromEnergyEv(energyEv)
+    return when {
+        nm > 1e9f  -> LightBand.RADIO        // λ > 1 м
+        nm > 1e6f  -> LightBand.MICROWAVE    // 1 мм … 1 м
+        nm > 750f  -> LightBand.INFRARED     // 750 нм … 1 мм
+        nm > 620f  -> LightBand.RED          // видимый: 380 … 750 нм
+        nm > 590f  -> LightBand.ORANGE
+        nm > 570f  -> LightBand.YELLOW
+        nm > 495f  -> LightBand.GREEN
+        nm > 450f  -> LightBand.BLUE
+        nm > 380f  -> LightBand.VIOLET
+        nm > 10f   -> LightBand.ULTRAVIOLET  // 10 … 380 нм
+        nm > 0.01f -> LightBand.XRAY         // 0.01 … 10 нм
+        else       -> LightBand.GAMMA        // λ < 0.01 нм
+    }
 }

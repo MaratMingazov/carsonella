@@ -115,6 +115,12 @@ class World(
         entities.find { it.state().value.id == entityId }?.run { applyForce(force) }
     }
 
+    // Игрок задаёт энергию выбранной частице из панели (например, энергию фотона).
+    // setEnergy клампит энергию ≥ 0. Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
+    fun setEntityEnergy(entityId: Long, energy: Float) {
+        entities.find { it.state().value.id == entityId }?.setEnergy(energy)
+    }
+
     // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
     // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
     fun moveEntityTo(entityId: Long, position: Position) {
