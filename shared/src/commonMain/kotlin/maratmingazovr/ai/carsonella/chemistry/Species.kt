@@ -88,7 +88,5 @@ fun Species.describe(s: EntityState): String = when (this) {
             |Velocity ${round(s.velocity * 100) / 100}
             |Energy ${round(s.energy * 100) / 100}
         """.trimMargin()
-
-        ElementType.Molecule -> error("Молекула — это Species.Molecular, не Elemental")
     }
 }

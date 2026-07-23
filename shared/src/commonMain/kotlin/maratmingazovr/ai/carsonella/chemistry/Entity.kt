@@ -219,7 +219,7 @@ interface Entity :
     }
 }
 
-enum class ElementType { SubAtom, Atom, Molecule, Star }
+enum class ElementType { SubAtom, Atom, Star }
 
 enum class Element() {
     // --- субатомные частицы ---

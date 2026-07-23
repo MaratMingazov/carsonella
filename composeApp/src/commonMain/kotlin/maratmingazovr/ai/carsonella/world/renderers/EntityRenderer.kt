@@ -51,7 +51,6 @@ class EntityRenderer(
             ElementType.SubAtom -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
             ElementType.Atom -> drawEntity(drawScope, entityState, phase, showLabel)
             ElementType.Star -> drawStar(drawScope, entityState, phase, phase2)
-            ElementType.Molecule -> error("Молекула — это Species.Molecular, не Elemental")
         }
     }
 

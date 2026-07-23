@@ -63,10 +63,7 @@ object ElementColors {
         Element.POSITRON -> POSITRON
         Element.NEUTRON -> NEUTRON
         Element.Proton -> PROTON
-        else -> when (element.details.type) {
-            ElementType.Molecule -> MOLECULE
-            else -> byZ[element.details.p] ?: DEFAULT_HEAVY
-        }
+        else -> byZ[element.details.p] ?: DEFAULT_HEAVY
     }
 }
 
