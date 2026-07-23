@@ -56,8 +56,6 @@ sealed interface Species {
         override val mass: Float get() = graph.mass
         override val protons: Int get() = graph.protons
         override val radius: Float get() = MOLECULE_RADIUS
-        // Заряд молекулы — динамика (protons − electrons), а не структура: formulaPretty остаётся чистой
-        // формулой, суффикс заряда добавляем здесь. Зеркало атома (baseSymbol + chargeSuffix), тот же хелпер.
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
 
         override fun describe(s: EntityState): String = """

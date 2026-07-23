@@ -70,7 +70,7 @@ class EntityRenderer(
 
             // символ — только при наведении/выборе, всплывает над частицей
             if (showLabel) {
-                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.species.displaySymbol(entityState.electrons))
+                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.displaySymbol)
             }
         }
     }
@@ -146,7 +146,7 @@ class EntityRenderer(
             }
             // подпись-формула над молекулой при наведении/выборе
             if (showLabel) {
-                drawFloatingLabel(textMeasurer, center, LABEL_ABOVE, species.displaySymbol(entityState.electrons))
+                drawFloatingLabel(textMeasurer, center, LABEL_ABOVE, entityState.displaySymbol)
             }
         }
     }

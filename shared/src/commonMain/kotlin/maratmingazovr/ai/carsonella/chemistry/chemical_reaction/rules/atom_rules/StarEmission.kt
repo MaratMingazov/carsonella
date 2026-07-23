@@ -64,7 +64,7 @@ class StarEmission (
             return ReactionOutcome(
                 updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
                 description = "$id: ${Element.Star.details.symbol} <- " +
-                        absorbReagents.joinToString { it.state().value.species.displaySymbol(it.state().value.electrons) },
+                        absorbReagents.joinToString { it.state().value.displaySymbol },
             )
         }
 
@@ -113,7 +113,7 @@ class StarEmission (
                     reagent.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
                 }
-                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.species.displaySymbol(reagent.state().value.electrons)}"
+                description = "$id: ${Element.Star.details.symbol} → ${reagent.state().value.displaySymbol}"
             }
             return ReactionOutcome(updateState = updateList, description = description)
         }

@@ -23,6 +23,12 @@ data class EntityState(
     val electrons: Int,
 ) {
 
+    // Символ с зарядом для показа. Зависит от electrons, но здесь electrons фиксирован (EntityState
+    // неизменяем) → это свойство, а не функция. Делегируем в species: наружу отдаём EntityState.displaySymbol,
+    // чтобы вызывающему не лезть в species и не прокидывать electrons вручную. get() — считается по запросу
+    // (символ нужен редко, только для подписи), а не на каждом copyWith.
+    val displaySymbol: String get() = species.displaySymbol(electrons)
+
     /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
      * только когда .value присваивается новый объект.
