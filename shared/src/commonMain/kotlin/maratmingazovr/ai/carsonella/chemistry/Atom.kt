@@ -64,11 +64,13 @@ class Atom(
 
         if (state.value.energy > 0) { requestReaction(listOf(this)) }
 
+        val element = (state.value.species as Species.Elemental).element
+
         // β⁺-нестабильные изотопы (¹³N, ¹⁵O и т.п.) всегда зовут себя в резолвер — там их подхватит BetaPlusDecay.
-        if (state.value.element.details.betaPlusDecayResult != null) { requestReaction(listOf(this)) }
+        if (element.details.betaPlusDecayResult != null) { requestReaction(listOf(this)) }
 
         // β⁻-нестабильные изотопы (нейтрон-избыточные продукты (n,γ), напр. ³¹Si) — аналогично, их подхватит BetaMinusDecay.
-        if (state.value.element.details.betaMinusDecayResult != null) { requestReaction(listOf(this)) }
+        if (element.details.betaMinusDecayResult != null) { requestReaction(listOf(this)) }
 
         // В недрах звезды (TemperatureMode.Star) атом тепловой ионизуется — зовёт себя, StarThermalIonization сорвёт электрон.
         if (state.value.electrons > 0 && getEnvironment().getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }

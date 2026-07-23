@@ -46,8 +46,9 @@ class SubAtom(
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
+        val element = (state.value.species as Species.Elemental).element
 
-        when (state.value.element) {
+        when (element) {
             PHOTON -> initPhoton(environment)
             ELECTRON -> initElectron(environment, neighbors)
             Proton -> initProton(environment, neighbors)

@@ -22,9 +22,6 @@ data class EntityState(
     val energy: Float,
     val electrons: Int,
 ) {
-    // Шов для не-молекулярного кода: element валиден только для Elemental (как было в *State-классах).
-    // Молекулы .element не читают; каст к Elemental намеренно бросит, если инвариант нарушат.
-    val element: Element get() = (species as Species.Elemental).element
 
     /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)

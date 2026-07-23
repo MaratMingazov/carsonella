@@ -50,7 +50,8 @@ class Star(
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
-        val radius = state.value.element.details.radius
+        val element = (state.value.species as Species.Elemental).element
+        val radius = element.details.radius
 
         //applyForce(calculateForce(neighbors))
         applyNewPosition()
