@@ -14,41 +14,41 @@ import kotlin.math.round
  * На время миграции у [EntityState] остаётся шов `element`, работающий для [Elemental]
  * (весь не-молекулярный код продолжает читать `.element` как раньше).
  */
+// Агрегаты (мост §3b) — члены sealed-типа: каждый вариант держит свою логику рядом с собой. Это
+// ВЫВОДИМЫЕ величины (из element/graph), а не хранимое состояние: element/graph не меняются, поэтому
+// значение постоянно; отдельным полем не храним (иначе второй источник правды + шум в equals/copy).
 sealed interface Species {
-    data class Elemental(val element: Element) : Species
-    data class Molecular(val graph: MoleculeGraph) : Species
-}
+    /** Масса: атом/частица — p+n (электрон — особый случай 1f); молекула — сумма по графу (кэш на графе). */
+    val mass: Float
 
-// --- агрегаты по Species (мост §3b): Elemental читает Element/Details, Molecular — граф ---
+    /** Сумма протонов: из Details (Elemental) или из графа (Molecular). */
+    val protons: Int
+
+    /** Радиус для физики/рендера: из Details (Elemental) или константа (Molecular). */
+    val radius: Float
+
+    /** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула + заряд. */
+    fun displaySymbol(electrons: Int): String
+
+    data class Elemental(val element: Element) : Species {
+        override val mass: Float get() = if (element == Element.ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
+        override val protons: Int get() = element.details.p
+        override val radius: Float get() = element.details.radius
+        override fun displaySymbol(electrons: Int): String = element.symbol(electrons)
+    }
+
+    data class Molecular(val graph: MoleculeGraph) : Species {
+        override val mass: Float get() = graph.mass
+        override val protons: Int get() = graph.protons
+        override val radius: Float get() = MOLECULE_RADIUS
+        // Заряд молекулы — динамика (protons − electrons), а не структура: formulaPretty остаётся чистой
+        // формулой, суффикс заряда добавляем здесь. Зеркало атома (baseSymbol + chargeSuffix), тот же хелпер.
+        override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
+    }
+}
 
 // Пока константа (как старый дефолт Details.radius); при желании позже выведем из размера графа.
 private const val MOLECULE_RADIUS = 20f
-
-/** Масса: для атома/частицы — p+n (электрон — особый случай 1f); для молекулы — сумма по графу. */
-fun Species.mass(): Float = when (this) {
-    is Species.Elemental -> if (element == Element.ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
-    is Species.Molecular -> graph.mass
-}
-
-/** Сумма протонов: из Details (Elemental) или из графа (Molecular). */
-fun Species.protons(): Int = when (this) {
-    is Species.Elemental -> element.details.p
-    is Species.Molecular -> graph.protons
-}
-
-/** Радиус для физики/рендера: из Details (Elemental) или константа (Molecular). */
-fun Species.radius(): Float = when (this) {
-    is Species.Elemental -> element.details.radius
-    is Species.Molecular -> MOLECULE_RADIUS
-}
-
-/** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула с подстрочными + заряд. */
-fun Species.displaySymbol(electrons: Int): String = when (this) {
-    is Species.Elemental -> element.symbol(electrons)
-    // Заряд молекулы — динамика (protons − electrons), а не структура: formulaPretty остаётся чистой
-    // формулой, суффикс заряда добавляем здесь. Зеркало атома (baseSymbol + chargeSuffix), тот же хелпер.
-    is Species.Molecular -> graph.formulaPretty + chargeSuffix(graph.protons - electrons)
-}
 
 /**
  * Человекочитаемое описание сущности для инфо-панели. Живёт здесь (рядом с mass()/displaySymbol()),

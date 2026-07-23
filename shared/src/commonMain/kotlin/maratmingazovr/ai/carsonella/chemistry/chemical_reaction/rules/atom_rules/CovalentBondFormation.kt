@@ -13,7 +13,6 @@ import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
-import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -43,7 +42,7 @@ class CovalentBondFormation(
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false
 
         val firstPosition = first.state().value.position
-        val firstRadius = first.state().value.species.radius()
+        val firstRadius = first.state().value.species.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
@@ -53,7 +52,7 @@ class CovalentBondFormation(
             .minByOrNull { it.second }
             ?: return false
 
-        val secondRadius = second.state().value.species.radius()
+        val secondRadius = second.state().value.species.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
             atom1 = first
             atom2 = second

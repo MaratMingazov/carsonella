@@ -27,9 +27,9 @@ class SpeciesTest {
     @Test
     fun molecularAggregatesComeFromGraph() {
         val m = Species.Molecular(water)
-        assertEquals(18f, m.mass())              // 16 + 1 + 1
-        assertEquals(10, m.protons())            // 8 + 1 + 1
-        assertEquals(20f, m.radius())            // константа для молекулы
+        assertEquals(18f, m.mass)              // 16 + 1 + 1
+        assertEquals(10, m.protons)            // 8 + 1 + 1
+        assertEquals(20f, m.radius)            // константа для молекулы
         assertEquals("H₂O", m.displaySymbol(10)) // нейтральная (electrons = protons = 10): формула без заряда
         assertEquals("H₂O⁺", m.displaySymbol(9)) // катион +1 (electrons = 9): заряд из protons − electrons
     }
@@ -37,15 +37,15 @@ class SpeciesTest {
     @Test
     fun elementalAggregatesComeFromElement() {
         val h = Species.Elemental(Element.HYDROGEN)
-        assertEquals(1f, h.mass())               // p+n = 1
-        assertEquals(1, h.protons())
-        assertEquals(20f, h.radius())            // атом — дефолтный радиус Details
+        assertEquals(1f, h.mass)               // p+n = 1
+        assertEquals(1, h.protons)
+        assertEquals(20f, h.radius)            // атом — дефолтный радиус Details
         assertEquals("H", h.displaySymbol(1))    // нейтральный водород
     }
 
     @Test
     fun electronMassIsSpecialCased() {
-        assertEquals(1f, Species.Elemental(Element.ELECTRON).mass())
+        assertEquals(1f, Species.Elemental(Element.ELECTRON).mass)
     }
 
     @Test
@@ -65,6 +65,6 @@ class SpeciesTest {
             electrons = 10,
         )
         assertEquals(Species.Molecular(water), m.state().value.species)
-        assertEquals(18f, m.mass())   // mass() идёт через species → graph
+        assertEquals(18f, m.mass())   // Entity.mass() идёт через species → graph
     }
 }

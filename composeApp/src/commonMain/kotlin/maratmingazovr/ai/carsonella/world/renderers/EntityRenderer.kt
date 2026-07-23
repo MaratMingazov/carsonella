@@ -6,8 +6,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.radius
-import maratmingazovr.ai.carsonella.chemistry.displaySymbol
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
@@ -24,11 +22,8 @@ private const val PX_PER_PM = 1f
 
 // Радиус ОДИНОЧНОГО атома для отрисовки: реальный ван-дер-ваальсов радиус (размер несвязанного
 // атома), переведённый в пиксели. Для сущностей без vdw-радиуса (звезда, фолбэк молекулы) —
-// старый Species.radius().
-private fun Species.displayRadiusPx(): Float = when (this) {
-    is Species.Elemental -> radius()
-    is Species.Molecular -> radius()
-}
+// старый Species.radius.
+private fun Species.displayRadiusPx(): Float = radius
 
 class EntityRenderer(
     private val textMeasurer: TextMeasurer,
@@ -94,7 +89,7 @@ class EntityRenderer(
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
-        val baseRadius = entityState.species.radius() + 5f   // базовый радиус круга
+        val baseRadius = entityState.species.radius + 5f   // базовый радиус круга
         val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 

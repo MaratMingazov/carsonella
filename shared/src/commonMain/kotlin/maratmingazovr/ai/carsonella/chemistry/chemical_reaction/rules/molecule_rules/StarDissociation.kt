@@ -6,7 +6,6 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.radius
 
 /**
  * Термическая диссоциация в звезде (§6 docs/molecule-graph.md, «распад по среде»): молекула в горячей
@@ -54,7 +53,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         val molVelocity = mol.state().value.velocity
         val energyPerFragment = mol.state().value.energy / fragments.size   // делим энергию молекулы (разрыв платит звезда)
         val env = mol.getEnvironment()
-        val radius = mol.state().value.species.radius()
+        val radius = mol.state().value.species.radius
 
         val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
             val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))
