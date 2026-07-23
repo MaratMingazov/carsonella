@@ -8,10 +8,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.radius
 import maratmingazovr.ai.carsonella.chemistry.displaySymbol
-import maratmingazovr.ai.carsonella.chemistry.AtomState
-import maratmingazovr.ai.carsonella.chemistry.MoleculeState
-import maratmingazovr.ai.carsonella.chemistry.StarState
-import maratmingazovr.ai.carsonella.chemistry.SubAtomState
+import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
@@ -46,12 +43,15 @@ class EntityRenderer(
         phase2: Float,
         showLabel: Boolean = false,
     ) {
-        when (entityState) {
-            is SubAtomState -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
-            is AtomState -> drawEntity(drawScope, entityState, phase, showLabel)
-            is MoleculeState -> drawMolecule(drawScope, entityState, phase, showLabel)
-            is StarState -> drawStar(drawScope, entityState, phase, phase2)
-
+        // Диспетчеризация по species/ElementType (а не по классу состояния) — так рендер не зависит
+        // от конкретных типов состояний, что позволяет объединить их в один EntityState.
+        val species = entityState.species
+        if (species is Species.Molecular) { drawMolecule(drawScope, entityState, phase, showLabel); return }
+        when ((species as Species.Elemental).element.details.type) {
+            ElementType.SubAtom -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
+            ElementType.Atom -> drawEntity(drawScope, entityState, phase, showLabel)
+            ElementType.Star -> drawStar(drawScope, entityState, phase, phase2)
+            ElementType.Molecule -> error("Молекула — это Species.Molecular, не Elemental")
         }
     }
 
@@ -124,7 +124,7 @@ class EntityRenderer(
     // Молекула рисуется структурно: атомы-кружки по раскладке графа + связи-линии (кратность = число линий).
     fun drawMolecule(
         drawScope: DrawScope,
-        entityState: MoleculeState,
+        entityState: EntityState<*>,
         phase: Float,
         showLabel: Boolean,
     ) {

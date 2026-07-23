@@ -5,7 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.SubAtomState
+import maratmingazovr.ai.carsonella.chemistry.EntityState
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
 class SubAtomRenderer(
@@ -13,11 +14,11 @@ class SubAtomRenderer(
 ) {
     fun render(
         drawScope: DrawScope,
-        state: SubAtomState,
+        state: EntityState<*>,
         phase: Float,
         showLabel: Boolean,
     ) {
-        when (state.element) {
+        when ((state.species as Species.Elemental).element) {
             Element.PHOTON -> drawPhoton(drawScope, state)
             Element.ELECTRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "−", showLabel = showLabel)
             Element.POSITRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "+", showLabel = showLabel)
@@ -29,7 +30,7 @@ class SubAtomRenderer(
 
     private fun drawPhoton(
         drawScope: DrawScope,
-        state: SubAtomState,
+        state: EntityState<*>,
     ) {
         val p = state.position.toOffset()
         with(drawScope) {
@@ -42,7 +43,7 @@ class SubAtomRenderer(
     // Электрон / позитрон: свечение цвета заряда + символ по наведению.
     private fun drawChargedSubAtom(
         drawScope: DrawScope,
-        state: SubAtomState,
+        state: EntityState<*>,
         radius: Float,
         label: String,
         showLabel: Boolean,
@@ -59,7 +60,7 @@ class SubAtomRenderer(
     // Протон / нейтрон: «нуклон» со свечением и лёгкой вибрацией; символ по наведению.
     private fun drawNucleon(
         drawScope: DrawScope,
-        state: SubAtomState,
+        state: EntityState<*>,
         phase: Float,
         label: String,
         showLabel: Boolean,
