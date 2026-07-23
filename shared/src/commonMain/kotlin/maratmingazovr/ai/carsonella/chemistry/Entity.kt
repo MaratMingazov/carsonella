@@ -23,16 +23,9 @@ data class EntityState(
     val electrons: Int,
 ) {
 
-    // Делегаты агрегатов в species: наружу спрашиваем сам EntityState, а не его species (species —
-    // внутренняя деталь). Значения выводятся из species (element/graph) и постоянны для этого EntityState.
     val mass: Float get() = species.mass
     val protons: Int get() = species.protons
     val radius: Float get() = species.radius
-
-    // Символ с зарядом для показа. Зависит от electrons, но здесь electrons фиксирован (EntityState
-    // неизменяем) → это свойство, а не функция. Делегируем в species: наружу отдаём EntityState.displaySymbol,
-    // чтобы вызывающему не лезть в species и не прокидывать electrons вручную. get() — считается по запросу
-    // (символ нужен редко, только для подписи), а не на каждом copyWith.
     val displaySymbol: String get() = species.displaySymbol(electrons)
 
     /**

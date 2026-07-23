@@ -9,11 +9,6 @@ sealed interface Species {
     val protons: Int
     val radius: Float
     fun displaySymbol(electrons: Int): String
-
-    /**
-     * Человекочитаемое описание сущности для инфо-панели (EntityState.toString → species.describe).
-     * Зависит от типа Species; динамику (energy/electrons/position/velocity) берём из [s].
-     */
     fun describe(s: EntityState): String
 
     data class Elemental(val element: Element) : Species {
@@ -21,8 +16,6 @@ sealed interface Species {
         override val protons: Int get() = element.details.p
         override val radius: Float get() = element.details.radius
         override fun displaySymbol(electrons: Int): String = element.symbol(electrons)
-
-        // Внутри Elemental различаем атом/субатом/звезду по details.type (у ElementType молекулы нет).
         override fun describe(s: EntityState): String = when (element.details.type) {
             ElementType.Atom -> """
                 |${element.label(s.electrons)}
