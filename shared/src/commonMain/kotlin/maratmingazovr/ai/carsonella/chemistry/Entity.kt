@@ -23,6 +23,12 @@ data class EntityState(
     val electrons: Int,
 ) {
 
+    // Делегаты агрегатов в species: наружу спрашиваем сам EntityState, а не его species (species —
+    // внутренняя деталь). Значения выводятся из species (element/graph) и постоянны для этого EntityState.
+    val mass: Float get() = species.mass
+    val protons: Int get() = species.protons
+    val radius: Float get() = species.radius
+
     // Символ с зарядом для показа. Зависит от electrons, но здесь electrons фиксирован (EntityState
     // неизменяем) → это свойство, а не функция. Делегируем в species: наружу отдаём EntityState.displaySymbol,
     // чтобы вызывающему не лезть в species и не прокидывать electrons вручную. get() — считается по запросу
@@ -153,7 +159,7 @@ interface Entity :
         state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
     }
 
-    fun mass(): Float = state().value.species.mass
+    fun mass(): Float = state().value.mass
 
     fun applyForce(force: Vec2D) {
 
@@ -172,8 +178,8 @@ interface Entity :
     fun calculateForce(elements: List<Entity>): Vec2D {
         val fVector = Vec2D(0f, 0f)
         val myElectronsCount = state().value.electrons
-        val myProtonsCount = state().value.species.protons
-        val myRadius = state().value.species.radius
+        val myProtonsCount = state().value.protons
+        val myRadius = state().value.radius
         val myMass = mass()
         if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
@@ -183,7 +189,7 @@ interface Entity :
             val ry = state().value.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
-            val elementRadius = element.state().value.species.radius
+            val elementRadius = element.state().value.radius
             val elementMass = element.mass()
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга

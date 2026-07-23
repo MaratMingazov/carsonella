@@ -53,7 +53,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         val molVelocity = mol.state().value.velocity
         val energyPerFragment = mol.state().value.energy / fragments.size   // делим энергию молекулы (разрыв платит звезда)
         val env = mol.getEnvironment()
-        val radius = mol.state().value.species.radius
+        val radius = mol.state().value.radius
 
         val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
             val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))

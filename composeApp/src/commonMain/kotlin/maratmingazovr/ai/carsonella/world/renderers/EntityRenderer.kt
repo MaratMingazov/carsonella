@@ -89,7 +89,7 @@ class EntityRenderer(
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
-        val baseRadius = entityState.species.radius + 5f   // базовый радиус круга
+        val baseRadius = entityState.radius + 5f   // базовый радиус круга
         val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 

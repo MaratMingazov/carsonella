@@ -44,7 +44,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val threshold = weakestBondAndEnergy.second
 
         val firstPosition = first.state().value.position
-        val radius = first.state().value.species.radius
+        val radius = first.state().value.radius
         val activationDistanceSquare = radius * radius
 
         val nearestPhoton = reagents.drop(1)
@@ -94,7 +94,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val molDirection = mol.state().value.direction
         val molVelocity = mol.state().value.velocity
         val env = mol.getEnvironment()
-        val radius = mol.state().value.species.radius
+        val radius = mol.state().value.radius
 
         val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
             // разводим осколки по оси X, чтобы не появлялись в одной точке

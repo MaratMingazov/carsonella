@@ -51,7 +51,7 @@ class MoleculeGrowth(
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false
 
         val firstPosition = first.state().value.position
-        val firstRadius = first.state().value.species.radius
+        val firstRadius = first.state().value.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
@@ -61,7 +61,7 @@ class MoleculeGrowth(
             .minByOrNull { it.second }
             ?: return false
 
-        val secondRadius = second.state().value.species.radius
+        val secondRadius = second.state().value.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
             molecule = first
             partner = second
