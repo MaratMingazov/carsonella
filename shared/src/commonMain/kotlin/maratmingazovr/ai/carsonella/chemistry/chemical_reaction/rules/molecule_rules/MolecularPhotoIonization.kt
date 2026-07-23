@@ -16,7 +16,7 @@ import maratmingazovr.ai.carsonella.chemistry.radius
  * только субъект — молекула.
  *
  * Порог = [MoleculeGraph.ionizationEnergy] (минимум атомного IP по графу, кэш на графе). В отличие от
- * атома, молекулярный ион НЕ требует смены Species: заряд живёт в [MoleculeState.electrons] как счётчик,
+ * атома, молекулярный ион НЕ требует смены Species: заряд живёт в [EntityState.electrons] как счётчик,
  * а граф не меняется — поэтому здесь `updateState` (electrons−1), а не consume+spawn (как у H → Proton).
  *
  * Рамки этого шага (детерминированно; вероятностное ветвление — отдельным правилом):
@@ -29,10 +29,10 @@ import maratmingazovr.ai.carsonella.chemistry.radius
 class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularPhotoIonization"
 
-    private var molecule: Entity<*>? = null
-    private var photon: Entity<*>? = null
+    private var molecule: Entity? = null
+    private var photon: Entity? = null
 
-    override fun matchesMolecule(reagents: List<Entity<*>>): Boolean {
+    override fun matchesMolecule(reagents: List<Entity>): Boolean {
         molecule = null
         photon = null
         if (reagents.size < 2) return false

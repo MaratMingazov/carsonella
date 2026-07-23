@@ -14,7 +14,7 @@ class SubAtomRenderer(
 ) {
     fun render(
         drawScope: DrawScope,
-        state: EntityState<*>,
+        state: EntityState,
         phase: Float,
         showLabel: Boolean,
     ) {
@@ -30,7 +30,7 @@ class SubAtomRenderer(
 
     private fun drawPhoton(
         drawScope: DrawScope,
-        state: EntityState<*>,
+        state: EntityState,
     ) {
         val p = state.position.toOffset()
         with(drawScope) {
@@ -43,7 +43,7 @@ class SubAtomRenderer(
     // Электрон / позитрон: свечение цвета заряда + символ по наведению.
     private fun drawChargedSubAtom(
         drawScope: DrawScope,
-        state: EntityState<*>,
+        state: EntityState,
         radius: Float,
         label: String,
         showLabel: Boolean,
@@ -60,7 +60,7 @@ class SubAtomRenderer(
     // Протон / нейтрон: «нуклон» со свечением и лёгкой вибрацией; символ по наведению.
     private fun drawNucleon(
         drawScope: DrawScope,
-        state: EntityState<*>,
+        state: EntityState,
         phase: Float,
         label: String,
         showLabel: Boolean,

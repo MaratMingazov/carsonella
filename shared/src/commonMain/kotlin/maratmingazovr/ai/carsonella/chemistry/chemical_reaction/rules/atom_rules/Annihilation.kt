@@ -33,17 +33,17 @@ class Annihilation(
 ) : AtomReactionRule() {
     override val id = "Annihilation"
 
-    private var positron: Entity<*>? = null
-    private var electron: Entity<*>? = null
+    private var positron: Entity? = null
+    private var electron: Entity? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         positron = null
         electron = null
         if (reagents.size < 2) return false
 
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
         if (species !is Species.Elemental) return false
         if (species.element != POSITRON) return false

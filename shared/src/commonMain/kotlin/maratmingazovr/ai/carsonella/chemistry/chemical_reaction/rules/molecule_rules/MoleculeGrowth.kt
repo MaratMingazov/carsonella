@@ -35,10 +35,10 @@ class MoleculeGrowth(
 ) : MoleculeReactionRule() {
     override val id = "MoleculeGrowth"
 
-    private var molecule: Entity<*>? = null
-    private var partner: Entity<*>? = null
+    private var molecule: Entity? = null
+    private var partner: Entity? = null
 
-    override fun matchesMolecule(reagents: List<Entity<*>>): Boolean {
+    override fun matchesMolecule(reagents: List<Entity>): Boolean {
         molecule = null
         partner = null
         if (reagents.size < 2) return false
@@ -75,7 +75,7 @@ class MoleculeGrowth(
     // Партнёр способен дать молекуле новую связь: живой, со свободным слотом.
     //  - молекула: hasFreeSlot();
     //  - атом: нейтральный лёгкий атом с valence > 0 (как в CovalentBondFormation).
-    private fun canBond(entity: Entity<*>): Boolean {
+    private fun canBond(entity: Entity): Boolean {
         val state = entity.state().value
         if (!state.alive) return false
         return when (val species = state.species) {
@@ -90,7 +90,7 @@ class MoleculeGrowth(
     }
 
     // Партнёр как граф: молекула → её граф; атом → одноузловой граф (атом = вырожденная молекула, §8).
-    private fun graphOf(entity: Entity<*>): MoleculeGraph =
+    private fun graphOf(entity: Entity): MoleculeGraph =
         when (val species = entity.state().value.species) {
             is Species.Molecular -> species.graph
             is Species.Elemental -> MoleculeGraph(listOf(AtomNode(0, species.element)), emptyList())

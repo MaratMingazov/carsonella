@@ -30,10 +30,10 @@ import maratmingazovr.ai.carsonella.chemistry.radius
 class PhotoDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "PhotoDissociation"
 
-    private var molecule: Entity<*>? = null
-    private var photon: Entity<*>? = null
+    private var molecule: Entity? = null
+    private var photon: Entity? = null
 
-    override fun matchesMolecule(reagents: List<Entity<*>>): Boolean {
+    override fun matchesMolecule(reagents: List<Entity>): Boolean {
         molecule = null
         photon = null
         if (reagents.size < 2) return false
@@ -97,7 +97,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val env = mol.getEnvironment()
         val radius = mol.state().value.species.radius()
 
-        val spawn: List<() -> Entity<*>> = fragments.mapIndexed { i, frag ->
+        val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
             // разводим осколки по оси X, чтобы не появлялись в одной точке
             val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)

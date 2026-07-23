@@ -9,7 +9,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 
-class Grid2D<T : Entity<*>>(
+class Grid2D<T : Entity>(
     private val gridBoxSize: Float
 ) {
     // Зная ячейку в сетке можем получить список сущностей в этой ячейке

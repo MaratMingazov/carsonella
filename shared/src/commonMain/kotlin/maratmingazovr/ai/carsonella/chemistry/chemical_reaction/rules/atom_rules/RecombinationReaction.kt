@@ -16,12 +16,12 @@ class RecombinationReaction(
 ) : AtomReactionRule() {
     override val id = "Recombination"
 
-    private var atom1 : Entity<*>? = null
-    private var atom2 : Entity<*>? = null
+    private var atom1 : Entity? = null
+    private var atom2 : Entity? = null
     private var atom1El : Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
     private var atom2El : Element? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
+    override fun matchesAtoms(reagents: List<Entity>) : Boolean {
         atom1 = null
         atom2 = null
         atom1El = null
@@ -30,7 +30,7 @@ class RecombinationReaction(
         val firstAtom = reagents.first()
         val firstAtomPosition = reagents.first().state().value.position
         if (!firstAtom.state().value.alive) return false
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         val firstAtomElement = firstSpecies.element

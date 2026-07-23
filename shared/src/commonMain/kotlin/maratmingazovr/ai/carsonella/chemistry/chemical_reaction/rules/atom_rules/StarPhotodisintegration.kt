@@ -46,12 +46,12 @@ class StarPhotodisintegration(
         data class NeutronOut(override val parent: Element) : Channel() { override val ejected = NEUTRON } // (γ,n)
     }
 
-    private var atom: Entity<*>? = null
-    private var photon: Entity<*>? = null
+    private var atom: Entity? = null
+    private var photon: Entity? = null
     private var atomEl: Element? = null   // элемент мишени, запомненный в matchesAtoms — produce не вычисляет заново
     private var chosen: Channel? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         atom = null
         photon = null
         atomEl = null
@@ -60,7 +60,7 @@ class StarPhotodisintegration(
 
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         val element = firstSpecies.element
@@ -121,7 +121,7 @@ class StarPhotodisintegration(
         // Поглощённый фотон отдаёт энергию связи (порог); излишек — в кинетику продукта.
         val leftover = ph.state().value.energy - PHOTON_ENERGY_THRESHOLD
 
-        val spawnList = mutableListOf<() -> Entity<*>>()
+        val spawnList = mutableListOf<() -> Entity>()
         spawnList += {
             entityGenerator.createEntity(
                 parent, position, direction, velocity,

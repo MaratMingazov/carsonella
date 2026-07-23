@@ -29,10 +29,10 @@ class RingClosure(
 ) : MoleculeReactionRule() {
     override val id = "RingClosure"
 
-    private var molecule: Entity<*>? = null
+    private var molecule: Entity? = null
     private var candidate: RingClosureCandidate? = null
 
-    override fun matchesMolecule(reagents: List<Entity<*>>): Boolean {
+    override fun matchesMolecule(reagents: List<Entity>): Boolean {
         molecule = null
         candidate = null
         if (reagents.size != 1) return false   // как усиление/распады: только «сам с собой», без соседей
@@ -72,7 +72,7 @@ class RingClosure(
         // в геометрии кольца, которую мы явно не моделируем (потому фотон несёт нетто, а не полную энергию связи).
         val released = closureWeight(graph, cand) ?: 0f
 
-        val spawn = mutableListOf<() -> Entity<*>>(
+        val spawn = mutableListOf<() -> Entity>(
             { entityGenerator.createEntity(Species.Molecular(closed), state.position, state.direction, state.velocity, state.energy, env, state.electrons) },
         )
         if (released > 0f) {

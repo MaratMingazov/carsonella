@@ -27,9 +27,9 @@ import maratmingazovr.ai.carsonella.chemistry.radius
 class StarDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "StarDissociation"
 
-    private var molecule: Entity<*>? = null
+    private var molecule: Entity? = null
 
-    override fun matchesMolecule(reagents: List<Entity<*>>): Boolean {
+    override fun matchesMolecule(reagents: List<Entity>): Boolean {
         molecule = null
         if (reagents.size != 1) return false   // «сам с собой», как распады/усиление/термоионизация атома
         val first = reagents.first()
@@ -56,7 +56,7 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         val env = mol.getEnvironment()
         val radius = mol.state().value.species.radius()
 
-        val spawn: List<() -> Entity<*>> = fragments.mapIndexed { i, frag ->
+        val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
             val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)
             val species: Species =

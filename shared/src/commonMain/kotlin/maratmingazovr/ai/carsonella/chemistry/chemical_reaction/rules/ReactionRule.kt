@@ -13,7 +13,7 @@ interface ReactionRule {
      * true - реакция возможна и произойдет, если не найдется более выгодная реакция
      * false - реакция невозможна
      * */
-    fun matches(reagents: List<Entity<*>>): Boolean
+    fun matches(reagents: List<Entity>): Boolean
 
     /** Этот метод вычисляет насколько вероятна реакция
      * Чем больше вес, тем реакция вероятнее
@@ -27,7 +27,7 @@ interface ReactionRule {
      * Вычисляем направление движения и скорость новой частицы после столкновения двух частиц.
      * Учитываем скорости направления и массу этих частиц
      */
-    fun calculateNewEntityDirectionAndVelocity(entity1: Entity<*>, entity2: Entity<*>,) : Pair<Vec2D, Float> {
+    fun calculateNewEntityDirectionAndVelocity(entity1: Entity, entity2: Entity,) : Pair<Vec2D, Float> {
         val electronMass = entity1.mass()
         val protonMass = entity2.mass()
         val sumMass = electronMass + protonMass
@@ -46,8 +46,8 @@ interface ReactionRule {
 
 // Что делать миру после реакции
 data class ReactionOutcome(
-    val consumed: List<Entity<*>> = listOf(),       // атомы, которые участвовали в реакции, как правило они умирают
-    val spawn: List<() -> Entity<*>> = listOf(),    // новые атомы и молекулы, которые появились. Вот тут нужно каким то образом сказать что нужно создать
+    val consumed: List<Entity> = listOf(),       // атомы, которые участвовали в реакции, как правило они умирают
+    val spawn: List<() -> Entity> = listOf(),    // новые атомы и молекулы, которые появились. Вот тут нужно каким то образом сказать что нужно создать
     val updateState: List<() -> Unit> = listOf(),   // когда нужно обновить состояние элемента
     val description: String = "",                   // строка для лога
 )

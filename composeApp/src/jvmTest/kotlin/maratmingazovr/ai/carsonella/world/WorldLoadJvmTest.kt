@@ -33,7 +33,7 @@ class WorldLoadJvmTest {
         summary = mapOf("Star" to 1, "Proton" to 1, "HYDROGEN" to 1),
     )
 
-    private fun World.entityById(id: Long): Entity<*> = entities.first { it.state().value.id == id }
+    private fun World.entityById(id: Long): Entity = entities.first { it.state().value.id == id }
 
     @Test
     fun restoresAllEntitiesAndTick() {

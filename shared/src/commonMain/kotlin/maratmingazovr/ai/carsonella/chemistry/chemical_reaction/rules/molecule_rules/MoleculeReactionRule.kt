@@ -20,11 +20,11 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
  */
 abstract class MoleculeReactionRule : ReactionRule {
 
-    final override fun matches(reagents: List<Entity<*>>): Boolean {
+    final override fun matches(reagents: List<Entity>): Boolean {
         if (reagents.firstOrNull()?.state()?.value?.species !is Species.Molecular) return false
         return matchesMolecule(reagents)
     }
 
     /** Как `matches`, но гарантированно `reagents.first()` — молекула ([Species.Molecular]). */
-    abstract fun matchesMolecule(reagents: List<Entity<*>>): Boolean
+    abstract fun matchesMolecule(reagents: List<Entity>): Boolean
 }

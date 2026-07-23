@@ -33,7 +33,7 @@ class StarDissociationTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -70,7 +70,7 @@ class StarDissociationTest {
 
         assertTrue(rule.matchesMolecule(listOf(w)))          // «сам с собой», без соседей и фотона
         val outcome = rule.produce()
-        assertEquals(listOf<Entity<*>>(w), outcome.consumed)
+        assertEquals(listOf<Entity>(w), outcome.consumed)
         outcome.spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)

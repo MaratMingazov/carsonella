@@ -28,14 +28,14 @@ class PhotoIonization (
 ) : AtomReactionRule() {
     override val id = "PhotoIonization"
 
-    private var entity : Entity<*>? = null
-    private var photon : Entity<*>? = null
+    private var entity : Entity? = null
+    private var photon : Entity? = null
     private var entityEl : Element? = null   // элементы реагентов, запомненные в matchesAtoms — produce не вычисляет заново
     private var photonEl : Element? = null
     // null означает «ионизация» (energy >= top level), Float — точный уровень, на который нужно «снапнуть» entity
     private var matchedLevel : Float? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         entity = null
         photon = null
         entityEl = null
@@ -45,7 +45,7 @@ class PhotoIonization (
         if (reagents.size < 2) return false
 
         val first = reagents.first()
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         val firstElement = firstSpecies.element

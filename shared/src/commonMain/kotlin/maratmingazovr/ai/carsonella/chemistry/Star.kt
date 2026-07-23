@@ -7,22 +7,6 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 
 
-data class StarState(
-    override val id: Long,
-    override val species: Species.Elemental,
-    override val alive: Boolean,
-    override val position: Position,
-    override val direction: Vec2D,
-    override val velocity: Float,
-    override val energy: Float,
-    override val electrons: Int,
-) : EntityState<StarState> {
-    // species сужен до Elemental (звезда — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
-    val element: Element get() = species.element
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String = species.describe(this)
-}
-
 class Star(
     id: Long,
     element: Element,
@@ -31,9 +15,9 @@ class Star(
     velocity: Float,
     energy: Float,
     electrons: Int,
-    private val children: MutableList<Entity<*>> = mutableListOf(),
+    private val children: MutableList<Entity> = mutableListOf(),
 ):
-    Entity<StarState>,
+    Entity,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -41,7 +25,7 @@ class Star(
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
-        StarState(
+        EntityState(
             id = id,
             species = Species.Elemental(element),
             alive = true,
@@ -59,9 +43,9 @@ class Star(
     override fun getEnvCenter() = state.value.position
     override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star
-    override fun getEnvChildren(): List<Entity<*>> { return children }
-    override fun addEnvChild(entity: Entity<*>) { children.add(entity) }
-    override fun removeEnvChild(entity: Entity<*>) { children.remove(entity) }
+    override fun getEnvChildren(): List<Entity> { return children }
+    override fun addEnvChild(entity: Entity) { children.add(entity) }
+    override fun removeEnvChild(entity: Entity) { children.remove(entity) }
 
     override fun step() {
         val neighbors = getNeighbors()

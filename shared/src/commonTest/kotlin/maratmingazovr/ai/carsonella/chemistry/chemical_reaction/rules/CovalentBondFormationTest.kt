@@ -31,7 +31,7 @@ class CovalentBondFormationTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, energy)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -54,7 +54,7 @@ class CovalentBondFormationTest {
         assertTrue(rule.matches(listOf(h1, h2)))
 
         val outcome = rule.produce()
-        assertEquals(listOf<Entity<*>>(h1, h2), outcome.consumed)   // оба реагента поглощаются
+        assertEquals(listOf<Entity>(h1, h2), outcome.consumed)   // оба реагента поглощаются
 
         outcome.spawn.forEach { it() }                              // выполнить спавны → молекула + фотон
         val molecule = gen.spawned.map { it.species }.filterIsInstance<Species.Molecular>().single()

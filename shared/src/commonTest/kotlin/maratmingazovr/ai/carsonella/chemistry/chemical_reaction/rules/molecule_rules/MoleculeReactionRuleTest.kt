@@ -39,7 +39,7 @@ class MoleculeReactionRuleTest {
     private class Dummy : MoleculeReactionRule() {
         override val id = "Dummy"
         var delegated = false
-        override fun matchesMolecule(reagents: List<Entity<*>>): Boolean { delegated = true; return true }
+        override fun matchesMolecule(reagents: List<Entity>): Boolean { delegated = true; return true }
         override fun weight() = 0f
         override fun produce() = ReactionOutcome()
     }

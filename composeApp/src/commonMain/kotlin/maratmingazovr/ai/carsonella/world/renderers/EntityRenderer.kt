@@ -38,7 +38,7 @@ class EntityRenderer(
 
     fun render(
         drawScope: DrawScope,
-        entityState: EntityState<*>,
+        entityState: EntityState,
         phase: Float,
         phase2: Float,
         showLabel: Boolean = false,
@@ -57,7 +57,7 @@ class EntityRenderer(
 
     fun drawEntity(
         drawScope: DrawScope,
-        entityState: EntityState<*>,
+        entityState: EntityState,
         phase: Float,
         showLabel: Boolean,
     ) {
@@ -83,7 +83,7 @@ class EntityRenderer(
 
     fun drawStar(
         drawScope: DrawScope,
-        entityState: EntityState<*>,
+        entityState: EntityState,
         phase: Float,
         phase2: Float,
     ) {
@@ -124,7 +124,7 @@ class EntityRenderer(
     // Молекула рисуется структурно: атомы-кружки по раскладке графа + связи-линии (кратность = число линий).
     fun drawMolecule(
         drawScope: DrawScope,
-        entityState: EntityState<*>,
+        entityState: EntityState,
         phase: Float,
         showLabel: Boolean,
     ) {

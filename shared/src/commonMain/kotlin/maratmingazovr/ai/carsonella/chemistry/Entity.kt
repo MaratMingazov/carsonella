@@ -12,22 +12,28 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.sqrt
 
-interface EntityState<State : EntityState<State>> {
-
-    val id: Long
-    val species: Species
-    val alive: Boolean
-    val position: Position
-    val direction: Vec2D
-    val velocity: Float
-    val energy: Float
+// Единое состояние для всех сущностей (фотон/частица/атом/молекула/звезда). Раньше было 4 идентичных
+// класса + F-bounded дженерик; тип сущности теперь несёт [species], а специфику рендера/описания —
+// Species.describe и рендерер (диспетч по species/ElementType). Поведение по-прежнему в классах Entity.
+data class EntityState(
+    val id: Long,
+    val species: Species,
+    val alive: Boolean,
+    val position: Position,
+    val direction: Vec2D,
+    val velocity: Float,
+    val energy: Float,
     // Число электронов как динамическое состояние (рефакторинг «ионизация → состояние»): задаёт заряд,
     // символ и energyLevels; цикл ионизации/рекомбинации крутит его.
-    val electrons: Int
+    val electrons: Int,
+) {
+    // Шов для не-молекулярного кода: element валиден только для Elemental (как было в *State-классах).
+    // Молекулы .element не читают; каст к Elemental намеренно бросит, если инвариант нарушат.
+    val element: Element get() = (species as Species.Elemental).element
 
     /**
-     * Мы должны каждый раз создавать новый объект потому что используем MutableStateFlow.
-     * StateFlow уведомляет подписчиков (Compose UI - рисует частицы) только когда .value присваивается новый объект
+     * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
+     * только когда .value присваивается новый объект.
      */
     fun copyWith(
         alive: Boolean = this.alive,
@@ -36,11 +42,12 @@ interface EntityState<State : EntityState<State>> {
         velocity: Float = this.velocity,
         energy: Float = this.energy,
         electrons: Int = this.electrons,
-    ): State
+    ): EntityState = copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
 
+    override fun toString(): String = species.describe(this)
 }
 
-interface Entity<State : EntityState<State>> :
+interface Entity :
     DeathNotifiable,
     NeighborsAware,
     ReactionRequester,
@@ -48,7 +55,7 @@ interface Entity<State : EntityState<State>> :
     EnvironmentAware, // каждая частица сама находится в каком то среде
     LogWritable
 {
-    fun state(): MutableStateFlow<State>
+    fun state(): MutableStateFlow<EntityState>
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
 
@@ -56,9 +63,9 @@ interface Entity<State : EntityState<State>> :
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
     override fun getEnvRadius(): Float = throw Exception("Not Supported")
     override fun getEnvTemperature(): TemperatureMode = throw Exception("Not Supported")
-    override fun getEnvChildren(): List<Entity<*>> = throw Exception("Not Supported")
-    override fun addEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
-    override fun removeEnvChild(entity: Entity<*>) { throw Exception("Not Supported") }
+    override fun getEnvChildren(): List<Entity> = throw Exception("Not Supported")
+    override fun addEnvChild(entity: Entity) { throw Exception("Not Supported") }
+    override fun removeEnvChild(entity: Entity) { throw Exception("Not Supported") }
 
     fun updateMyEnvironment(newEnvironment: IEnvironment) {
         this.getEnvironment().removeEnvChild(this)
@@ -166,7 +173,7 @@ interface Entity<State : EntityState<State>> :
     /**
      * Здесь мы вычисляем с какой силой два элемента притягиваются друг к другу
      */
-    fun calculateForce(elements: List<Entity<*>>): Vec2D {
+    fun calculateForce(elements: List<Entity>): Vec2D {
         val fVector = Vec2D(0f, 0f)
         val myElectronsCount = state().value.electrons
         val myProtonsCount = state().value.species.protons()

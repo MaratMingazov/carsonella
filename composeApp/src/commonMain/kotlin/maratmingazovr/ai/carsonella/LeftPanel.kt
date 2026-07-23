@@ -31,7 +31,7 @@ import kotlin.math.round
 fun LeftPanel(
     palette: List<Element>,
     selectedElementId: Long?,
-    entitiesState: List<EntityState<*>>,
+    entitiesState: List<EntityState>,
     onSave: () -> Unit,
     onLoad: () -> Unit,
     onSetEnergy: (Long, Float) -> Unit,
@@ -83,7 +83,7 @@ fun ElementsPalette(items: List<Element>, modifier: Modifier = Modifier) {
 @Composable
 fun SelectedEntityPanel(
     selectedElementId: Long?,
-    entitiesState: List<EntityState<*>>,
+    entitiesState: List<EntityState>,
     onSetEnergy: (Long, Float) -> Unit,
     modifier: Modifier = Modifier
 ) {

@@ -8,20 +8,6 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
-data class MoleculeState(
-    override val id: Long,
-    override val species: Species.Molecular,
-    override val alive: Boolean,
-    override val position: Position,
-    override val direction: Vec2D,
-    override val velocity: Float,
-    override val energy: Float,
-    override val electrons: Int,
-) : EntityState<MoleculeState> {
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String = species.describe(this)
-}
-
 class Molecule(
     id: Long,
     graph: MoleculeGraph,
@@ -31,7 +17,7 @@ class Molecule(
     energy: Float,
     electrons: Int,
 ):
-    Entity<MoleculeState>,
+    Entity,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -39,7 +25,7 @@ class Molecule(
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
-        MoleculeState(
+        EntityState(
             id = id,
             species = Species.Molecular(graph),
             alive = true,

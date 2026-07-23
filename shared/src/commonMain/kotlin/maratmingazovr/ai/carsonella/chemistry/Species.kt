@@ -56,7 +56,7 @@ fun Species.displaySymbol(electrons: Int): String = when (this) {
  * идентичными (шаг к их объединению). Динамику (energy/electrons/position/velocity) берём из [s].
  * Внутри Elemental различаем атом/субатом/звезду по details.type — отдельные Species-варианты не нужны.
  */
-fun Species.describe(s: EntityState<*>): String = when (this) {
+fun Species.describe(s: EntityState): String = when (this) {
     is Species.Molecular -> """
         |${graph.formulaPretty}
         |Energy ${round(s.energy * 100) / 100}

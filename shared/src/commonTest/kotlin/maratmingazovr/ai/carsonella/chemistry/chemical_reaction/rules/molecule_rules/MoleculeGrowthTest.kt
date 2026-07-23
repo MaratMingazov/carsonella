@@ -33,7 +33,7 @@ class MoleculeGrowthTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, energy, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -76,7 +76,7 @@ class MoleculeGrowthTest {
         assertTrue(rule.matchesMolecule(listOf(oh, h)))
 
         val outcome = rule.produce()
-        assertEquals(listOf<Entity<*>>(oh, h), outcome.consumed)
+        assertEquals(listOf<Entity>(oh, h), outcome.consumed)
 
         outcome.spawn.forEach { it() }
         val product = gen.spawned.single { it.species is Species.Molecular }

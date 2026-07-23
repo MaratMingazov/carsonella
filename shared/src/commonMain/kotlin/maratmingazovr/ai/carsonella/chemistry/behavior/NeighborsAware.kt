@@ -12,22 +12,22 @@ interface NeighborsAware {
     /**
      *  Мир передаёт провайдер актуального списка сущностей.
      */
-    fun setNeighbors(provider: () -> List<Entity<*>>)
+    fun setNeighbors(provider: () -> List<Entity>)
 
     /**
      * Получить свежий список соседей на текущий момент.
      * */
-    fun getNeighbors(): List<Entity<*>>
+    fun getNeighbors(): List<Entity>
 }
 
 class NeighborsSupport : NeighborsAware {
     /**
      * По умолчанию никого нет
      */
-    private var provider: () -> List<Entity<*>> = { emptyList() }
+    private var provider: () -> List<Entity> = { emptyList() }
 
 
-    override fun setNeighbors(provider: () -> List<Entity<*>>) {
+    override fun setNeighbors(provider: () -> List<Entity>) {
 
         /**
          * Оборачиваем в снапшот, чтобы избежать ConcurrentModificationException
@@ -46,5 +46,5 @@ class NeighborsSupport : NeighborsAware {
         this.provider = { provider().toList() }
     }
 
-    override fun getNeighbors(): List<Entity<*>> = provider()
+    override fun getNeighbors(): List<Entity> = provider()
 }

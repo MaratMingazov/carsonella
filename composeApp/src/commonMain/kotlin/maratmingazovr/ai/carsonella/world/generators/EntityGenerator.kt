@@ -22,7 +22,7 @@ import kotlin.random.Random
 
 class EntityGenerator(
     private val idGen: IdGenerator,
-    private val entities: SnapshotStateList<Entity<*>>, // текущий список атомов, который есть в мире
+    private val entities: SnapshotStateList<Entity>, // текущий список атомов, который есть в мире
     private val pendingRequests: MutableList<ReactionRequest>, // буфер запросов реакций, дренится в фазе Resolve каждого tick'а
     private val logs: SnapshotStateList<String>,
     private val palette: SnapshotStateList<Element>,
@@ -37,7 +37,7 @@ class EntityGenerator(
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
-    ): Entity<*> = createEntityWithId(idGen.nextId(), species, position, direction, velocity, energy, environment, electrons)
+    ): Entity = createEntityWithId(idGen.nextId(), species, position, direction, velocity, energy, environment, electrons)
 
     /**
      * То же, что createEntity, но с заранее заданным id вместо idGen.nextId().
@@ -53,7 +53,7 @@ class EntityGenerator(
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
-    ): Entity<*> {
+    ): Entity {
 
         val entity = when (species) {
             is Species.Molecular -> Molecule(id = id, graph = species.graph, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
@@ -88,6 +88,6 @@ class EntityGenerator(
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
-    ): Entity<*> = createEntityWithId(id, Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
+    ): Entity = createEntityWithId(id, Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
 
 }

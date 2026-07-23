@@ -33,7 +33,7 @@ class MolecularPhotoIonizationTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, energy, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -84,7 +84,7 @@ class MolecularPhotoIonizationTest {
         val outcome = rule.produce()
 
         // Молекула ВЫЖИВАЕТ: потребляется только фотон (в отличие от распада, где гибнет и молекула).
-        assertEquals(listOf<Entity<*>>(ph), outcome.consumed)
+        assertEquals(listOf<Entity>(ph), outcome.consumed)
 
         // Заряд молекулы меняется через updateState: тот же граф, electrons 10 → 9 (катион +1).
         outcome.updateState.forEach { it() }

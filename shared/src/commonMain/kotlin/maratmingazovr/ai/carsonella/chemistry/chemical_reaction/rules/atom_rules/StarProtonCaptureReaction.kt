@@ -54,13 +54,13 @@ class StarProtonCaptureReaction(
         data class Neutron(val product: Element) : Outcome()
     }
 
-    private var atom1: Entity<*>? = null
-    private var atom2: Entity<*>? = null
+    private var atom1: Entity? = null
+    private var atom2: Entity? = null
     private var atom1El: Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
     private var atom2El: Element? = null
     private var chosenOutcome: Outcome? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         atom1 = null
         atom2 = null
         atom1El = null
@@ -70,7 +70,7 @@ class StarProtonCaptureReaction(
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
         if (!firstAtom.state().value.alive) return false
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         val firstAtomElement = firstSpecies.element
@@ -184,7 +184,7 @@ class StarProtonCaptureReaction(
                 val resultElement = outcome.product
                 val resultElectrons = minOf(parentElectrons, resultElement.details.p)
                 val shakeOff = parentElectrons - resultElectrons
-                val spawnList = mutableListOf<() -> Entity<*>>()
+                val spawnList = mutableListOf<() -> Entity>()
                 spawnList += {
                     entityGenerator.createEntity(
                         resultElement,

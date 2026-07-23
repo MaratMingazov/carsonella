@@ -35,7 +35,7 @@ class GrowthVsStrengtheningTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> = Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
+        ): Entity = Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
     }
 
     private val env = Environment()   // TemperatureMode.Space
@@ -56,7 +56,7 @@ class GrowthVsStrengtheningTest {
     }
 
     // Два запроса инициатора-молекулы за тик: рост (listOf(this)+сосед) и усиление (listOf(this)).
-    private fun requestsOf(molecule: Molecule, neighbor: Atom): List<List<Entity<*>>> =
+    private fun requestsOf(molecule: Molecule, neighbor: Atom): List<List<Entity>> =
         listOf(listOf(molecule, neighbor), listOf(molecule))
 
     @Test

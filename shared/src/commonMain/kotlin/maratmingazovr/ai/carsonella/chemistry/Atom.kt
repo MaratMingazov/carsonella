@@ -15,22 +15,6 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 
-data class AtomState(
-    override val id: Long,
-    override val species: Species.Elemental,
-    override val alive: Boolean,
-    override val position: Position,
-    override val direction: Vec2D,
-    override val velocity: Float,
-    override val energy: Float,
-    override val electrons: Int,
-) : EntityState<AtomState> {
-    // species сужен до Elemental (атом — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
-    val element: Element get() = species.element
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String = species.describe(this)
-}
-
 class Atom(
     id: Long,
     element: Element,
@@ -40,7 +24,7 @@ class Atom(
     energy: Float,
     electrons: Int,
 ):
-    Entity<AtomState>,
+    Entity,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -48,7 +32,7 @@ class Atom(
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
-        AtomState(
+        EntityState(
             id = id,
             species = Species.Elemental(element),
             alive = true,

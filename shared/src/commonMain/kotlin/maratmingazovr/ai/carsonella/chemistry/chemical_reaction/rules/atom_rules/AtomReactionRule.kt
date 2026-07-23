@@ -21,11 +21,11 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
  */
 abstract class AtomReactionRule : ReactionRule {
 
-    final override fun matches(reagents: List<Entity<*>>): Boolean {
+    final override fun matches(reagents: List<Entity>): Boolean {
         if (reagents.firstOrNull()?.state()?.value?.species !is Species.Elemental) return false
         return matchesAtoms(reagents)
     }
 
     /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Elemental]. */
-    abstract fun matchesAtoms(reagents: List<Entity<*>>): Boolean
+    abstract fun matchesAtoms(reagents: List<Entity>): Boolean
 }

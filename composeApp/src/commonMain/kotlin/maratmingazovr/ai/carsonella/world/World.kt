@@ -40,7 +40,7 @@ class World(
         Element.OXYGEN_16,
         Element.CARBON_12,
     )
-    val entities =  mutableStateListOf<Entity<*>>()
+    val entities =  mutableStateListOf<Entity>()
     val logs =  mutableStateListOf<String>()
     // Счётчик тиков — «время симуляции». Один tick = tickMs (16 мс). Растёт каждый кадр цикла.
     // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
@@ -166,7 +166,7 @@ class World(
             val s = e.state().value
             // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
             // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
-            val parentId = (e.getEnvironment() as? Entity<*>)?.state()?.value?.id?.takeIf { it in savedIds }
+            val parentId = (e.getEnvironment() as? Entity)?.state()?.value?.id?.takeIf { it in savedIds }
             EntityDto(
                 id = s.id,
                 // element.name для Elemental (round-trip через Element.valueOf); молекулу так не сохранить —
@@ -256,7 +256,7 @@ class World(
         _pendingRequests.clear()
 
         // 2. Пересоздаём живые сущности с их исходными id; пока все в корневой среде
-        val byId = mutableMapOf<Long, Entity<*>>()
+        val byId = mutableMapOf<Long, Entity>()
         dto.entities.filter { it.alive }.forEach { e ->
             val element = try {
                 Element.valueOf(e.element)
@@ -313,7 +313,7 @@ class World(
 
 
 
-data class ReactionRequest(val reagents: List<Entity<*>>)
+data class ReactionRequest(val reagents: List<Entity>)
 
 fun currentTime(): String {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())

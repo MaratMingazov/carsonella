@@ -39,12 +39,12 @@ class AlphaProtonReaction(
 ) : AtomReactionRule() {
     override val id = "AlphaProtonReaction"
 
-    private var target: Entity<*>? = null
-    private var alpha: Entity<*>? = null
+    private var target: Entity? = null
+    private var alpha: Entity? = null
     private var targetEl: Element? = null   // элементы реагентов, запомненные в matchesAtoms — produce не вычисляет заново
     private var alphaEl: Element? = null
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         target = null
         alpha = null
         targetEl = null
@@ -55,7 +55,7 @@ class AlphaProtonReaction(
         if (!first.state().value.alive) return false
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
 
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         val firstElement = firstSpecies.element
@@ -104,7 +104,7 @@ class AlphaProtonReaction(
         val targetElectrons = minOf(t.state().value.electrons, resultElement.details.p)
         val freedAlphaElectrons = a.state().value.electrons
 
-        val spawnList = mutableListOf<() -> Entity<*>>()
+        val spawnList = mutableListOf<() -> Entity>()
         spawnList += {
             entityGenerator.createEntity(
                 resultElement,

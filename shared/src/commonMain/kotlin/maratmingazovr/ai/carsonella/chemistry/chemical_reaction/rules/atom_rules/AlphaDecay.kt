@@ -26,17 +26,17 @@ class AlphaDecay(
 ) : AtomReactionRule() {
     override val id = "AlphaDecay"
 
-    private var entity: Entity<*>? = null
+    private var entity: Entity? = null
     private var subjectElement: Element? = null   // элемент субъекта, запомненный в matchesAtoms — produce не вычисляет заново
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         entity = null
         subjectElement = null
 
         if (reagents.size != 1) return false
         val first = reagents.first()
         if (!first.state().value.alive) return false
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
         if (species !is Species.Elemental) return false
         val element = species.element

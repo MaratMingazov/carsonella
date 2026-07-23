@@ -34,7 +34,7 @@ class PhotoDissociationTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, energy, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -81,7 +81,7 @@ class PhotoDissociationTest {
 
         assertTrue(rule.matchesMolecule(listOf(w, ph)))
         val outcome = rule.produce()
-        assertEquals(listOf<Entity<*>>(ph, w), outcome.consumed)               // потребляются фотон и молекула
+        assertEquals(listOf<Entity>(ph, w), outcome.consumed)               // потребляются фотон и молекула
         outcome.spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)

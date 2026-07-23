@@ -36,14 +36,14 @@ class StarCarbonBurning(
 
     override val id = "StarCarbonBurning"
 
-    private var atom1 : Entity<*>? = null
-    private var atom2 : Entity<*>? = null
+    private var atom1 : Entity? = null
+    private var atom2 : Entity? = null
     private var atom1El : Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
     private var atom2El : Element? = null
     private var resultElement : Element? = null
     private var extraElements : List<Element> = emptyList()
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         atom1 = null
         atom2 = null
         atom1El = null
@@ -53,7 +53,7 @@ class StarCarbonBurning(
         if (reagents.size < 2) return false
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
         if (firstSpecies !is Species.Elemental) return false
         if (firstSpecies.element != CARBON_12) return false
@@ -110,7 +110,7 @@ class StarCarbonBurning(
         val parentElectrons = a1.state().value.electrons + a2.state().value.electrons
         val resultElectrons = minOf(parentElectrons, result.details.p)
         val shakeOff = parentElectrons - resultElectrons
-        val spawnList = mutableListOf<() -> Entity<*>>()
+        val spawnList = mutableListOf<() -> Entity>()
 
         spawnList += {
             entityGenerator.createEntity(

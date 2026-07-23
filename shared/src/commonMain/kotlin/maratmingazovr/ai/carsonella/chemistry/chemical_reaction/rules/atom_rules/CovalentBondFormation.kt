@@ -29,10 +29,10 @@ class CovalentBondFormation(
 ) : ReactionRule {
     override val id = "CovalentBond"
 
-    private var atom1: Entity<*>? = null
-    private var atom2: Entity<*>? = null
+    private var atom1: Entity? = null
+    private var atom2: Entity? = null
 
-    override fun matches(reagents: List<Entity<*>>): Boolean {
+    override fun matches(reagents: List<Entity>): Boolean {
         atom1 = null
         atom2 = null
         if (reagents.size < 2) return false
@@ -65,7 +65,7 @@ class CovalentBondFormation(
 
     // Атом способен на ковалентную связь: живой, нейтральный лёгкий атом со свободным слотом.
     // Через Species (не через шов .element): связываем только Elemental-атомы.
-    private fun canBond(entity: Entity<*>): Boolean {
+    private fun canBond(entity: Entity): Boolean {
         val state = entity.state().value
         if (!state.alive) return false
         val species = state.species
@@ -106,7 +106,7 @@ class CovalentBondFormation(
         // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
         // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
         val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
-        val spawn = mutableListOf<() -> Entity<*>>(
+        val spawn = mutableListOf<() -> Entity>(
             { entityGenerator.createEntity(Species.Molecular(graph), midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {

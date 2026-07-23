@@ -20,11 +20,11 @@ class StarEmission (
 ) : AtomReactionRule() {
     override val id = "StarEmission"
 
-    private var entity : Entity<*>? = null
-    private var entityReagents: List<Entity<*>> = listOf()
-    private var absorbReagents: List<Entity<*>> = listOf()
+    private var entity : Entity? = null
+    private var entityReagents: List<Entity> = listOf()
+    private var absorbReagents: List<Entity> = listOf()
 
-    override fun matchesAtoms(reagents: List<Entity<*>>): Boolean {
+    override fun matchesAtoms(reagents: List<Entity>): Boolean {
         entity = null
         entityReagents = listOf()
         absorbReagents = listOf()
@@ -32,7 +32,7 @@ class StarEmission (
         if (reagents.isEmpty()) return false
 
         val first = reagents.first()
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
         if (species !is Species.Elemental) return false
         if (species.element != Element.Star) return false

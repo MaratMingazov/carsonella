@@ -26,11 +26,11 @@ class SpontaneousEmission(
 ) : AtomReactionRule() {
     override val id = "Luminescence"
 
-    private var entity : Entity<*>? = null
+    private var entity : Entity? = null
     private var subjectElement: Element? = null   // запомнен в matchesAtoms — produce не вычисляет заново
 
 
-    override fun matchesAtoms(reagents: List<Entity<*>>) : Boolean {
+    override fun matchesAtoms(reagents: List<Entity>) : Boolean {
         entity = null
         subjectElement = null
 
@@ -38,7 +38,7 @@ class SpontaneousEmission(
         val first = reagents.first()
         if (!first.state().value.alive) return false
 
-        // species в локальный val → smart-cast к Elemental ниже (через Entity<*> компилятор сам этого не знает).
+        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
         if (species !is Species.Elemental) return false
         val firstElement = species.element

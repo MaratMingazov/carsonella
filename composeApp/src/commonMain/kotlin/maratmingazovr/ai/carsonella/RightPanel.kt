@@ -56,7 +56,7 @@ fun RightPanel(
     selectedId: Long?,
     onSelect: (Long?) -> Unit,
     world: World,
-    entitiesState: List<EntityState<*>>,
+    entitiesState: List<EntityState>,
     renderer: EntityRenderer,
     phase: Float,
     phase2: Float,
@@ -179,7 +179,7 @@ private data class StarDot(val nx: Float, val ny: Float, val radius: Float, val 
 @Composable
 private fun SceneCanvas(
     world: World,
-    entitiesState: List<EntityState<*>>,
+    entitiesState: List<EntityState>,
     renderer: EntityRenderer,
     phase: Float,
     phase2: Float,
@@ -415,7 +415,7 @@ fun ConsolePanel(
 
 
 private fun hitTest(
-    entities: List<EntityState<*>>,
+    entities: List<EntityState>,
     at: Offset,
     radius: Float = 50f
 ): Long? {

@@ -12,22 +12,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 
 
-data class SubAtomState(
-    override val id: Long,
-    override val species: Species.Elemental,
-    override val alive: Boolean,
-    override val position: Position,
-    override val direction: Vec2D,
-    override val velocity: Float,
-    override val energy: Float,
-    override val electrons: Int,
-) : EntityState<SubAtomState> {
-    // species сужен до Elemental (субатомная частица — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
-    val element: Element get() = species.element
-    override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String = species.describe(this)
-}
-
 class SubAtom(
     id: Long,
     element: Element,
@@ -37,7 +21,7 @@ class SubAtom(
     energy: Float,
     electrons: Int,
 ):
-    Entity<SubAtomState>,
+    Entity,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -45,7 +29,7 @@ class SubAtom(
     LogWritable  by LoggingSupport()
 {
     private var state = MutableStateFlow(
-        SubAtomState(
+        EntityState(
             id = id,
             species = Species.Elemental(element),
             alive = true,
@@ -82,7 +66,7 @@ class SubAtom(
             // Если среда — частица-контейнер (звезда/модуль), она выпускает фотон в свою внешнюю
             // среду: свет уходит из звезды в космос (тот же приём updateMyEnvironment, что и в StarEmission).
             // Если это корневая среда (не Entity) — фотон покидает мир и гаснет.
-            val container = environment as? Entity<*>
+            val container = environment as? Entity
             if (container != null) {
                 updateMyEnvironment(container.getEnvironment())
             } else {
@@ -91,14 +75,14 @@ class SubAtom(
         }
     }
 
-    private fun initElectron(environment: IEnvironment, neighbors: List<Entity<*>>) {
+    private fun initElectron(environment: IEnvironment, neighbors: List<Entity>) {
         reduceVelocity()
         applyForce(calculateForce(neighbors)) // электроны должны отталкиваться друг от друга
         applyNewPosition()
         checkBorders(environment)
     }
 
-    private fun initProton(environment: IEnvironment, neighbors: List<Entity<*>>) {
+    private fun initProton(environment: IEnvironment, neighbors: List<Entity>) {
         reduceVelocity()
         applyForce(calculateForce(neighbors))
         applyNewPosition()
@@ -121,7 +105,7 @@ class SubAtom(
 
     // Поведение идентично протону: движение под действием сил + запрос реакции с близкими соседями.
     // requestReaction нужен для будущей аннигиляции с электроном (e⁻ + e⁺ → 2γ).
-    private fun initPositron(environment: IEnvironment, neighbors: List<Entity<*>>) {
+    private fun initPositron(environment: IEnvironment, neighbors: List<Entity>) {
         reduceVelocity()
         applyForce(calculateForce(neighbors))
         applyNewPosition()

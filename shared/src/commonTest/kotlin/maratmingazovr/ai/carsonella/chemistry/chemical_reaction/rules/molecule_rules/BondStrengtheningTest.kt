@@ -33,7 +33,7 @@ class BondStrengtheningTest {
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-        ): Entity<*> {
+        ): Entity {
             spawned += Spawned(species, energy, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
@@ -59,7 +59,7 @@ class BondStrengtheningTest {
 
         assertTrue(rule.matchesMolecule(listOf(oo)))
         val outcome = rule.produce()
-        assertEquals(listOf<Entity<*>>(oo), outcome.consumed)
+        assertEquals(listOf<Entity>(oo), outcome.consumed)
 
         outcome.spawn.forEach { it() }
         val product = gen.spawned.single { it.species is Species.Molecular }

@@ -39,10 +39,10 @@ import kotlin.random.Random
 
 interface IEntityGenerator {
     val random: Random
-    fun createEntity(species: Species, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity<*>
+    fun createEntity(species: Species, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
 
     // Удобная перегрузка для Elemental — вызовы по Element (атомы/частицы/звезда/модули) не трогаем.
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity<*> =
+    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity =
         createEntity(Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
 }
 
@@ -101,7 +101,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
      * produce() без побочек (spawn/updateState — отложенные лямбды, исполняет World только для
      * применённого исхода), поэтому исходы проигравших запросов безвредно отбрасываются.
      */
-    fun resolve(requestsOfOneInitiator: List<List<Entity<*>>>): ReactionOutcome? {
+    fun resolve(requestsOfOneInitiator: List<List<Entity>>): ReactionOutcome? {
         var best: Pair<ReactionOutcome, Float>? = null
         for (reagents in requestsOfOneInitiator) {
             val applicableRules = rules.filter { it.matches(reagents) }
