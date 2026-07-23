@@ -7,7 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 /**
  * Базовый класс для атомных/ядерных/субатомных правил (§«крах» docs/molecule-graph.md).
  *
- * Эти правила читают [Entity.state]`.element` (шов [maratmingazovr.ai.carsonella.chemistry.EntityState.element]),
+ * Эти правила читают [Entity.state]`.element`,
  * который БРОСАЕТ на [Species.Molecular]. Резолвер гоняет `matches()` по всем правилам на каждый запрос,
  * поэтому без фильтра молекула роняет всё — двумя путями:
  *  - молекула как субъект (`reagents.first()`) — `Molecule.step()` запрашивает реакцию первой собой;

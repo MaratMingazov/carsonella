@@ -3,31 +3,11 @@ package maratmingazovr.ai.carsonella.chemistry
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.math.round
 
-/**
- * Идентичность сущности (§3b, docs/molecule-graph.md): чем «является» частица.
- *
- * - [Elemental] — задаётся изотопом [Element] (атом, субатомная частица, звезда, модуль) — как сейчас.
- * - [Molecular] — задаётся графом [MoleculeGraph] (молекула). Своего [Element] у неё нет: идентичность
- *   и агрегаты (масса/формула/символ) вычисляются из графа.
- *
- * Граф у молекулы non-null by construction: молекула — это [Molecular], атом — [Elemental].
- * На время миграции у [EntityState] остаётся шов `element`, работающий для [Elemental]
- * (весь не-молекулярный код продолжает читать `.element` как раньше).
- */
-// Агрегаты (мост §3b) — члены sealed-типа: каждый вариант держит свою логику рядом с собой. Это
-// ВЫВОДИМЫЕ величины (из element/graph), а не хранимое состояние: element/graph не меняются, поэтому
-// значение постоянно; отдельным полем не храним (иначе второй источник правды + шум в equals/copy).
+
 sealed interface Species {
-    /** Масса: атом/частица — p+n (электрон — особый случай 1f); молекула — сумма по графу (кэш на графе). */
     val mass: Float
-
-    /** Сумма протонов: из Details (Elemental) или из графа (Molecular). */
     val protons: Int
-
-    /** Радиус для физики/рендера: из Details (Elemental) или константа (Molecular). */
     val radius: Float
-
-    /** Символ для показа: атом/частица — символ элемента с зарядом; молекула — формула + заряд. */
     fun displaySymbol(electrons: Int): String
 
     data class Elemental(val element: Element) : Species {
@@ -41,8 +21,6 @@ sealed interface Species {
         override val mass: Float get() = graph.mass
         override val protons: Int get() = graph.protons
         override val radius: Float get() = MOLECULE_RADIUS
-        // Заряд молекулы — динамика (protons − electrons), а не структура: formulaPretty остаётся чистой
-        // формулой, суффикс заряда добавляем здесь. Зеркало атома (baseSymbol + chargeSuffix), тот же хелпер.
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
     }
 }

@@ -12,9 +12,6 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.sqrt
 
-// Единое состояние для всех сущностей (фотон/частица/атом/молекула/звезда). Раньше было 4 идентичных
-// класса + F-bounded дженерик; тип сущности теперь несёт [species], а специфику рендера/описания —
-// Species.describe и рендерер (диспетч по species/ElementType). Поведение по-прежнему в классах Entity.
 data class EntityState(
     val id: Long,
     val species: Species,
@@ -23,8 +20,6 @@ data class EntityState(
     val direction: Vec2D,
     val velocity: Float,
     val energy: Float,
-    // Число электронов как динамическое состояние (рефакторинг «ионизация → состояние»): задаёт заряд,
-    // символ и energyLevels; цикл ионизации/рекомбинации крутит его.
     val electrons: Int,
 ) {
     // Шов для не-молекулярного кода: element валиден только для Elemental (как было в *State-классах).
@@ -155,8 +150,6 @@ interface Entity :
         state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
     }
 
-    // Масса считается из species (см. Species.mass): для атома/частицы — p+n (электрон — особый
-    // случай), для молекулы — сумма по графу. Раньше хранилась в Details.mass, но всегда равнялась p+n.
     fun mass(): Float = state().value.species.mass
 
     fun applyForce(force: Vec2D) {

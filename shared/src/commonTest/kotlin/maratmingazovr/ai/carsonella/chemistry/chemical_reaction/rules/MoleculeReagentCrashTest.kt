@@ -20,13 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 
-/**
- * Регрессия на краш «§крах» (docs/molecule-graph.md): атомные/ядерные правила читают шов
- * [maratmingazovr.ai.carsonella.chemistry.EntityState.element], который бросает на [Species.Molecular].
- * Резолвер гоняет matches() по всем правилам, поэтому до фикса молекула-реагент роняла всё —
- * и как субъект (reagents.first()), и как сосед (хвост). [maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AtomReactionRule] фильтрует реагенты до
- * [Species.Elemental]; здесь проверяем, что ни один путь больше не бросает.
- */
+
 class MoleculeReagentCrashTest {
 
     private class StubGenerator : IEntityGenerator {
