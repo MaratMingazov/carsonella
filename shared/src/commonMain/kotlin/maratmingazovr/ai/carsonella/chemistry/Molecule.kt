@@ -6,7 +6,6 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
-import kotlin.math.round
 
 
 data class MoleculeState(
@@ -19,14 +18,8 @@ data class MoleculeState(
     override val energy: Float,
     override val electrons: Int,
 ) : EntityState<MoleculeState> {
-    val title = species.graph.formulaPretty
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String {
-        return """
-            |$title
-            |Energy ${round(energy * 100) / 100}
-        """.trimMargin()
-    }
+    override fun toString(): String = species.describe(this)
 }
 
 class Molecule(

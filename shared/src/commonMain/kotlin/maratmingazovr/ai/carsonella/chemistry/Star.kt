@@ -5,7 +5,6 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
-import kotlin.math.round
 
 
 data class StarState(
@@ -21,14 +20,7 @@ data class StarState(
     // species сужен до Elemental (звезда — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
     val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String {
-        return """
-            |${element.label(electrons)}: $id
-            |Position (${position.x.toInt()}, ${position.y.toInt()})
-            |Velocity ${round(velocity * 100) / 100}
-            |Energy ${round(energy * 100) / 100}
-        """.trimMargin()
-    }
+    override fun toString(): String = species.describe(this)
 }
 
 class Star(

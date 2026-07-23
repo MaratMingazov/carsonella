@@ -10,7 +10,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
-import kotlin.math.round
 
 
 data class SubAtomState(
@@ -26,18 +25,7 @@ data class SubAtomState(
     // species сужен до Elemental (субатомная частица — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
     val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String {
-        val base = """
-            |${element.label(electrons)}: $id
-            |Position (${position.x.toInt()}, ${position.y.toInt()})
-            |Velocity ${round(velocity * 100) / 100}
-            |Energy ${round(energy * 100) / 100}
-        """.trimMargin()
-        // LightBand и длина волны осмысленны только у фотона (у него energy — это E=hν). У протона,
-        // электрона и т.п. energy к свету не относится, поэтому строку не добавляем и функцию не зовём.
-        if (element != PHOTON) return base
-        return "$base\nСпектр: ${lightBandFromEnergyEv(energy).label}"
-    }
+    override fun toString(): String = species.describe(this)
 }
 
 class SubAtom(

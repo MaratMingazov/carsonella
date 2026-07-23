@@ -14,7 +14,6 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
-import kotlin.math.round
 
 data class AtomState(
     override val id: Long,
@@ -29,15 +28,7 @@ data class AtomState(
     // species сужен до Elemental (атом — всегда Elemental) → element читается напрямую, без каста/броска шва EntityState.
     val element: Element get() = species.element
     override fun copyWith(alive: Boolean, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) =  this.copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-    override fun toString(): String {
-        return """
-            |${element.label(electrons)}
-            |Protons: ${element.details.p}
-            |Neutrons: ${element.details.n}
-            |Electrons: $electrons
-            |Energy ${round(energy * 100) / 100}
-        """.trimMargin()
-    }
+    override fun toString(): String = species.describe(this)
 }
 
 class Atom(
