@@ -2,16 +2,6 @@ package maratmingazovr.ai.carsonella.chemistry
 
 import maratmingazovr.ai.carsonella.chemistry.Element.*
 
-/**
- * Каталог [Details] для всех элементов — статическая «таблица Менделеева» проекта.
- * Вынесен из Entity.kt, чтобы отделить данные от доменных типов и поведения. После
- * сворачивания ион-состояний (рефакторинг 2C2b) — одна строка на изотоп (заряд живёт в
- * state.electrons; уровни ионизации — в atomEnergyLevelsTable() по Z). Каталог свёрнут и
- * умещается в одну функцию elementDetails() (лимит JVM 64KB на метод больше не грозит).
- *
- * `Element.*` импортирован, чтобы константы (SILICON_31 и т.п.) резолвились без префикса.
- * Ключ `Element.Star` пишем явно: без-префиксный `Star` ушёл бы в одноимённый класс из этого же пакета.
- */
 
 internal fun elementDetails(): Map<Element, Details> = mapOf(
     // --- субатомные частицы ---
