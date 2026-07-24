@@ -35,7 +35,7 @@ class MolecularPhotoIonizationTest {
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
         ): Entity {
             spawned += Spawned(species, energy, electrons)
-            return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
+            return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy = 0f, electrons = 1)
         }
     }
 

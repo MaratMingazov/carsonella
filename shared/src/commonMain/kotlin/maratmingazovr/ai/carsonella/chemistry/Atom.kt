@@ -31,6 +31,17 @@ class Atom(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
+    init {
+        // Инвариант энергии атома: energy — это ТОЛЬКО 0 (основное состояние) или ТОЧНО один из дискретных
+        // уровней возбуждения energyLevels(electrons). Проверяем при создании (fail-fast): «не-уровень»
+        // должен ронять здесь и сразу, а не позже в SpontaneousEmission во время какой-то реакции.
+        // Пусто (голый ион/Z>18) → допустим только 0. Заряд меняет лестницу, поэтому берём по electrons.
+        val levels = element.energyLevels(electrons)
+        require(energy == 0f || energy in levels) {
+            "Atom ${element.name}: недопустимая energy=$energy эВ (electrons=$electrons) — не 0 и не уровень из $levels"
+        }
+    }
+
     private var state = MutableStateFlow(
         EntityState(
             id = id,

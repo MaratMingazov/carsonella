@@ -74,7 +74,7 @@ class BetaMinusDecay(
                         parentPosition,
                         parent.state().value.direction,
                         parent.state().value.velocity,
-                        energy = parent.state().value.energy,
+                        energy = 0f,
                         environment = parent.getEnvironment(),
                         electrons = childElectrons,
                     )

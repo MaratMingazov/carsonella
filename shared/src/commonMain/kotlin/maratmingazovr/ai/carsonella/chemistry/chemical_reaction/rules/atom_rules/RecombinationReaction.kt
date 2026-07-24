@@ -91,7 +91,7 @@ class RecombinationReaction(
                 spawn = listOf {
                     entityGenerator.createEntity(
                         Element.HYDROGEN, resultPosition, direction, velocity,
-                        energy = atom1!!.state().value.energy + electronEnergy, env, electrons = 1,
+                        energy = 0f, env, electrons = 1,
                     )
                     entityGenerator.createEntity(
                         Element.PHOTON,

@@ -107,7 +107,7 @@ class StarNeutronAlphaReaction(
                 resultPosition,
                 direction,
                 velocity,
-                energy = a1.state().value.energy + a2.state().value.energy,
+                energy = 0f,
                 a1.getEnvironment(),
                 electrons = resultElectrons,
             )

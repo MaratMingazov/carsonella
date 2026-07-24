@@ -88,7 +88,7 @@ class StarAlphaGammaReaction(
                     resultPosition,
                     direction,
                     velocity,
-                    energy = atom1!!.state().value.energy + atom2!!.state().value.energy,
+                    energy = 0f,
                     atom1!!.getEnvironment(),
                     electrons = resultElectrons,
                 )

@@ -111,7 +111,7 @@ class AlphaProtonReaction(
                 resultPosition,
                 direction,
                 velocity,
-                energy = t.state().value.energy + a.state().value.energy,
+                energy = 0f,
                 environment = t.getEnvironment(),
                 electrons = targetElectrons,
             )
