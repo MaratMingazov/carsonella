@@ -54,7 +54,10 @@ abstract class MoleculeReactionRule : ReactionRule {
         val s = molecule.state().value
         val env = molecule.getEnvironment()
         return fragments.mapIndexed { i, frag ->
-            val pos = s.position.plus(Position((i - (fragments.size - 1) / 2f) * s.radius, 0f))
+            // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
+            // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
+            // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
+            val pos = s.position.plus(Position((i - (fragments.size - 1) / 2f) * s.radius * FRAGMENT_SEPARATION, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope
@@ -70,3 +73,7 @@ abstract class MoleculeReactionRule : ReactionRule {
 // Перевод избытка энергии распада (эВ) в кинетику осколка-атома. Та же шкала, что у вылетающего электрона
 // в PhotoIonization (0.2 * freeEnergy) — консистентный игровой коэффициент, не физическое v=√(2E/m).
 private const val KINETIC_VELOCITY_PER_EV = 0.2f
+
+// Множитель разведения осколков: шаг между соседями = radius * этот множитель. Обязан давать шаг больше
+// дистанции повторной связи CovalentBondFormation (√2·r): при r = 20 порог ≈ 28, а 2.5·20 = 50 — с запасом.
+private const val FRAGMENT_SEPARATION = 2.5f
