@@ -73,7 +73,7 @@ class BondStrengthening(
         val lo = BondEnergy.of(isoA, isoB, b.order)
         val released = if (hi != null && lo != null) hi - lo else null
 
-        val spawn = mutableListOf<() -> Entity>(
+        val spawn = mutableListOf(
             { entityGenerator.createEntity(Species.Molecular(strengthened), state.position, state.direction, state.velocity, state.energy, env, state.electrons) },
         )
         if (released != null && released > 0f) {

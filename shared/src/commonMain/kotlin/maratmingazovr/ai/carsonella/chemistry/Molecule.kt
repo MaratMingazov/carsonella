@@ -59,10 +59,8 @@ class Molecule(
         // (BondStrengthening, RingClosure, MolecularSpontaneousEmission), resolve() выбирает по weight.
         // energy > 0 добавлено, чтобы «горячий» осколок без свободных слотов (напр. ·OH) тоже попал в
         // self-request и мог сбросить энергию через MolecularSpontaneousEmission (иначе застряла бы навсегда).
-        val graph = (state.value.species as? Species.Molecular)?.graph
-        if (graph?.strengthenableBonds?.isNotEmpty() == true ||
-            graph?.ringClosureCandidates?.isNotEmpty() == true ||
-            state.value.energy > 0f
+        val graph = (state.value.species as Species.Molecular).graph
+        if (graph.strengthenableBonds.isNotEmpty() || graph.ringClosureCandidates.isNotEmpty() || state.value.energy > 0f
         ) {
             requestReaction(listOf(this))
         }
