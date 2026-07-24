@@ -101,6 +101,18 @@ fun SelectedEntityPanel(
         Spacer(Modifier.height(8.dp))
         Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
 
+        // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Полиморфно
+        // через Species — атом даёт свою лестницу от заряда, молекула — один порог. Пусто → не показываем.
+        val levels = selectedElement.energyLevels
+        if (levels.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text("Levels, eV:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+            Text(
+                levels.joinToString(", ") { (round(it * 100) / 100).toString() },
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
         // Редакторы параметров по типу элемента (пока только фотон — «шов» под будущие параметры).
         val species = selectedElement.species
         if (species is Species.Elemental && species.element == Element.PHOTON) {

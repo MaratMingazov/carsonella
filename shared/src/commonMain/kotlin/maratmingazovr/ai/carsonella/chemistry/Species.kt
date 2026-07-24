@@ -9,6 +9,10 @@ sealed interface Species {
     val protons: Int
     val radius: Float
     fun displaySymbol(electrons: Int): String
+    // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Функция, а не val,
+    // потому что у атома лестница зависит от заряда (числа электронов) — как displaySymbol. Пусто, если
+    // сущность не ионизируется (фотон/электрон/звезда, голый ион).
+    fun energyLevels(electrons: Int): List<Float>
     fun describe(s: EntityState): String
 
     data class Elemental(val element: Element) : Species {
@@ -16,6 +20,7 @@ sealed interface Species {
         override val protons: Int get() = element.details.p
         override val radius: Float get() = element.details.radius
         override fun displaySymbol(electrons: Int): String = element.symbol(electrons)
+        override fun energyLevels(electrons: Int): List<Float> = element.energyLevels(electrons)
         override fun describe(s: EntityState): String = when (element.details.type) {
             ElementType.Atom -> """
                 |${element.label(s.electrons)}
@@ -50,6 +55,9 @@ sealed interface Species {
         override val protons: Int get() = graph.protons
         override val radius: Float get() = MOLECULE_RADIUS
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
+        // Аргумент electrons пока игнорируем: молекулярный IP — приближение «минимум по нейтральным
+        // атомам» ([MoleculeGraph.energyLevels]), от заряда молекулы не зависит. Параметр — задел на будущее.
+        override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
         override fun describe(s: EntityState): String = """
             |${graph.formulaPretty}

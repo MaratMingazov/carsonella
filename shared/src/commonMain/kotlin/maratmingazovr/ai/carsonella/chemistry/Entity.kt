@@ -27,6 +27,7 @@ data class EntityState(
     val protons: Int get() = species.protons
     val radius: Float get() = species.radius
     val displaySymbol: String get() = species.displaySymbol(electrons)
+    val energyLevels: List<Float> get() = species.energyLevels(electrons)
 
     /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
