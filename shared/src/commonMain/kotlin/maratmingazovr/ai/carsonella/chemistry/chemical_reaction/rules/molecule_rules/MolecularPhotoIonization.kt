@@ -14,7 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * Прямое зеркало атомной [maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.PhotoIonization],
  * только субъект — молекула.
  *
- * Порог = [MoleculeGraph.ionizationEnergy] (минимум атомного IP по графу, кэш на графе). В отличие от
+ * Порог = последний уровень [MoleculeGraph.energyLevels] (минимум атомного IP по графу, кэш на графе). В отличие от
  * атома, молекулярный ион НЕ требует смены Species: заряд живёт в [EntityState.electrons] как счётчик,
  * а граф не меняется — поэтому здесь `updateState` (electrons−1), а не consume+spawn (как у H → Proton).
  *
@@ -39,7 +39,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val first = reagents.first()
         if (!first.state().value.alive) return false
         val graph = (first.state().value.species as Species.Molecular).graph
-        val threshold = graph.ionizationEnergy ?: return false // есть ли у молекулы ионизируемый атом?
+        val threshold = graph.energyLevels.lastOrNull() ?: return false // есть ли у молекулы ионизируемый атом?
 
         val firstPosition = first.state().value.position
         val radius = first.state().value.radius
@@ -73,7 +73,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val mol = molecule!!
         val ph = photon!!
         val graph = (mol.state().value.species as Species.Molecular).graph
-        val threshold = graph.ionizationEnergy!!            // matches гарантирует что не null
+        val threshold = graph.energyLevels.last()           // matches гарантирует что лестница непуста
         val electrons = mol.state().value.electrons
 
         // Избыток над порогом ионизации уносит вылетевший электрон (энергия молекулы → 0).

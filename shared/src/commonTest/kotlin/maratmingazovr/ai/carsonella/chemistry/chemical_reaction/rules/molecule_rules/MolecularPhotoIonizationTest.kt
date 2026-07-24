@@ -60,7 +60,7 @@ class MolecularPhotoIonizationTest {
     @Test
     fun ionizationEnergyIsMinAtomicIp() {
         // Вода: все атомы дают 13.6 эВ → IP = 13.6.
-        assertEquals(13.6f, water().state().value.species.let { (it as Species.Molecular).graph.ionizationEnergy!! }, 0.001f)
+        assertEquals(13.6f, water().state().value.species.let { (it as Species.Molecular).graph.energyLevels.last() }, 0.001f)
 
         // CH₄: C (11.26) легче кислорода/водорода (13.6) → минимум по атомам = 11.26.
         val methane = MoleculeGraph(
@@ -70,7 +70,7 @@ class MolecularPhotoIonizationTest {
             ),
             bonds = listOf(Bond(0, 1, 1), Bond(0, 2, 1), Bond(0, 3, 1), Bond(0, 4, 1)),
         )
-        assertEquals(11.26f, methane.ionizationEnergy!!, 0.001f)
+        assertEquals(11.26f, methane.energyLevels.last(), 0.001f)
     }
 
     @Test
