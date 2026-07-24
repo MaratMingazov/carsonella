@@ -136,15 +136,11 @@ interface Entity :
         state().value = state().value.copyWith(energy = updatedEnergy)
     }
 
-    // Записывает энергию напрямую через copyWith — без арифметики, чтобы избежать float-дрейфа.
-    // Используется когда нужно «снапнуть» энергию ровно на один из energyLevels из таблицы Details.
     fun setEnergy(energy: Float) {
         val clamped = if (energy < 0f) 0f else energy
         state().value = state().value.copyWith(energy = clamped)
     }
 
-    // Зеркало setEnergy для числа электронов. Используется циклом ионизации/рекомбинации
-    // (PhotoIonization/RecombinationReaction) через updateState — меняет заряд, не подменяя Element.
     fun setElectrons(electrons: Int) {
         state().value = state().value.copyWith(electrons = electrons)
     }
