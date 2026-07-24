@@ -61,6 +61,7 @@ fun App() {
                     onSave = { world.save() },
                     onLoad = { world.load() },
                     onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
+                    onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
                 )
 
                 RightPanel(

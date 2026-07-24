@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import kotlin.math.round
 
 @Composable
@@ -35,6 +36,7 @@ fun LeftPanel(
     onSave: () -> Unit,
     onLoad: () -> Unit,
     onSetEnergy: (Long, Float) -> Unit,
+    onMoleculeAction: (Long, ReactionSelection) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -56,7 +58,7 @@ fun LeftPanel(
         }
         ElementsPalette(items = palette)
         Spacer(Modifier.weight(1f))
-        SelectedEntityPanel(selectedElementId, entitiesState, onSetEnergy)
+        SelectedEntityPanel(selectedElementId, entitiesState, onSetEnergy, onMoleculeAction)
     }
 }
 
@@ -85,6 +87,7 @@ fun SelectedEntityPanel(
     selectedElementId: Long?,
     entitiesState: List<EntityState>,
     onSetEnergy: (Long, Float) -> Unit,
+    onMoleculeAction: (Long, ReactionSelection) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier.fillMaxWidth().background(Color.White).padding(8.dp).border(1.dp, Color.LightGray)) {
@@ -113,8 +116,28 @@ fun SelectedEntityPanel(
             )
         }
 
-        // Редакторы параметров по типу элемента (пока только фотон — «шов» под будущие параметры).
+        // Действия/редакторы по типу сущности.
         val species = selectedElement.species
+        if (species is Species.Molecular) {
+            // Механика «лего»: если молекуле есть что усилить/замкнуть — показываем кнопку. Клик ФОРСИТ
+            // именно это правило через resolve (ReactionSelection), не пуская в weight-конкуренцию.
+            val graph = species.graph
+            if (graph.strengthenableBonds.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Strengthen bond") }
+            }
+            if (graph.ringClosureCandidates.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.CloseRing) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Close ring") }
+            }
+        }
+        // Редакторы параметров по типу элемента (пока только фотон — «шов» под будущие параметры).
         if (species is Species.Elemental && species.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(

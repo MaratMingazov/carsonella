@@ -21,6 +21,8 @@ import maratmingazovr.ai.carsonella.world.save.WorldSnapshotDto
 import maratmingazovr.ai.carsonella.world.save.readSaveFile
 import maratmingazovr.ai.carsonella.world.save.writeSaveFile
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
@@ -119,6 +121,15 @@ class World(
     // setEnergy клампит энергию ≥ 0. Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
     fun setEntityEnergy(entityId: Long, energy: Float) {
         entities.find { it.state().value.id == entityId }?.setEnergy(energy)
+    }
+
+    // Игрок форсит реакцию у выбранной молекулы из панели (усиление связи / замыкание кольца, механика
+    // «лего»): кладём forced-запрос напрямую в очередь — resolve выполнит именно это правило, минуя
+    // weight-конкуренцию (см. ReactionSelection). Тот же диспетчер, что у тика (Compose Main) → без гонки,
+    // как setEntityEnergy/moveEntityTo. Реагент — сама молекула (self-request).
+    fun requestMoleculeAction(entityId: Long, selection: ReactionSelection) {
+        val entity = entities.find { it.state().value.id == entityId } ?: return
+        _pendingRequests.add(ReactionRequest(listOf(entity), selection))
     }
 
     // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
@@ -293,11 +304,12 @@ class World(
 
     // Все запросы ОДНОГО инициатора за тик. Резолвер выберет один лучший исход по weight.
     fun runReaction(requests: List<ReactionRequest>) {
-        // Поднятую частицу исключаем из реагентов (страховка от устаревшего запроса прошлого тика).
-        val reagentLists = requests
-            .map { req -> req.reagents.filter { it.state().value.id != heldEntityId } }
-            .filter { it.isNotEmpty() }
-        val result = _chemicalReactionResolver.resolve(reagentLists) ?: return
+        // Поднятую частицу исключаем из реагентов (страховка от устаревшего запроса прошлого тика);
+        // selection (форс игрока / WeightBased) сохраняем через copy.
+        val filtered = requests
+            .map { req -> req.copy(reagents = req.reagents.filter { it.state().value.id != heldEntityId }) }
+            .filter { it.reagents.isNotEmpty() }
+        val result = _chemicalReactionResolver.resolve(filtered) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
 
         result.consumed.forEach { it.destroy() }
@@ -309,11 +321,6 @@ class World(
         const val DEFAULT_SAVE_NAME = "world.json"
     }
 }
-
-
-
-
-data class ReactionRequest(val reagents: List<Entity>)
 
 fun currentTime(): String {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())

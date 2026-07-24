@@ -53,15 +53,12 @@ class Molecule(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        // Внутримолекулярные реакции (усиление 3c / замыкание кольца / спонтанный сброс энергии) —
-        // запрашиваем реакцию сама с собой (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт
-        // на запросах с соседями (partner-first). Один self-request покрывает все size==1-правила
-        // (BondStrengthening, RingClosure, MolecularSpontaneousEmission), resolve() выбирает по weight.
-        // energy > 0 добавлено, чтобы «горячий» осколок без свободных слотов (напр. ·OH) тоже попал в
-        // self-request и мог сбросить энергию через MolecularSpontaneousEmission (иначе застряла бы навсегда).
-        val graph = (state.value.species as Species.Molecular).graph
-        if (graph.strengthenableBonds.isNotEmpty() || graph.ringClosureCandidates.isNotEmpty() || state.value.energy > 0f
-        ) {
+        // Спонтанный сброс внутренней энергии (MolecularSpontaneousEmission) — АВТО: зовём себя при
+        // energy > 0 (предиссоциация / излучение). Иначе «горячий» осколок без свободных слотов (напр.
+        // ·OH) застрял бы навсегда. Усиление связи (3c) и замыкание кольца — уже НЕ авто: они запускаются
+        // только по клику игрока (World.requestMoleculeAction → forced ReactionRequest, см. ReactionSelection):
+        // механика «лего». LeftPanel показывает кнопки, читая strengthenableBonds/ringClosureCandidates графа.
+        if (state.value.energy > 0f) {
             requestReaction(listOf(this))
         }
 

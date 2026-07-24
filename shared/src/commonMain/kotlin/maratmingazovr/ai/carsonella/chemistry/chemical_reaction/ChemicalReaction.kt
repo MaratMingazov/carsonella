@@ -88,25 +88,35 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
     )
 
     /**
-     * Разрешение реакций ОДНОГО инициатора: на вход — все списки реагентов, которые он запросил за тик
-     * (первый элемент каждого — сам инициатор). За тик объект делает ≤1 реакцию (после первой он
-     * `destroy()`), поэтому среди ВСЕХ совпавших реакций всех его запросов выбираем ОДНУ — с максимальным
-     * `weight` (случайно среди равных). Так рост и усиление одной молекулы, приходящие разными запросами,
-     * наконец конкурируют в одном месте (см. docs/molecule-graph.md, §6, «рост vs усиление»).
+     * Разрешение реакций ОДНОГО инициатора: на вход — все его запросы за тик (первый реагент каждого —
+     * сам инициатор). За тик объект делает ≤1 реакцию (после первой он `destroy()`), поэтому среди всех
+     * совпавших выбираем ОДИН исход.
      *
-     * 1 - для каждого запроса гоняем реагенты по всем правилам, отбираем возможные;
-     * 2 - победитель запроса (max weight, тай-брейк случайно) СРАЗУ производится через produce() —
-     *     пока поля правила свежие после matches(); иначе стохастический matches() (напр. chance() у
-     *     распадов) при повторном матче перебросил бы кубик;
-     * 3 - среди победителей всех запросов берём исход с наибольшим weight.
+     * ДВА режима (см. [ReactionSelection]):
+     *  - ФОРС игрока (`selection != WeightBased`) имеет ПРИОРИТЕТ: рассматривается только правило
+     *    [ReactionSelection.ruleClass], конкуренции по weight нет — если оно применимо, оно и выполняется.
+     *    Так явный клик игрока (усиление связи / замыкание кольца, механика «лего») не перебивается
+     *    эмёрджентной химией. Первый применимый форс-запрос побеждает.
+     *  - ЭМЁРДЖЕНТНО (`WeightBased`, дефолт): среди всех применимых правил по всем weight-запросам берём
+     *    исход с максимальным `weight` (тай-брейк случайно). Так рост и усиление одной молекулы,
+     *    приходящие разными запросами, конкурируют в одном месте (docs/molecule-graph.md §6).
      *
-     * produce() без побочек (spawn/updateState — отложенные лямбды, исполняет World только для
-     * применённого исхода), поэтому исходы проигравших запросов безвредно отбрасываются.
+     * produce() зовём СРАЗУ после успешного matches() — пока поля правила свежие (стохастический matches(),
+     * напр. chance() у распадов, при повторном матче перебросил бы кубик). Исходы проигравших запросов
+     * безвредно отбрасываются: spawn/updateState — отложенные лямбды, исполняет World только для применённого.
      */
-    fun resolve(requestsOfOneInitiator: List<List<Entity>>): ReactionOutcome? {
+    fun resolve(requests: List<ReactionRequest>): ReactionOutcome? {
+        // 1. Форс игрока: только указанное правило, приоритет над weight. Первый применимый выигрывает.
+        for (req in requests) {
+            val ruleClass = req.selection.ruleClass ?: continue
+            val rule = rules.firstOrNull { it::class == ruleClass && it.matches(req.reagents) } ?: continue
+            return rule.produce()   // produce СРАЗУ, пока поля правила свежие после matches()
+        }
+        // 2. Эмёрджентно: лучший по weight среди всех правил по всем WeightBased-запросам.
         var best: Pair<ReactionOutcome, Float>? = null
-        for (reagents in requestsOfOneInitiator) {
-            val applicableRules = rules.filter { it.matches(reagents) }
+        for (req in requests) {
+            if (req.selection != ReactionSelection.WeightBased) continue
+            val applicableRules = rules.filter { it.matches(req.reagents) }
             if (applicableRules.isEmpty()) continue
             val weighted = applicableRules.map { it to it.weight() }
             val maxWeight = weighted.maxOf { it.second }

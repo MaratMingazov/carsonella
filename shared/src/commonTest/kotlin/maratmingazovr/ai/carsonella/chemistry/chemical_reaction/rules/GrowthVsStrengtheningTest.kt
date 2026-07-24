@@ -11,6 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -56,8 +57,9 @@ class GrowthVsStrengtheningTest {
     }
 
     // Два запроса инициатора-молекулы за тик: рост (listOf(this)+сосед) и усиление (listOf(this)).
-    private fun requestsOf(molecule: Molecule, neighbor: Atom): List<List<Entity>> =
-        listOf(listOf(molecule, neighbor), listOf(molecule))
+    // Оба WeightBased (дефолт) — конкурируют по weight, как эмёрджентно в игре.
+    private fun requestsOf(molecule: Molecule, neighbor: Atom): List<ReactionRequest> =
+        listOf(ReactionRequest(listOf(molecule, neighbor)), ReactionRequest(listOf(molecule)))
 
     @Test
     fun oxygenStrengthensToDoubleBondInsteadOfGrowingAChain() {

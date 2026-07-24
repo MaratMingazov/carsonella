@@ -15,7 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
-import maratmingazovr.ai.carsonella.world.ReactionRequest
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.world.currentTime
 import kotlin.random.Random
 

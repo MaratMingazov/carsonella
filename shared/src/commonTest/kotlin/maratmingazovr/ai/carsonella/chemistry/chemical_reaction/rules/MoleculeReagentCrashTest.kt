@@ -11,6 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
@@ -53,14 +54,14 @@ class MoleculeReagentCrashTest {
         val resolver = ChemicalReactionResolver(StubGenerator())
         // субъект — молекула, сосед — атом: до фикса .element на reagents.first() бросал
         // resolve теперь принимает списки запросов одного инициатора → оборачиваем один запрос в listOf
-        assertNull(resolver.resolve(listOf(listOf(h2Molecule(0f), atom(Element.HYDROGEN, 1f, electrons = 1)))))
+        assertNull(resolver.resolve(listOf(ReactionRequest(listOf(h2Molecule(0f), atom(Element.HYDROGEN, 1f, electrons = 1))))))
     }
 
     @Test
     fun resolverDoesNotThrowWhenMoleculeIsNeighbor() {
         val resolver = ChemicalReactionResolver(StubGenerator())
         // субъект — атом, сосед — молекула: до фикса перебор соседей по .element бросал
-        assertNull(resolver.resolve(listOf(listOf(atom(Element.HYDROGEN, 0f, electrons = 1), h2Molecule(1f)))))
+        assertNull(resolver.resolve(listOf(ReactionRequest(listOf(atom(Element.HYDROGEN, 0f, electrons = 1), h2Molecule(1f))))))
     }
 
     @Test
