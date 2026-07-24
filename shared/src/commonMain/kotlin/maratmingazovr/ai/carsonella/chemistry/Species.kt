@@ -59,8 +59,6 @@ sealed interface Species {
                 graph.formulaPretty,
                 "Energy ${round(s.energy * 100) / 100}",
             )
-            // Слабейшая связь = порог диссоциации (рвётся первой). null у одноатомного осколка
-            // или если тип связи не в каталоге BondEnergy — тогда строку не показываем.
             graph.weakestBondAndEnergy?.let { (_, energy) ->
                 lines += "Weakest bond ${round(energy * 100) / 100} eV"
             }
