@@ -53,12 +53,17 @@ class Molecule(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        // Внутримолекулярные реакции (усиление связи 3c ИЛИ замыкание кольца) — запрашиваем реакцию сама с
-        // собой (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт на запросах с соседями
-        // (partner-first). Один self-request покрывает обе: BondStrengthening и RingClosure гейтят size==1
-        // и читают граф, resolve() выбирает между ними по weight.
+        // Внутримолекулярные реакции (усиление 3c / замыкание кольца / спонтанный сброс энергии) —
+        // запрашиваем реакцию сама с собой (listOf(this)), по аналогии с распадами в Atom.step. Рост идёт
+        // на запросах с соседями (partner-first). Один self-request покрывает все size==1-правила
+        // (BondStrengthening, RingClosure, MolecularSpontaneousEmission), resolve() выбирает по weight.
+        // energy > 0 добавлено, чтобы «горячий» осколок без свободных слотов (напр. ·OH) тоже попал в
+        // self-request и мог сбросить энергию через MolecularSpontaneousEmission (иначе застряла бы навсегда).
         val graph = (state.value.species as? Species.Molecular)?.graph
-        if (graph?.strengthenableBonds?.isNotEmpty() == true || graph?.ringClosureCandidates?.isNotEmpty() == true) {
+        if (graph?.strengthenableBonds?.isNotEmpty() == true ||
+            graph?.ringClosureCandidates?.isNotEmpty() == true ||
+            state.value.energy > 0f
+        ) {
             requestReaction(listOf(this))
         }
 

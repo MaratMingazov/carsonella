@@ -34,6 +34,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_r
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.RingClosure
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.StarDissociation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MolecularSpontaneousEmission
 import kotlin.random.Random
 
 
@@ -82,6 +83,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         RingClosure(entityGenerator), // замыкание кольца: два ненасыщенных атома одной молекулы → цикл (кольцо ≥ 5, weight по ringStrain: 5–6 выгодны)
         StarDissociation(entityGenerator), // распад в звезде: молекула в Star-среде рвёт слабейшую связь за тик, рекурсивно до атомов
         MolecularPhotoIonization(entityGenerator), // отрыв электрона от молекулы под действием света (E ≥ IP): молекула → катион + e⁻
+        MolecularSpontaneousEmission(entityGenerator), // спонтанный сброс внутренней энергии: предиссоциация (E ≥ порог связи) ИЛИ излучение фотона (иначе)
 
     )
 
