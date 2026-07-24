@@ -9,10 +9,7 @@ sealed interface Species {
     val protons: Int
     val radius: Float
     fun displaySymbol(electrons: Int): String
-    // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Функция, а не val,
-    // потому что у атома лестница зависит от заряда (числа электронов) — как displaySymbol. Пусто, если
-    // сущность не ионизируется (фотон/электрон/звезда, голый ион).
-    fun energyLevels(electrons: Int): List<Float>
+    fun energyLevels(electrons: Int): List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
     fun describe(s: EntityState): String
 
     data class Elemental(val element: Element) : Species {
@@ -55,14 +52,20 @@ sealed interface Species {
         override val protons: Int get() = graph.protons
         override val radius: Float get() = MOLECULE_RADIUS
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
-        // Аргумент electrons пока игнорируем: молекулярный IP — приближение «минимум по нейтральным
-        // атомам» ([MoleculeGraph.energyLevels]), от заряда молекулы не зависит. Параметр — задел на будущее.
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
-        override fun describe(s: EntityState): String = """
-            |${graph.formulaPretty}
-            |Energy ${round(s.energy * 100) / 100}
-        """.trimMargin()
+        override fun describe(s: EntityState): String {
+            val lines = mutableListOf(
+                graph.formulaPretty,
+                "Energy ${round(s.energy * 100) / 100}",
+            )
+            // Слабейшая связь = порог диссоциации (рвётся первой). null у одноатомного осколка
+            // или если тип связи не в каталоге BondEnergy — тогда строку не показываем.
+            graph.weakestBondAndEnergy?.let { (_, energy) ->
+                lines += "Weakest bond ${round(energy * 100) / 100} eV"
+            }
+            return lines.joinToString("\n")
+        }
     }
 }
 

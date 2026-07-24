@@ -37,12 +37,12 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         if (reagents.size < 2) return false
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
-        val graph = (first.state().value.species as Species.Molecular).graph
-        val threshold = graph.energyLevels.lastOrNull() ?: return false // есть ли у молекулы ионизируемый атом?
+        val entityState = first.state().value
+        if (!entityState.alive) return false
+        val threshold = entityState.energyLevels.lastOrNull() ?: return false // есть ли у молекулы ионизируемый атом?
 
-        val firstPosition = first.state().value.position
-        val radius = first.state().value.radius
+        val firstPosition = entityState.position
+        val radius = entityState.radius
         val activationDistanceSquare = radius * radius
 
         val nearestPhoton = reagents.drop(1)

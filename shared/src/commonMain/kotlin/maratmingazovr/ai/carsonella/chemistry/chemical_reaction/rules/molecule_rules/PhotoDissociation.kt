@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -86,24 +85,12 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         val fragments = graph.split(bond.atom1, bond.atom2)
 
-        // Избыток (доступная − порог) делим поровну в energy осколков — не теряем (§6/§8, сохранение энергии).
+        // Избыток (доступная − порог) делим поровну на осколки — не теряем (§6/§8, сохранение энергии).
+        // Куда именно кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
         val available = mol.state().value.energy + ph.state().value.energy
         val excessPerFragment = (available - threshold).coerceAtLeast(0f) / fragments.size
 
-        val molPosition = mol.state().value.position
-        val molDirection = mol.state().value.direction
-        val molVelocity = mol.state().value.velocity
-        val env = mol.getEnvironment()
-        val radius = mol.state().value.radius
-
-        val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
-            // разводим осколки по оси X, чтобы не появлялись в одной точке
-            val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))
-            val electrons = frag.protons               // нейтральный осколок (гомолитика)
-            val species: Species =
-                if (frag.nodes.size == 1) Species.Elemental(frag.nodes.single().isotope) else Species.Molecular(frag)
-            return@mapIndexed { entityGenerator.createEntity(species, pos, molDirection, molVelocity, excessPerFragment, env, electrons) }
-        }
+        val spawn = spawnFragments(fragments, mol, entityGenerator, excessPerFragment)
 
         return ReactionOutcome(
             consumed = listOf(ph, mol),

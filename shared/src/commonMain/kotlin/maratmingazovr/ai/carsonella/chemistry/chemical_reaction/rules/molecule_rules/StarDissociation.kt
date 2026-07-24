@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -48,20 +47,11 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         val bond = graph.weakestBondAndEnergy!!.first             // matches гарантировал наличие связи
         val fragments = graph.split(bond.atom1, bond.atom2)
 
-        val molPosition = mol.state().value.position
-        val molDirection = mol.state().value.direction
-        val molVelocity = mol.state().value.velocity
-        val energyPerFragment = mol.state().value.energy / fragments.size   // делим энергию молекулы (разрыв платит звезда)
-        val env = mol.getEnvironment()
-        val radius = mol.state().value.radius
+        // Делим собственную энергию молекулы на осколки (разрыв оплачивает тепловая ванна звезды, её не
+        // тратим). Куда кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
+        val energyPerFragment = mol.state().value.energy / fragments.size
 
-        val spawn: List<() -> Entity> = fragments.mapIndexed { i, frag ->
-            val pos = molPosition.plus(Position((i - (fragments.size - 1) / 2f) * radius, 0f))
-            val electrons = frag.protons               // нейтральный осколок (гомолитика)
-            val species: Species =
-                if (frag.nodes.size == 1) Species.Elemental(frag.nodes.single().isotope) else Species.Molecular(frag)
-            return@mapIndexed { entityGenerator.createEntity(species, pos, molDirection, molVelocity, energyPerFragment, env, electrons) }
-        }
+        val spawn = spawnFragments(fragments, mol, entityGenerator, energyPerFragment)
 
         return ReactionOutcome(
             consumed = listOf(mol),

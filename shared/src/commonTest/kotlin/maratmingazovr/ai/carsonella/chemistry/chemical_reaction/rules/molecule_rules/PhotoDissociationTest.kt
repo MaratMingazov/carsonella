@@ -29,13 +29,13 @@ class PhotoDissociationTest {
 
     private class CapturingGenerator : IEntityGenerator {
         override val random = Random(0)
-        data class Spawned(val species: Species, val energy: Float, val electrons: Int)
+        data class Spawned(val species: Species, val energy: Float, val velocity: Float, val electrons: Int)
         val spawned = mutableListOf<Spawned>()
         override fun createEntity(
             species: Species, position: Position, direction: Vec2D,
             velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
         ): Entity {
-            spawned += Spawned(species, energy, electrons)
+            spawned += Spawned(species, energy, velocity, electrons)
             return Atom(0L, Element.HYDROGEN, position, direction, velocity, energy, electrons = 1)
         }
     }
@@ -93,8 +93,13 @@ class PhotoDissociationTest {
         assertEquals(9, oh.electrons)
         assertEquals(1, h.electrons)
 
-        // избыток (доступная − порог) не потерян: разложен в energy осколков поровну
-        assertEquals((ohBond + 2f) - ohBond, gen.spawned.sumOf { it.energy.toDouble() }.toFloat(), 0.001f)
+        // Избыток (2 эВ) делится поровну (по 1 эВ), но КУДА кладётся — зависит от типа осколка:
+        // ·OH (молекула) уносит долю во ВНУТРЕННЕЙ энергии, H (атом) — в КИНЕТИКЕ (energy = 0), иначе атом
+        // получил бы «не-уровень» и уронил бы инвариант SpontaneousEmission. molVelocity воды = 0.
+        val excessPerFragment = ((ohBond + 2f) - ohBond) / 2f              // 1.0
+        assertEquals(excessPerFragment, oh.energy, 0.001f)                 // ·OH: во внутренней энергии
+        assertEquals(0f, h.energy, 0.001f)                                 // H: внутренней энергии нет
+        assertEquals(0.2f * excessPerFragment, h.velocity, 0.001f)         // H: избыток ушёл в скорость
     }
 
     @Test
