@@ -77,7 +77,6 @@ class RecombinationReaction(
         val atom2Element = atom2El!!
         val electrons = atom1!!.state().value.electrons
         val resultPosition = atom1!!.state().value.position
-        val electronEnergy = atom2!!.state().value.energy
         val env = atom1!!.getEnvironment()
 
         // Протий — особый случай: p⁺ + e⁻ → HYDROGEN (атом). Element/класс меняется (element неизменяем) →
@@ -110,7 +109,7 @@ class RecombinationReaction(
             )
         }
 
-        // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, +энергия e⁻), вылетает фотон.
+        // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, energy=0), вылетает фотон.
         val resultElectrons = electrons + 1
         val photonEnergy = atom1Element.energyLevels(resultElectrons).last()
         val direction = atom1!!.state().value.direction
@@ -119,7 +118,9 @@ class RecombinationReaction(
             consumed = listOf(atom2!!),
             updateState = listOf {
                 atom1!!.setElectrons(resultElectrons)
-                atom1!!.addEnergy(electronEnergy)
+                // Электрон сел сразу в основное состояние (фотон унёс энергию связи). Сбрасываем energy в 0:
+                // старая энергия иона для нового заряда не валидна (инвариант Atom на updateState-пути).
+                atom1!!.setEnergy(0f)
             },
             spawn = listOf {
                 entityGenerator.createEntity(

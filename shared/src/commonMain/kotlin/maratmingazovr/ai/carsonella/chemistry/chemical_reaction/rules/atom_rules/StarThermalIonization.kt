@@ -96,9 +96,11 @@ class StarThermalIonization(
             )
         }
 
-        // Прочие атомы: тот же Element, на 1 электрон меньше; вылетает свободный e⁻.
+        // Прочие атомы: тот же Element, на 1 электрон меньше; вылетает свободный e⁻. energy сбрасываем в
+        // основное состояние: у нового зарядового состояния другие уровни, старая энергия для него не
+        // валидна (инвариант Atom; конструкторный require не ловит updateState-путь — чиним здесь).
         return ReactionOutcome(
-            updateState = listOf { atom.setElectrons(electrons - 1) },
+            updateState = listOf { atom.setElectrons(electrons - 1); atom.setEnergy(0f) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.ELECTRON,
