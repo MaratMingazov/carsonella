@@ -56,12 +56,14 @@ sealed interface Species {
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
         override fun describe(s: EntityState): String {
-            // Известная молекула из реестра: англ. имя + формула первой строкой, русское имя — отдельной.
+            // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и
+            // структурная формула (связность) — отдельными строками. Аноним → просто брутто-формула.
             val known = MoleculeRegistry.lookup(graph.canonical)
             val lines = mutableListOf(
                 if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
             )
             if (known != null) lines += known.nameRu
+            if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
             lines += "Energy ${round(s.energy * 100) / 100}"
             graph.weakestBondAndEnergy?.let { (_, energy) ->
                 lines += "Weakest bond ${round(energy * 100) / 100} eV"

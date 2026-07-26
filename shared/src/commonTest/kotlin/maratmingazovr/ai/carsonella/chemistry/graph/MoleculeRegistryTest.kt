@@ -22,6 +22,7 @@ class MoleculeRegistryTest {
         val known = MoleculeRegistry.lookup(water.canonical)
         assertEquals("Water", known?.nameEn)
         assertEquals("Вода", known?.nameRu)
+        assertEquals("H–O–H", known?.structuralFormula)
     }
 
     @Test
