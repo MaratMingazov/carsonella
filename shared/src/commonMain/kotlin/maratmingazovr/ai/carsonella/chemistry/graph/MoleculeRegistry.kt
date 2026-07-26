@@ -21,6 +21,11 @@ data class KnownMolecule(val nameEn: String, val nameRu: String, val description
  */
 object MoleculeRegistry {
 
+    // Дикарбон C₂ (экзотический бирадикал: пламя/кометы). В модели встречается на всех трёх порядках связи
+    // (C–C/C=C/C≡C) как промежуток сборки; порядок связи модельно неточен (в природе ≈ двойной). Одно имя
+    // на все три канона (порядок связи всё равно виден в структурном рендере).
+    private val dicarbon = KnownMolecule("Dicarbon", "Дикарбон", "экзотический бирадикал (пламя/кометы); порядок связи модельно неточен")
+
     private val byCanonical: Map<String, KnownMolecule> = listOf(
         // --- двухатомные ---
         mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород"),
@@ -54,6 +59,18 @@ object MoleculeRegistry {
         mol(listOf(n(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Amino radical", "Аминорадикал"), // •NH₂
         mol(listOf(h(0), o(1), o(2)), listOf(bond(0, 1), bond(1, 2)))            to KnownMolecule("Hydroperoxyl", "Гидропероксил"), // H–O–O•
         mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6))) to KnownMolecule("Ethyl", "Этил"),             // •C₂H₅
+        mol(listOf(c(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Methylidyne", "Метилидин"),   // •CH  (3 слота)
+        mol(listOf(c(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Methylene", "Метилен"),       // :CH₂ (2 слота)
+        mol(listOf(h(0), c(1), c(2)), listOf(bond(0, 1), bond(1, 2, 3)))         to KnownMolecule("Ethynyl", "Этинил"),          // H–C≡C•
+        mol(listOf(c(0), c(1), h(2), h(3), h(4)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4)))
+                                                                                 to KnownMolecule("Vinyl", "Винил"),            // H₂C=CH•
+        mol(listOf(c(0), o(1), h(2)), listOf(bond(0, 1, 2), bond(0, 2)))         to KnownMolecule("Formyl", "Формил"),           // H–C•=O
+        mol(listOf(c(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Cyano", "Циано"),             // •C≡N
+
+        // --- дикарбон C₂: все три порядка связи → одно имя «Дикарбон» ---
+        mol(listOf(c(0), c(1)), listOf(bond(0, 1)))                              to dicarbon,   // •C–C•
+        mol(listOf(c(0), c(1)), listOf(bond(0, 1, 2)))                           to dicarbon,   // C=C
+        mol(listOf(c(0), c(1)), listOf(bond(0, 1, 3)))                           to dicarbon,   // •C≡C•
     ).associate { (graph, known) -> graph.canonical to known }
 
     /**

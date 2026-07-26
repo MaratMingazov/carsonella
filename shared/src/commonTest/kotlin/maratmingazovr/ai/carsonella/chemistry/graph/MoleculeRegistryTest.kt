@@ -48,10 +48,19 @@ class MoleculeRegistryTest {
     }
 
     @Test
+    fun recognizesDicarbonAtAnyBondOrder() {
+        // C–C / C=C / C≡C (голый C₂) — один и тот же дикарбон, отличается лишь порядком связи.
+        listOf(1, 2, 3).forEach { order ->
+            val c2 = mol(listOf(c(0), c(1)), listOf(Bond(0, 1, order)))
+            assertEquals("Dicarbon", MoleculeRegistry.lookup(c2.canonical)?.nameEn, "order=$order")
+        }
+    }
+
+    @Test
     fun unknownMoleculeIsNull() {
-        // :CH₂ (метилен) — не в реестре → аноним.
-        val methylene = mol(listOf(c(0), h(1), h(2)), listOf(Bond(0, 1, 1), Bond(0, 2, 1)))
-        assertNull(MoleculeRegistry.lookup(methylene.canonical))
+        // Скелет озона O–O–O — осознанно НЕ в реестре (нужны формальные заряды) → аноним.
+        val ozoneSkeleton = mol(listOf(o(0), o(1), o(2)), listOf(Bond(0, 1, 1), Bond(1, 2, 1)))
+        assertNull(MoleculeRegistry.lookup(ozoneSkeleton.canonical))
     }
 
     @Test
