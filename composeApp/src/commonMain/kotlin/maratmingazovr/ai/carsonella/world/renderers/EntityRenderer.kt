@@ -4,26 +4,30 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
-private const val ATOM_RADIUS = 8f             // радиус кружка атома внутри молекулы
+private const val ATOM_RADIUS = 20f             // радиус кружка атома внутри молекулы
 private const val BOND_LINE_SPACING = 3f       // сдвиг параллельных линий для двойных/тройных связей
 private const val LABEL_ABOVE = 26f            // на сколько поднять подпись над молекулой
-private val BOND_COLOR = Color(0xFFB0BEC5)     // нейтральный цвет связи
+// private val BOND_COLOR = Color(0xFFB0BEC5)  // прежний светлый цвет связи (для тёмного фона)
+private val BOND_COLOR = Color(0xFF212121)     // МИНИМАЛИЗМ: почти чёрная связь (Sokobond, на белом)
 private const val CORE_RADIUS_MAX = 1f         // ядро — крошечный маркер центра (реальное ядро ≈ точка, ~1/100000 атома; не в масштабе)
 
 // Масштаб отрисовки: пикселей на 1 пм. Пока зафиксирован на «пикометровом» (самом мелком)
 // масштабе — 1px = 1пм, атомы в натуральную величину. Позже станет параметром (ползунок zoom).
 private const val PX_PER_PM = 1f
 
-// Радиус ОДИНОЧНОГО атома для отрисовки: реальный ван-дер-ваальсов радиус (размер несвязанного
-// атома), переведённый в пиксели. Для сущностей без vdw-радиуса (звезда, фолбэк молекулы) —
-// старый Species.radius.
-private fun Species.displayRadiusPx(): Float = radius
+// Единый тайминг анимаций от монотонного time (секунды). Частоты в Гц (циклов/сек); для слотов —
+// оборотов/сек. internal — чтобы SubAtomRenderer брал ту же вибрацию. Меняешь скорость здесь, в одном месте.
+internal const val ANIM_TWO_PI = 6.2831855f
+internal const val VIB_HZ = 1f        // вибрация частиц: 1 цикл/сек (как прежний phase, 2π за 1с)
+internal const val STAR_HZ = 0.2f     // пульс звезды: 1 цикл/5с (как прежний phase2, 2π за 5с)
+internal const val SLOT_HZ = 1f / 15f  // вращение свободных слотов: 1 оборот/15с — медленно, плавно, без скачка
 
 class EntityRenderer(
     private val textMeasurer: TextMeasurer,
@@ -34,63 +38,59 @@ class EntityRenderer(
     fun render(
         drawScope: DrawScope,
         entityState: EntityState,
-        phase: Float,
-        phase2: Float,
+        time: Float,
         showLabel: Boolean = false,
     ) {
-        // Диспетчеризация по species/ElementType (а не по классу состояния) — так рендер не зависит
-        // от конкретных типов состояний, что позволяет объединить их в один EntityState.
         val species = entityState.species
-        if (species is Species.Molecular) { drawMolecule(drawScope, entityState, phase, showLabel); return }
+        if (species is Species.Molecular) { drawMolecule(drawScope, entityState, time, showLabel); return }
         when ((species as Species.Elemental).element.details.type) {
-            ElementType.SubAtom -> subAtomRenderer.render(drawScope, entityState, phase, showLabel)
-            ElementType.Atom -> drawEntity(drawScope, entityState, phase, showLabel)
-            ElementType.Star -> drawStar(drawScope, entityState, phase, phase2)
+            ElementType.SubAtom -> subAtomRenderer.render(drawScope, entityState, time, showLabel)
+            ElementType.Atom -> drawEntity(drawScope, entityState, time, showLabel)
+            ElementType.Star -> drawStar(drawScope, entityState, time)
         }
     }
 
     fun drawEntity(
         drawScope: DrawScope,
         entityState: EntityState,
-        phase: Float,
+        time: Float,
         showLabel: Boolean,
     ) {
         // параметры вибрации
         val amp = 1f + entityState.energy                  // амплитуда в пикселях
         val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
-        val dx = amp * kotlin.math.cos(phase + idSeed)
-        val dy = amp * kotlin.math.sin(phase + idSeed)
+        val vib = time * ANIM_TWO_PI * VIB_HZ
+        val dx = amp * kotlin.math.cos(vib + idSeed)
+        val dy = amp * kotlin.math.sin(vib + idSeed)
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
-        val color = ElementColors.glow(entityState.species)
-        val baseRadius = entityState.species.displayRadiusPx()
+        val element = (entityState.species as Species.Elemental).element
+        val baseRadius = entityState.species.radius
+        val fill = ElementColors.fill(entityState.species)
+        val symbol = element.details.symbol.filter { it.isLetter() }
+        val slotAngle = time * ANIM_TWO_PI * SLOT_HZ + idSeed   // + idSeed: у каждого атома свой стартовый угол
 
         with(drawScope) {
-            drawAtomOrb(position, baseRadius, color, entityState.energy)
-
-            // символ — только при наведении/выборе, всплывает над частицей
-            if (showLabel) {
-                drawFloatingLabel(textMeasurer, position, baseRadius * 1.5f, entityState.displaySymbol)
-            }
+            drawFlatAtom(position, baseRadius, fill, symbol, element.valence(), slotAngle)
         }
     }
 
     fun drawStar(
         drawScope: DrawScope,
         entityState: EntityState,
-        phase: Float,
-        phase2: Float,
+        time: Float,
     ) {
-        // параметры вибрации
+        // параметры вибрации/пульса — от общего time на частоте STAR_HZ
         val amp = 1f + entityState.energy                  // амплитуда в пикселях
         val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
-        val dx = amp * kotlin.math.cos(phase2 + idSeed)
-        val dy = amp * kotlin.math.sin(phase2 + idSeed)
+        val ph = time * ANIM_TWO_PI * STAR_HZ
+        val dx = amp * kotlin.math.cos(ph + idSeed)
+        val dy = amp * kotlin.math.sin(ph + idSeed)
         val position = entityState.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
         val baseRadius = entityState.radius + 5f   // базовый радиус круга
-        val pulse = 10f * kotlin.math.abs(kotlin.math.sin(phase2 + idSeed)) // амплитуда пульса
+        val pulse = 10f * kotlin.math.abs(kotlin.math.sin(ph + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 
         with(drawScope) {
@@ -119,30 +119,38 @@ class EntityRenderer(
     fun drawMolecule(
         drawScope: DrawScope,
         entityState: EntityState,
-        phase: Float,
+        time: Float,
         showLabel: Boolean,
     ) {
         val species = entityState.species
-        if (species !is Species.Molecular) { drawEntity(drawScope, entityState, phase, showLabel); return }
+        if (species !is Species.Molecular) { drawEntity(drawScope, entityState, time, showLabel); return }
         val graph = species.graph
 
         val amp = 1f + entityState.energy
         val idSeed = (entityState.id % 1000).toFloat()
-        val jitter = Offset(amp * kotlin.math.cos(phase + idSeed), amp * kotlin.math.sin(phase + idSeed))
+        val vib = time * ANIM_TWO_PI * VIB_HZ
+        val jitter = Offset(amp * kotlin.math.cos(vib + idSeed), amp * kotlin.math.sin(vib + idSeed))
         val center = entityState.position.toOffset() + jitter
+        val slotAngle = time * ANIM_TWO_PI * SLOT_HZ
 
         val offsets = MoleculeLayout.layout(graph)
 
         with(drawScope) {
-            // связи (под атомами)
+
             graph.bonds.forEach { bond ->
                 drawBond(center + offsets.getValue(bond.atom1), center + offsets.getValue(bond.atom2), bond.order)
             }
-            // атомы — цвет по элементу; тот же «светящийся шар», что у одиночного атома, только компактный
+
             graph.nodes.forEach { node ->
                 val p = center + offsets.getValue(node.localId)
+                val fill = ElementColors.fill(Species.Elemental(node.isotope))
+                val symbol = node.isotope.details.symbol.filter { it.isLetter() }
+                // + idSeed (на молекулу) + localId (на узел) → у каждого узла свой стартовый угол
+                val nodeSlotAngle = slotAngle + idSeed + node.localId * 1.3f
+                drawFlatAtom(p, ATOM_RADIUS, fill, symbol, graph.freeSlots(node.localId), nodeSlotAngle)
+                /* --- прежний «светящийся шар» узла: ---
                 val color = ElementColors.glow(Species.Elemental(node.isotope))
-                drawAtomOrb(p, ATOM_RADIUS, color, entityState.energy)
+                drawAtomOrb(p, ATOM_RADIUS, color, entityState.energy) */
             }
             // подпись-формула над молекулой при наведении/выборе
             if (showLabel) {
@@ -151,12 +159,24 @@ class EntityRenderer(
         }
     }
 
-    // Атом как «светящийся шар»: широкое мягкое гало + маленькое плотное ядро. Единый стиль для
-    // одиночного атома и для узла молекулы — отличается только базовый радиус (в молекуле он компактный,
-    // ATOM_RADIUS, чтобы связи-линии не тонули в гало).
-    private fun DrawScope.drawAtomOrb(center: Offset, baseRadius: Float, color: Color, energy: Float) {
-        drawGlow(center, baseRadius * 1.5f, color, intensity = 1f + energy * 0.05f)          // мягкое свечение
-        drawCircle(color = color.copy(alpha = 0.9f), center = center, radius = baseRadius * 0.25f)  // плотное ядро
+
+
+
+    private fun DrawScope.drawFlatAtom(center: Offset, radius: Float, fill: Color, symbol: String, freeSlots: Int, slotAngle: Float) {
+        drawCircle(color = fill, center = center, radius = radius) // сам круг
+        drawCircle(color = Color.Black, center = center, radius = radius, style = Stroke(width = 1.5f)) // оконтовка
+        drawCenteredSymbol(textMeasurer, center, symbol, onFillTextColor(fill), fontSizeSp = radius * 0.7f)
+
+        if (freeSlots > 0) {
+            val slotR = (radius * 0.18f).coerceIn(2.5f, 6f)   // размер маркера слота
+            val base = slotAngle.toDouble()
+            for (i in 0 until freeSlots) {
+                val a = base + 2.0 * kotlin.math.PI * i / freeSlots
+                val p = center + Offset(kotlin.math.cos(a).toFloat() * radius, kotlin.math.sin(a).toFloat() * radius)
+                drawCircle(color = Color.White, center = p, radius = slotR)   // белый кружок слота
+                drawCircle(color = Color.Black, center = p, radius = slotR, style = Stroke(width = 1f)) // обводка
+            }
+        }
     }
 
     // Связь: order параллельных линий (двойная/тройная — со сдвигом перпендикулярно связи).

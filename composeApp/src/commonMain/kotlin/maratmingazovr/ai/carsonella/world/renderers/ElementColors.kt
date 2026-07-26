@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -65,6 +66,42 @@ object ElementColors {
         Element.Proton -> PROTON
         else -> byZ[element.details.p] ?: DEFAULT_HEAVY
     }
+
+    // --- МИНИМАЛИЗМ (Sokobond): плоская ПАСТЕЛЬНАЯ палитра для СВЕТЛОГО фона ---
+    // Приглушённые, светлые тона (порядок CPK, но мягче): читаются на белом с чёрной обводкой.
+    // Исключения ради контраста: H — белый (виден за счёт обводки), C — тёмный графит (буква белая).
+    private val fillByZ: Map<Int, Color> = mapOf(
+        1 to Color(0xFFFFFFFF),  2 to Color(0xFFCDECEC),
+        3 to Color(0xFFD9C7F5),  4 to Color(0xFFDCEBB0),  5 to Color(0xFFF6CFC6),
+        6 to Color(0xFF595959),  7 to Color(0xFFA3B4E6),  8 to Color(0xFFF2A0A0),
+        9 to Color(0xFFBEE3A8), 10 to Color(0xFFC9E9F0),
+        11 to Color(0xFFD3BEF0), 12 to Color(0xFFBFEBB4), 13 to Color(0xFFDDCFCB),
+        14 to Color(0xFFEFDCBB), 15 to Color(0xFFF7C9A0), 16 to Color(0xFFF3E9A8),
+        17 to Color(0xFFB4E3B0), 18 to Color(0xFFCBE6EC), 19 to Color(0xFFD3BEEA),
+        20 to Color(0xFFC0E6AE),
+    )
+    private val FILL_DEFAULT = Color(0xFFD5D5D5)  // молекула-фолбэк / неизвестный элемент — мягкий серый
+
+    /** Сплошная заливка кружка атома (плоский стиль). */
+    fun fill(species: Species): Color = when (species) {
+        is Species.Molecular -> FILL_DEFAULT
+        is Species.Elemental -> fillByZ[species.element.details.p] ?: FILL_DEFAULT
+    }
+}
+
+/** Цвет символа поверх заливки: чёрный на светлой, белый на тёмной (по яркости заливки). */
+fun onFillTextColor(fill: Color): Color = if (fill.luminance() > 0.55f) Color.Black else Color.White
+
+/** Символ В ЦЕНТРЕ кружка (минимализм Sokobond). [fontSizeSp] — размер шрифта в sp. */
+fun DrawScope.drawCenteredSymbol(
+    textMeasurer: TextMeasurer,
+    center: Offset,
+    text: String,
+    color: Color,
+    fontSizeSp: Float,
+) {
+    val layout = textMeasurer.measure(text = text, style = TextStyle(color = color, fontSize = fontSizeSp.sp))
+    drawText(layout, topLeft = Offset(center.x - layout.size.width / 2f, center.y - layout.size.height / 2f))
 }
 
 /**

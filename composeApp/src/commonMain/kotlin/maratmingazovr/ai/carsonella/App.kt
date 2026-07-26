@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -13,7 +12,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import kotlin.math.PI
 
 @Composable
 @Preview
@@ -25,17 +23,13 @@ fun App() {
         val world = remember { World(scope).apply { start() } }
 
 
-        // это нужно, чтобы анимировать дрожание протона
-        val phase by rememberInfiniteTransition().animateFloat(
-            initialValue = 0f,
-            targetValue = (2f * PI).toFloat(),
-            animationSpec = infiniteRepeatable(tween(durationMillis = 1000, easing = LinearEasing))
-        )
-        val phase2 by rememberInfiniteTransition().animateFloat(
-            initialValue = 0f,
-            targetValue = (2f * PI).toFloat(),
-            animationSpec = infiniteRepeatable(tween(durationMillis = 5000, easing = LinearEasing))
-        )
+        // Единый монотонный «часовой» источник (секунды с запуска). Каждый эффект берёт свою частоту
+        // (VIB_HZ/STAR_HZ/SLOT_HZ в рендере). Монотонность (НЕ заворачивается) → плавное непрерывное
+        // вращение слотов без скачков, в отличие от прежних зацикленных phase/phase2.
+        val time by produceState(0f) {
+            val start = withFrameNanos { it }
+            while (true) { withFrameNanos { now -> value = (now - start) / 1_000_000_000f } }
+        }
 
         var hoverPos by remember { mutableStateOf<Offset?>(null) } // это координаты моего курсора на канве
         var hoveredId by remember { mutableStateOf<Long?>(null) }
@@ -81,8 +75,7 @@ fun App() {
                     world = world,
                     entitiesState = entitiesState,
                     renderer = renderer,
-                    phase = phase,
-                    phase2 = phase2,
+                    time = time,
                 )
 
             }

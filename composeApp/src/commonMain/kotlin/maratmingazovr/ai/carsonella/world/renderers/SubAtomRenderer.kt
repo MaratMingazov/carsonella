@@ -15,15 +15,15 @@ class SubAtomRenderer(
     fun render(
         drawScope: DrawScope,
         state: EntityState,
-        phase: Float,
+        time: Float,
         showLabel: Boolean,
     ) {
         when ((state.species as Species.Elemental).element) {
             Element.PHOTON -> drawPhoton(drawScope, state)
             Element.ELECTRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "−", showLabel = showLabel)
             Element.POSITRON -> drawChargedSubAtom(drawScope, state, radius = 9f, label = "+", showLabel = showLabel)
-            Element.Proton -> drawNucleon(drawScope, state, phase, label = "+", showLabel = showLabel)
-            Element.NEUTRON -> drawNucleon(drawScope, state, phase, label = "n", showLabel = showLabel)
+            Element.Proton -> drawNucleon(drawScope, state, time, label = "+", showLabel = showLabel)
+            Element.NEUTRON -> drawNucleon(drawScope, state, time, label = "n", showLabel = showLabel)
             else -> throw NotImplementedError()
         }
     }
@@ -61,14 +61,15 @@ class SubAtomRenderer(
     private fun drawNucleon(
         drawScope: DrawScope,
         state: EntityState,
-        phase: Float,
+        time: Float,
         label: String,
         showLabel: Boolean,
     ) {
         val amp = 2f
         val idSeed = (state.id % 1000).toFloat()
-        val dx = amp * kotlin.math.cos(phase + 0.7f * idSeed)
-        val dy = amp * kotlin.math.sin(1.6f * phase + 0.37f * idSeed)
+        val vib = time * ANIM_TWO_PI * VIB_HZ
+        val dx = amp * kotlin.math.cos(vib + 0.7f * idSeed)
+        val dy = amp * kotlin.math.sin(1.6f * vib + 0.37f * idSeed)
         val p = state.position.toOffset() + Offset(dx, dy)
         val color = ElementColors.glow(state.species)
         with(drawScope) {

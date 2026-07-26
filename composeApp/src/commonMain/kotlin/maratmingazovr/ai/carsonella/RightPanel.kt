@@ -58,8 +58,7 @@ fun RightPanel(
     world: World,
     entitiesState: List<EntityState>,
     renderer: EntityRenderer,
-    phase: Float,
-    phase2: Float,
+    time: Float,
     modifier: Modifier = Modifier
 ) {
 
@@ -76,7 +75,8 @@ fun RightPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color(0xFF03040A))
+                    // .background(Color(0xFF03040A))  // прежний тёмный фон контейнера
+                    .background(Color.White)            // МИНИМАЛИЗМ (Sokobond)
                     .padding(4.dp)
                     .focusRequester(focusRequester) // для обработки клавиш клавиутуры
                     .focusable() // важно!
@@ -109,8 +109,7 @@ fun RightPanel(
                     world = world,
                     entitiesState = entitiesState,
                     renderer = renderer,
-                    phase = phase,
-                    phase2 = phase2,
+                    time = time,
                     hoverPos = hoverPos,
                     onHover = { pos -> onHover(pos); focusRequester.requestFocus() },
                     hoveredId = hoveredId,
@@ -181,8 +180,7 @@ private fun SceneCanvas(
     world: World,
     entitiesState: List<EntityState>,
     renderer: EntityRenderer,
-    phase: Float,
-    phase2: Float,
+    time: Float,
     hoverPos: Offset?,
     onHover: (Offset?) -> Unit,
     hoveredId: Long?,
@@ -252,7 +250,9 @@ private fun SceneCanvas(
                 }
             }
     ) {
-        // тёмный космический фон: радиальный градиент + редкие тусклые звёзды
+        // МИНИМАЛИЗМ (Sokobond): белый фон. Прежний тёмный космос закомментирован — вернуть при откате.
+        drawRect(color = Color.White, size = size)
+        /* --- прежний тёмный космический фон (радиальный градиент + редкие тусклые звёзды): ---
         drawRect(
             brush = Brush.radialGradient(
                 colors = listOf(Color(0xFF0B1026), Color(0xFF03040A)),
@@ -268,10 +268,11 @@ private fun SceneCanvas(
                 center = Offset(s.nx * size.width, s.ny * size.height),
             )
         }
+        */
 
-        // граница корневого environment
+        // граница корневого environment (на белом фоне — светло-серая)
         drawCircle(
-            color = Color.White.copy(alpha = 0.10f),
+            color = Color.Black.copy(alpha = 0.12f),
             center = world.environment.getEnvCenter().toOffset(),
             radius = world.environment.getEnvRadius(),
             style = Stroke(width = 1f)
@@ -310,7 +311,7 @@ private fun SceneCanvas(
 //        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
-        entitiesState.forEach { renderer.render(this, it, phase, phase2, showLabel = it.id == hoveredId || it.id == selectedId) }
+        entitiesState.forEach { renderer.render(this, it, time, showLabel = it.id == hoveredId || it.id == selectedId) }
 
         // подсветка ховера
         hoveredId?.let { id ->
