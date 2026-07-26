@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry
 
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 
 
@@ -55,10 +56,13 @@ sealed interface Species {
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
         override fun describe(s: EntityState): String {
+            // Известная молекула из реестра: англ. имя + формула первой строкой, русское имя — отдельной.
+            val known = MoleculeRegistry.lookup(graph.canonical)
             val lines = mutableListOf(
-                graph.formulaPretty,
-                "Energy ${round(s.energy * 100) / 100}",
+                if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
             )
+            if (known != null) lines += known.nameRu
+            lines += "Energy ${round(s.energy * 100) / 100}"
             graph.weakestBondAndEnergy?.let { (_, energy) ->
                 lines += "Weakest bond ${round(energy * 100) / 100} eV"
             }
