@@ -206,7 +206,7 @@ class MoleculeGraphTest {
         val result = hydroxyl().merge(atomGraph(Element.HYDROGEN), thisNode = 0, otherNode = 0, bondOrder = 1)
         assertEquals("H2O", result.formula)
         assertEquals(18f, result.mass)
-        assertEquals(water().canonical(), result.canonical())   // та же молекула, что собранная вручную
+        assertEquals(water().canonical, result.canonical)   // та же молекула, что собранная вручную
         assertFalse(result.hasFreeSlot)                        // закрытая оболочка
     }
 
@@ -254,7 +254,7 @@ class MoleculeGraphTest {
             ),
         )
         assertEquals("CH4O", result.formula)
-        assertEquals(methanolRenumbered.canonical(), result.canonical())
+        assertEquals(methanolRenumbered.canonical, result.canonical)
         assertFalse(result.hasFreeSlot)
     }
 
@@ -388,7 +388,7 @@ class MoleculeGraphTest {
                 Bond(5, 7, order = 1),
             ),
         )
-        assertEquals(water().canonical(), waterRenumbered.canonical())
+        assertEquals(water().canonical, waterRenumbered.canonical)
     }
 
     @Test
@@ -396,7 +396,7 @@ class MoleculeGraphTest {
         // Одинаковый состав...
         assertEquals(ethanol().formula, dimethylEther().formula)   // оба C2H6O
         // ...но разная структура → разные канонические ключи (изомеры различаются).
-        assertNotEquals(ethanol().canonical(), dimethylEther().canonical())
+        assertNotEquals(ethanol().canonical, dimethylEther().canonical)
     }
 
     @Test
@@ -411,23 +411,24 @@ class MoleculeGraphTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertNotEquals(o2.canonical(), peroxideBond.canonical())
+        assertNotEquals(o2.canonical, peroxideBond.canonical)
     }
 
     @Test
     fun canonicalIsStable() {
         // Идемпотентность: повторный вызов даёт ту же строку.
-        assertEquals(ethanol().canonical(), ethanol().canonical())
+        assertEquals(ethanol().canonical, ethanol().canonical)
     }
 
     @Test
-    fun canonicalRejectsTooLargeMolecules() {
-        // Наивный перебор O(n!) ограничен гардом; 10 изолированных узлов → отказ.
+    fun canonicalOfTooLargeMoleculeIsEmpty() {
+        // Наивный перебор O(n!) не тянет крупные (> CANONICAL_MAX_NODES); 10 изолированных узлов → "".
+        // "" = «нет канонической идентичности» (до Моргана), НЕ бросаем — вызывающий не падает.
         val tooBig = MoleculeGraph(
             nodes = (0..9).map { AtomNode(it, Element.HYDROGEN) },
             bonds = emptyList(),
         )
-        assertFailsWith<IllegalArgumentException> { tooBig.canonical() }
+        assertEquals("", tooBig.canonical)
     }
 
     // --- разрыв связи (split, зеркало merge) ---
@@ -450,7 +451,7 @@ class MoleculeGraphTest {
         assertEquals(2, parts.size)
         assertEquals(setOf("HO", "H"), parts.map { it.formula }.toSet())   // ·OH и одиночный H
         val oh = parts.first { it.nodes.size == 2 }
-        assertEquals(hydroxyl().canonical(), oh.canonical())                 // осколок = тот же ·OH
+        assertEquals(hydroxyl().canonical, oh.canonical)                 // осколок = тот же ·OH
         assertEquals(3, parts.sumOf { it.nodes.size })                       // атомы сохранены (2 + 1)
     }
 
@@ -468,7 +469,7 @@ class MoleculeGraphTest {
         // H–O–O–H рвём центральную O–O(1,2) → два ·OH.
         val parts = peroxide().split(1, 2)
         assertEquals(2, parts.size)
-        parts.forEach { assertEquals(hydroxyl().canonical(), it.canonical()) }
+        parts.forEach { assertEquals(hydroxyl().canonical, it.canonical) }
     }
 
     @Test
