@@ -1,11 +1,13 @@
 package maratmingazovr.ai.carsonella
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -47,7 +49,7 @@ fun App() {
         }
 
         DragDropContainer {
-            Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().background(Color.White)) {
                 TopPalette(palette = world.palette)
 
                 RightPanel(

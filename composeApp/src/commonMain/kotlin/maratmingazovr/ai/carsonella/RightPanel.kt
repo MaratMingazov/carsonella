@@ -170,27 +170,6 @@ fun RightPanel(
 //    }
 }
 
-@Composable
-private fun TemperatureBadge(temperatureKelvin: Float, modifier: Modifier = Modifier) {
-    val tC = ((temperatureKelvin - 273.15f) * 10).roundToInt() / 10f
-    val text = "T: $tC °C"
-
-    Row(
-        modifier
-            .background(
-                Color.LightGray.copy(alpha = 0.2f), // 0.0f = полностью прозрачный, 1.0f = непрозрачный
-                shape = RoundedCornerShape(6.dp)
-            )
-            .padding(horizontal = 10.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = Color(0xFF212121),
-            textAlign = TextAlign.Start
-        )
-    }
-}
 
 // Тусклая фоновая звезда: позиция нормирована (0..1), масштабируется под размер канвы.
 private data class StarDot(val nx: Float, val ny: Float, val radius: Float, val alpha: Float)
