@@ -24,7 +24,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -83,7 +82,7 @@ fun RightPanel(
     val onSelectUpToDate = rememberUpdatedState(onSelect) // чтобы замыкание не устаревало
 
     DropTarget(accept = accept, onDrop = onDrop) { dropModifier ->
-        Column(modifier = dropModifier.fillMaxSize()) {
+        Column(modifier = dropModifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -348,27 +347,19 @@ fun ConsolePanel(
 
     Column(
         modifier
-            .fillMaxWidth()
+            .fillMaxWidth(0.6f)   // консоль уже канвы; долю правишь здесь
             .height(height)
-            .background(Color.White)
-            .padding(6.dp)
-            .drawBehind {
-                val strokeWidth = 1.dp.toPx()
-                val x = size.width - strokeWidth / 2
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, 0f),
-                    strokeWidth = strokeWidth
-                )
-            }
+            .padding(8.dp)                                       // отступ — консоль читается как отдельная карточка
+            .background(PANEL_BG, RoundedCornerShape(12.dp))
+            .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
+            .padding(8.dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Console", style = MaterialTheme.typography.labelLarge, color = Color.Black)
+            Text("Console", style = MaterialTheme.typography.labelLarge, color = Color(0xFF3E362A))
             if (showClear && onClear != null) {
                 Text(
                     "Clear",
-                    color = Color(0xFF1565C0),
+                    color = Color(0xFF6B5E4A),
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .clickable { onClear() }
@@ -381,7 +372,7 @@ fun ConsolePanel(
             items(logs.size) { i ->
                 Text(
                     logs[i],
-                    color = Color(0xFF212121),
+                    color = Color(0xFF3E362A),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace
                 )
@@ -505,7 +496,7 @@ private fun EnergyEditor(
             onValueChange = { text = it },
             singleLine = true,
             label = { Text("Energy, eV") },
-            modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+            modifier = Modifier.width(120.dp).onFocusChanged { focused = it.isFocused },
         )
         PanelButton(
             text = "Apply",

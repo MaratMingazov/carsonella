@@ -35,7 +35,7 @@ class World(
     private val _pendingRequests = mutableListOf<ReactionRequest>()
     private val _seed = 1L
     val random = kotlin.random.Random(_seed)
-    val environment = Environment(Position(800f, 600f), 500f, TemperatureMode.Space)
+    val environment = Environment(Position(1000f, 600f), 500f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.PHOTON,
         Element.ELECTRON,

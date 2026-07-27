@@ -9,7 +9,7 @@ import androidx.compose.ui.window.rememberWindowState
 
 fun main() = application {
     val state = rememberWindowState(
-        size = DpSize(1000.dp, 500.dp),
+        size = DpSize(1000.dp, 1000.dp),
         position = WindowPosition(300.dp, 300.dp)
     )
     Window(
