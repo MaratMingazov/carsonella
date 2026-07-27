@@ -110,6 +110,14 @@ fun RightPanel(
                                         }
                                     }
                                 }
+                                // ► удаление выбранной частицы. На macOS основная клавиша удаления
+                                // репортится как Backspace, поэтому ловим и Delete, и Backspace.
+                                if (e.key == Key.Delete || e.key == Key.Backspace) {
+                                    selectedId?.let { id ->
+                                        world.removeEntity(id)
+                                        onSelect(null)   // частицы больше нет → снимаем выбор
+                                    }
+                                }
                                 true
                             }
                             KeyUp -> { keys = keys - e.key; true }

@@ -139,6 +139,15 @@ class World(
         entities.find { it.state().value.id == entityId }?.moveTo(position)
     }
 
+    // Игрок удаляет выбранную частицу с канвы (клавиша Delete). Убиваем через тот же destroy(),
+    // что и реакции: onDeath-callback уберёт её из среды и из entities. Если она была «в руке» —
+    // снимаем held, чтобы тик не остался с ссылкой на удалённую частицу.
+    fun removeEntity(entityId: Long) {
+        val entity = entities.find { it.state().value.id == entityId } ?: return
+        if (heldEntityId == entityId) heldEntityId = null
+        entity.destroy()
+    }
+
     // «Поднять» частицу: помечаем held (тик перестаёт её шагать) и убираем из детей среды,
     // чтобы соседи её не видели — пока в руке, она ни с кем не взаимодействует.
     fun pickUpEntity(entityId: Long) {
