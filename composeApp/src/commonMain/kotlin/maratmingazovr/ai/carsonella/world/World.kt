@@ -152,7 +152,11 @@ class World(
     // поэтому вытащенная из звезды частица реально остаётся в космосе, а не затягивается обратно.
     fun dropHeldEntity() {
         val id = heldEntityId ?: return
-        entities.find { it.state().value.id == id }?.updateMyEnvironment(environment)
+        val entity = entities.find { it.state().value.id == id }
+        entity?.updateMyEnvironment(environment)
+        // z = порядок отрисовки: положенную частицу двигаем в конец списка, чтобы осталась ПОВЕРХ остальных
+        // (а не вернулась на свой прежний индекс и под соседей). Побочно: теперь она шагает/инициирует последней.
+        if (entity != null) { entities.remove(entity); entities.add(entity) }
         heldEntityId = null
     }
 

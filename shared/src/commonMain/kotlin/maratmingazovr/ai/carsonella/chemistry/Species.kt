@@ -25,14 +25,12 @@ sealed interface Species {
                 |Protons: ${element.details.p}
                 |Neutrons: ${element.details.n}
                 |Electrons: ${s.electrons}
-                |Energy ${round(s.energy * 100) / 100}
+                |Energy ${round(s.energy * 100) / 100} eV
             """.trimMargin()
 
             ElementType.SubAtom -> {
                 val base = """
-                    |${element.label(s.electrons)}: ${s.id}
-                    |Position (${s.position.x.toInt()}, ${s.position.y.toInt()})
-                    |Velocity ${round(s.velocity * 100) / 100}
+                    |${element.label(s.electrons)}
                     |Energy ${round(s.energy * 100) / 100}
                 """.trimMargin()
                 // Спектр осмыслен только у фотона (у него energy — это E=hν) — см. SubAtom.

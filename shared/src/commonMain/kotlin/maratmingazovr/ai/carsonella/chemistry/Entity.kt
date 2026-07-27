@@ -170,7 +170,6 @@ interface Entity :
         val myElectronsCount = state().value.electrons
         val myProtonsCount = state().value.protons
         val myRadius = state().value.radius
-        val myMass = mass()
         if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
 
         elements.forEach { element ->
@@ -180,7 +179,6 @@ interface Entity :
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.state().value.radius
-            val elementMass = element.mass()
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
             if (distance2 > maxRadius2) return@forEach // вне радиуса действия
@@ -200,8 +198,15 @@ interface Entity :
             val gravityForce = 0
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
-            val elementProtonsCount = element.state().value.electrons // NB: исторически читает электроны (был details.e), не протоны — поведение сохранено; fix на details.p отдельным шагом
-            val fRepulsion = if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) { (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f) } else 0f
+            val elementProtonsCount = element.state().value.protons
+            val fRepulsion =if (myProtonsCount == 0 || elementProtonsCount == 0) {
+                0f // если протоны есть только у одного из нас, то отталкивания не будет
+            } else {
+                if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) {
+                    (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f)
+                }
+                else 0f // протоны есть у обоих, но мы слишком далеко друг от друга
+            }
 
             val fScalar = fAttraction + fRepulsion + gravityForce
             fVector.x += rx * fScalar

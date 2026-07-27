@@ -101,20 +101,28 @@ class CovalentBondFormation(
             nodes = listOf(AtomNode(0, iso1), AtomNode(1, iso2)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
+        val moleculeSpecies = Species.Molecular(graph)
 
         // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
         // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
         val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
-        val spawn = mutableListOf<() -> Entity>(
-            { entityGenerator.createEntity(Species.Molecular(graph), midpoint, direction, velocity, energy, env, electrons) },
+        val spawn = mutableListOf(
+            { entityGenerator.createEntity(moleculeSpecies, midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {
-                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик он покидает
+                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 20, как в SpontaneousEmission): за тик он покидает
                 // радиус активации молекулы. Иначе на следующем тике PhotoDissociation поймал бы его и распустил
                 // молекулу обратно (энергия фотона = энергии связи = порогу распада) — бесконечный цикл
                 // образование↔распад. Направление случайное (излучение изотропно).
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
+                val photonVelocity = 10f
+                val photonDirection = randomDirection(entityGenerator.random)
+                // Спавним фотон ЗА радиусом молекулы по направлению его движения: иначе он рождается в
+                // midpoint (там же, где молекула) и попадает прямо в зону активации PhotoDissociation
+                // (activation = moleculeRadius) → тут же распустил бы только что образованную молекулу.
+                val offset = moleculeSpecies.radius + Element.PHOTON.details.radius
+                val photonPosition = midpoint.addVelocity(photonDirection * offset)
+                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection, photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 
