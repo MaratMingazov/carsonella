@@ -2,24 +2,30 @@ package maratmingazovr.ai.carsonella
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -40,8 +46,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
+import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 
@@ -59,6 +68,8 @@ fun RightPanel(
     entitiesState: List<EntityState>,
     renderer: EntityRenderer,
     time: Float,
+    onSetEnergy: (Long, Float) -> Unit,
+    onMoleculeAction: (Long, ReactionSelection) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -119,6 +130,15 @@ fun RightPanel(
                     modifier = Modifier.matchParentSize()
                 )
 //                TemperatureBadge(world.updateTemperatureGame())
+
+                // Info-оверлей: карточка в углу канвы при выборе частицы (клик по пустому месту снимает выбор)
+                SelectedEntityPanel(
+                    selectedElementId = selectedId,
+                    entitiesState = entitiesState,
+                    onSetEnergy = onSetEnergy,
+                    onMoleculeAction = onMoleculeAction,
+                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 260.dp),
+                )
             }
             ConsolePanel(
                 logs = world.logs,
@@ -403,6 +423,96 @@ private fun hitTest(
         if ((c - at).getDistance() <= radius) element.id else null
     }
 }
+
+
+// Карточка Info поверх канвы: показывает выбранную частицу и действия по ней. Ничего не выбрано →
+// не рисуется вовсе (ранний return). Перенесена из прежней LeftPanel.
+@Composable
+private fun SelectedEntityPanel(
+    selectedElementId: Long?,
+    entitiesState: List<EntityState>,
+    onSetEnergy: (Long, Float) -> Unit,
+    onMoleculeAction: (Long, ReactionSelection) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val selectedElement = entitiesState.firstOrNull { it.id == selectedElementId } ?: return
+
+    Column(modifier.fillMaxWidth().background(Color.White).padding(8.dp).border(1.dp, Color.LightGray)) {
+        Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
+        Spacer(Modifier.height(8.dp))
+        Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
+
+        // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Пусто → не показываем.
+        val levels = selectedElement.energyLevels
+        if (levels.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text("Levels, eV:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+            Text(
+                levels.joinToString(", ") { (round(it * 100) / 100).toString() },
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
+        val species = selectedElement.species
+        if (species is Species.Molecular) {
+            val graph = species.graph
+            if (graph.strengthenableBonds.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Strengthen bond") }
+            }
+            if (graph.ringClosureCandidates.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.CloseRing) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Close ring") }
+            }
+        }
+        // Редактор энергии (пока только фотон).
+        if (species is Species.Elemental && species.element == Element.PHOTON) {
+            Spacer(Modifier.height(8.dp))
+            EnergyEditor(
+                energyEv = selectedElement.energy,
+                onApply = { energy -> onSetEnergy(selectedElement.id, energy) },
+            )
+        }
+    }
+}
+
+// Редактор энергии фотона (эВ). Энергию ≤ 0 не применяем: у реального фотона энергии-нуля не бывает.
+@Composable
+private fun EnergyEditor(
+    energyEv: Float,
+    onApply: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Локальный буфер ввода: синхронизируем с внешней энергией, но не затираем, пока поле в фокусе.
+    var focused by remember { mutableStateOf(false) }
+    var text by remember { mutableStateOf(energyText(energyEv)) }
+    LaunchedEffect(energyEv) { if (!focused) text = energyText(energyEv) }
+
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            singleLine = true,
+            label = { Text("Energy, eV") },
+            modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+        )
+        Button(
+            onClick = { text.trim().toFloatOrNull()?.takeIf { it > 0f }?.let(onApply) },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Apply") }
+    }
+}
+
+// Текст для поля ввода: округляем до 2 знаков; при E = 0 поле пустое.
+private fun energyText(energyEv: Float): String =
+    if (energyEv > 0f) (round(energyEv * 100) / 100).toString() else ""
 
 
 

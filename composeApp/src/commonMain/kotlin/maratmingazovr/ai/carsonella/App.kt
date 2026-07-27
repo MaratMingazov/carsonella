@@ -50,12 +50,8 @@ fun App() {
             Row(Modifier.fillMaxSize()) {
                 LeftPanel(
                     palette = world.palette,
-                    selectedElementId = selectedId,
-                    entitiesState = entitiesState,
                     onSave = { world.save() },
                     onLoad = { world.load() },
-                    onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
-                    onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
                 )
 
                 RightPanel(
@@ -76,6 +72,8 @@ fun App() {
                     entitiesState = entitiesState,
                     renderer = renderer,
                     time = time,
+                    onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
+                    onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
                 )
 
             }
