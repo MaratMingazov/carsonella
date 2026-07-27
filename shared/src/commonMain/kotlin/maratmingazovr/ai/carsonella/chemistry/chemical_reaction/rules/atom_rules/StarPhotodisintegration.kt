@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -46,23 +47,22 @@ class StarPhotodisintegration(
         data class NeutronOut(override val parent: Element) : Channel() { override val ejected = NEUTRON } // (γ,n)
     }
 
-    private var atom: Entity? = null
-    private var photon: Entity? = null
-    private var atomEl: Element? = null   // элемент мишени, запомненный в matchesAtoms — produce не вычисляет заново
-    private var chosen: Channel? = null
+    /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtoms. */
+    private data class Match(
+        val atom: Entity,
+        val photon: Entity,
+        val atomElement: Element,
+        val channel: Channel,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        atom = null
-        photon = null
-        atomEl = null
-        chosen = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val element = firstSpecies.element
 
         // Доступные обратные каналы — реверс полей захвата (N — продукт какого-то захвата P→N).
@@ -71,7 +71,7 @@ class StarPhotodisintegration(
             protonGammaReverse[element]?.let { add(Channel.ProtonOut(it)) }
             neutronGammaReverse[element]?.let { add(Channel.NeutronOut(it)) }
         }
-        if (candidates.isEmpty()) return false
+        if (candidates.isEmpty()) return null
 
         val firstPosition = first.state().value.position
         val (nearestPhoton, distanceSquare) = reagents
@@ -84,30 +84,21 @@ class StarPhotodisintegration(
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (nearestPhoton.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (distanceSquare >= element.details.radius * PHOTON.details.radius * 2f) return false
-        if (!chance(RATE, entityGenerator.random)) return false
+        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (nearestPhoton.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (distanceSquare >= element.details.radius * PHOTON.details.radius * 2f) return null
+        if (!chance(RATE, entityGenerator.random)) return null
 
-        atom = first
-        photon = nearestPhoton
-        atomEl = element
-        chosen = candidates.random(entityGenerator.random)
-        return true
+        return Match(first, nearestPhoton, element, candidates.random(entityGenerator.random))
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val a = atom!!
-        val ph = photon!!
-        val channel = chosen!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (a, ph, atomElement, channel) = match as Match
         val parent = channel.parent
         val ejected = channel.ejected
 
-        val atomElement = atomEl!!   // запомнили в matchesAtoms
         val position = a.state().value.position
         val direction = a.state().value.direction
         val velocity = a.state().value.velocity

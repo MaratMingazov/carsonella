@@ -16,6 +16,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -73,9 +75,9 @@ class MoleculeGrowthTest {
         val oh = hydroxyl(0f)
         val h = atom(Element.HYDROGEN, 3f, electrons = 1)
 
-        assertTrue(rule.matchesMolecule(listOf(oh, h)))
+        val match = assertNotNull(rule.matchesMolecule(listOf(oh, h)))
 
-        val outcome = rule.produce()
+        val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(oh, h), outcome.consumed)
 
         outcome.spawn.forEach { it() }
@@ -98,8 +100,8 @@ class MoleculeGrowthTest {
         val oh1 = hydroxyl(0f)
         val oh2 = hydroxyl(3f)
 
-        assertTrue(rule.matchesMolecule(listOf(oh1, oh2)))
-        rule.produce().spawn.forEach { it() }
+        val match = assertNotNull(rule.matchesMolecule(listOf(oh1, oh2)))
+        rule.produce(match).spawn.forEach { it() }
 
         val product = gen.spawned.single { it.species is Species.Molecular }
         val graph = (product.species as Species.Molecular).graph
@@ -115,19 +117,19 @@ class MoleculeGrowthTest {
     fun saturatedMoleculeDoesNotGrow() {
         // У воды нет свободных слотов — расти некуда, даже если рядом есть H.
         val rule = MoleculeGrowth(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(0f), atom(Element.HYDROGEN, 3f, electrons = 1))))
+        assertNull(rule.matchesMolecule(listOf(water(0f), atom(Element.HYDROGEN, 3f, electrons = 1))))
     }
 
     @Test
     fun farApartDoesNotGrow() {
         val rule = MoleculeGrowth(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(hydroxyl(0f), atom(Element.HYDROGEN, 1000f, electrons = 1))))
+        assertNull(rule.matchesMolecule(listOf(hydroxyl(0f), atom(Element.HYDROGEN, 1000f, electrons = 1))))
     }
 
     @Test
     fun ionizedAtomPartnerRejected() {
         // ион H⁺ (нет электронов для общей пары) — не годится в партнёры.
         val rule = MoleculeGrowth(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(hydroxyl(0f), atom(Element.HYDROGEN, 3f, electrons = 0))))
+        assertNull(rule.matchesMolecule(listOf(hydroxyl(0f), atom(Element.HYDROGEN, 3f, electrons = 0))))
     }
 }

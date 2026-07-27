@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
@@ -29,18 +30,15 @@ class CovalentBondFormation(
 ) : ReactionRule {
     override val id = "CovalentBond"
 
-    private var atom1: Entity? = null
-    private var atom2: Entity? = null
+    private data class Match(val atom1: Entity, val atom2: Entity) : MatchedData
 
-    override fun matches(reagents: List<Entity>): Boolean {
-        atom1 = null
-        atom2 = null
-        if (reagents.size < 2) return false
+    override fun matches(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!canBond(first)) return false
+        if (!canBond(first)) return null
         // Внутри звезды слишком горячо — молекулы не образуются.
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false
+        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
         val firstPosition = first.state().value.position
         val firstRadius = first.state().value.radius
@@ -51,15 +49,13 @@ class CovalentBondFormation(
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
         val secondRadius = second.state().value.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
-            atom1 = first
-            atom2 = second
-            true
+            Match(first, second)
         } else {
-            false
+            null
         }
     }
 
@@ -76,11 +72,8 @@ class CovalentBondFormation(
         return element.valence(state.electrons) > 0                  // есть свободный слот (0 → благородный/тяжёлый)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val a1 = atom1!!
-        val a2 = atom2!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (a1, a2) = match as Match
         val iso1 = (a1.state().value.species as Species.Elemental).element
         val iso2 = (a2.state().value.species as Species.Elemental).element
 

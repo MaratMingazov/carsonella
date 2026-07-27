@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
@@ -17,6 +18,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -74,8 +77,8 @@ class MolecularSpontaneousEmissionTest {
         val ooBond = BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 1)!!   // 1.51
         val mol = peroxide(energy = ooBond + 1f)
 
-        assertTrue(rule.matchesMolecule(listOf(mol)))
-        val outcome = rule.produce()
+        val match = assertNotNull(rule.matchesMolecule(listOf(mol)))
+        val outcome = rule.produce(match)
 
         assertEquals(listOf<Entity>(mol), outcome.consumed)              // потребляется только молекула — фотона нет
         outcome.spawn.forEach { it() }
@@ -95,11 +98,11 @@ class MolecularSpontaneousEmissionTest {
         val mol = water(energy = 1f)
 
         // Эмиссия стохастична (chance): крутим matches, пока не сработает (сид фиксирован → детерминизм).
-        var fired = false
-        for (i in 0 until 10_000) { if (rule.matchesMolecule(listOf(mol))) { fired = true; break } }
-        assertTrue(fired, "ветка излучения так и не сработала за 10k попыток")
+        var fired: MatchedData? = null
+        for (i in 0 until 10_000) { fired = rule.matchesMolecule(listOf(mol)); if (fired != null) break }
+        val match = assertNotNull(fired, "ветка излучения так и не сработала за 10k попыток")
 
-        val outcome = rule.produce()
+        val outcome = rule.produce(match)
         assertTrue(outcome.consumed.isEmpty())                          // ничего не потребляется
         outcome.updateState.forEach { it() }
         assertEquals(0f, mol.state().value.energy, 0.001f)              // молекула сброшена в основное состояние
@@ -114,7 +117,7 @@ class MolecularSpontaneousEmissionTest {
     @Test
     fun doesNotFireWithoutEnergy() {
         val rule = MolecularSpontaneousEmission(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(energy = 0f))))   // остывать нечего
+        assertNull(rule.matchesMolecule(listOf(water(energy = 0f))))   // остывать нечего
     }
 
     @Test
@@ -122,6 +125,6 @@ class MolecularSpontaneousEmissionTest {
         // В звезде распадом рулит StarDissociation — это правило не вмешивается, даже с большой энергией.
         val star = Environment(temperature = TemperatureMode.Star)
         val rule = MolecularSpontaneousEmission(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(energy = 100f, environment = star))))
+        assertNull(rule.matchesMolecule(listOf(water(energy = 100f, environment = star))))
     }
 }

@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -29,40 +30,33 @@ class RingClosure(
 ) : MoleculeReactionRule() {
     override val id = "RingClosure"
 
-    private var molecule: Entity? = null
-    private var candidate: RingClosureCandidate? = null
+    private data class Match(val molecule: Entity, val candidate: RingClosureCandidate) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        candidate = null
-        if (reagents.size != 1) return false   // как усиление/распады: только «сам с собой», без соседей
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null   // как усиление/распады: только «сам с собой», без соседей
         val first = reagents.first()
-        if (!first.state().value.alive) return false
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false   // в звезде молекул нет
+        if (!first.state().value.alive) return null
+        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
         val graph = (first.state().value.species as Species.Molecular).graph
         // Выбираем кандидата с максимальным weight (энергия связи − напряжение), чтобы правило вышло в
         // resolve() своим сильнейшим вариантом (5–6 бьют 7+). null-вес (энергия связи неизвестна) отсеиваем.
         val best = graph.ringClosureCandidates
             .mapNotNull { cand -> closureWeight(graph, cand)?.let { cand to it } }
             .maxByOrNull { it.second }
-            ?: return false
-        molecule = first
-        candidate = best.first
-        return true
+            ?: return null
+        return Match(first, best.first)
     }
 
     // Экзотермично: образование связи высвобождает энергию, но напряжение кольца её съедает.
-    // weight = E(связь) − ringStrain(размер). Сравнивается с ростом/усилением в одном resolve(). Поля из matches.
-    override fun weight(): Float {
-        val mol = molecule ?: return 0f
-        val cand = candidate ?: return 0f
+    // weight = E(связь) − ringStrain(размер). Сравнивается с ростом/усилением в одном resolve(). Данные из Match.
+    override fun weight(match: MatchedData): Float {
+        val (mol, cand) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         return closureWeight(graph, cand) ?: 0f
     }
 
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
-        val cand = candidate!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, cand) = match as Match
         val state = mol.state().value
         val graph = (state.species as Species.Molecular).graph
         val closed = graph.closeRing(cand.atom1, cand.atom2)

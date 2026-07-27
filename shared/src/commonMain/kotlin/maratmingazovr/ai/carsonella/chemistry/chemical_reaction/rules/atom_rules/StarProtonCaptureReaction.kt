@@ -19,6 +19,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -54,31 +55,29 @@ class StarProtonCaptureReaction(
         data class Neutron(val product: Element) : Outcome()
     }
 
-    private var atom1: Entity? = null
-    private var atom2: Entity? = null
-    private var atom1El: Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var atom2El: Element? = null
-    private var chosenOutcome: Outcome? = null
+    /** [outcome] — канал, выбранный roulette-wheel; элементы выяснены в matchesAtoms. */
+    private data class Match(
+        val atom1: Entity,
+        val atom2: Entity,
+        val atom1Element: Element,
+        val atom2Element: Element,
+        val outcome: Outcome,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        atom1 = null
-        atom2 = null
-        atom1El = null
-        atom2El = null
-        chosenOutcome = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        if (!firstAtom.state().value.alive) return false
+        if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstAtomElement = firstSpecies.element
 
         val gammaResult = firstAtomElement.details.protonGammaResult
         val alphaResult = firstAtomElement.details.protonAlphaResult
         val neutronResult = firstAtomElement.details.protonNeutronResult
-        if (gammaResult == null && alphaResult == null && neutronResult == null) return false
+        if (gammaResult == null && alphaResult == null && neutronResult == null) return null
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -89,14 +88,14 @@ class StarProtonCaptureReaction(
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (distanceSquare >= firstAtomElement.details.radius * Proton.details.radius * 2f) return false
+        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (distanceSquare >= firstAtomElement.details.radius * Proton.details.radius * 2f) return null
 
         // Reaction rate — bottleneck/slowdown для конкретных target-ядер.
-        if (!chance(captureRate(firstAtomElement), entityGenerator.random)) return false
+        if (!chance(captureRate(firstAtomElement), entityGenerator.random)) return null
 
         // Branching — roulette wheel по доступным каналам.
         val (gW, aW, nW) = branchingWeights(firstAtomElement)
@@ -104,7 +103,7 @@ class StarProtonCaptureReaction(
         if (gammaResult != null && gW > 0f) candidates += (Outcome.Gamma(gammaResult) as Outcome) to gW
         if (alphaResult != null && aW > 0f) candidates += (Outcome.Alpha(alphaResult) as Outcome) to aW
         if (neutronResult != null && nW > 0f) candidates += (Outcome.Neutron(neutronResult) as Outcome) to nW
-        if (candidates.isEmpty()) return false
+        if (candidates.isEmpty()) return null
 
         val total = candidates.fold(0f) { acc, p -> acc + p.second }
         val roll = entityGenerator.random.nextFloat() * total
@@ -115,25 +114,15 @@ class StarProtonCaptureReaction(
             if (roll < cumulative) { picked = out; break }
         }
 
-        atom1 = firstAtom
-        atom2 = secondAtom
-        atom1El = firstAtomElement
-        atom2El = Proton   // второй реагент — протон по фильтру
-        chosenOutcome = picked
-        return true
+        // второй реагент — протон по фильтру
+        return Match(firstAtom, secondAtom, firstAtomElement, Proton, picked)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val a1 = atom1!!
-        val a2 = atom2!!
-        val outcome = chosenOutcome!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (a1, a2, atom1Element, atom2Element, outcome) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
         val resultPosition = a1.state().value.position
-        val atom1Element = atom1El!!   // запомнили в matchesAtoms
-        val atom2Element = atom2El!!
         // Перенос электронной оболочки на продукт (2C2): продукт наследует электроны target-ядра,
         // но не больше своего Z. (p,γ)/(p,n) повышают Z → кламп no-op; (p,α) понижает Z → лишние
         // электроны улетают свободными e⁻ (shake-off). Захваченный протон голый, испущенная α — голая.

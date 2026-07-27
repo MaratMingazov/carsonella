@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 // «Ион ловит электрон, излучает фотон».
@@ -16,30 +17,29 @@ class RecombinationReaction(
 ) : AtomReactionRule() {
     override val id = "Recombination"
 
-    private var atom1 : Entity? = null
-    private var atom2 : Entity? = null
-    private var atom1El : Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var atom2El : Element? = null
+    /** [atom1Element]/[atom2Element] выяснены в matchesAtoms — produce не вычисляет заново. */
+    private data class Match(
+        val atom1: Entity,
+        val atom2: Entity,
+        val atom1Element: Element,
+        val atom2Element: Element,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>) : Boolean {
-        atom1 = null
-        atom2 = null
-        atom1El = null
-        atom2El = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
+        if (reagents.size < 2) return null
         val firstAtom = reagents.first()
         val firstAtomPosition = reagents.first().state().value.position
-        if (!firstAtom.state().value.alive) return false
+        if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstAtomElement = firstSpecies.element
         val firstElectrons = firstAtom.state().value.electrons
-        if (!canGainElectron(firstAtomElement, firstElectrons)) return false // значит элемент не участвует в рекомбинации
+        if (!canGainElectron(firstAtomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
         // уровни состояния-результата (на 1 электрон больше); для протона результат — HYDROGEN
         val recombinedLevels = if (firstAtomElement == Element.Proton) Element.HYDROGEN.energyLevels(1)
                                else firstAtomElement.energyLevels(firstElectrons + 1)
-        if (recombinedLevels.isEmpty()) return false
+        if (recombinedLevels.isEmpty()) return null
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -50,43 +50,35 @@ class RecombinationReaction(
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
-        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
+        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
+        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         val secondSpecies = secondAtom.state().value.species
-        if (secondSpecies !is Species.Elemental) return false
+        if (secondSpecies !is Species.Elemental) return null
         val secondAtomElement = secondSpecies.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
-            atom1 = firstAtom
-            atom2 = secondAtom
-            atom1El = firstAtomElement
-            atom2El = secondAtomElement
-            true
+            Match(firstAtom, secondAtom, firstAtomElement, secondAtomElement)
         } else {
-            false
+            null
         }
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-
-        val atom1Element = atom1El!!   // запомнили в matchesAtoms
-        val atom2Element = atom2El!!
-        val electrons = atom1!!.state().value.electrons
-        val resultPosition = atom1!!.state().value.position
-        val env = atom1!!.getEnvironment()
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (atom1, atom2, atom1Element, atom2Element) = match as Match
+        val electrons = atom1.state().value.electrons
+        val resultPosition = atom1.state().value.position
+        val env = atom1.getEnvironment()
 
         // Протий — особый случай: p⁺ + e⁻ → HYDROGEN (атом). Element/класс меняется (element неизменяем) →
         // consume + spawn (со слиянием импульса протона и электрона).
         if (atom1Element == Element.Proton) {
-            val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1!!, atom2!!)
+            val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
             val photonEnergy = Element.HYDROGEN.energyLevels(1).last()
             val radius = Element.HYDROGEN.details.radius
             return ReactionOutcome(
-                consumed = listOf(atom1!!, atom2!!),
+                consumed = listOf(atom1, atom2),
                 spawn = listOf {
                     entityGenerator.createEntity(
                         Element.HYDROGEN, resultPosition, direction, velocity,
@@ -112,15 +104,15 @@ class RecombinationReaction(
         // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, energy=0), вылетает фотон.
         val resultElectrons = electrons + 1
         val photonEnergy = atom1Element.energyLevels(resultElectrons).last()
-        val direction = atom1!!.state().value.direction
+        val direction = atom1.state().value.direction
         val radius = atom1Element.details.radius
         return ReactionOutcome(
-            consumed = listOf(atom2!!),
+            consumed = listOf(atom2),
             updateState = listOf {
-                atom1!!.setElectrons(resultElectrons)
+                atom1.setElectrons(resultElectrons)
                 // Электрон сел сразу в основное состояние (фотон унёс энергию связи). Сбрасываем energy в 0:
                 // старая энергия иона для нового заряда не валидна (инвариант Atom на updateState-пути).
-                atom1!!.setEnergy(0f)
+                atom1.setEnergy(0f)
             },
             spawn = listOf {
                 entityGenerator.createEntity(

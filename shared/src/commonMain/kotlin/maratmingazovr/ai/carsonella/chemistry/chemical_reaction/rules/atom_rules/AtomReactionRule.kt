@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
 /**
@@ -21,11 +22,11 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
  */
 abstract class AtomReactionRule : ReactionRule {
 
-    final override fun matches(reagents: List<Entity>): Boolean {
-        if (reagents.firstOrNull()?.state()?.value?.species !is Species.Elemental) return false
+    final override fun matches(reagents: List<Entity>): MatchedData? {
+        if (reagents.firstOrNull()?.state()?.value?.species !is Species.Elemental) return null
         return matchesAtoms(reagents)
     }
 
     /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Elemental]. */
-    abstract fun matchesAtoms(reagents: List<Entity>): Boolean
+    abstract fun matchesAtoms(reagents: List<Entity>): MatchedData?
 }

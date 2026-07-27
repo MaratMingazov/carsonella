@@ -16,6 +16,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -57,8 +59,8 @@ class BondStrengtheningTest {
         val rule = BondStrengthening(gen)
         val oo = molecule(diatomic(Element.OXYGEN_16, order = 1), electrons = 16)   // O–O, нейтральный
 
-        assertTrue(rule.matchesMolecule(listOf(oo)))
-        val outcome = rule.produce()
+        val match = assertNotNull(rule.matchesMolecule(listOf(oo)))
+        val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(oo), outcome.consumed)
 
         outcome.spawn.forEach { it() }
@@ -82,14 +84,14 @@ class BondStrengtheningTest {
         val rule = BondStrengthening(CapturingGenerator())
         val oo = molecule(diatomic(Element.OXYGEN_16, 1), electrons = 16)
         val extra = molecule(diatomic(Element.OXYGEN_16, 1), electrons = 16)
-        assertFalse(rule.matchesMolecule(listOf(oo, extra)))   // size != 1 — усиление только «сам с собой»
+        assertNull(rule.matchesMolecule(listOf(oo, extra)))   // size != 1 — усиление только «сам с собой»
     }
 
     @Test
     fun saturatedMoleculeDoesNotStrengthen() {
         val rule = BondStrengthening(CapturingGenerator())
         val o2 = molecule(diatomic(Element.OXYGEN_16, order = 2), electrons = 16)   // O=O — оба O насыщены
-        assertFalse(rule.matchesMolecule(listOf(o2)))
+        assertNull(rule.matchesMolecule(listOf(o2)))
     }
 
     @Test
@@ -98,8 +100,8 @@ class BondStrengtheningTest {
         val rule = BondStrengthening(gen)
         val nn = molecule(diatomic(Element.NITROGEN_14, order = 1), electrons = 14)   // N–N
 
-        assertTrue(rule.matchesMolecule(listOf(nn)))
-        rule.produce().spawn.forEach { it() }
+        val match = assertNotNull(rule.matchesMolecule(listOf(nn)))
+        rule.produce(match).spawn.forEach { it() }
         val graph = (gen.spawned.single { it.species is Species.Molecular }.species as Species.Molecular).graph
         assertEquals(2, graph.bonds.single().order)   // N–N → N=N (до N≡N — ещё один тик)
     }

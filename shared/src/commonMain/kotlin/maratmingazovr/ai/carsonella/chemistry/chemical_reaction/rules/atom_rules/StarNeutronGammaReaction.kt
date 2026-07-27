@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
@@ -37,25 +38,24 @@ class StarNeutronGammaReaction(
 ) : AtomReactionRule() {
     override val id = "StarNeutronGammaReaction"
 
-    private var atom1: Entity? = null
-    private var atom2: Entity? = null
-    private var atom1El: Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var atom2El: Element? = null
+    /** [atom1Element]/[atom2Element] выяснены в matchesAtoms — produce не вычисляет заново. */
+    private data class Match(
+        val atom1: Entity,
+        val atom2: Entity,
+        val atom1Element: Element,
+        val atom2Element: Element,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        atom1 = null
-        atom2 = null
-        atom1El = null
-        atom2El = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        if (!firstAtom.state().value.alive) return false
+        if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstAtomElement = firstSpecies.element
-        if (firstAtomElement.details.neutronGammaResult == null) return false
+        if (firstAtomElement.details.neutronGammaResult == null) return null
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
@@ -66,35 +66,26 @@ class StarNeutronGammaReaction(
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
-        if (distanceSquare >= firstAtomElement.details.radius * NEUTRON.details.radius * 2f) return false
+        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (distanceSquare >= firstAtomElement.details.radius * NEUTRON.details.radius * 2f) return null
 
-        atom1 = firstAtom
-        atom2 = secondAtom
-        atom1El = firstAtomElement
-        atom2El = NEUTRON   // второй реагент — нейтрон по фильтру
-        return true
+        return Match(firstAtom, secondAtom, firstAtomElement, NEUTRON)   // второй реагент — нейтрон по фильтру
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val a1 = atom1!!
-        val a2 = atom2!!
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val resultPosition = a1.state().value.position
-        val atom1Element = atom1El!!   // запомнили в matchesAtoms
-        val atom2Element = atom2El!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (atom1, atom2, atom1Element, atom2Element) = match as Match
+        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
+        val resultPosition = atom1.state().value.position
         val resultElement = atom1Element.details.neutronGammaResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,γ) не меняет Z → кламп no-op, shake-off не нужен.
-        val resultElectrons = minOf(a1.state().value.electrons, resultElement.details.p)
+        val resultElectrons = minOf(atom1.state().value.electrons, resultElement.details.p)
         val resultPhotonEnergy = 1000f
 
         return ReactionOutcome(
-            consumed = listOf(a1, a2),
+            consumed = listOf(atom1, atom2),
             spawn = listOf(
                 {
                     entityGenerator.createEntity(
@@ -103,7 +94,7 @@ class StarNeutronGammaReaction(
                         direction,
                         velocity,
                         energy = 0f,
-                        a1.getEnvironment(),
+                        atom1.getEnvironment(),
                         electrons = resultElectrons,
                     )
                 },
@@ -117,12 +108,12 @@ class StarNeutronGammaReaction(
                         direction,
                         10f,
                         energy = resultPhotonEnergy,
-                        environment = a1.getEnvironment(),
+                        environment = atom1.getEnvironment(),
                         electrons = 0,
                     )
                 },
             ),
-            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} → ${
+            description = "$id: ${atom1Element.symbol(atom1.state().value.electrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} → ${
                 resultElement.symbol(
                     resultElectrons
                 )

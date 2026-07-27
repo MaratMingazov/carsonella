@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -34,21 +35,18 @@ class MoleculeGrowth(
 ) : MoleculeReactionRule() {
     override val id = "MoleculeGrowth"
 
-    private var molecule: Entity? = null
-    private var partner: Entity? = null
+    private data class Match(val molecule: Entity, val partner: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        partner = null
-        if (reagents.size < 2) return false
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         // субъект-молекула гарантирован базой; нужен свободный слот, чтобы было куда расти
         val firstGraph = (first.state().value.species as Species.Molecular).graph
-        if (!firstGraph.hasFreeSlot) return false
+        if (!firstGraph.hasFreeSlot) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false
+        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
         val firstPosition = first.state().value.position
         val firstRadius = first.state().value.radius
@@ -59,15 +57,13 @@ class MoleculeGrowth(
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
         val secondRadius = second.state().value.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
-            molecule = first
-            partner = second
-            true
+            Match(first, second)
         } else {
-            false
+            null
         }
     }
 
@@ -97,10 +93,9 @@ class MoleculeGrowth(
 
     // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
     // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),
-    // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Поля выставлены в matchesMolecule.
-    override fun weight(): Float {
-        val mol = molecule ?: return 0f
-        val partnerEntity = partner ?: return 0f
+    // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Данные из Match.
+    override fun weight(match: MatchedData): Float {
+        val (mol, partnerEntity) = match as Match
         val molGraph = (mol.state().value.species as Species.Molecular).graph
         val partnerGraph = graphOf(partnerEntity)
         val molNode = molGraph.firstFreeSlotAtomNode!!
@@ -108,9 +103,8 @@ class MoleculeGrowth(
         return BondEnergy.of(molNode.isotope, partnerNode.isotope, order = 1) ?: 0f
     }
 
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
-        val partnerEntity = partner!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, partnerEntity) = match as Match
         val molGraph = (mol.state().value.species as Species.Molecular).graph
         val partnerGraph = graphOf(partnerEntity)
 

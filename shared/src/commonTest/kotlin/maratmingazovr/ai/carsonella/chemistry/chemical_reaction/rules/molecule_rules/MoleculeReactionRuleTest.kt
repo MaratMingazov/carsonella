@@ -7,11 +7,14 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -39,22 +42,22 @@ class MoleculeReactionRuleTest {
     private class Dummy : MoleculeReactionRule() {
         override val id = "Dummy"
         var delegated = false
-        override fun matchesMolecule(reagents: List<Entity>): Boolean { delegated = true; return true }
-        override fun weight() = 0f
-        override fun produce() = ReactionOutcome()
+        object Stub : MatchedData
+        override fun matchesMolecule(reagents: List<Entity>): MatchedData? { delegated = true; return Stub }
+        override fun produce(match: MatchedData) = ReactionOutcome()
     }
 
     @Test
     fun atomSubjectIsRejectedWithoutDelegating() {
         val rule = Dummy()
-        assertFalse(rule.matches(listOf(hAtom())))
+        assertNull(rule.matches(listOf(hAtom())))
         assertFalse(rule.delegated)   // matchesMolecule даже не звался
     }
 
     @Test
     fun moleculeSubjectDelegatesToMatchesMolecule() {
         val rule = Dummy()
-        assertTrue(rule.matches(listOf(h2Molecule(), hAtom())))
+        val match = assertNotNull(rule.matches(listOf(h2Molecule(), hAtom())))
         assertTrue(rule.delegated)
     }
 }

@@ -68,6 +68,6 @@ class MoleculeReagentCrashTest {
     fun atomRuleSkipsMoleculeSubjectInsteadOfThrowing() {
         // SpontaneousEmission — AtomReactionRule: молекула-субъект отсекается фильтром (а не бросает шов).
         val rule = SpontaneousEmission(StubGenerator())
-        assertFalse(rule.matches(listOf(h2Molecule(0f))))
+        assertNull(rule.matches(listOf(h2Molecule(0f))))
     }
 }

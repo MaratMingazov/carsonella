@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -34,34 +35,26 @@ class StarThermalIonization(
 ) : AtomReactionRule() {
     override val id = "StarThermalIonization"
 
-    private var entity: Entity? = null
-    private var subjectElement: Element? = null   // запомнен в matchesAtoms — produce не вычисляет заново
+    /** [element] выяснен в matchesAtoms — produce не вычисляет заново. */
+    private data class Match(val atom: Entity, val element: Element) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        entity = null
-        subjectElement = null
-
-        if (reagents.size != 1) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
-        if (species !is Species.Elemental) return false
+        if (species !is Species.Elemental) return null
         val element = species.element
-        if (element.details.type != ElementType.Atom) return false
-        if (first.state().value.electrons <= 0) return false
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
+        if (element.details.type != ElementType.Atom) return null
+        if (first.state().value.electrons <= 0) return null
+        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
-        entity = first
-        subjectElement = element
-        return true
+        return Match(first, element)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val atom = entity!!
-        val element = subjectElement!!   // запомнили в matchesAtoms
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (atom, element) = match as Match
         val electrons = atom.state().value.electrons
         val position = atom.state().value.position
         val radius = element.details.radius

@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -39,27 +40,26 @@ class AlphaProtonReaction(
 ) : AtomReactionRule() {
     override val id = "AlphaProtonReaction"
 
-    private var target: Entity? = null
-    private var alpha: Entity? = null
-    private var targetEl: Element? = null   // элементы реагентов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var alphaEl: Element? = null
+    /** [targetElement]/[alphaElement] выяснены в matchesAtoms — produce не вычисляет заново. */
+    private data class Match(
+        val target: Entity,
+        val alpha: Entity,
+        val targetElement: Element,
+        val alphaElement: Element,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        target = null
-        alpha = null
-        targetEl = null
-        alphaEl = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return false
+        if (!first.state().value.alive) return null
+        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
 
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstElement = firstSpecies.element
-        if (firstElement.details.alphaProtonResult == null) return false
+        if (firstElement.details.alphaProtonResult == null) return null
 
         val firstPosition = first.state().value.position
         val (alphaCandidate, distanceSquare) = reagents
@@ -72,28 +72,19 @@ class AlphaProtonReaction(
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
         val alphaSpecies = alphaCandidate.state().value.species
-        if (alphaSpecies !is Species.Elemental) return false
+        if (alphaSpecies !is Species.Elemental) return null
         val alphaElement = alphaSpecies.element
         val contactRadiusSquare = firstElement.details.radius * alphaElement.details.radius * 2f
-        if (distanceSquare >= contactRadiusSquare) return false
+        if (distanceSquare >= contactRadiusSquare) return null
 
-        target = first
-        alpha = alphaCandidate
-        targetEl = firstElement
-        alphaEl = alphaElement
-        return true
+        return Match(first, alphaCandidate, firstElement, alphaElement)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val t = target!!
-        val a = alpha!!
-        val targetElement = targetEl!!   // запомнили в matchesAtoms
-        val alphaElement = alphaEl!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (t, a, targetElement, alphaElement) = match as Match
         val resultElement = targetElement.details.alphaProtonResult!!
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(t, a)

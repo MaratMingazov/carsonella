@@ -15,6 +15,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
@@ -44,29 +45,26 @@ class StarPPChain(
 
     override val id = "StarPPChain"
 
-    private var atom1 : Entity? = null
-    private var atom2 : Entity? = null
-    private var atom1El : Element? = null   // элементы атомов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var atom2El : Element? = null
-    private var resultElement : Element? = null
-    private var extraElements : List<Element> = emptyList()
+    /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtoms. */
+    private data class Match(
+        val atom1: Entity,
+        val atom2: Entity,
+        val atom1Element: Element,
+        val atom2Element: Element,
+        val result: Element,
+        val extras: List<Element>,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        atom1 = null
-        atom2 = null
-        atom1El = null
-        atom2El = null
-        resultElement = null
-        extraElements = emptyList()
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.position
-        if (!firstAtom.state().value.alive) return false
+        if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstAtomElement = firstSpecies.element
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
+        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         // В зависимости от первого реагента определяем какие варианты второго реагента возможны и что родится.
         // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaGammaReaction
@@ -81,7 +79,7 @@ class StarPPChain(
                 Triple(Proton,   BORON_8,   emptyList()),
             )
             LITHIUM_7   -> listOf(Triple(Proton,    HELIUM_4,  listOf(HELIUM_4)))
-            else -> return false
+            else -> return null
         }
 
         // Перебираем кандидатов в порядке приоритета — первый найденный поблизости побеждает.
@@ -100,35 +98,22 @@ class StarPPChain(
             if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) continue
 
             if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
-                atom1 = firstAtom
-                atom2 = secondAtom
-                atom1El = firstAtomElement
-                atom2El = secondElement
-                resultElement = result
-                extraElements = extras
-                return true
+                return Match(firstAtom, secondAtom, firstAtomElement, secondElement, result, extras)
             }
         }
-        return false
+        return null
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val a1 = atom1!!
-        val a2 = atom2!!
-        val result = resultElement!!
-        val extras = extraElements
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (atom1, atom2, atom1Element, atom2Element, result, extras) = match as Match
         // Перенос оболочки на продукт (2C2): наследует электроны первого реагента-ядра, не больше Z
         // продукта. В звезде ядра голые → 0. PP многоканальна (синтез + захват e⁻ в ядро), поэтому без
         // обобщённого shake-off; кламп лишь страхует от аниона в краевых случаях.
-        val resultElectrons = minOf(a1.state().value.electrons, result.details.p)
+        val resultElectrons = minOf(atom1.state().value.electrons, result.details.p)
 
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val resultPosition = a1.state().value.position
+        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
+        val resultPosition = atom1.state().value.position
         val resultRadius = result.details.radius
-        val atom1Element = atom1El!!   // запомнили в matchesAtoms
-        val atom2Element = atom2El!!
         val spawnList = mutableListOf<() -> Entity>()
 
         spawnList += {
@@ -138,7 +123,7 @@ class StarPPChain(
                 direction,
                 velocity,
                 energy = 0f,
-                a1.getEnvironment(),
+                atom1.getEnvironment(),
                 electrons = resultElectrons,
             )
         }
@@ -153,7 +138,7 @@ class StarPPChain(
                     direction,
                     velocity,
                     energy = 0f,
-                    environment = a1.getEnvironment(),
+                    environment = atom1.getEnvironment(),
                     electrons = 0,
                 )
             }
@@ -171,15 +156,15 @@ class StarPPChain(
                 direction,
                 10f,
                 energy = resultPhotonEnergy,
-                environment = a1.getEnvironment(),
+                environment = atom1.getEnvironment(),
                 electrons = 0,
             )
         }
 
         return ReactionOutcome(
-            consumed = listOf(a1, a2),
+            consumed = listOf(atom1, atom2),
             spawn = spawnList,
-            description = "$id: ${atom1Element.symbol(a1.state().value.electrons)} + ${atom2Element.symbol(a2.state().value.electrons)} -> ${
+            description = "$id: ${atom1Element.symbol(atom1.state().value.electrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} -> ${
                 result.symbol(
                     resultElectrons
                 )

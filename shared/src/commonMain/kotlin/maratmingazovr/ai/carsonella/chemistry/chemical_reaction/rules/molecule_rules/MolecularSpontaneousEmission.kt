@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -36,45 +37,35 @@ import maratmingazovr.ai.carsonella.randomDirection
 class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularSpontaneousEmission"
 
-    private var molecule: Entity? = null
-    // Порог предиссоциации, запомненный в matches: не-null → ветка распада; null → ветка излучения.
-    private var dissociationThreshold: Float? = null
+    /** [dissociationThreshold] не-null → ветка предиссоциации (распад); null → ветка излучения фотона. */
+    private data class Match(val molecule: Entity, val dissociationThreshold: Float?) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        dissociationThreshold = null
-        if (reagents.size != 1) return false          // «сам с собой», как усиление/кольцо/StarDissociation
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null          // «сам с собой», как усиление/кольцо/StarDissociation
 
         val first = reagents.first()
         val s = first.state().value
-        if (!s.alive) return false
-        if (s.energy <= 0f) return false              // остывать нечего
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false  // в звезде — StarDissociation
+        if (!s.alive) return null
+        if (s.energy <= 0f) return null              // остывать нечего
+        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
         val graph = (s.species as Species.Molecular).graph
         val threshold = graph.weakestBondAndEnergy?.second
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
         if (threshold != null && s.energy >= threshold) {
-            molecule = first
-            dissociationThreshold = threshold
-            return true
+            return Match(first, threshold)
         }
 
         // Ветка 2 — излучение: избыток ниже порога распада, сбрасываем фотоном. Постепенно (chance), как атом.
-        if (!chance(0.02f, entityGenerator.random)) return false
-        molecule = first
-        dissociationThreshold = null
-        return true
+        if (!chance(0.02f, entityGenerator.random)) return null
+        return Match(first, dissociationThreshold = null)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, threshold) = match as Match
         val s = mol.state().value
         val graph = (s.species as Species.Molecular).graph
-        val threshold = dissociationThreshold
 
         if (threshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало

@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
@@ -28,18 +29,15 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularPhotoIonization"
 
-    private var molecule: Entity? = null
-    private var photon: Entity? = null
+    private data class Match(val molecule: Entity, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        photon = null
-        if (reagents.size < 2) return false
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
         val entityState = first.state().value
-        if (!entityState.alive) return false
-        val threshold = entityState.energyLevels.lastOrNull() ?: return false // есть ли у молекулы ионизируемый атом?
+        if (!entityState.alive) return null
+        val threshold = entityState.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
         val firstPosition = entityState.position
         val radius = entityState.radius
@@ -54,24 +52,19 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first
-            ?: return false
+            ?: return null
 
         val available = first.state().value.energy + nearestPhoton.state().value.energy
-        if (available < threshold) return false   // фотона не хватает на ионизацию → мимо (может сработать распад)
+        if (available < threshold) return null   // фотона не хватает на ионизацию → мимо (может сработать распад)
 
-        molecule = first
-        photon = nearestPhoton
-        return true
+        return Match(first, nearestPhoton)
     }
 
     // Детерминированный шаг: ионизация бьёт распад. weight = 0 > weight распада (−dissociationEnergy),
     // поэтому при E ≥ IP resolve() выбирает ионизацию; при D ≤ E < IP (порог IP не достигнут — matches
     // вернул false) в игре остаётся только распад. Вероятностный branch заменит это позже.
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
-        val ph = photon!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, ph) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         val threshold = graph.energyLevels.last()           // matches гарантирует что лестница непуста
         val electrons = mol.state().value.electrons

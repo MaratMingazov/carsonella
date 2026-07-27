@@ -16,6 +16,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -80,8 +82,8 @@ class MolecularPhotoIonizationTest {
         val w = water()
         val ph = photon(energy = 15f)   // 15 > IP(13.6)
 
-        assertTrue(rule.matchesMolecule(listOf(w, ph)))
-        val outcome = rule.produce()
+        val match = assertNotNull(rule.matchesMolecule(listOf(w, ph)))
+        val outcome = rule.produce(match)
 
         // Молекула ВЫЖИВАЕТ: потребляется только фотон (в отличие от распада, где гибнет и молекула).
         assertEquals(listOf<Entity>(ph), outcome.consumed)
@@ -104,7 +106,7 @@ class MolecularPhotoIonizationTest {
     fun photonBelowIpDoesNotIonize() {
         // Фотон 12 эВ < IP(13.6): ионизации нет (хотя это выше порога распада O–H = 4.8 — им займётся PhotoDissociation).
         val rule = MolecularPhotoIonization(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(), photon(energy = 12f))))
+        assertNull(rule.matchesMolecule(listOf(water(), photon(energy = 12f))))
     }
 
     @Test
@@ -113,13 +115,13 @@ class MolecularPhotoIonizationTest {
         val rule = MolecularPhotoIonization(CapturingGenerator())
         val h = Atom(nextId++, Element.HYDROGEN, Position(1f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
             .also { it.setEnvironment(env) }
-        assertFalse(rule.matchesMolecule(listOf(water(), h)))
+        assertNull(rule.matchesMolecule(listOf(water(), h)))
     }
 
     @Test
     fun farPhotonDoesNotIonize() {
         // Фотон за пределами радиуса активации (MOLECULE_RADIUS = 20) не ионизует.
         val rule = MolecularPhotoIonization(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(), photon(energy = 20f, x = 1000f))))
+        assertNull(rule.matchesMolecule(listOf(water(), photon(energy = 20f, x = 1000f))))
     }
 }

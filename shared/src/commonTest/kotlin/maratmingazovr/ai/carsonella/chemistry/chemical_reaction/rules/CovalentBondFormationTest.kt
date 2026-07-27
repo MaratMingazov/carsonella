@@ -13,6 +13,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -51,9 +53,9 @@ class CovalentBondFormationTest {
         val h1 = atom(Element.HYDROGEN, 0f, electrons = 1)
         val h2 = atom(Element.HYDROGEN, 3f, electrons = 1)
 
-        assertTrue(rule.matches(listOf(h1, h2)))
+        val match = assertNotNull(rule.matches(listOf(h1, h2)))
 
-        val outcome = rule.produce()
+        val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(h1, h2), outcome.consumed)   // оба реагента поглощаются
 
         outcome.spawn.forEach { it() }                              // выполнить спавны → молекула + фотон
@@ -70,7 +72,7 @@ class CovalentBondFormationTest {
         val rule = CovalentBondFormation(CapturingGenerator())
         val he1 = atom(Element.HELIUM_4, 0f, electrons = 2)
         val he2 = atom(Element.HELIUM_4, 3f, electrons = 2)
-        assertFalse(rule.matches(listOf(he1, he2)))   // валентность He = 0
+        assertNull(rule.matches(listOf(he1, he2)))   // валентность He = 0
     }
 
     @Test
@@ -78,7 +80,7 @@ class CovalentBondFormationTest {
         val rule = CovalentBondFormation(CapturingGenerator())
         val neutral = atom(Element.HYDROGEN, 0f, electrons = 1)
         val ion = atom(Element.HYDROGEN, 3f, electrons = 0)   // не нейтральный — нет электронов для пары
-        assertFalse(rule.matches(listOf(neutral, ion)))
+        assertNull(rule.matches(listOf(neutral, ion)))
     }
 
     @Test
@@ -86,6 +88,6 @@ class CovalentBondFormationTest {
         val rule = CovalentBondFormation(CapturingGenerator())
         val h1 = atom(Element.HYDROGEN, 0f, electrons = 1)
         val h2 = atom(Element.HYDROGEN, 1000f, electrons = 1)
-        assertFalse(rule.matches(listOf(h1, h2)))
+        assertNull(rule.matches(listOf(h1, h2)))
     }
 }

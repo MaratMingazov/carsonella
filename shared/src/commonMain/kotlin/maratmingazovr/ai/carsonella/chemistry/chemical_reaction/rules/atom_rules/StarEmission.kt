@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.collections.List
@@ -18,49 +19,47 @@ class StarEmission (
 ) : AtomReactionRule() {
     override val id = "StarEmission"
 
-    private var entity : Entity? = null
-    private var entityReagents: List<Entity> = listOf()
-    private var absorbReagents: List<Entity> = listOf()
+    /**
+     * Две ветки правила: [absorbReagents] непусто → ПОГЛОЩЕНИЕ (соседи снаружи втягиваются в звезду);
+     * пусто → генерация/выброс, и тогда работаем со списком живых детей [entityReagents].
+     */
+    private data class Match(
+        val star: Entity,
+        val absorbReagents: List<Entity>,
+        val entityReagents: List<Entity>,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        entity = null
-        entityReagents = listOf()
-        absorbReagents = listOf()
-
-        if (reagents.isEmpty()) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.isEmpty()) return null
 
         val first = reagents.first()
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
-        if (species !is Species.Elemental) return false
-        if (species.element != Element.Star) return false
-        if (!first.state().value.alive) return false
-        entity = first
+        if (species !is Species.Elemental) return null
+        if (species.element != Element.Star) return null
+        if (!first.state().value.alive) return null
 
         // Поглощение: запрос вида [звезда + соседи снаружи] — втягиваем их сразу, без chance.
         val external = reagents.drop(1).filter { it.state().value.alive && it.getEnvironment() !== first }
         if (external.isNotEmpty()) {
-            absorbReagents = external
-            return true
+            return Match(first, absorbReagents = external, entityReagents = listOf())
         }
 
         // Иначе запрос [звезда] — ветка генерации/выброса (редкое событие).
-        if (!chance(0.012f, entityGenerator.random)) return false
+        if (!chance(0.012f, entityGenerator.random)) return null
 
-        entityReagents = first
+        val children = first
             .getEnvChildren()
             .filter { reagent -> reagent.state().value.alive }
-        return true
+        return Match(first, absorbReagents = listOf(), entityReagents = children)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (star, absorbReagents, entityReagents) = match as Match
 
         // Поглощение: внешние реагенты у поверхности становятся детьми звезды (updateMyEnvironment(star)).
         // alive-гард — на случай, если реагент уже потреблён другим запросом в этом же тике.
         if (absorbReagents.isNotEmpty()) {
-            val star = entity!!
             return ReactionOutcome(
                 updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
                 description = "$id: ${Element.Star.details.symbol} <- " +
@@ -79,11 +78,11 @@ class StarEmission (
                 spawn = listOf {
                     entityGenerator.createEntity(
                         resultElement,
-                        entity!!.state().value.position,
+                        star.state().value.position,
                         randomDirection(entityGenerator.random),
                         2f,
                         energy = 0f,
-                        environment = entity!!,
+                        environment = star,
                         electrons = if (resultElement == Element.ELECTRON) 1 else 0,
                     )
                 },
@@ -97,7 +96,6 @@ class StarEmission (
             var description = ""
             if (reagent != null) {
                 updateList += {
-                    val star = entity!!
                     val center = star.state().value.position
                     val pos = reagent.state().value.position
                     // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),

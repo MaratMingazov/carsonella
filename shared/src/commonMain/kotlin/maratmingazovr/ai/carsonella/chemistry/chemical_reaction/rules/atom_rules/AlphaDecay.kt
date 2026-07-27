@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -26,34 +27,26 @@ class AlphaDecay(
 ) : AtomReactionRule() {
     override val id = "AlphaDecay"
 
-    private var entity: Entity? = null
-    private var subjectElement: Element? = null   // элемент субъекта, запомненный в matchesAtoms — produce не вычисляет заново
+    /** [parentElement] выяснен в matchesAtoms — produce не вычисляет заново. */
+    private data class Match(val parent: Entity, val parentElement: Element) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        entity = null
-        subjectElement = null
-
-        if (reagents.size != 1) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
-        if (species !is Species.Elemental) return false
+        if (species !is Species.Elemental) return null
         val element = species.element
-        if (element.details.alphaDecayResult == null) return false
+        if (element.details.alphaDecayResult == null) return null
 
-        if (!chance(0.02f, entityGenerator.random)) return false
+        if (!chance(0.02f, entityGenerator.random)) return null
 
-        entity = first
-        subjectElement = element
-        return true
+        return Match(first, element)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val parent = entity!!
-        val parentElement = subjectElement!!   // запомнили в matchesAtoms — не вычисляем заново
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (parent, parentElement) = match as Match
         val childElement = parentElement.details.alphaDecayResult!!
         val parentPosition = parent.state().value.position
         val parentRadius = parentElement.details.radius

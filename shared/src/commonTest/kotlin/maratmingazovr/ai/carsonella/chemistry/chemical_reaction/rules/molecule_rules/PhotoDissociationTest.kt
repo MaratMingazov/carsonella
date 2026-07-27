@@ -17,6 +17,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -79,8 +81,8 @@ class PhotoDissociationTest {
         val ohBond = BondEnergy.of(Element.OXYGEN_16, Element.HYDROGEN, 1)!!   // 4.80
         val ph = photon(energy = ohBond + 2f)                                  // с запасом над порогом
 
-        assertTrue(rule.matchesMolecule(listOf(w, ph)))
-        val outcome = rule.produce()
+        val match = assertNotNull(rule.matchesMolecule(listOf(w, ph)))
+        val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(ph, w), outcome.consumed)               // потребляются фотон и молекула
         outcome.spawn.forEach { it() }
 
@@ -106,7 +108,7 @@ class PhotoDissociationTest {
     fun photonBelowThresholdDoesNotDissociate() {
         val rule = PhotoDissociation(CapturingGenerator())
         val ohBond = BondEnergy.of(Element.OXYGEN_16, Element.HYDROGEN, 1)!!
-        assertFalse(rule.matchesMolecule(listOf(water(), photon(energy = ohBond - 1f))))   // фотон слабее порога
+        assertNull(rule.matchesMolecule(listOf(water(), photon(energy = ohBond - 1f))))   // фотон слабее порога
     }
 
     @Test
@@ -114,8 +116,8 @@ class PhotoDissociationTest {
         // Порог O–O (1.51) < O–H (4.80). Фотон 2 эВ рвёт именно O–O → два ·OH, а не O–H.
         val gen = CapturingGenerator()
         val rule = PhotoDissociation(gen)
-        assertTrue(rule.matchesMolecule(listOf(peroxide(), photon(energy = 2f))))
-        rule.produce().spawn.forEach { it() }
+        val match = assertNotNull(rule.matchesMolecule(listOf(peroxide(), photon(energy = 2f))))
+        rule.produce(match).spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)
         assertTrue(gen.spawned.all { it.species is Species.Molecular })            // оба осколка — молекулы ·OH
@@ -129,13 +131,13 @@ class PhotoDissociationTest {
         val rule = PhotoDissociation(CapturingGenerator())
         val h = Atom(nextId++, Element.HYDROGEN, Position(1f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
             .also { it.setEnvironment(env) }
-        assertFalse(rule.matchesMolecule(listOf(water(), h)))
+        assertNull(rule.matchesMolecule(listOf(water(), h)))
     }
 
     @Test
     fun farPhotonDoesNotDissociate() {
         // Фотон за пределами радиуса активации (MOLECULE_RADIUS = 20) не рвёт молекулу.
         val rule = PhotoDissociation(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(), photon(energy = 10f, x = 1000f))))
+        assertNull(rule.matchesMolecule(listOf(water(), photon(energy = 10f, x = 1000f))))
     }
 }

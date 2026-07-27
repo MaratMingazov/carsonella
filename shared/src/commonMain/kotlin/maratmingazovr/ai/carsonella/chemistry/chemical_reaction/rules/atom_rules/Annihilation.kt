@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -33,20 +34,17 @@ class Annihilation(
 ) : AtomReactionRule() {
     override val id = "Annihilation"
 
-    private var positron: Entity? = null
-    private var electron: Entity? = null
+    private data class Match(val positron: Entity, val electron: Entity) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        positron = null
-        electron = null
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
-        if (species !is Species.Elemental) return false
-        if (species.element != POSITRON) return false
+        if (species !is Species.Elemental) return null
+        if (species.element != POSITRON) return null
 
         val positronPosition = first.state().value.position
         val positronRadius = POSITRON.details.radius
@@ -60,23 +58,18 @@ class Annihilation(
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(positronPosition) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
         val electronRadius = ELECTRON.details.radius
         return if (distanceSquare < positronRadius * electronRadius * 2f) {
-            positron = first
-            electron = nearestElectron
-            true
+            Match(first, nearestElectron)
         } else {
-            false
+            null
         }
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val positronEntity = positron!!
-        val electronEntity = electron!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (positronEntity, electronEntity) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(positronEntity, electronEntity)
         // В системе покоя пары фотоны разлетаются строго в противоположные стороны.

@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.math.abs
@@ -30,30 +31,29 @@ class PhotoIonization (
 ) : AtomReactionRule() {
     override val id = "PhotoIonization"
 
-    private var entity : Entity? = null
-    private var photon : Entity? = null
-    private var entityEl : Element? = null   // элементы реагентов, запомненные в matchesAtoms — produce не вычисляет заново
-    private var photonEl : Element? = null
-    // null означает «ионизация» (energy >= top level), Float — точный уровень, на который нужно «снапнуть» entity
-    private var matchedLevel : Float? = null
+    /**
+     * [level] — точный уровень из таблицы, на который «снапаем» атом (поглощение);
+     * `null` означает ИОНИЗАЦИЮ: энергии хватило дотянуть до верхнего уровня и оторвать электрон.
+     */
+    private data class Match(
+        val atom: Entity,
+        val photon: Entity,
+        val atomElement: Element,     // элементы реагентов, выясненные в matchesAtoms — produce не вычисляет заново
+        val photonElement: Element,
+        val level: Float?,
+    ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): Boolean {
-        entity = null
-        photon = null
-        entityEl = null
-        photonEl = null
-        matchedLevel = null
-
-        if (reagents.size < 2) return false
+    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return false
+        if (firstSpecies !is Species.Elemental) return null
         val firstElement = firstSpecies.element
         val levels = firstElement.energyLevels(first.state().value.electrons)
-        if (levels.isEmpty()) return false
-        if (!first.state().value.alive) return false
+        if (levels.isEmpty()) return null
+        if (!first.state().value.alive) return null
         val others = reagents.drop(1)
         val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
 
@@ -67,55 +67,38 @@ class PhotoIonization (
             .filter { it.state().value.alive }
             .map { it to first.state().value.position.distanceSquareTo(it.state().value.position) }
             .minByOrNull { it.second }
-            ?: return false
+            ?: return null
 
-        if (distance > activationDistanceSquare) return false
+        if (distance > activationDistanceSquare) return null
         val expectedEnergy = first.state().value.energy + nearestPhoton.state().value.energy
 
         // Ионизация: энергии хватает достать электрон (с допуском по верхнему уровню)
         if (expectedEnergy >= levels.last() - ENERGY_EPSILON) {
-            entity = first
-            photon = nearestPhoton
-            entityEl = firstElement
-            photonEl = PHOTON
-            matchedLevel = null
-            return true
+            return Match(first, nearestPhoton, firstElement, PHOTON, level = null)
         }
 
         // Поглощение: энергия попадает в окрестность одного из уровней
-        val matched = levels.firstOrNull { abs(it - expectedEnergy) < ENERGY_EPSILON }
-        if (matched != null) {
-            entity = first
-            photon = nearestPhoton
-            entityEl = firstElement
-            photonEl = PHOTON
-            matchedLevel = matched
-            return true
-        }
-        return false
+        val matched = levels.firstOrNull { abs(it - expectedEnergy) < ENERGY_EPSILON } ?: return null
+        return Match(first, nearestPhoton, firstElement, PHOTON, level = matched)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
+    override fun produce(match: MatchedData): ReactionOutcome {
         /**
          *  Ионизация элемента
          *  Если в элемент прилетел фотон, то электрон заберет эту энергию.
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
-        val entityEnergy = entity!!.state().value.energy
-        val entityElement = entityEl!!   // запомнили в matchesAtoms
-        val electrons = entity!!.state().value.electrons
-        val photonEnergy = photon!!.state().value.energy
-        val photonElement = photonEl!!
-        val level = matchedLevel
+        val (atom, photon, entityElement, photonElement, level) = match as Match
+        val entityEnergy = atom.state().value.energy
+        val electrons = atom.state().value.electrons
+        val photonEnergy = photon.state().value.energy
 
         if (level != null) {
             // Поглощение: «снапаем» энергию атома на точный уровень из таблицы через setEnergy.
             // addEnergy(level - entityEnergy) дал бы a + (b - a), что в float не гарантирует b бит-в-бит.
             return ReactionOutcome(
-                consumed = listOf(photon!!),
-                updateState = listOf { entity!!.setEnergy(level) },
+                consumed = listOf(photon),
+                updateState = listOf { atom.setEnergy(level) },
                 description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${
                     entityElement.label(
                         electrons
@@ -126,22 +109,22 @@ class PhotoIonization (
             val energyIonization = entityElement.energyLevels(electrons).last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
-            val entityPosition = entity!!.state().value.position
-            val entityDirection = entity!!.state().value.direction
-            val entityVelocity = entity!!.state().value.velocity
+            val entityPosition = atom.state().value.position
+            val entityDirection = atom.state().value.direction
+            val entityVelocity = atom.state().value.velocity
             val entityRadius = entityElement.details.radius
             val electronDirection = randomDirection(entityGenerator.random)
             val electronVelocity = (10 + 0.2f * freeEnergy).coerceAtMost(MAX_VELOCITY)
             val electronOffset =entityRadius + ELECTRON.details.radius
             val electronPosition = entityPosition.addVelocity(electronDirection * electronOffset)
-            val env = entity!!.getEnvironment()
+            val env = atom.getEnvironment()
 
             // Протий — особый случай: ион водорода это частица Proton (SubAtom), а не «H с 0 электронов».
             // Сменить Element/класс через updateState нельзя (element неизменяем), поэтому здесь consume + spawn.
             if (entityElement == HYDROGEN) {
                 val ionPosition = entityPosition.plus(Position(-1f * entityRadius, 0f))
                 return ReactionOutcome(
-                    consumed = listOf(photon!!, entity!!),
+                    consumed = listOf(photon, atom),
                     spawn = listOf {
                         entityGenerator.createEntity(
                             Proton,
@@ -168,10 +151,10 @@ class PhotoIonization (
 
             // Element НЕ меняется — тот же атом теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
             return ReactionOutcome(
-                consumed = listOf(photon!!),
+                consumed = listOf(photon),
                 updateState = listOf {
-                    entity!!.setElectrons(electrons - 1)
-                    entity!!.setEnergy(0f)
+                    atom.setElectrons(electrons - 1)
+                    atom.setEnergy(0f)
                 },
                 spawn = listOf {
                     entityGenerator.createEntity(

@@ -16,6 +16,8 @@ import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -68,8 +70,8 @@ class StarDissociationTest {
         val rule = StarDissociation(gen)
         val w = water(star)
 
-        assertTrue(rule.matchesMolecule(listOf(w)))          // «сам с собой», без соседей и фотона
-        val outcome = rule.produce()
+        val match = assertNotNull(rule.matchesMolecule(listOf(w)))          // «сам с собой», без соседей и фотона
+        val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(w), outcome.consumed)
         outcome.spawn.forEach { it() }
 
@@ -86,8 +88,8 @@ class StarDissociationTest {
         // Второй шаг рекурсии: осколок ·OH снова в звезде → распадается до атомов O + H.
         val gen = CapturingGenerator()
         val rule = StarDissociation(gen)
-        assertTrue(rule.matchesMolecule(listOf(hydroxyl(star))))
-        rule.produce().spawn.forEach { it() }
+        val match = assertNotNull(rule.matchesMolecule(listOf(hydroxyl(star))))
+        rule.produce(match).spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)
         assertTrue(gen.spawned.all { it.species is Species.Elemental })   // оба осколка — атомы
@@ -102,7 +104,7 @@ class StarDissociationTest {
     fun moleculeInSpaceDoesNotThermallyDissociate() {
         // В космосе (не звезда) термического распада нет — молекула стабильна.
         val rule = StarDissociation(CapturingGenerator())
-        assertFalse(rule.matchesMolecule(listOf(water(space))))
+        assertNull(rule.matchesMolecule(listOf(water(space))))
     }
 
     @Test
@@ -111,6 +113,6 @@ class StarDissociationTest {
         val rule = StarDissociation(CapturingGenerator())
         val neighbor = Atom(nextId++, Element.HYDROGEN, Position(1f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
             .also { it.setEnvironment(star) }
-        assertFalse(rule.matchesMolecule(listOf(water(star), neighbor)))
+        assertNull(rule.matchesMolecule(listOf(water(star), neighbor)))
     }
 }

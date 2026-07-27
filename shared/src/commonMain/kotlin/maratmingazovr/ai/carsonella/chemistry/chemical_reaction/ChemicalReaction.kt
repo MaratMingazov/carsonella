@@ -12,7 +12,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaMinusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.PhotoIonization
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarAlphaGammaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarAlphaNeutronReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarNeutronGammaReaction
@@ -101,30 +103,36 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
      *    исход с максимальным `weight` (тай-брейк случайно). Так рост и усиление одной молекулы,
      *    приходящие разными запросами, конкурируют в одном месте (docs/molecule-graph.md §6).
      *
-     * produce() зовём СРАЗУ после успешного matches() — пока поля правила свежие (стохастический matches(),
-     * напр. chance() у распадов, при повторном матче перебросил бы кубик). Исходы проигравших запросов
-     * безвредно отбрасываются: spawn/updateState — отложенные лямбды, исполняет World только для применённого.
+     * produce() зовём ОДИН раз и только для ПОБЕДИТЕЛЯ, в самом конце. Так можно, потому что весь
+     * контекст реакции лежит в [MatchedData] — иммутабельном снимке, который вернул matches(). Раньше
+     * контекст жил в полях правила, и produce() приходилось звать сразу: следующий matches() (пусть даже
+     * неуспешный — он обнуляет поля в начале) испортил бы уже собранный исход. Проигравшие исходы теперь
+     * вообще не вычисляются.
      */
     fun resolve(requests: List<ReactionRequest>): ReactionOutcome? {
         // 1. Форс игрока: только указанное правило, приоритет над weight. Первый применимый выигрывает.
         for (req in requests) {
             val ruleClass = req.selection.ruleClass ?: continue
-            val rule = rules.firstOrNull { it::class == ruleClass && it.matches(req.reagents) } ?: continue
-            return rule.produce()   // produce СРАЗУ, пока поля правила свежие после matches()
+            val rule = rules.firstOrNull { it::class == ruleClass } ?: continue
+            val match = rule.matches(req.reagents) ?: continue
+            return rule.produce(match)
         }
         // 2. Эмёрджентно: лучший по weight среди всех правил по всем WeightBased-запросам.
-        var best: Pair<ReactionOutcome, Float>? = null
+        var best: Candidate? = null
         for (req in requests) {
             if (req.selection != ReactionSelection.WeightBased) continue
-            val applicableRules = rules.filter { it.matches(req.reagents) }
-            if (applicableRules.isEmpty()) continue
-            val weighted = applicableRules.map { it to it.weight() }
-            val maxWeight = weighted.maxOf { it.second }
+            val candidates = rules.mapNotNull { rule ->
+                rule.matches(req.reagents)?.let { match -> Candidate(rule, match, rule.weight(match)) }
+            }
+            if (candidates.isEmpty()) continue
+            val maxWeight = candidates.maxOf { it.weight }
             // Отбираем правила с максимальным весом и выбираем случайное из них
-            val chosenRule = weighted.filter { it.second == maxWeight }.map { it.first }.random(entityGenerator.random)
-            val outcome = chosenRule.produce()   // produce СРАЗУ, пока поля правила свежие
-            if (best == null || maxWeight > best.second) best = outcome to maxWeight
+            val chosen = candidates.filter { it.weight == maxWeight }.random(entityGenerator.random)
+            if (best == null || chosen.weight > best.weight) best = chosen
         }
-        return best?.first
+        return best?.let { it.rule.produce(it.match) }
     }
+
+    /** Сматчившееся правило вместе со своим матчем и посчитанным весом — кандидат на применение. */
+    private data class Candidate(val rule: ReactionRule, val match: MatchedData, val weight: Float)
 }

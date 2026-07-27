@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
@@ -28,18 +29,15 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class PhotoDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "PhotoDissociation"
 
-    private var molecule: Entity? = null
-    private var photon: Entity? = null
+    private data class Match(val molecule: Entity, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        photon = null
-        if (reagents.size < 2) return false
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size < 2) return null
 
         val first = reagents.first()
-        if (!first.state().value.alive) return false
+        if (!first.state().value.alive) return null
         val graph = (first.state().value.species as Species.Molecular).graph
-        val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return false // проверяем есть ли у молекулы связь, которую можно порвать?
+        val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
         val threshold = weakestBondAndEnergy.second
 
         val firstPosition = first.state().value.position
@@ -55,29 +53,26 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first
-            ?: return false
+            ?: return null
 
         val available = first.state().value.energy + nearestPhoton.state().value.energy
-        if (available < threshold) return false   // фотона не хватает даже на слабейшую связь → пролетает мимо
+        if (available < threshold) return null   // фотона не хватает даже на слабейшую связь → пролетает мимо
 
-        molecule = first
-        photon = nearestPhoton
-        return true
+        return Match(first, nearestPhoton)
     }
 
     // Распад ЭНДОТЕРМИЧЕН — вес отрицательный (контракт weight = энергия реакции со знаком): разрыв связи
     // «стоит» dissociationEnergy. Так распад проигрывает любой ассоциации (рост/усиление, «+») и побеждает
     // только когда строить нечего (напр. насыщенная O=O + фотон — единственный совпавший вариант).
-    override fun weight(): Float {
-        val mol = molecule ?: return 0f
+    override fun weight(match: MatchedData): Float {
+        val (mol, _) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         val threshold = graph.weakestBondAndEnergy?.second ?: return 0f
         return -threshold
     }
 
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
-        val ph = photon!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, ph) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         val weakestBondAndEnergy = graph.weakestBondAndEnergy!! // matches гарантирует что не null
         val bond = weakestBondAndEnergy.first

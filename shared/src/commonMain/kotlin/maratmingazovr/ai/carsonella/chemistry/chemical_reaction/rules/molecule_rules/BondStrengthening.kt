@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
@@ -27,29 +28,23 @@ class BondStrengthening(
 ) : MoleculeReactionRule() {
     override val id = "BondStrengthening"
 
-    private var molecule: Entity? = null
-    private var bond: Bond? = null
+    private data class Match(val molecule: Entity, val bond: Bond) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        bond = null
-        if (reagents.size != 1) return false   // как распады: только «сам с собой», без соседей
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null   // как распады: только «сам с собой», без соседей
         val first = reagents.first()
-        if (!first.state().value.alive) return false
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return false   // в звезде молекул нет
+        if (!first.state().value.alive) return null
+        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
         val graph = (first.state().value.species as Species.Molecular).graph
-        val candidate = graph.strengthenableBonds.firstOrNull() ?: return false
-        molecule = first
-        bond = candidate
-        return true
+        val candidate = graph.strengthenableBonds.firstOrNull() ?: return null
+        return Match(first, candidate)
     }
 
     // Прирост энергии связи E(k+1) − E(k) — экзотермично, «+» (контракт weight = энергия реакции со
     // знаком). Сравнивается с ростом в одном resolve(): у кислорода усиление O=O (3.65) бьёт рост O–O
-    // (1.51) → O₂, у углерода рост (C–H 4.28) бьёт усиление C=C (2.77) → цепи. Поля из matchesMolecule.
-    override fun weight(): Float {
-        val mol = molecule ?: return 0f
-        val b = bond ?: return 0f
+    // (1.51) → O₂, у углерода рост (C–H 4.28) бьёт усиление C=C (2.77) → цепи. Данные из Match.
+    override fun weight(match: MatchedData): Float {
+        val (mol, b) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         val isoA = graph.nodes.first { it.localId == b.atom1 }.isotope
         val isoB = graph.nodes.first { it.localId == b.atom2 }.isotope
@@ -58,9 +53,8 @@ class BondStrengthening(
         return hi - lo
     }
 
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
-        val b = bond!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol, b) = match as Match
         val state = mol.state().value
         val graph = (state.species as Species.Molecular).graph
         val strengthened = graph.strengthenBond(b.atom1, b.atom2)

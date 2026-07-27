@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
@@ -25,24 +26,20 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class StarDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "StarDissociation"
 
-    private var molecule: Entity? = null
+    private data class Match(val molecule: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): Boolean {
-        molecule = null
-        if (reagents.size != 1) return false   // «сам с собой», как распады/усиление/термоионизация атома
+    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+        if (reagents.size != 1) return null   // «сам с собой», как распады/усиление/термоионизация атома
         val first = reagents.first()
-        if (!first.state().value.alive) return false
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return false
+        if (!first.state().value.alive) return null
+        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         val graph = (first.state().value.species as Species.Molecular).graph
-        if (graph.weakestBondAndEnergy == null) return false   // рвать нечего (нет связей / тип не в каталоге)
-        molecule = first
-        return true
+        if (graph.weakestBondAndEnergy == null) return null   // рвать нечего (нет связей / тип не в каталоге)
+        return Match(first)
     }
 
-    override fun weight() = 0f
-
-    override fun produce(): ReactionOutcome {
-        val mol = molecule!!
+    override fun produce(match: MatchedData): ReactionOutcome {
+        val (mol) = match as Match
         val graph = (mol.state().value.species as Species.Molecular).graph
         val bond = graph.weakestBondAndEnergy!!.first             // matches гарантировал наличие связи
         val fragments = graph.split(bond.atom1, bond.atom2)
