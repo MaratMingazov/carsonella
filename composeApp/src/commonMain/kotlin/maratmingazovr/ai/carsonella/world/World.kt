@@ -38,6 +38,7 @@ class World(
     val environment = Environment(Position(800f, 400f), 500f, TemperatureMode.Space)
     val palette =  mutableStateListOf(
         Element.PHOTON,
+        Element.ELECTRON,
         Element.HYDROGEN,
         Element.OXYGEN_16,
         Element.CARBON_12,

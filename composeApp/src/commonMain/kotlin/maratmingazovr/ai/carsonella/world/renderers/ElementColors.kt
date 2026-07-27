@@ -85,7 +85,18 @@ object ElementColors {
     /** Сплошная заливка кружка атома (плоский стиль). */
     fun fill(species: Species): Color = when (species) {
         is Species.Molecular -> FILL_DEFAULT
-        is Species.Elemental -> fillByZ[species.element.details.p] ?: FILL_DEFAULT
+        is Species.Elemental -> fillElement(species.element)
+    }
+
+    // Заливка по идентичности: субатомы — по типу частицы (иначе позитрон/протон с p=1 случайно
+    // получили бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
+    private fun fillElement(element: Element): Color = when (element) {
+        Element.PHOTON -> Color(0xFFFFE9A8) // тёплый бледно-жёлтый (свет)
+        Element.ELECTRON -> Color(0xFFAFD3F2) // голубой (−)
+        Element.POSITRON -> Color(0xFFF6B8C4) // розовый (+)
+        Element.NEUTRON -> Color(0xFFD3D9DD) // нейтральный серый
+        Element.Proton -> Color(0xFFFAD0A0) // тёплый (голое положительное ядро)
+        else -> fillByZ[element.details.p] ?: FILL_DEFAULT
     }
 }
 

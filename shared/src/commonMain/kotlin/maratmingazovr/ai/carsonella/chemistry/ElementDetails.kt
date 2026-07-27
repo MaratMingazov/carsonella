@@ -5,12 +5,12 @@ import maratmingazovr.ai.carsonella.chemistry.Element.*
 
 internal fun elementDetails(): Map<Element, Details> = mapOf(
     // --- субатомные частицы ---
-    PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           p = 0, n = 0, radius = 10f),
-    ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        p = 0, n = 0, radius = 10f),
-    Proton                  to Details (type = ElementType.SubAtom,     symbol = "p⁺",          label = "Proton (p⁺)",          p = 1, n = 0, radius = 10f, neutronGammaResult = DEUTERIUM),
-    NEUTRON                 to Details (type = ElementType.SubAtom,     symbol = "n",           label = "Neutron (n)",          p = 0, n = 1, radius = 10f),
+    PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           p = 0, n = 0, radius = 15f),
+    ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        p = 0, n = 0, radius = 15f),
+    Proton                  to Details (type = ElementType.SubAtom,     symbol = "p⁺",          label = "Proton (p⁺)",          p = 1, n = 0, radius = 15f, neutronGammaResult = DEUTERIUM),
+    NEUTRON                 to Details (type = ElementType.SubAtom,     symbol = "n",           label = "Neutron (n)",          p = 0, n = 1, radius = 15f),
     // Позитрон — фундаментальная античастица электрона; p = 1 здесь это маркер положительного единичного заряда (для calculateForce), а не «содержит протон».
-    POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        p = 1, n = 0, radius = 10f),
+    POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        p = 1, n = 0, radius = 15f),
 
     // --- атомы ---
     HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",           label = "Hydrogen (H)",         p = 1, n = 0,      covalentRadiusPm = 31, vdwRadiusPm = 120, description = "Водород"),

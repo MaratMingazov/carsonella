@@ -293,38 +293,13 @@ private fun SceneCanvas(
             }
         }
 
-        // выбранную частицу обводим
-        selectedId?.let { id ->
-            entitiesState.firstOrNull { it.id == id }?.let { selectedEntity ->
-                val selectedEntityPosition = selectedEntity.position.toOffset()
-                drawCircle(
-                    color = Color(0xFF80E8FF).copy(alpha = 0.9f),
-                    center = selectedEntityPosition,
-                    radius = 18f,
-                    style = Stroke(width = 3f)
-                )
-            }
-        }
-
 //        // размеры мира
 //        world.environment.setWorldWidth(size.width)
 //        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
-        entitiesState.forEach { renderer.render(this, it, time, showLabel = it.id == hoveredId || it.id == selectedId) }
-
-        // подсветка ховера
-        hoveredId?.let { id ->
-            entitiesState.firstOrNull { it.id == id }?.let { s ->
-                val center = s.position.toOffset()
-                drawCircle(
-                    color = Color.Cyan,
-                    center = center,
-                    radius = 15f,
-                    style = Stroke(width = 1f)
-                )
-            }
-        }
+        entitiesState.forEach { renderer.render(this, it, time, highlighted = it.id == hoveredId || it.id == selectedId) }
+        // наведение/выбор теперь показывает штриховая оконтовка атома (см. EntityRenderer.drawFlatAtom)
     }
 }
 
