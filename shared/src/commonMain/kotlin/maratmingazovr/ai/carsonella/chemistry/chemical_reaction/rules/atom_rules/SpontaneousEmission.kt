@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -55,6 +56,8 @@ class SpontaneousEmission(
 
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity.state().value.energy
+        val entityPosition = entity.state().value.position
+        val entityRadius = entity.state().value.radius
         val levels = entityElement.energyLevels(entity.state().value.electrons)
         val index = levels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")
@@ -63,6 +66,9 @@ class SpontaneousEmission(
         val targetEnergy = if (index == 0) 0f else levels[index - 1]
         val photonEnergy = entityEnergy - targetEnergy
         val photonVelocity = MAX_VELOCITY
+        val photonDirection = randomDirection(entityGenerator.random)
+        val photonOffset = entityRadius + Element.PHOTON.details.radius
+        val photonPosition = entityPosition.addVelocity(photonDirection * photonOffset)
 
         return ReactionOutcome(
             // setEnergy(targetEnergy) вместо addEnergy(-energyToExpose) — записываем точное значение
@@ -71,8 +77,8 @@ class SpontaneousEmission(
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    entity.state().value.position.plus(Position(Element.HYDROGEN.details.radius, 0f)),
-                    randomDirection(entityGenerator.random),
+                    photonPosition,
+                    photonDirection,
                     photonVelocity,
                     energy = photonEnergy,
                     environment = entity.getEnvironment(),

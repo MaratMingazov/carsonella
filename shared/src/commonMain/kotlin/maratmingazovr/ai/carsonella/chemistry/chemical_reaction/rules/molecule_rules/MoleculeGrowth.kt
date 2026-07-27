@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -134,7 +135,8 @@ class MoleculeGrowth(
                 // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик покидает
                 // радиус активации, иначе PhotoDissociation тут же распустил бы молекулу обратно (энергия фотона =
                 // энергии связи = порогу распада) — бесконечный цикл образование↔распад.
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random), 40f, energy = bondEnergy, environment = env, electrons = 0)
+                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random),
+                    MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

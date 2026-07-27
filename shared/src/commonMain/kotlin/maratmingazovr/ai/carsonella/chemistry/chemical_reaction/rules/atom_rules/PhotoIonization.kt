@@ -115,7 +115,7 @@ class PhotoIonization (
             val entityRadius = entityElement.details.radius
             val electronDirection = randomDirection(entityGenerator.random)
             val electronVelocity = (10 + 0.2f * freeEnergy).coerceAtMost(MAX_VELOCITY)
-            val electronOffset =entityRadius + ELECTRON.details.radius
+            val electronOffset = entityRadius + ELECTRON.details.radius
             val electronPosition = entityPosition.addVelocity(electronDirection * electronOffset)
             val env = atom.getEnvironment()
 

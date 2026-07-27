@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 
 /**
  * Данные успешного матча — ИММУТАБЕЛЬНЫЙ снимок всего, что понадобится [ReactionRule.weight] и
@@ -55,7 +56,7 @@ interface ReactionRule {
         val newEntityVelocity = newEntityVelocityVector.length()
         val newEntityDirection = if (newEntityVelocity > 1e-6f) newEntityVelocityVector.div(newEntityVelocity) else Vec2D(1f, 0f)
 
-        return Pair(newEntityDirection,newEntityVelocity)
+        return Pair(newEntityDirection,newEntityVelocity.coerceAtMost(MAX_VELOCITY))
     }
 }
 

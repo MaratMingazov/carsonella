@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -92,7 +93,7 @@ class StarAlphaGammaReaction(
                         resultPosition.y + 1.5f * direction.y * resultElement.details.radius
                     ),
                     direction,
-                    10f,
+                    MAX_VELOCITY,
                     energy = resultPhotonEnergy,
                     environment = atom1.getEnvironment(),
                     electrons = 0,

@@ -105,16 +105,9 @@ class CovalentBondFormation(
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {
-                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 20, как в SpontaneousEmission): за тик он покидает
-                // радиус активации молекулы. Иначе на следующем тике PhotoDissociation поймал бы его и распустил
-                // молекулу обратно (энергия фотона = энергии связи = порогу распада) — бесконечный цикл
-                // образование↔распад. Направление случайное (излучение изотропно).
-                val photonVelocity = bondEnergy.coerceAtMost(MAX_VELOCITY)
+                val photonVelocity = MAX_VELOCITY
                 val photonDirection = randomDirection(entityGenerator.random)
-                // Спавним фотон ЗА радиусом молекулы по направлению его движения: иначе он рождается в
-                // midpoint (там же, где молекула) и попадает прямо в зону активации PhotoDissociation
-                // (activation = moleculeRadius) → тут же распустил бы только что образованную молекулу.
-                val offset = moleculeSpecies.radius + Element.PHOTON.details.radius
+                val offset = moleculeSpecies.radius + Element.PHOTON.details.radius // нужно выйти за радиус атома
                 val photonPosition = midpoint.addVelocity(photonDirection * offset)
                 entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection, photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
             }

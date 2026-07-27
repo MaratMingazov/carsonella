@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -91,7 +92,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
                     Element.PHOTON,
                     s.position.plus(Position(s.radius, 0f)),
                     randomDirection(entityGenerator.random),
-                    40f,
+                    MAX_VELOCITY,
                     energy = photonEnergy,
                     environment = env,
                     electrons = 0,

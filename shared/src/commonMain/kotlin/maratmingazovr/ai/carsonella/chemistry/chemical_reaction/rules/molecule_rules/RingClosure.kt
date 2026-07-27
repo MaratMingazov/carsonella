@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -73,7 +74,8 @@ class RingClosure(
             spawn += {
                 // Фотон уносит нетто-энергию и УЛЕТАЕТ (скорость 40, как в BondStrengthening/SpontaneousEmission):
                 // за тик покидает радиус активации, иначе PhotoDissociation мог бы поймать его и раскрыть кольцо.
-                entityGenerator.createEntity(Element.PHOTON, state.position, randomDirection(entityGenerator.random), 40f, energy = released, environment = env, electrons = 0)
+                entityGenerator.createEntity(Element.PHOTON, state.position, randomDirection(entityGenerator.random),
+                    MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }
 

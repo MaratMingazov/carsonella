@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -154,7 +155,7 @@ class StarPPChain(
                     resultPosition.y + 1.5f * direction.y * resultRadius,
                 ),
                 direction,
-                10f,
+                MAX_VELOCITY,
                 energy = resultPhotonEnergy,
                 environment = atom1.getEnvironment(),
                 electrons = 0,

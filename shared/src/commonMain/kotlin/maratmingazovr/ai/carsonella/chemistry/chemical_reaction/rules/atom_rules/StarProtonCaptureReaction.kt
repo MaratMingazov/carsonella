@@ -17,6 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -155,7 +156,7 @@ class StarProtonCaptureReaction(
                                     resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
                                 ),
                                 direction,
-                                10f,
+                                MAX_VELOCITY,
                                 energy = resultPhotonEnergy,
                                 environment = a1.getEnvironment(),
                                 electrons = 0,
@@ -194,7 +195,7 @@ class StarProtonCaptureReaction(
                             resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
                         ),
                         direction,
-                        20f,
+                        MAX_VELOCITY,
                         energy = 0f,
                         environment = a1.getEnvironment(),
                         electrons = 0,
@@ -206,7 +207,7 @@ class StarProtonCaptureReaction(
                             ELECTRON,
                             Position(resultPosition.x, resultPosition.y + resultElement.details.radius),
                             randomDirection(entityGenerator.random),
-                            20f,
+                            MAX_VELOCITY,
                             energy = 0f,
                             environment = a1.getEnvironment(),
                             electrons = 1,
@@ -250,7 +251,7 @@ class StarProtonCaptureReaction(
                                     resultPosition.y + 1.5f * direction.y * resultElement.details.radius,
                                 ),
                                 direction,
-                                20f,
+                                MAX_VELOCITY,
                                 energy = 0f,
                                 environment = a1.getEnvironment(),
                                 electrons = 0,

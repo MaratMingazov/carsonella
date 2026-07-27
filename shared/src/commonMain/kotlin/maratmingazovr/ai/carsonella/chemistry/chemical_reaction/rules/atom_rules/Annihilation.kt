@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -97,7 +98,7 @@ class Annihilation(
                             centerPosition.y + photonDirection.y * photonRadius,
                         ),
                         photonDirection,
-                        10f,
+                        MAX_VELOCITY,
                         energy = photonEnergy,
                         environment = positronEntity.getEnvironment(),
                         electrons = 0,
@@ -111,7 +112,7 @@ class Annihilation(
                             centerPosition.y + oppositeDirection.y * photonRadius,
                         ),
                         oppositeDirection,
-                        10f,
+                        MAX_VELOCITY,
                         energy = photonEnergy,
                         environment = positronEntity.getEnvironment(),
                         electrons = 0,

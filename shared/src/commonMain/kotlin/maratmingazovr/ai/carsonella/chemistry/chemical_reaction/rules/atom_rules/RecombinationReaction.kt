@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -90,7 +91,7 @@ class RecombinationReaction(
                             resultPosition.x + 1.5f * direction.x * radius,
                             resultPosition.y + 1.5f * direction.y * radius
                         ),
-                        direction, 10f, energy = photonEnergy, environment = env, electrons = 0,
+                        direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
                     )
                 },
                 description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${
@@ -121,7 +122,7 @@ class RecombinationReaction(
                         resultPosition.x + 1.5f * direction.x * radius,
                         resultPosition.y + 1.5f * direction.y * radius
                     ),
-                    direction, 10f, energy = photonEnergy, environment = env, electrons = 0,
+                    direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
                 )
             },
             description = "$id: ${atom1Element.symbol(electrons)} + ${atom2Element.details.symbol} -> ${

@@ -14,6 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.SILICON_28
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -130,7 +131,7 @@ class StarOxygenBurning(
                     ELECTRON,
                     Position(resultPosition.x, resultPosition.y + resultRadius),
                     randomDirection(entityGenerator.random),
-                    20f,
+                    MAX_VELOCITY,
                     energy = 0f,
                     environment = atom1.getEnvironment(),
                     electrons = 1,
@@ -147,7 +148,7 @@ class StarOxygenBurning(
                     resultPosition.y + 1.5f * direction.y * resultRadius,
                 ),
                 direction,
-                10f,
+                MAX_VELOCITY,
                 energy = resultPhotonEnergy,
                 environment = atom1.getEnvironment(),
                 electrons = 0,
