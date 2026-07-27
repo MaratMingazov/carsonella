@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -72,7 +73,7 @@ class CovalentBondFormation(
         val element = species.element
         if (element.details.type != ElementType.Atom) return false   // только атомы (не частицы/звезда/модуль)
         if (state.electrons != element.details.p) return false       // только нейтральные (есть электроны для общей пары)
-        return element.valence() > 0                                 // есть свободный слот (0 → благородный/тяжёлый)
+        return element.valence(state.electrons) > 0                  // есть свободный слот (0 → благородный/тяжёлый)
     }
 
     override fun weight() = 0f
@@ -115,7 +116,7 @@ class CovalentBondFormation(
                 // радиус активации молекулы. Иначе на следующем тике PhotoDissociation поймал бы его и распустил
                 // молекулу обратно (энергия фотона = энергии связи = порогу распада) — бесконечный цикл
                 // образование↔распад. Направление случайное (излучение изотропно).
-                val photonVelocity = 10f
+                val photonVelocity = bondEnergy.coerceAtMost(MAX_VELOCITY)
                 val photonDirection = randomDirection(entityGenerator.random)
                 // Спавним фотон ЗА радиусом молекулы по направлению его движения: иначе он рождается в
                 // midpoint (там же, где молекула) и попадает прямо в зону активации PhotoDissociation

@@ -125,7 +125,8 @@ data class MoleculeGraph(
             used[bond.atom1] = (used[bond.atom1] ?: 0) + bond.order
             used[bond.atom2] = (used[bond.atom2] ?: 0) + bond.order
         }
-        nodes.associate { it.localId to (it.isotope.valence() - (used[it.localId] ?: 0)) }
+        // Узел молекулы не хранит по-атомный заряд → трактуем атом нейтральным (electrons = details.p).
+        nodes.associate { it.localId to (it.isotope.valence(it.isotope.details.p) - (used[it.localId] ?: 0)) }
     }
 
     /**

@@ -7,9 +7,11 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.math.abs
 
 // Допуск при сопоставлении энергии фотона с уровнем атома. Нужен потому, что фотон, рождённый
@@ -127,15 +129,17 @@ class PhotoIonization (
             val entityPosition = entity!!.state().value.position
             val entityDirection = entity!!.state().value.direction
             val entityVelocity = entity!!.state().value.velocity
-            val radius = entityElement.details.radius
-            val electronPosition = entityPosition.plus(Position(1f * radius, 0f))
-            val electronVelocity = 10 + 0.2f * freeEnergy
+            val entityRadius = entityElement.details.radius
+            val electronDirection = randomDirection(entityGenerator.random)
+            val electronVelocity = (10 + 0.2f * freeEnergy).coerceAtMost(MAX_VELOCITY)
+            val electronOffset =entityRadius + ELECTRON.details.radius
+            val electronPosition = entityPosition.addVelocity(electronDirection * electronOffset)
             val env = entity!!.getEnvironment()
 
             // Протий — особый случай: ион водорода это частица Proton (SubAtom), а не «H с 0 электронов».
             // Сменить Element/класс через updateState нельзя (element неизменяем), поэтому здесь consume + spawn.
             if (entityElement == HYDROGEN) {
-                val ionPosition = entityPosition.plus(Position(-1f * radius, 0f))
+                val ionPosition = entityPosition.plus(Position(-1f * entityRadius, 0f))
                 return ReactionOutcome(
                     consumed = listOf(photon!!, entity!!),
                     spawn = listOf {
@@ -151,7 +155,7 @@ class PhotoIonization (
                         entityGenerator.createEntity(
                             ELECTRON,
                             electronPosition,
-                            entityDirection,
+                            electronDirection,
                             electronVelocity,
                             0f,
                             env,
@@ -173,7 +177,7 @@ class PhotoIonization (
                     entityGenerator.createEntity(
                         ELECTRON,
                         electronPosition,
-                        entityDirection,
+                        electronDirection,
                         electronVelocity,
                         0f,
                         env,

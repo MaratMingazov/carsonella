@@ -69,7 +69,7 @@ class EntityRenderer(
         with(drawScope) {
             when (element.details.type) {
                 ElementType.SubAtom -> drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlighted)
-                ElementType.Atom -> drawAtom(position, radius, fillColor, symbol, element.valence(), vibrationParams.slotAngle, highlighted = highlighted)
+                ElementType.Atom -> drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlighted)
                 ElementType.Star -> throw RuntimeException("STAR Rendering is not implemented yet")
             }
         }

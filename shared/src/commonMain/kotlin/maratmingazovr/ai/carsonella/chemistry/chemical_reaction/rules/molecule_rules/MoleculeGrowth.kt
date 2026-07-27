@@ -83,7 +83,7 @@ class MoleculeGrowth(
                 val element = species.element
                 element.details.type == ElementType.Atom &&
                     state.electrons == element.details.p &&   // нейтральный — есть электроны для общей пары
-                    element.valence() > 0
+                    element.valence(state.electrons) > 0
             }
         }
     }

@@ -546,8 +546,10 @@ enum class Element() {
             emptyList()
         }
 
-    fun valence(): Int {
-        var remaining = details.p   // Z = число электронов нейтрального атома
+    // Валентность = сколько ковалентных связей атом может образовать: заполнение оболочек (2/8/8)
+    fun valence(electrons: Int): Int {
+        if (details.p - electrons > MAX_BONDING_CHARGE) return 0   // если атом теряет больше 1 электрона, то в ковалентную связь он уже вступать не может
+        var remaining = electrons   // сколько электронов ещё не разложено по оболочкам
         for (capacity in intArrayOf(2, 8, 8)) {
             if (remaining <= capacity) {
                 return when {
@@ -558,7 +560,7 @@ enum class Element() {
             }
             remaining -= capacity
         }
-        return 0   // Z > 18 — октет не применим → ковалентно не связывается
+        return 0   // electrons > 18 — октет не применим → ковалентно не связывается
     }
 
     companion object {
@@ -578,7 +580,16 @@ enum class Element() {
 
 }
 
+/**
+ * Потолок заряда, при котором атом ещё ведёт ковалентную химию (см. [Element.valence]).
+ * +1 — реальные однозарядные катионы: CH₃⁺, NH₄⁺, H₃O⁺. Двухзарядные молекулярные катионы существуют,
+ * но это экзотика — обычно разлетаются кулоновским взрывом, а не связываются; выше +2 ковалентной химии нет.
+ */
+private const val MAX_BONDING_CHARGE = 1
+
 private const val SUPERSCRIPT_DIGITS = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+
+const val MAX_VELOCITY = 10f
 
 // Число → надстрочные цифры: 29 → "²⁹".
 private fun sup(n: Int): String = n.toString().map { SUPERSCRIPT_DIGITS[it - '0'] }.joinToString("")
