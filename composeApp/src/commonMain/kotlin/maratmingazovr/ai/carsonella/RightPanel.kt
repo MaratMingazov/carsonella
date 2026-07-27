@@ -1,5 +1,6 @@
 package maratmingazovr.ai.carsonella
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,8 +10,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -137,13 +139,13 @@ fun RightPanel(
                     entitiesState = entitiesState,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
-                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 260.dp),
+                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 170.dp),
                 )
             }
             ConsolePanel(
                 logs = world.logs,
                 onClear = { world.logs.clear() },
-                height = 200.dp
+                height = 100.dp
             )
         }
     }
@@ -404,6 +406,22 @@ private fun hitTest(
 }
 
 
+// Кнопка в стиле беж-панели: лёгкий OutlinedButton — тёплая тонкая рамка + тёмный текст, скругление
+// (перекликается с чёрной обводкой атомов), вместо яркой Material-заливки.
+@Composable
+private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, Color(0xFF8A7B60)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3E362A)),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
 // Карточка Info поверх канвы: показывает выбранную частицу и действия по ней. Ничего не выбрано →
 // не рисуется вовсе (ранний return). Перенесена из прежней LeftPanel.
 @Composable
@@ -416,7 +434,12 @@ private fun SelectedEntityPanel(
 ) {
     val selectedElement = entitiesState.firstOrNull { it.id == selectedElementId } ?: return
 
-    Column(modifier.fillMaxWidth().background(Color.White).padding(8.dp).border(1.dp, Color.LightGray)) {
+    Column(
+        modifier.fillMaxWidth()
+            .background(PANEL_BG, RoundedCornerShape(12.dp))
+            .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
         Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
         Spacer(Modifier.height(8.dp))
         Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
@@ -438,17 +461,19 @@ private fun SelectedEntityPanel(
             val graph = species.graph
             if (graph.strengthenableBonds.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Button(
+                PanelButton(
+                    text = "Strengthen bond",
                     onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond) },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Strengthen bond") }
+                )
             }
             if (graph.ringClosureCandidates.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Button(
+                PanelButton(
+                    text = "Close ring",
                     onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.CloseRing) },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Close ring") }
+                )
             }
         }
         // Редактор энергии (пока только фотон).
@@ -482,10 +507,11 @@ private fun EnergyEditor(
             label = { Text("Energy, eV") },
             modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
         )
-        Button(
+        PanelButton(
+            text = "Apply",
             onClick = { text.trim().toFloatOrNull()?.takeIf { it > 0f }?.let(onApply) },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Apply") }
+        )
     }
 }
 

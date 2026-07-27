@@ -30,6 +30,9 @@ import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
 
+// Мягкий пастельный бежевый фон плашек (палитра сверху + Info-карточка на канве).
+internal val PANEL_BG = Color(0xFFF5EFE3)
+
 // Верхняя плашка-палитра: элементы кружочками (как на канве). Тащатся на канву тем же DragSource →
 // спавн в DropTarget/App.onDrop.
 @Composable
@@ -38,7 +41,7 @@ fun TopPalette(palette: List<Element>, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.TopCenter) {
         Row(
             Modifier
-                .background(Color.White, RoundedCornerShape(12.dp))
+                .background(PANEL_BG, RoundedCornerShape(12.dp))
                 .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
