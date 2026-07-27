@@ -298,7 +298,10 @@ private fun SceneCanvas(
 //        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
-        entitiesState.forEach { renderer.render(this, it, time, highlighted = it.id == hoveredId || it.id == selectedId) }
+        // z-порядок = порядок отрисовки; тащимую частицу (heldEntityId) рисуем последней → поверх остальных
+        entitiesState
+            .sortedBy { if (it.id == world.heldEntityId) 1 else 0 }   // стабильно: остальные — как в списке
+            .forEach { renderer.render(this, it, time, highlighted = it.id == hoveredId || it.id == selectedId) }
         // наведение/выбор теперь показывает штриховая оконтовка атома (см. EntityRenderer.drawFlatAtom)
     }
 }
@@ -495,8 +498,9 @@ private fun EnergyEditor(
             value = text,
             onValueChange = { text = it },
             singleLine = true,
+            textStyle = MaterialTheme.typography.labelSmall,   // размер вводимого текста (по умолчанию bodyLarge ≈ 16sp)
             label = { Text("Energy, eV") },
-            modifier = Modifier.width(100.dp).onFocusChanged { focused = it.isFocused },
+            modifier = Modifier.width(100.dp).height(55.dp).onFocusChanged { focused = it.isFocused },
         )
         PanelButton(
             text = "Apply",
