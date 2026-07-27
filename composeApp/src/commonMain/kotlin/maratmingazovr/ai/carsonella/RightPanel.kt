@@ -496,7 +496,7 @@ private fun EnergyEditor(
             onValueChange = { text = it },
             singleLine = true,
             label = { Text("Energy, eV") },
-            modifier = Modifier.width(120.dp).onFocusChanged { focused = it.isFocused },
+            modifier = Modifier.width(100.dp).onFocusChanged { focused = it.isFocused },
         )
         PanelButton(
             text = "Apply",
