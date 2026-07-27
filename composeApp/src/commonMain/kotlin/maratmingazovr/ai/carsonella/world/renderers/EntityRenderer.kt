@@ -12,9 +12,6 @@ import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
-private const val BOND_LINE_SPACING = 3f       // сдвиг параллельных линий для двойных/тройных связей
-private val BOND_COLOR = Color(0xFF212121)     // МИНИМАЛИЗМ: почти чёрная связь (Sokobond, на белом)
-
 
 
 // Единый тайминг анимаций от монотонного time (секунды). Меняешь скорость здесь, в одном месте.
@@ -114,9 +111,12 @@ class EntityRenderer(
         val len = dir.getDistance()
         val perp = if (len > 1e-3f) Offset(-dir.y / len, dir.x / len) else Offset(0f, 1f)
         val firstShift = -(order - 1) / 2f
+        val lineWidth =  2.5f // ширина линии
+        val BOND_LINE_SPACING = 8f       // сдвиг параллельных линий для двойных/тройных связей
+        val BOND_COLOR = Color(0xFF212121)     // МИНИМАЛИЗМ: почти чёрная связь (Sokobond, на белом)
         for (i in 0 until order) {
             val shift = perp * ((firstShift + i) * BOND_LINE_SPACING)
-            drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = 2f)
+            drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = lineWidth)
         }
     }
 
