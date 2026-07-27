@@ -1,6 +1,6 @@
 package maratmingazovr.ai.carsonella
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -47,12 +47,8 @@ fun App() {
         }
 
         DragDropContainer {
-            Row(Modifier.fillMaxSize()) {
-                LeftPanel(
-                    palette = world.palette,
-                    onSave = { world.save() },
-                    onLoad = { world.load() },
-                )
+            Column(Modifier.fillMaxSize()) {
+                TopPalette(palette = world.palette)
 
                 RightPanel(
                     accept = { it.element in Element.entries },
