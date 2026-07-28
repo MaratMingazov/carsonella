@@ -114,6 +114,7 @@ class MoleculeGrowth(
         val partnerNode = partnerGraph.firstFreeSlotAtomNode!!
         val merged = molGraph.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
 
+
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(mol, partnerEntity)
         val p1 = mol.state().value.position
         val p2 = partnerEntity.state().value.position
@@ -131,12 +132,14 @@ class MoleculeGrowth(
             { entityGenerator.createEntity(Species.Molecular(merged), midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
+            val photonDirection = randomDirection(entityGenerator.random)
+            val photonVelocity = MAX_VELOCITY
+            val offset = mol.state().value.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
+            val photonPosition = midpoint.addVelocity(photonDirection * offset)
             spawn += {
-                // Фотон уносит энергию связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик покидает
-                // радиус активации, иначе PhotoDissociation тут же распустил бы молекулу обратно (энергия фотона =
-                // энергии связи = порогу распада) — бесконечный цикл образование↔распад.
-                entityGenerator.createEntity(Element.PHOTON, midpoint, randomDirection(entityGenerator.random),
-                    MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
+                // Фотон уносит энергию связи и УЛЕТАЕТ
+                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
+                    photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

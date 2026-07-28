@@ -1,6 +1,8 @@
 package maratmingazovr.ai.carsonella.world.renderers
 
 import androidx.compose.ui.geometry.Offset
+import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.math.PI
 import kotlin.math.cos
@@ -15,7 +17,7 @@ import kotlin.math.sin
  * это чисто рендер.
  */
 object MoleculeLayout {
-    private const val BOND_PX = 70f // насколько далеко молекулы отстоят друг от друга
+    private const val BOND_PX = 20f // расстояние между двумя атомами
 
     // Мемоизация: раскладка зависит только от структуры графа — считаем один раз на структуру, а не
     // каждый кадр. Ключ — сам граф (data class → структурное равенство), молекулы с одинаковой
@@ -29,15 +31,11 @@ object MoleculeLayout {
         val nodes = graph.nodes
         if (nodes.isEmpty()) return emptyMap()
 
-        val adjacency: Map<Int, List<Int>> = nodes.associate { node ->
-            node.localId to graph.bonds.mapNotNull { bond ->
-                when (node.localId) {
-                    bond.atom1 -> bond.atom2
-                    bond.atom2 -> bond.atom1
-                    else -> null
-                }
-            }
+        // Инцидентные РЁБРА (а не просто соседи): длина связи зависит и от её кратности, и от изотопов концов.
+        val adjacency: Map<Int, List<Bond>> = nodes.associate { node ->
+            node.localId to graph.bonds.filter { node.localId == it.atom1 || node.localId == it.atom2 }
         }
+        val isotopeById: Map<Int, Element> = nodes.associate { it.localId to it.isotope }
 
         // Корень — атом макс. степени; при ничьей берём наименьший localId (для детерминизма).
         val maxDegree = nodes.maxOf { adjacency.getValue(it.localId).size }
@@ -51,22 +49,24 @@ object MoleculeLayout {
 
         while (queue.isNotEmpty()) {
             val cur = queue.removeFirst()
-            val children = adjacency.getValue(cur).filter { visited.add(it) }   // только непосещённые
-            if (children.isEmpty()) continue
+            val bonds = adjacency.getValue(cur).filter { visited.add(it.other(cur)) }   // только к непосещённым
+            if (bonds.isEmpty()) continue
             val curPos = pos.getValue(cur)
             val isRoot = cur == rootId
             val awayFromParent = (angleToParent[cur] ?: 0f) + PI.toFloat()
 
-            children.forEachIndexed { i, child ->
+            bonds.forEachIndexed { i, bond ->
+                val child = bond.other(cur)
                 val angle = if (isRoot) {
-                    2f * PI.toFloat() * i / children.size                          // корень — равномерно по кругу
-                } else if (children.size == 1) {
+                    2f * PI.toFloat() * i / bonds.size                             // корень — равномерно по кругу
+                } else if (bonds.size == 1) {
                     awayFromParent                                                 // продолжаем «от родителя»
                 } else {
                     val spread = PI.toFloat()                                      // прочие — полукруг от родителя
-                    awayFromParent - spread / 2f + spread * i / (children.size - 1)
+                    awayFromParent - spread / 2f + spread * i / (bonds.size - 1)
                 }
-                pos[child] = Offset(curPos.x + BOND_PX * cos(angle), curPos.y + BOND_PX * sin(angle))
+                val length = bondLengthPx(isotopeById.getValue(cur), isotopeById.getValue(child), bond.order) // длина связи двух атомов
+                pos[child] = Offset(curPos.x + length * cos(angle), curPos.y + length * sin(angle))
                 angleToParent[child] = angle + PI.toFloat()
                 queue.add(child)
             }
@@ -77,4 +77,14 @@ object MoleculeLayout {
         val cy = pos.values.map { it.y }.average().toFloat()
         return pos.mapValues { Offset(it.value.x - cx, it.value.y - cy) }
     }
+
+    /** Второй конец связи, если известен первый. */
+    private fun Bond.other(localId: Int): Int = if (localId == atom1) atom2 else atom1
+
+
+    private fun bondLengthPx(a: Element, b: Element, order: Int): Float {
+        // по идее чем больше кратность связи order, тем короче должно быть, позже сделаем
+        return a.details.radius + b.details.radius + BOND_PX
+    }
+
 }

@@ -58,7 +58,8 @@ fun App() {
                     // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
                     onDrop = { data, localPos ->
                         val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-                        world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = data.element.details.p)
+                        val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
+                        world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
                     },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
