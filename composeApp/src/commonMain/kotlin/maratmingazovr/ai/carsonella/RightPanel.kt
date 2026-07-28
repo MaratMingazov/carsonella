@@ -286,20 +286,10 @@ private fun SceneCanvas(
             style = Stroke(width = 1f)
         )
 
-        // хит-тест по протонам
-        val mouse = hoverPos
-        onSelectHoverId(null)
-
-        if (mouse != null) {
-            // ищем самый ближайший объект
-            val hit = entitiesState.minByOrNull { s -> (s.position.toOffset() - mouse).getDistance() }
-
-            val hitRadius = 30f
-            if (hit != null) {
-                val c = hit.position.toOffset()
-                if ((c - mouse).getDistance() <= hitRadius) onSelectHoverId(hit.id)
-            }
-        }
+        // Наведение — тем же хит-тестом и с тем же радиусом, что клик и захват при перетаскивании
+        // (см. hitTest ниже): что подсвечено, то и выберется. Раньше подсветка жила своей копией
+        // логики с радиусом 30 против кликовых 50 — кликом выбиралось то, что не подсветилось.
+        onSelectHoverId(hoverPos?.let { hitTest(entitiesState, it) })
 
 //        // размеры мира
 //        world.environment.setWorldWidth(size.width)
