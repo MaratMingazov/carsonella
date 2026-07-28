@@ -373,6 +373,11 @@ data class MoleculeGraph(
     val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
 
     /**
+     * Позиции атомов
+     */
+    fun atomPositions(center: Position): Map<Int, Position> = atomOffsets.mapValues { center + it.value }
+
+    /**
      * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы
      * при любой перенумерации узлов и РАЗНАЯ у разных молекул.
      *

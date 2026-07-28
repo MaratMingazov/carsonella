@@ -4,6 +4,7 @@ import kotlin.random.Random
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 
 data class Position(val x: Float, val y: Float) {
@@ -16,6 +17,11 @@ data class Position(val x: Float, val y: Float) {
         val dy = other.y - y
         return dx * dx + dy * dy
     }
+
+    // Расстояние с корнем. Для сравнений его брать НЕ нужно (distanceSquareTo монотонна и дешевле) —
+    // он нужен там, где расстояние участвует в арифметике: например, вычесть радиус, чтобы получить
+    // расстояние до поверхности (в мире квадратов так нельзя: d² − r² ≠ (d − r)²).
+    fun distanceTo(other: Position): Float = sqrt(distanceSquareTo(other))
 
     // эффект дрожания
     // мы возвращаем новую позицию рядом с текущей

@@ -30,6 +30,26 @@ data class EntityState(
     val energyLevels: List<Float> get() = species.energyLevels(electrons) // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
 
     /**
+     * Расстояние от [point] до ПОВЕРХНОСТИ сущности: `< 0` — точка внутри, `0` — на кромке, `> 0` —
+     * снаружи. Радиус уже учтён, наружу выходит одно число.
+     *
+     * У молекулы берётся ближайший АТОМ, а не центр: раскладка разносит атомы далеко за `radius`
+     * молекулы (константа 20f), поэтому по центру судить нельзя — внешний водород H₂O от центроида
+     * дальше, чем этот радиус. Так вызывающему не нужно знать, из чего молекула состоит: и частица,
+     * и молекула отвечают на один вопрос одинаково.
+     *
+     */
+    fun distanceToSurface(point: Position): Float = when (val species = species) {
+        is Species.Elemental -> position.distanceTo(point) - species.radius
+        is Species.Molecular -> {
+            val positions = species.graph.atomPositions(position)   // одна раскладка на молекулу
+            species.graph.nodes.minOfOrNull { node ->
+                positions.getValue(node.localId).distanceTo(point) - node.isotope.details.radius
+            } ?: (position.distanceTo(point) - radius)              // граф без узлов — не бывает, но пусть
+        }
+    }
+
+    /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
      * только когда .value присваивается новый объект.
      */

@@ -82,6 +82,7 @@ fun App() {
 }
 
 fun Position.toOffset(): Offset = Offset(x, y)
+fun Offset.toPosition(): Position = Position(x, y)
 
 
 
