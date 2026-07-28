@@ -1,9 +1,7 @@
-package maratmingazovr.ai.carsonella.world.renderers
+package maratmingazovr.ai.carsonella.chemistry.graph
 
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
-import maratmingazovr.ai.carsonella.chemistry.graph.Bond
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +11,9 @@ import kotlin.test.assertTrue
  * Раскладка графа молекулы в координаты атомов: детерминированная, центрированная по центроиду,
  * центральный атом ближе к центру.
  */
-class MoleculeLayoutTest {
+class MoleculeGeometryTest {
+
+    private val center = Position(0f, 0f)
 
     @Test
     fun diatomicIsTwoCenteredPoints() {
@@ -21,7 +21,7 @@ class MoleculeLayoutTest {
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        val pos = MoleculeLayout.layout(h2)
+        val pos = MoleculeGeometry.atomOffsets(h2)
         assertEquals(2, pos.size)
         assertTrue(pos.getValue(0) != pos.getValue(1))                    // два разных места
         assertTrue(abs(pos.getValue(0).x + pos.getValue(1).x) < 0.01f)   // центроид ≈ 0
@@ -39,8 +39,9 @@ class MoleculeLayoutTest {
             ),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
-        val pos = MoleculeLayout.layout(water)
+        val pos = MoleculeGeometry.atomOffsets(water)
         assertEquals(3, pos.size)
-        assertTrue(pos.getValue(0).getDistance() < pos.getValue(1).getDistance())   // O ближе к центру, чем H
+        // O ближе к центру, чем H (сравниваем квадраты расстояний — корень не нужен)
+        assertTrue(pos.getValue(0).distanceSquareTo(center) < pos.getValue(1).distanceSquareTo(center))
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.toOffset
 
 
@@ -85,16 +86,19 @@ class EntityRenderer(
         val graph = (entityState.species as Species.Molecular).graph
         val centerPosition = entityState.position.toOffset() + vibrationParams.positionOffset
 
-        val offsets = MoleculeLayout.layout(graph)
+        // Геометрия молекулы живёт в shared (ею пользуется и физика); здесь только переводим
+        // смещения атомов относительно центра в экранные координаты.
+        val offsets = MoleculeGeometry.atomOffsets(graph)
+        fun atomScreenPos(localId: Int) = centerPosition + offsets.getValue(localId).toOffset()
 
         with(drawScope) {
 
             graph.bonds.forEach { bond ->
-                drawBond(centerPosition + offsets.getValue(bond.atom1), centerPosition + offsets.getValue(bond.atom2), bond.order)
+                drawBond(atomScreenPos(bond.atom1), atomScreenPos(bond.atom2), bond.order)
             }
 
             graph.nodes.forEach { node ->
-                val atomPosition = centerPosition + offsets.getValue(node.localId)
+                val atomPosition = atomScreenPos(node.localId)
                 val fill = ElementColors.fill(Species.Elemental(node.isotope))
                 val symbol = node.isotope.details.symbol.filter { it.isLetter() }
                 val nodeSlotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + node.localId * 1.3f

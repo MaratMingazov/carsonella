@@ -1,33 +1,47 @@
-package maratmingazovr.ai.carsonella.world.renderers
+package maratmingazovr.ai.carsonella.chemistry.graph
 
-import androidx.compose.ui.geometry.Offset
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.Bond
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Детерминированная раскладка графа молекулы в координаты атомов (пиксели, относительно центра молекулы).
+ * Геометрия молекулы: детерминированная раскладка её графа в координаты атомов (относительно центра
+ * молекулы).
  *
  * Радиальная: корень (атом макс. степени) в центре, соседи — по кольцу вокруг родителя; затем всё
  * центрируем по центроиду (молекула симметрична). Достаточно для малых молекул (H₂, H₂O, CH₄, NH₃);
- * цепи/кольца раскладываются приблизительно — их пока нет. Раскладка не часть идентичности графа,
- * это чисто рендер.
+ * цепи/кольца раскладываются приблизительно — их пока нет.
+ *
+ * Координаты НЕ хранятся в [AtomNode] и не являются частью идентичности: граф — это структура (ядра
+ * и связи), а положение — производная от неё величина. Хранить его в узле нельзя ещё и технически:
+ * [MoleculeGraph] — data class, его структурное равенство служит ключом кэша ниже и ответом на вопрос
+ * «это та же молекула?», а `merge`/`split` перенумеровывают узлы, после чего сохранённые координаты
+ * протухли бы.
+ *
+ * Живёт в `shared` рядом с [MoleculeGraph], а не в рендере, потому что нужна ОБОИМ: рендер по ней
+ * рисует, а правилам реакций она нужна, чтобы выбирать узел по геометрии («ближайший к партнёру»),
+ * а не по номеру (см. [MoleculeGraph.firstFreeSlotAtomNode]). Единицы — мировые, они же пиксельные:
+ * перевод `Position.toOffset()` в рендере тождественный (x, y как есть).
  */
-object MoleculeLayout {
+object MoleculeGeometry {
     private const val BOND_PX = 20f // расстояние между двумя атомами
 
     // Мемоизация: раскладка зависит только от структуры графа — считаем один раз на структуру, а не
     // каждый кадр. Ключ — сам граф (data class → структурное равенство), молекулы с одинаковой
     // структурой делят результат. Caveat: при огромном разнообразии структур (органика) кэш растёт —
     // тогда заменить на ограниченный LRU.
-    private val cache = HashMap<MoleculeGraph, Map<Int, Offset>>()
+    private val cache = HashMap<MoleculeGraph, Map<Int, Position>>()
 
-    fun layout(graph: MoleculeGraph): Map<Int, Offset> = cache.getOrPut(graph) { compute(graph) }
+    /**
+     * Смещения атомов ОТНОСИТЕЛЬНО центра молекулы, по [AtomNode.localId]. Именно смещения, а не
+     * позиции: где молекула находится в мире, знает её сущность (`state.position`), а граф — только
+     * форму. Абсолютные координаты = позиция молекулы + это смещение.
+     */
+    fun atomOffsets(graph: MoleculeGraph): Map<Int, Position> = cache.getOrPut(graph) { compute(graph) }
 
-    private fun compute(graph: MoleculeGraph): Map<Int, Offset> {
+    private fun compute(graph: MoleculeGraph): Map<Int, Position> {
         val nodes = graph.nodes
         if (nodes.isEmpty()) return emptyMap()
 
@@ -41,9 +55,9 @@ object MoleculeLayout {
         val maxDegree = nodes.maxOf { adjacency.getValue(it.localId).size }
         val rootId = nodes.filter { adjacency.getValue(it.localId).size == maxDegree }.minOf { it.localId }
 
-        val pos = HashMap<Int, Offset>()
+        val pos = HashMap<Int, Position>()
         val angleToParent = HashMap<Int, Float>()   // направление от узла к его родителю (рад)
-        pos[rootId] = Offset.Zero
+        pos[rootId] = Position(0f, 0f)
         val visited = hashSetOf(rootId)
         val queue = ArrayDeque<Int>().apply { add(rootId) }
 
@@ -66,7 +80,7 @@ object MoleculeLayout {
                     awayFromParent - spread / 2f + spread * i / (bonds.size - 1)
                 }
                 val length = bondLengthPx(isotopeById.getValue(cur), isotopeById.getValue(child), bond.order) // длина связи двух атомов
-                pos[child] = Offset(curPos.x + length * cos(angle), curPos.y + length * sin(angle))
+                pos[child] = Position(curPos.x + length * cos(angle), curPos.y + length * sin(angle))
                 angleToParent[child] = angle + PI.toFloat()
                 queue.add(child)
             }
@@ -75,7 +89,7 @@ object MoleculeLayout {
         // Центрируем по центроиду.
         val cx = pos.values.map { it.x }.average().toFloat()
         val cy = pos.values.map { it.y }.average().toFloat()
-        return pos.mapValues { Offset(it.value.x - cx, it.value.y - cy) }
+        return pos.mapValues { Position(it.value.x - cx, it.value.y - cy) }
     }
 
     /** Второй конец связи, если известен первый. */
