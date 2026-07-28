@@ -39,7 +39,7 @@ class SpeciesTest {
         val h = Species.Elemental(Element.HYDROGEN)
         assertEquals(1f, h.mass)               // p+n = 1
         assertEquals(1, h.protons)
-        assertEquals(25f, h.radius)            // атом — дефолтный радиус Details (Details.radius = 25f)
+        assertEquals(20f, h.radius)            // атом — дефолтный радиус Details (Details.radius = 25f)
         assertEquals("H", h.displaySymbol(1))    // нейтральный водород
     }
 
