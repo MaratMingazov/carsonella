@@ -21,7 +21,7 @@ class MoleculeGeometryTest {
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        val pos = MoleculeGeometry.atomOffsets(h2)
+        val pos = h2.atomOffsets
         assertEquals(2, pos.size)
         assertTrue(pos.getValue(0) != pos.getValue(1))                    // два разных места
         assertTrue(abs(pos.getValue(0).x + pos.getValue(1).x) < 0.01f)   // центроид ≈ 0
@@ -39,7 +39,7 @@ class MoleculeGeometryTest {
             ),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
-        val pos = MoleculeGeometry.atomOffsets(water)
+        val pos = water.atomOffsets
         assertEquals(3, pos.size)
         // O ближе к центру, чем H (сравниваем квадраты расстояний — корень не нужен)
         assertTrue(pos.getValue(0).distanceSquareTo(center) < pos.getValue(1).distanceSquareTo(center))

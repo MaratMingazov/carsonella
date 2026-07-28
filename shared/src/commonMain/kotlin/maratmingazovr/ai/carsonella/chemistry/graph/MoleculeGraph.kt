@@ -1,5 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 
 /**
@@ -353,6 +354,23 @@ data class MoleculeGraph(
         val subscripts = "₀₁₂₃₄₅₆₇₈₉"
         formula.map { c -> if (c in '0'..'9') subscripts[c - '0'] else c }.joinToString("")
     }
+
+    /**
+     * ГЕОМЕТРИЯ: смещения атомов ОТНОСИТЕЛЬНО центра молекулы, по [AtomNode.localId] (алгоритм —
+     * [MoleculeGeometry]). Именно смещения, а не позиции: где молекула находится в мире, знает её
+     * сущность (`state.position`), граф же описывает только форму. Абсолютные координаты узла =
+     * позиция молекулы + это смещение.
+     *
+     * Производная от структуры, а НЕ часть идентичности: равенство/хеш data class считаются по
+     * `nodes`/`bonds`, так что смещения в них не попадают, и повёрнутая H₂O остаётся той же H₂O.
+     * Хранить координаты в самом [AtomNode] поэтому нельзя — плюс они протухали бы при
+     * [merge]/[split], которые перенумеровывают узлы.
+     *
+     * Кэш — `by lazy` (граф иммутабелен → раскладка инвариантна), как у [canonical]: считается ≤1 раз
+     * и только у молекул, кому реально понадобилась (мимолётные осколки не платят), а живёт ровно
+     * столько же, сколько сам граф.
+     */
+    val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
 
     /**
      * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы

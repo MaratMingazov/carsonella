@@ -20,28 +20,19 @@ import kotlin.math.sin
  * «это та же молекула?», а `merge`/`split` перенумеровывают узлы, после чего сохранённые координаты
  * протухли бы.
  *
- * Живёт в `shared` рядом с [MoleculeGraph], а не в рендере, потому что нужна ОБОИМ: рендер по ней
- * рисует, а правилам реакций она нужна, чтобы выбирать узел по геометрии («ближайший к партнёру»),
- * а не по номеру (см. [MoleculeGraph.firstFreeSlotAtomNode]). Единицы — мировые, они же пиксельные:
- * перевод `Position.toOffset()` в рендере тождественный (x, y как есть).
+ * Живёт в `shared`, а не в рендере, потому что нужна ОБОИМ: рендер по ней рисует, а правилам реакций
+ * она нужна, чтобы выбирать узел по геометрии («ближайший к партнёру»), а не по номеру
+ * (см. [MoleculeGraph.firstFreeSlotAtomNode]). Единицы — мировые, они же пиксельные: перевод
+ * `Position.toOffset()` в рендере тождественный (x, y как есть).
+ *
+ * `internal` и без своего кэша: наружу это отдаёт [MoleculeGraph.atomOffsets], там же и мемоизация
+ * (`by lazy` на самом графе). Здесь — только алгоритм, вынесенный из графа, чтобы не раздувать его.
  */
-object MoleculeGeometry {
+internal object MoleculeGeometry {
     private const val BOND_PX = 20f // расстояние между двумя атомами
 
-    // Мемоизация: раскладка зависит только от структуры графа — считаем один раз на структуру, а не
-    // каждый кадр. Ключ — сам граф (data class → структурное равенство), молекулы с одинаковой
-    // структурой делят результат. Caveat: при огромном разнообразии структур (органика) кэш растёт —
-    // тогда заменить на ограниченный LRU.
-    private val cache = HashMap<MoleculeGraph, Map<Int, Position>>()
-
-    /**
-     * Смещения атомов ОТНОСИТЕЛЬНО центра молекулы, по [AtomNode.localId]. Именно смещения, а не
-     * позиции: где молекула находится в мире, знает её сущность (`state.position`), а граф — только
-     * форму. Абсолютные координаты = позиция молекулы + это смещение.
-     */
-    fun atomOffsets(graph: MoleculeGraph): Map<Int, Position> = cache.getOrPut(graph) { compute(graph) }
-
-    private fun compute(graph: MoleculeGraph): Map<Int, Position> {
+    /** Считает раскладку. Звать через [MoleculeGraph.atomOffsets] — он кэширует результат. */
+    fun compute(graph: MoleculeGraph): Map<Int, Position> {
         val nodes = graph.nodes
         if (nodes.isEmpty()) return emptyMap()
 
