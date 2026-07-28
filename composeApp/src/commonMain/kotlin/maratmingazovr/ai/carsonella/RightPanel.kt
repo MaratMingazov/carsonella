@@ -61,8 +61,6 @@ fun RightPanel(
     onDrop: (DragData, Offset) -> Unit,
     hoverPos: Offset?,
     onHover: (Offset?) -> Unit,
-    hoveredId: Long?,
-    onSelectHoverId: (Long?) -> Unit,
     selectedId: Long?,
     onSelect: (Long?) -> Unit,
     world: World,
@@ -132,8 +130,6 @@ fun RightPanel(
                     time = time,
                     hoverPos = hoverPos,
                     onHover = { pos -> onHover(pos); focusRequester.requestFocus() },
-                    hoveredId = hoveredId,
-                    onSelectHoverId = onSelectHoverId,
                     selectedId = selectedId,
                     onSelect = { onSelect(it); focusRequester.requestFocus() },
                     modifier = Modifier.matchParentSize()
@@ -191,12 +187,19 @@ private fun SceneCanvas(
     time: Float,
     hoverPos: Offset?,
     onHover: (Offset?) -> Unit,
-    hoveredId: Long?,
-    onSelectHoverId: (Long?) -> Unit,
     selectedId: Long?,
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    // Что под курсором — ВЫЧИСЛЯЕМ здесь, в композиции, а не храним в состоянии: это чистая функция
+    // от позиции курсора и положения частиц, оба и так обновляются сами. Раньше хит-тест жил внутри
+    // блока Canvas, то есть в фазе ОТРИСОВКИ, и писал результат в состояние наверх — данные текли
+    // назад (draw → composition). Из-за этого подсветка отставала на кадр (в том же проходе её
+    // рисовали по значению, посчитанному в прошлом), хит-тест гонялся 60 раз в секунду независимо от
+    // того, двигалась ли мышь, а draw-лямбда переставала быть чистой, хотя Compose вправе пропустить
+    // или повторить проход отрисовки.
+    val hoveredId = hoverPos?.let { hitTest(entitiesState, it) }
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
     // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
@@ -285,11 +288,6 @@ private fun SceneCanvas(
             radius = world.environment.getEnvRadius(),
             style = Stroke(width = 1f)
         )
-
-        // Наведение — тем же хит-тестом и с тем же радиусом, что клик и захват при перетаскивании
-        // (см. hitTest ниже): что подсвечено, то и выберется. Раньше подсветка жила своей копией
-        // логики с радиусом 30 против кликовых 50 — кликом выбиралось то, что не подсветилось.
-        onSelectHoverId(hoverPos?.let { hitTest(entitiesState, it) })
 
 //        // размеры мира
 //        world.environment.setWorldWidth(size.width)

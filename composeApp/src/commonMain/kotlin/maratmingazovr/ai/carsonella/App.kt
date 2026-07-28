@@ -34,7 +34,9 @@ fun App() {
         }
 
         var hoverPos by remember { mutableStateOf<Offset?>(null) } // это координаты моего курсора на канве
-        var hoveredId by remember { mutableStateOf<Long?>(null) }
+        // hoveredId здесь НЕТ намеренно: «что под курсором» — не состояние, а функция от hoverPos и
+        // положения частиц. SceneCanvas вычисляет его сам (см. hitTest), поэтому хранить и обновлять
+        // его снаружи нечего.
         var selectedId by remember { mutableStateOf<Long?>(null) }
 
 
@@ -63,8 +65,6 @@ fun App() {
                     },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
-                    hoveredId = hoveredId,
-                    onSelectHoverId = { hoveredId = it },
                     selectedId = selectedId,
                     onSelect = { selectedId = it },
                     world = world,
