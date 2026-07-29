@@ -8,12 +8,7 @@ import kotlin.math.round
 
 
 /**
- * Атом молекулы, поставленный в мир: номер узла, изотоп и координата. Ответ [Species.Molecular.atoms].
- *
- * Отличие от `AtomNode` — ровно в третьем поле, и оно принципиальное: узел графа описывает СТРУКТУРУ
- * и координат не имеет (граф не знает, где молекула находится), а здесь структура уже совмещена с
- * положением конкретной сущности. Поэтому координата не хранится, а появляется в момент вопроса:
- * центр передаётся в [Species.Molecular.atoms] аргументом.
+ * Атом молекулы, поставленный в мир
  */
 data class MolecularAtom(
     val localId: Int,
@@ -22,6 +17,15 @@ data class MolecularAtom(
 ) {
     val radius: Float get() = isotope.details.radius
 }
+
+/**
+ * Связь молекулы, поставленная в мир: оба конца — уже с координатами.
+ */
+data class MolecularBond(
+    val atom1: MolecularAtom,
+    val atom2: MolecularAtom,
+    val order: Int,
+)
 
 sealed interface Species {
     val mass: Float
@@ -86,6 +90,16 @@ sealed interface Species {
             val node = graph.nodes.firstOrNull { it.localId == localId }
                 ?: error("Узла с localId=$localId нет в молекуле")
             return place(node, center)
+        }
+
+        /**
+         * Связи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
+         */
+        fun bonds(center: Position): List<MolecularBond> {
+            val placed = atoms(center).associateBy { it.localId }
+            return graph.bonds.map {
+                MolecularBond(placed.getValue(it.atom1), placed.getValue(it.atom2), it.order)
+            }
         }
 
         private fun place(node: AtomNode, center: Position) =

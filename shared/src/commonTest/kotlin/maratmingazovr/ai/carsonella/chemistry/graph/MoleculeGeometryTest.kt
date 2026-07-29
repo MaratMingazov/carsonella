@@ -55,6 +55,44 @@ class MoleculeGeometryTest {
     }
 
     @Test
+    fun bondsCarryBothEndsPlaced() {
+        // Связь отдаётся с готовыми концами — искать их по localId вызывающему не нужно.
+        val water = MoleculeGraph(
+            nodes = listOf(
+                AtomNode(0, Element.OXYGEN_16),
+                AtomNode(1, Element.HYDROGEN),
+                AtomNode(2, Element.HYDROGEN),
+            ),
+            bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
+        )
+        val moleculeAt = Position(100f, 50f)
+        val molecule = Species.Molecular(water)
+        val bonds = molecule.bonds(moleculeAt)
+
+        assertEquals(2, bonds.size)
+        bonds.forEach { bond ->
+            assertEquals(0, bond.atom1.localId)                                   // оба раза от кислорода
+            assertEquals(Element.HYDROGEN, bond.atom2.isotope)
+            assertEquals(1, bond.order)
+            // Концы — те же атомы, что отдаёт atom(): один источник координат.
+            assertEquals(molecule.atom(bond.atom1.localId, moleculeAt), bond.atom1)
+            assertEquals(molecule.atom(bond.atom2.localId, moleculeAt), bond.atom2)
+        }
+        // Длина связи = расстояние между поставленными концами, а не какая-то константа.
+        val length = bonds.first().atom1.position.distanceTo(bonds.first().atom2.position)
+        assertTrue(length > 0f, "у связи должна быть ненулевая длина: $length")
+    }
+
+    @Test
+    fun multipleBondKeepsItsOrder() {
+        val oxygen = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, order = 2)),   // O=O
+        )
+        assertEquals(2, Species.Molecular(oxygen).bonds(Position(0f, 0f)).single().order)
+    }
+
+    @Test
     fun allAtomsArePlacedAtOnce() {
         val water = MoleculeGraph(
             nodes = listOf(

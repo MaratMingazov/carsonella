@@ -86,14 +86,13 @@ class EntityRenderer(
         val graph = molecule.graph
         val center = entityState.position
 
-        // Молекула ставит свои атомы в мир сама; здесь — только перевод в экранные координаты плюс
-        // дрожание (чистая анимация, одна на всю молекулу: она дрожит как жёсткое тело).
+        // Добавляем дрожание
         fun screenPos(atom: MolecularAtom) = atom.position.toOffset() + vibrationParams.positionOffset
 
         with(drawScope) {
 
-            graph.bonds.forEach { bond ->
-                drawBond(screenPos(molecule.atom(bond.atom1, center)), screenPos(molecule.atom(bond.atom2, center)), bond.order)
+            molecule.bonds(center).forEach { bond ->
+                drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order)
             }
 
             molecule.atoms(center).forEach { atom ->
