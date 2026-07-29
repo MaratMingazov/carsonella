@@ -1,9 +1,27 @@
 package maratmingazovr.ai.carsonella.chemistry
 
+import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 
+
+/**
+ * Атом молекулы, поставленный в мир: номер узла, изотоп и координата. Ответ [Species.Molecular.atoms].
+ *
+ * Отличие от `AtomNode` — ровно в третьем поле, и оно принципиальное: узел графа описывает СТРУКТУРУ
+ * и координат не имеет (граф не знает, где молекула находится), а здесь структура уже совмещена с
+ * положением конкретной сущности. Поэтому координата не хранится, а появляется в момент вопроса:
+ * центр передаётся в [Species.Molecular.atoms] аргументом.
+ */
+data class MolecularAtom(
+    val localId: Int,
+    val isotope: Element,
+    val position: Position,
+) {
+    val radius: Float get() = isotope.details.radius
+}
 
 sealed interface Species {
     val mass: Float
@@ -52,6 +70,26 @@ sealed interface Species {
         override val radius: Float get() = MOLECULE_RADIUS
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
+
+        /**
+         * Атомы молекулы, поставленные в мир: [center] — где сейчас находится сущность
+         * (`state.position`). Форму знает граф, положение — сущность; здесь они встречаются.
+         *
+         * `localId` живёт ЗДЕСЬ, а не на [EntityState]: спросить «где атом номер 2» можно только у
+         * молекулы, у одиночной частицы такой вопрос бессмыслен. Наружу сущность отдаёт лишь то, что
+         * осмысленно для любой: расстояния и «каким атомом связываться».
+         */
+        fun atoms(center: Position): List<MolecularAtom> = graph.nodes.map { place(it, center) }
+
+        /** Один атом по номеру узла — точечная версия [atoms] (связи адресуют атомы по `localId`). */
+        fun atom(localId: Int, center: Position): MolecularAtom {
+            val node = graph.nodes.firstOrNull { it.localId == localId }
+                ?: error("Узла с localId=$localId нет в молекуле")
+            return place(node, center)
+        }
+
+        private fun place(node: AtomNode, center: Position) =
+            MolecularAtom(node.localId, node.isotope, center + graph.atomOffset(node.localId))
 
         override fun describe(s: EntityState): String {
             // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и

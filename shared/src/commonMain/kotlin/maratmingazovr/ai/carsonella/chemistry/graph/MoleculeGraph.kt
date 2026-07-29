@@ -61,6 +61,7 @@ data class MoleculeGraph(
     val bonds: List<Bond>,
 ) {
     init {
+        require(nodes.isNotEmpty()) { "Граф без узлов: молекулы без атомов не бывает" }
         val ids = nodes.map { it.localId }
         require(ids.size == ids.toSet().size) { "Дубли localId среди узлов: $ids" }
         val idSet = ids.toHashSet()
@@ -373,22 +374,12 @@ data class MoleculeGraph(
     private val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
 
     /**
-     * Смещение атома [localId] относительно центра молекулы. Форма ответа как у [freeSlots] — по
-     * одному узлу за раз, чтобы карта осталась внутренней деталью.
+     * Смещение атома [localId] относительно центра молекулы.
      */
     fun atomOffset(localId: Int): Position =
         atomOffsets[localId] ?: error("Узла с localId=$localId нет в графе")
 
-    /**
-     * Положение атома [localId] в МИРОВЫХ координатах: [center] — где сейчас находится молекула
-     * (`state.position` её сущности). Граф сам по себе про мир ничего не знает, поэтому центр
-     * приходит параметром, а не хранится здесь.
-     *
-     * Нужно всем, кто работает с отдельными атомами, а не с молекулой целиком: попадание курсора по
-     * конкретному атому (у молекулы «руки» торчат далеко за её `radius`) и выбор узла для реакции по
-     * близости к партнёру вместо наименьшего localId (см. [firstFreeSlotAtomNode]).
-     */
-    fun atomPosition(localId: Int, center: Position): Position = center + atomOffset(localId)
+
 
     /**
      * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы
@@ -421,7 +412,7 @@ data class MoleculeGraph(
      */
     val canonical: String by lazy {
         val n = nodes.size
-        if (n == 0 || n > CANONICAL_MAX_NODES) return@lazy ""   // пусто / крупная (до Моргана) → без канона
+        if (n > CANONICAL_MAX_NODES) return@lazy ""   // крупная (до Моргана) → без канона
 
         val tokens = nodes.map { it.isotope.name }                 // токен узла = полный изотоп
         val localIdToIndex = HashMap<Int, Int>()                   // localId -> позиция 0..n-1

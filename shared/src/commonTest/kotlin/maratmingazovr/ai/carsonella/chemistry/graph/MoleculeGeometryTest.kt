@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Species
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,14 +40,36 @@ class MoleculeGeometryTest {
     }
 
     @Test
-    fun positionIsCentrePlusOffset() {
+    fun placedAtomIsCentrePlusOffset() {
+        // Мировые координаты собирает молекула (Species.Molecular), граф даёт только смещение.
         val h2 = MoleculeGraph(
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
         val moleculeAt = Position(100f, 50f)
-        val expected = moleculeAt + h2.atomOffset(1)
-        assertEquals(expected, h2.atomPosition(1, moleculeAt))
+        val atom = Species.Molecular(h2).atom(localId = 1, center = moleculeAt)
+
+        assertEquals(1, atom.localId)
+        assertEquals(Element.HYDROGEN, atom.isotope)
+        assertEquals(moleculeAt + h2.atomOffset(1), atom.position)
+    }
+
+    @Test
+    fun allAtomsArePlacedAtOnce() {
+        val water = MoleculeGraph(
+            nodes = listOf(
+                AtomNode(0, Element.OXYGEN_16),
+                AtomNode(1, Element.HYDROGEN),
+                AtomNode(2, Element.HYDROGEN),
+            ),
+            bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
+        )
+        val moleculeAt = Position(100f, 50f)
+        val atoms = Species.Molecular(water).atoms(moleculeAt)
+
+        assertEquals(listOf(0, 1, 2), atoms.map { it.localId })
+        // Тот же ответ, что и поштучно.
+        atoms.forEach { assertEquals(moleculeAt + water.atomOffset(it.localId), it.position) }
     }
 
     @Test

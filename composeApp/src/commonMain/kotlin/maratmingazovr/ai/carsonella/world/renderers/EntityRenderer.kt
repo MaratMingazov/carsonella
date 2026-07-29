@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
@@ -81,23 +82,25 @@ class EntityRenderer(
         highlighted: Boolean,
         vibrationParams: VibrationParams,
     ) {
-        val graph = (entityState.species as Species.Molecular).graph
+        val molecule = entityState.species as Species.Molecular
+        val graph = molecule.graph
         val center = entityState.position
 
+        // Молекула ставит свои атомы в мир сама; здесь — только перевод в экранные координаты плюс
+        // дрожание (чистая анимация, одна на всю молекулу: она дрожит как жёсткое тело).
+        fun screenPos(atom: MolecularAtom) = atom.position.toOffset() + vibrationParams.positionOffset
 
-        fun atomScreenPos(localId: Int) = graph.atomPosition(localId, center).toOffset() + vibrationParams.positionOffset
         with(drawScope) {
 
             graph.bonds.forEach { bond ->
-                drawBond(atomScreenPos(bond.atom1), atomScreenPos(bond.atom2), bond.order)
+                drawBond(screenPos(molecule.atom(bond.atom1, center)), screenPos(molecule.atom(bond.atom2, center)), bond.order)
             }
 
-            graph.nodes.forEach { node ->
-                val atomCenter = atomScreenPos(node.localId)
-                val fill = ElementColors.fill(Species.Elemental(node.isotope))
-                val symbol = node.isotope.details.symbol.filter { it.isLetter() }
-                val nodeSlotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + node.localId * 1.3f
-                drawAtom(atomCenter, node.isotope.details.radius, fill, symbol, graph.freeSlots(node.localId), nodeSlotAngle, highlighted = highlighted)
+            molecule.atoms(center).forEach { atom ->
+                val fill = ElementColors.fill(Species.Elemental(atom.isotope))
+                val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
+                val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
+                drawAtom(screenPos(atom), atom.radius, fill, symbol, graph.freeSlots(atom.localId), slotAngle, highlighted = highlighted)
             }
         }
     }

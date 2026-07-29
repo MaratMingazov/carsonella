@@ -34,7 +34,6 @@ internal object MoleculeGeometry {
     /** Считает раскладку. Звать через [MoleculeGraph.atomOffsets] — он кэширует результат. */
     fun compute(graph: MoleculeGraph): Map<Int, Position> {
         val nodes = graph.nodes
-        if (nodes.isEmpty()) return emptyMap()
 
         // Инцидентные РЁБРА (а не просто соседи): длина связи зависит и от её кратности, и от изотопов концов.
         val adjacency: Map<Int, List<Bond>> = nodes.associate { node ->
