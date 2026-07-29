@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
@@ -35,7 +36,7 @@ class MoleculeReactionRuleTest {
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 2)
+        return Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 2)
             .also { it.setEnvironment(env) }
     }
 

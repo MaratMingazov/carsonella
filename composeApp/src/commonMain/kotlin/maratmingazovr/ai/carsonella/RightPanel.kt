@@ -462,8 +462,7 @@ private fun SelectedEntityPanel(
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
         val species = selectedElement.species
         if (species is Species.Molecular) {
-            val graph = species.graph
-            if (graph.strengthenableBonds.isNotEmpty()) {
+            if (species.canStrengthenBond) {
                 Spacer(Modifier.height(8.dp))
                 PanelButton(
                     text = "Strengthen bond",
@@ -471,7 +470,7 @@ private fun SelectedEntityPanel(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            if (graph.ringClosureCandidates.isNotEmpty()) {
+            if (species.canCloseRing) {
                 Spacer(Modifier.height(8.dp))
                 PanelButton(
                     text = "Close ring",

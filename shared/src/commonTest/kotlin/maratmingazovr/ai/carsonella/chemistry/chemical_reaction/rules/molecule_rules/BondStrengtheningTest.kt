@@ -49,7 +49,7 @@ class BondStrengtheningTest {
     )
 
     private fun molecule(graph: MoleculeGraph, electrons: Int): Molecule =
-        Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
+        Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
             .also { it.setEnvironment(env) }
 
     @Test

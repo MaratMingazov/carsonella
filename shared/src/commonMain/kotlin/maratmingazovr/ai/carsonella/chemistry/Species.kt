@@ -76,14 +76,16 @@ sealed interface Species {
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
-        /**
-         * Атомы молекулы, поставленные в мир: [center] — где сейчас находится сущность
-         * (`state.position`). Форму знает граф, положение — сущность; здесь они встречаются.
-         *
-         * `localId` живёт ЗДЕСЬ, а не на [EntityState]: спросить «где атом номер 2» можно только у
-         * молекулы, у одиночной частицы такой вопрос бессмыслен. Наружу сущность отдаёт лишь то, что
-         * осмысленно для любой: расстояния и «каким атомом связываться».
-         */
+        /** Брутто-формула в ASCII («H2O») — для ключей и сохранения; для показа есть [displaySymbol]. */
+        val formula: String get() = graph.formula
+
+        // Что игрок может сделать с молекулой вручную (механика «лего», см. ReactionSelection).
+        // Наружу — да/нет, а не списки кандидатов: UI решает, показывать ли кнопку, а КАКУЮ именно
+        // связь усилить или где замкнуть кольцо, выбирает уже правило.
+        val canStrengthenBond: Boolean get() = graph.strengthenableBonds.isNotEmpty()
+        val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
+
+
         fun atoms(center: Position): List<MolecularAtom> = graph.nodes.map { place(it, center) }
 
         /** Один атом по номеру узла — точечная версия [atoms] (связи адресуют атомы по `localId`). */

@@ -47,7 +47,7 @@ class RingClosureTest {
         val nodes = (0 until n).map { AtomNode(it, Element.CARBON_12) }
         val bonds = (0 until n - 1).map { Bond(it, it + 1, order = 1) }
         val graph = MoleculeGraph(nodes, bonds)
-        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = graph.protons)
+        return Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = graph.protons)
             .also { it.setEnvironment(env) }
     }
 
@@ -97,7 +97,7 @@ class RingClosureTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.HYDROGEN), AtomNode(2, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, 1), Bond(0, 2, 1)),
         )
-        val mol = Molecule(nextId++, water, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 10).also { it.setEnvironment(env) }
+        val mol = Molecule(nextId++, Species.Molecular(water), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 10).also { it.setEnvironment(env) }
         assertNull(RingClosure(CapturingGenerator()).matchesMolecule(listOf(mol)))
     }
 
