@@ -40,7 +40,7 @@ abstract class MoleculeReactionRule : ReactionRule {
      * КЛЮЧЕВОЕ — куда кладём [energyPerFragment] (долю энергии на осколок) зависит от типа осколка:
      *  - Молекула ([Species.Molecular]) — во ВНУТРЕННЮЮ (колебательную) энергию: осколок «горячее» и легче
      *    распадётся дальше (каскад). У молекулы энергия квазинепрерывна — произвольное значение допустимо.
-     *  - Атом ([Species.Elemental]) — в КИНЕТИКУ (velocity), а energy = 0. Внутренняя энергия атома
+     *  - Атом ([Species.Atomic]) — в КИНЕТИКУ (velocity), а energy = 0. Внутренняя энергия атома
      *    КВАНТОВАНА (только дискретные уровни, инвариант проверяет SpontaneousEmission), и избыток распада
      *    (обычно << первого уровня возбуждения) в неё не влезает. Положили бы в energy — атом получил бы
      *    «не-уровень» и уронил бы ассерт SpontaneousEmission на следующем тике. Резонансное электронное
@@ -63,7 +63,7 @@ abstract class MoleculeReactionRule : ReactionRule {
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope
                 val kineticVelocity = s.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(Species.Elemental(isotope), pos, s.direction, kineticVelocity, 0f, env, electrons) }
+                return@mapIndexed { generator.createEntity(Species.Atomic(isotope), pos, s.direction, kineticVelocity, 0f, env, electrons) }
             } else {
                 return@mapIndexed { generator.createEntity(Species.Molecular(frag), pos, s.direction, s.velocity, energyPerFragment, env, electrons) }
             }

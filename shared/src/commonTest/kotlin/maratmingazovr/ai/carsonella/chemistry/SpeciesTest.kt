@@ -36,7 +36,7 @@ class SpeciesTest {
 
     @Test
     fun elementalAggregatesComeFromElement() {
-        val h = Species.Elemental(Element.HYDROGEN)
+        val h = Species.Atomic(Element.HYDROGEN)
         assertEquals(1f, h.mass)               // p+n = 1
         assertEquals(1, h.protons)
         assertEquals(20f, h.radius)            // атом — дефолтный радиус Details (Details.radius = 25f)
@@ -45,7 +45,7 @@ class SpeciesTest {
 
     @Test
     fun electronMassIsSpecialCased() {
-        assertEquals(1f, Species.Elemental(Element.ELECTRON).mass)
+        assertEquals(1f, Species.Atomic(Element.ELECTRON).mass)
     }
 
     @Test

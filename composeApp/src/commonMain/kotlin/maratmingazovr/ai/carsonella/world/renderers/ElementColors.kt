@@ -31,7 +31,7 @@ object ElementColors {
     /** Сплошная заливка кружка атома (плоский стиль). */
     fun fill(species: Species): Color = when (species) {
         is Species.Molecular -> FILL_DEFAULT
-        is Species.Elemental -> fillElement(species.element)
+        is Species.Atomic -> fillElement(species.element)
     }
 
     // Заливка по идентичности: субатомы — по типу частицы (иначе позитрон/протон с p=1 случайно

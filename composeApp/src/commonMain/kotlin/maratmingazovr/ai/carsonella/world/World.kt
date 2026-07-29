@@ -23,7 +23,6 @@ import maratmingazovr.ai.carsonella.world.save.writeSaveFile
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
-import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
 import maratmingazovr.ai.carsonella.world.generators.IdGenerator
 
@@ -197,7 +196,7 @@ class World(
                 // element.name для Elemental (round-trip через Element.valueOf); молекулу так не сохранить —
                 // отдаём формулу, на загрузке отсеётся как «неизвестный элемент» (graph-save — отдельный рефактор).
                 element = when (val sp = s.species) {
-                    is Species.Elemental -> sp.element.name
+                    is Species.Atomic -> sp.element.name
                     is Species.Molecular -> sp.graph.formula
                 },
                 alive = s.alive,
@@ -213,7 +212,7 @@ class World(
         val summary = saved
             .groupingBy {
                 when (val sp = it.state().value.species) {
-                    is Species.Elemental -> sp.element.name
+                    is Species.Atomic -> sp.element.name
                     is Species.Molecular -> sp.graph.formula
                 }
             }

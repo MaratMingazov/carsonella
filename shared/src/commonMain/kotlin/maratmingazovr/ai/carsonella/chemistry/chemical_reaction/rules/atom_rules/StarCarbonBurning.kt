@@ -54,7 +54,7 @@ class StarCarbonBurning(
         val firstAtomPosition = firstAtom.state().value.position
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         if (firstSpecies.element != CARBON_12) return null
         if (!firstAtom.state().value.alive) return null
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
@@ -63,7 +63,7 @@ class StarCarbonBurning(
             .drop(1)
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == CARBON_12
+                sp is Species.Atomic && sp.element == CARBON_12
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }

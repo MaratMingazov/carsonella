@@ -56,7 +56,7 @@ class EntityGenerator(
 
         val entity = when (species) {
             is Species.Molecular -> Molecule(id = id, graph = species.graph, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
-            is Species.Elemental -> when (species.element.details.type) {
+            is Species.Atomic -> when (species.element.details.type) {
                 SubAtom -> SubAtom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
                 Atom -> Atom(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
                 Star -> Star(id = id, element = species.element, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
@@ -86,6 +86,6 @@ class EntityGenerator(
         energy: Float,
         environment: IEnvironment,
         electrons: Int,
-    ): Entity = createEntityWithId(id, Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
+    ): Entity = createEntityWithId(id, Species.Atomic(element), position, direction, velocity, energy, environment, electrons)
 
 }

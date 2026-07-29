@@ -20,7 +20,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Шаг 3c: усиление связи. Изолированная O–O усиливается в O=O (эмёрджентный O₂), N–N → N=N;
@@ -72,7 +71,7 @@ class BondStrengtheningTest {
         assertEquals(16, product.electrons)             // электроны сохранены
 
         // усиление экзотермично → фотон на прирост энергии связи E(O=O) − E(O–O)
-        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
         assertEquals(
             BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 2)!! - BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 1)!!,
             photon.energy,

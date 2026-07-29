@@ -62,7 +62,7 @@ class StarPhotodisintegration(
         if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val element = firstSpecies.element
 
         // Доступные обратные каналы — реверс полей захвата (N — продукт какого-то захвата P→N).
@@ -78,7 +78,7 @@ class StarPhotodisintegration(
             .drop(1)
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == PHOTON
+                sp is Species.Atomic && sp.element == PHOTON
             }
             .filter { it.state().value.alive }
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }

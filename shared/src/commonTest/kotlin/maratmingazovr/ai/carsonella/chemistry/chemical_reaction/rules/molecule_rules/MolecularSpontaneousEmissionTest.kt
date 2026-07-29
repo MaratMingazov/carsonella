@@ -21,7 +21,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -110,7 +109,7 @@ class MolecularSpontaneousEmissionTest {
         outcome.spawn.forEach { it() }
         assertEquals(1, gen.spawned.size)
         val photon = gen.spawned.single()
-        assertEquals(Element.PHOTON, (photon.species as Species.Elemental).element)
+        assertEquals(Element.PHOTON, (photon.species as Species.Atomic).element)
         assertEquals(1f, photon.energy, 0.001f)                        // фотон унёс всю внутреннюю энергию
     }
 

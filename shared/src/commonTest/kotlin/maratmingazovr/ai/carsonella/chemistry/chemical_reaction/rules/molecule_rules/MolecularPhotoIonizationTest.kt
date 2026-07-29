@@ -19,7 +19,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -97,7 +96,7 @@ class MolecularPhotoIonizationTest {
         outcome.spawn.forEach { it() }
         assertEquals(1, gen.spawned.size)
         val e = gen.spawned.single()
-        assertEquals(Element.ELECTRON, (e.species as Species.Elemental).element)
+        assertEquals(Element.ELECTRON, (e.species as Species.Atomic).element)
         assertEquals(1, e.electrons)
         assertEquals(0f, e.energy, 0.001f)
     }

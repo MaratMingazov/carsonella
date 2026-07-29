@@ -54,7 +54,7 @@ class StarNeutronGammaReaction(
         if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val firstAtomElement = firstSpecies.element
         if (firstAtomElement.details.neutronGammaResult == null) return null
 
@@ -62,7 +62,7 @@ class StarNeutronGammaReaction(
             .drop(1)
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == NEUTRON
+                sp is Species.Atomic && sp.element == NEUTRON
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }

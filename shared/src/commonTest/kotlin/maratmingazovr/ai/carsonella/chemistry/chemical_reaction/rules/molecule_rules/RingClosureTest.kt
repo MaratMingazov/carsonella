@@ -18,7 +18,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -76,7 +75,7 @@ class RingClosureTest {
         assertEquals(5, ringGraph.bonds.size)                     // цепь имела 4 связи, +1 замыкающая = цикл
         assertTrue(ringGraph.ringClosureCandidates.isEmpty())     // после замыкания концов больше нет
         // Экзотермично: вылетел фотон с нетто-энергией (C–C 3.59 − напряжение 5-кольца 0.29 ≈ 3.30 эВ).
-        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
         assertEquals(3.59f - 0.29f, photon.energy, 0.001f)
     }
 

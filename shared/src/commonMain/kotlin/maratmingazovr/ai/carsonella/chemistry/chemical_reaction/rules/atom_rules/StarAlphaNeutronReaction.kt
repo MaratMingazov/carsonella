@@ -48,7 +48,7 @@ class StarAlphaNeutronReaction(
         if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val firstAtomElement = firstSpecies.element
         if (firstAtomElement.details.alphaNeutronResult == null) return null
 
@@ -56,7 +56,7 @@ class StarAlphaNeutronReaction(
             .drop(1)
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == HELIUM_4
+                sp is Species.Atomic && sp.element == HELIUM_4
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
@@ -66,7 +66,7 @@ class StarAlphaNeutronReaction(
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         val secondSpecies = secondAtom.state().value.species
-        if (secondSpecies !is Species.Elemental) return null
+        if (secondSpecies !is Species.Atomic) return null
         val secondAtomElement = secondSpecies.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {

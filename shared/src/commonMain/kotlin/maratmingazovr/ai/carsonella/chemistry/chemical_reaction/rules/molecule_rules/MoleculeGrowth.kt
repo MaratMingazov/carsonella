@@ -76,7 +76,7 @@ class MoleculeGrowth(
         if (!state.alive) return false
         return when (val species = state.species) {
             is Species.Molecular -> species.graph.hasFreeSlot
-            is Species.Elemental -> {
+            is Species.Atomic -> {
                 val element = species.element
                 element.details.type == ElementType.Atom &&
                     state.electrons == element.details.p &&   // нейтральный — есть электроны для общей пары
@@ -89,7 +89,7 @@ class MoleculeGrowth(
     private fun graphOf(entity: Entity): MoleculeGraph =
         when (val species = entity.state().value.species) {
             is Species.Molecular -> species.graph
-            is Species.Elemental -> MoleculeGraph(listOf(AtomNode(0, species.element)), emptyList())
+            is Species.Atomic -> MoleculeGraph(listOf(AtomNode(0, species.element)), emptyList())
         }
 
     // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия

@@ -59,7 +59,7 @@ fun TopPalette(palette: List<Element>, modifier: Modifier = Modifier) {
 @Composable
 internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
-    val species = Species.Elemental(element)
+    val species = Species.Atomic(element)
     val fill = ElementColors.fill(species)
     val symbol = element.details.symbol.filter { it.isLetter() }
     val radiusPx = species.radius   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f

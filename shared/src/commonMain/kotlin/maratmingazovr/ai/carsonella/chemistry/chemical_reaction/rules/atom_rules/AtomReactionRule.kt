@@ -14,19 +14,19 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
  *  - молекула как субъект (`reagents.first()`) — `Molecule.step()` запрашивает реакцию первой собой;
  *  - молекула как сосед (хвост) — атом-субъект перебирает соседей, читая их `.element`.
  *
- * [matches] закрывает оба: субъект-не-[Species.Elemental] → правило не наше (return false);
+ * [matches] закрывает оба: субъект-не-[Species.Atomic] → правило не наше (return false);
  * соседи-молекулы выкидываются из хвоста. В [matchesAtoms] приходит список, где ВСЕ реагенты —
- * [Species.Elemental] и `first()` — исходный субъект, так что весь `.element`-код безопасен.
+ * [Species.Atomic] и `first()` — исходный субъект, так что весь `.element`-код безопасен.
  *
  * Молекулярные правила (диссоциация графа и т.п.) живут в пакете `molecule_rules` и матчатся по графу.
  */
 abstract class AtomReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
-        if (reagents.firstOrNull()?.state()?.value?.species !is Species.Elemental) return null
+        if (reagents.firstOrNull()?.state()?.value?.species !is Species.Atomic) return null
         return matchesAtoms(reagents)
     }
 
-    /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Elemental]. */
+    /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Atomic]. */
     abstract fun matchesAtoms(reagents: List<Entity>): MatchedData?
 }

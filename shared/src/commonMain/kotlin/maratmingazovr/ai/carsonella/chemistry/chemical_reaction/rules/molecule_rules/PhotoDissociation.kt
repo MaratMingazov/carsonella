@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * Зеркало образования связи (CovalentBondFormation/MoleculeGrowth ИЗЛУЧАЮТ фотон энергии связи) — здесь
  * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([MoleculeGraph.weakestBond]), порог = её энергия
  * ([MoleculeGraph.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([MoleculeGraph.split]),
- * а не из хардкода: осколок из одного узла → атом ([Species.Elemental]), из ≥2 узлов → молекула
+ * а не из хардкода: осколок из одного узла → атом ([Species.Atomic]), из ≥2 узлов → молекула
  * ([Species.Molecular]). Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
  * до атомов.
  *
@@ -46,7 +46,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         val nearestPhoton = reagents.drop(1)
             .asSequence()
-            .filter { val sp = it.state().value.species; sp is Species.Elemental && sp.element == Element.PHOTON }
+            .filter { val sp = it.state().value.species; sp is Species.Atomic && sp.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
             .map { it to firstPosition.distanceSquareTo(it.state().value.position) }

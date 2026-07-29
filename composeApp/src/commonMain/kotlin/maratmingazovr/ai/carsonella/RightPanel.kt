@@ -28,7 +28,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
@@ -42,7 +41,6 @@ import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -52,7 +50,6 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelectio
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import kotlin.math.round
-import kotlin.math.roundToInt
 
 
 @Composable
@@ -484,7 +481,7 @@ private fun SelectedEntityPanel(
             }
         }
         // Редактор энергии (пока только фотон).
-        if (species is Species.Elemental && species.element == Element.PHOTON) {
+        if (species is Species.Atomic && species.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(
                 energyEv = selectedElement.energy,

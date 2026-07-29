@@ -19,7 +19,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -77,9 +76,9 @@ class StarDissociationTest {
 
         assertEquals(2, gen.spawned.size)
         val oh = gen.spawned.single { it.species is Species.Molecular }
-        val h = gen.spawned.single { it.species is Species.Elemental }
+        val h = gen.spawned.single { it.species is Species.Atomic }
         assertEquals("HO", (oh.species as Species.Molecular).graph.formula)
-        assertEquals(Element.HYDROGEN, (h.species as Species.Elemental).element)
+        assertEquals(Element.HYDROGEN, (h.species as Species.Atomic).element)
         assertEquals(10, oh.electrons + h.electrons)          // электроны сохранены (9 + 1)
     }
 
@@ -92,10 +91,10 @@ class StarDissociationTest {
         rule.produce(match).spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)
-        assertTrue(gen.spawned.all { it.species is Species.Elemental })   // оба осколка — атомы
+        assertTrue(gen.spawned.all { it.species is Species.Atomic })   // оба осколка — атомы
         assertEquals(
             setOf(Element.OXYGEN_16, Element.HYDROGEN),
-            gen.spawned.map { (it.species as Species.Elemental).element }.toSet(),
+            gen.spawned.map { (it.species as Species.Atomic).element }.toSet(),
         )
         assertEquals(9, gen.spawned.sumOf { it.electrons })              // 8 (O) + 1 (H)
     }

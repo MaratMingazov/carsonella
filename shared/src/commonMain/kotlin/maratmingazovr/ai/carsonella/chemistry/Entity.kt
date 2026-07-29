@@ -40,7 +40,7 @@ data class EntityState(
      *
      */
     fun distanceToSurface(point: Position): Float = when (val species = species) {
-        is Species.Elemental -> position.distanceTo(point) - species.radius
+        is Species.Atomic -> position.distanceTo(point) - species.radius
         is Species.Molecular -> species.atoms(position).minOf { it.position.distanceTo(point) - it.radius }
     }
 

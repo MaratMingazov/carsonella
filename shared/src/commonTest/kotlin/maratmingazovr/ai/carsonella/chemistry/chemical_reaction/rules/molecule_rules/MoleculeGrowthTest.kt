@@ -20,7 +20,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Шаг 3b: рост молекулы. ·OH + H → H₂O (атом+молекула) и ·OH + ·OH → H₂O₂ (молекула+молекула)
@@ -88,7 +87,7 @@ class MoleculeGrowthTest {
         assertFalse(graph.hasFreeSlot)                  // вода насыщена
         assertEquals(10, product.electrons)               // 9 (·OH) + 1 (H) — сохранение электронов
         // новая связь O–H экзотермична → фотон с её энергией
-        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
         assertEquals(BondEnergy.of(Element.OXYGEN_16, Element.HYDROGEN, 1), photon.energy)
     }
 
@@ -109,7 +108,7 @@ class MoleculeGrowthTest {
         assertEquals(34f, graph.mass)
         assertEquals(18, product.electrons)               // 9 + 9
         // новая связь O–O → фотон с её энергией
-        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
         assertEquals(BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 1), photon.energy)
     }
 

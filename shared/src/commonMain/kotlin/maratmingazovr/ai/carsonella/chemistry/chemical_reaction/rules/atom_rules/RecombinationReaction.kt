@@ -33,7 +33,7 @@ class RecombinationReaction(
         if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val firstAtomElement = firstSpecies.element
         val firstElectrons = firstAtom.state().value.electrons
         if (!canGainElectron(firstAtomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
@@ -46,7 +46,7 @@ class RecombinationReaction(
             .drop(1)
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == ELECTRON
+                sp is Species.Atomic && sp.element == ELECTRON
             }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.position.distanceSquareTo(firstAtomPosition)}
@@ -56,7 +56,7 @@ class RecombinationReaction(
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         val secondSpecies = secondAtom.state().value.species
-        if (secondSpecies !is Species.Elemental) return null
+        if (secondSpecies !is Species.Atomic) return null
         val secondAtomElement = secondSpecies.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {

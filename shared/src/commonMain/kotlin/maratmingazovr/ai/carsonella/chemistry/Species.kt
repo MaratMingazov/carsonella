@@ -35,7 +35,7 @@ sealed interface Species {
     fun energyLevels(electrons: Int): List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
     fun describe(s: EntityState): String
 
-    data class Elemental(val element: Element) : Species {
+    data class Atomic(val element: Element) : Species {
         override val mass: Float get() = if (element == Element.ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
         override val protons: Int get() = element.details.p
         override val radius: Float get() = element.details.radius

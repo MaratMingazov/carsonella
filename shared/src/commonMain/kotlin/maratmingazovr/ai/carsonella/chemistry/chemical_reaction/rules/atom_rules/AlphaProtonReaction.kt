@@ -57,7 +57,7 @@ class AlphaProtonReaction(
 
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val firstElement = firstSpecies.element
         if (firstElement.details.alphaProtonResult == null) return null
 
@@ -67,7 +67,7 @@ class AlphaProtonReaction(
             .filter { it.state().value.alive }
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == HELIUM_4
+                sp is Species.Atomic && sp.element == HELIUM_4
             }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
             .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
@@ -75,7 +75,7 @@ class AlphaProtonReaction(
             ?: return null
 
         val alphaSpecies = alphaCandidate.state().value.species
-        if (alphaSpecies !is Species.Elemental) return null
+        if (alphaSpecies !is Species.Atomic) return null
         val alphaElement = alphaSpecies.element
         val contactRadiusSquare = firstElement.details.radius * alphaElement.details.radius * 2f
         if (distanceSquare >= contactRadiusSquare) return null

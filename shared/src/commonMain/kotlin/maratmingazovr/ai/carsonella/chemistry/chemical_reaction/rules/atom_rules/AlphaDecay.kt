@@ -36,7 +36,7 @@ class AlphaDecay(
         if (!first.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val species = first.state().value.species
-        if (species !is Species.Elemental) return null
+        if (species !is Species.Atomic) return null
         val element = species.element
         if (element.details.alphaDecayResult == null) return null
 

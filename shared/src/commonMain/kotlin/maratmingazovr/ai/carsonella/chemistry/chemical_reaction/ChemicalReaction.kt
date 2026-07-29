@@ -46,7 +46,7 @@ interface IEntityGenerator {
 
     // Удобная перегрузка для Elemental — вызовы по Element (атомы/частицы/звезда/модули) не трогаем.
     fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity =
-        createEntity(Species.Elemental(element), position, direction, velocity, energy, environment, electrons)
+        createEntity(Species.Atomic(element), position, direction, velocity, energy, environment, electrons)
 }
 
 

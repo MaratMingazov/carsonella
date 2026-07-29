@@ -31,7 +31,7 @@ class SubAtom(
     private var state = MutableStateFlow(
         EntityState(
             id = id,
-            species = Species.Elemental(element),
+            species = Species.Atomic(element),
             alive = true,
             position = position,
             direction = direction,
@@ -46,7 +46,7 @@ class SubAtom(
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
-        val element = (state.value.species as Species.Elemental).element
+        val element = (state.value.species as Species.Atomic).element
 
         when (element) {
             PHOTON -> initPhoton(environment)

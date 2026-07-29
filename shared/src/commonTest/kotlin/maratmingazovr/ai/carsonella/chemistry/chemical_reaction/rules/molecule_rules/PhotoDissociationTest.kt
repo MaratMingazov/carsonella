@@ -20,7 +20,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -88,9 +87,9 @@ class PhotoDissociationTest {
 
         assertEquals(2, gen.spawned.size)
         val oh = gen.spawned.single { it.species is Species.Molecular }
-        val h = gen.spawned.single { it.species is Species.Elemental }
+        val h = gen.spawned.single { it.species is Species.Atomic }
         assertEquals("HO", (oh.species as Species.Molecular).graph.formula)  // ·OH
-        assertEquals(Element.HYDROGEN, (h.species as Species.Elemental).element)
+        assertEquals(Element.HYDROGEN, (h.species as Species.Atomic).element)
         assertEquals(10, oh.electrons + h.electrons)                           // электроны сохранены (9 + 1)
         assertEquals(9, oh.electrons)
         assertEquals(1, h.electrons)

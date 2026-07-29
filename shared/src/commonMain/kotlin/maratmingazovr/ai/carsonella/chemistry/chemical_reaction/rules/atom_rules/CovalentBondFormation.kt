@@ -65,7 +65,7 @@ class CovalentBondFormation(
         val state = entity.state().value
         if (!state.alive) return false
         val species = state.species
-        if (species !is Species.Elemental) return false              // молекулы пока не связываем (3b)
+        if (species !is Species.Atomic) return false              // молекулы пока не связываем (3b)
         val element = species.element
         if (element.details.type != ElementType.Atom) return false   // только атомы (не частицы/звезда/модуль)
         if (state.electrons != element.details.p) return false       // только нейтральные (есть электроны для общей пары)
@@ -74,8 +74,8 @@ class CovalentBondFormation(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (a1, a2) = match as Match
-        val iso1 = (a1.state().value.species as Species.Elemental).element
-        val iso2 = (a2.state().value.species as Species.Elemental).element
+        val iso1 = (a1.state().value.species as Species.Atomic).element
+        val iso2 = (a2.state().value.species as Species.Atomic).element
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
         val p1 = a1.state().value.position

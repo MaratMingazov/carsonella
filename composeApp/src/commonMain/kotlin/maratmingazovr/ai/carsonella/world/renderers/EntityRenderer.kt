@@ -49,7 +49,7 @@ class EntityRenderer(
         val species = entityState.species
         when (species) {
             is Species.Molecular -> drawMolecule(drawScope, entityState, highlighted, vibrationParams)
-            is Species.Elemental -> drawElemental(drawScope, entityState, highlighted, vibrationParams)
+            is Species.Atomic -> drawElemental(drawScope, entityState, highlighted, vibrationParams)
         }
     }
 
@@ -61,7 +61,7 @@ class EntityRenderer(
     ) {
 
         val position = entityState.position.toOffset()  + vibrationParams.positionOffset
-        val element = (entityState.species as Species.Elemental).element
+        val element = (entityState.species as Species.Atomic).element
         val radius = entityState.species.radius
         val fillColor = ElementColors.fill(entityState.species)
         val symbol = element.details.symbol.filter { it.isLetter() }
@@ -96,7 +96,7 @@ class EntityRenderer(
             }
 
             molecule.atoms(center).forEach { atom ->
-                val fill = ElementColors.fill(Species.Elemental(atom.isotope))
+                val fill = ElementColors.fill(Species.Atomic(atom.isotope))
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
                 drawAtom(screenPos(atom), atom.radius, fill, symbol, graph.freeSlots(atom.localId), slotAngle, highlighted = highlighted)

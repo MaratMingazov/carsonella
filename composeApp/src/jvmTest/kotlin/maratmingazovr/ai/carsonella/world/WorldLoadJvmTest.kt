@@ -106,6 +106,6 @@ class WorldLoadJvmTest {
             )
         )
         assertEquals(1, world.entities.size)
-        assertEquals("OXYGEN_16", (world.entities.first().state().value.species as Species.Elemental).element.name)
+        assertEquals("OXYGEN_16", (world.entities.first().state().value.species as Species.Atomic).element.name)
     }
 }

@@ -16,8 +16,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertNotNull
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Шаг 3a: правило ковалентной связи. Проверяем образование H₂ из двух нейтральных H end-to-end
@@ -63,7 +61,7 @@ class CovalentBondFormationTest {
         assertEquals("H2", molecule.graph.formula)
         assertEquals(2f, molecule.graph.mass)
         // Образование связи экзотермично → фотон с энергией связи H–H (радиационная ассоциация).
-        val photon = gen.spawned.single { (it.species as? Species.Elemental)?.element == Element.PHOTON }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
         assertEquals(BondEnergy.of(Element.HYDROGEN, Element.HYDROGEN, 1), photon.energy)
     }
 

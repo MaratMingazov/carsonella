@@ -49,7 +49,7 @@ class PhotoIonization (
         val first = reagents.first()
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Elemental) return null
+        if (firstSpecies !is Species.Atomic) return null
         val firstElement = firstSpecies.element
         val levels = firstElement.energyLevels(first.state().value.electrons)
         if (levels.isEmpty()) return null
@@ -61,7 +61,7 @@ class PhotoIonization (
             .asSequence()
             .filter {
                 val sp = it.state().value.species
-                sp is Species.Elemental && sp.element == PHOTON
+                sp is Species.Atomic && sp.element == PHOTON
             }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
