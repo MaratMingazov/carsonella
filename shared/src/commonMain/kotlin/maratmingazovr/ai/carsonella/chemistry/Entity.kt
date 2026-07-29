@@ -42,9 +42,9 @@ data class EntityState(
     fun distanceToSurface(point: Position): Float = when (val species = species) {
         is Species.Elemental -> position.distanceTo(point) - species.radius
         is Species.Molecular -> {
-            val positions = species.graph.atomPositions(position)   // одна раскладка на молекулу
-            species.graph.nodes.minOfOrNull { node ->
-                positions.getValue(node.localId).distanceTo(point) - node.isotope.details.radius
+            val graph = species.graph
+            graph.nodes.minOfOrNull { node ->
+                graph.atomPosition(node.localId, position).distanceTo(point) - node.isotope.details.radius
             } ?: (position.distanceTo(point) - radius)              // граф без узлов — не бывает, но пусть
         }
     }

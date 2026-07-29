@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -21,11 +22,31 @@ class MoleculeGeometryTest {
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        val pos = h2.atomOffsets
-        assertEquals(2, pos.size)
-        assertTrue(pos.getValue(0) != pos.getValue(1))                    // два разных места
-        assertTrue(abs(pos.getValue(0).x + pos.getValue(1).x) < 0.01f)   // центроид ≈ 0
-        assertTrue(abs(pos.getValue(0).y + pos.getValue(1).y) < 0.01f)
+        val first = h2.atomOffset(0)
+        val second = h2.atomOffset(1)
+        assertTrue(first != second)                            // два разных места
+        assertTrue(abs(first.x + second.x) < 0.01f)            // центроид ≈ 0
+        assertTrue(abs(first.y + second.y) < 0.01f)
+    }
+
+    @Test
+    fun unknownNodeIsAnError() {
+        val h2 = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        )
+        assertFailsWith<IllegalStateException> { h2.atomOffset(99) }
+    }
+
+    @Test
+    fun positionIsCentrePlusOffset() {
+        val h2 = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        )
+        val moleculeAt = Position(100f, 50f)
+        val expected = moleculeAt + h2.atomOffset(1)
+        assertEquals(expected, h2.atomPosition(1, moleculeAt))
     }
 
     @Test
@@ -39,9 +60,7 @@ class MoleculeGeometryTest {
             ),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
-        val pos = water.atomOffsets
-        assertEquals(3, pos.size)
         // O ближе к центру, чем H (сравниваем квадраты расстояний — корень не нужен)
-        assertTrue(pos.getValue(0).distanceSquareTo(center) < pos.getValue(1).distanceSquareTo(center))
+        assertTrue(water.atomOffset(0).distanceSquareTo(center) < water.atomOffset(1).distanceSquareTo(center))
     }
 }

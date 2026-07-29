@@ -13,7 +13,6 @@ import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
 
-
 // Единый тайминг анимаций от монотонного time (секунды). Меняешь скорость здесь, в одном месте.
 internal const val ANIM_TWO_PI = 6.2831855f
 internal const val VIB_HZ = 1f        // вибрация частиц: 1 цикл/сек (как прежний phase, 2π за 1с)
@@ -83,13 +82,10 @@ class EntityRenderer(
         vibrationParams: VibrationParams,
     ) {
         val graph = (entityState.species as Species.Molecular).graph
-        val centerPosition = entityState.position.toOffset() + vibrationParams.positionOffset
+        val center = entityState.position
 
-        // Геометрия молекулы живёт в shared (ею пользуется и физика); здесь только переводим
-        // смещения атомов относительно центра в экранные координаты.
-        val offsets = graph.atomOffsets
-        fun atomScreenPos(localId: Int) = centerPosition + offsets.getValue(localId).toOffset()
 
+        fun atomScreenPos(localId: Int) = graph.atomPosition(localId, center).toOffset() + vibrationParams.positionOffset
         with(drawScope) {
 
             graph.bonds.forEach { bond ->
@@ -97,11 +93,11 @@ class EntityRenderer(
             }
 
             graph.nodes.forEach { node ->
-                val atomPosition = atomScreenPos(node.localId)
+                val atomCenter = atomScreenPos(node.localId)
                 val fill = ElementColors.fill(Species.Elemental(node.isotope))
                 val symbol = node.isotope.details.symbol.filter { it.isLetter() }
                 val nodeSlotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + node.localId * 1.3f
-                drawAtom(atomPosition, node.isotope.details.radius, fill, symbol, graph.freeSlots(node.localId), nodeSlotAngle, highlighted = highlighted)
+                drawAtom(atomCenter, node.isotope.details.radius, fill, symbol, graph.freeSlots(node.localId), nodeSlotAngle, highlighted = highlighted)
             }
         }
     }
