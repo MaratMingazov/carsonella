@@ -70,6 +70,29 @@ data class MoleculeGraph(
             require(bond.atom1 in idSet && bond.atom2 in idSet) { "Связь $bond ссылается на несуществующий узел" }
             require(bond.order in 1..3) { "Кратность связи $bond вне диапазона 1..3 (см. комментарий к Bond)" }
         }
+        // СВЯЗНОСТЬ: молекула — это ОДНО целое. 
+        // Два узла без пути между ними — не одна молекула, а две, слипшиеся в одном объекте
+        val unreachable = ids.toHashSet() - reachableFrom(nodes.first().localId)
+        require(unreachable.isEmpty()) {
+            "Граф не связен: узлы $unreachable не соединены с ${nodes.first().localId} — это не одна молекула, а несколько"
+        }
+    }
+
+    /** localId всех узлов, достижимых из [start] по связям (BFS). Опора инварианта связности. */
+    private fun reachableFrom(start: Int): Set<Int> {
+        val neighbours = HashMap<Int, MutableList<Int>>()
+        for (bond in bonds) {
+            neighbours.getOrPut(bond.atom1) { mutableListOf() }.add(bond.atom2)
+            neighbours.getOrPut(bond.atom2) { mutableListOf() }.add(bond.atom1)
+        }
+        val seen = hashSetOf(start)
+        val queue = ArrayDeque(listOf(start))
+        while (queue.isNotEmpty()) {
+            for (neighbour in neighbours[queue.removeFirst()].orEmpty()) {
+                if (seen.add(neighbour)) queue.add(neighbour)
+            }
+        }
+        return seen
     }
 
     /**

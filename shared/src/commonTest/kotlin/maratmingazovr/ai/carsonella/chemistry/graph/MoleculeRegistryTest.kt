@@ -67,7 +67,8 @@ class MoleculeRegistryTest {
     @Test
     fun tooLargeMoleculeIsNull() {
         // Крупная молекула → canonical == "" → lookup("") → null (не бросает).
-        val tooBig = mol((0..9).map { h(it) }, emptyList())
+        // Цепочка из 10 углеродов: узлов больше CANONICAL_MAX_NODES, и граф связен (инвариант init).
+        val tooBig = mol((0..9).map { c(it) }, (0..8).map { Bond(it, it + 1, order = 1) })
         assertEquals("", tooBig.canonical)
         assertNull(MoleculeRegistry.lookup(tooBig.canonical))
     }

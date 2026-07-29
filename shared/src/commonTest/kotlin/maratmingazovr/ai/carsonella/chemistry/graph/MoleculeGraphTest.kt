@@ -265,6 +265,38 @@ class MoleculeGraphTest {
         }
     }
 
+    // --- инварианты конструктора: молекула непуста и связна ---
+
+    @Test
+    fun emptyGraphIsRejected() {
+        assertFailsWith<IllegalArgumentException> { MoleculeGraph(nodes = emptyList(), bonds = emptyList()) }
+    }
+
+    @Test
+    fun disconnectedGraphIsRejected() {
+        // Два атома без связи между ними — это не одна молекула, а две в одном объекте.
+        assertFailsWith<IllegalArgumentException> {
+            MoleculeGraph(
+                nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
+                bonds = emptyList(),
+            )
+        }
+        // Тот же случай посложнее: две готовые молекулы (H₂ и H₂) в одном списке узлов.
+        assertFailsWith<IllegalArgumentException> {
+            MoleculeGraph(
+                nodes = (0..3).map { AtomNode(it, Element.HYDROGEN) },
+                bonds = listOf(Bond(0, 1, order = 1), Bond(2, 3, order = 1)),
+            )
+        }
+    }
+
+    @Test
+    fun singleAtomIsConnected() {
+        // Вырожденный случай законен: атом как молекула из одного узла (§8), так его строит graphOf.
+        val lone = MoleculeGraph(nodes = listOf(AtomNode(0, Element.HYDROGEN)), bonds = emptyList())
+        assertEquals("H", lone.formula)
+    }
+
     // --- усиление связи (3c) ---
 
     @Test
@@ -422,11 +454,11 @@ class MoleculeGraphTest {
 
     @Test
     fun canonicalOfTooLargeMoleculeIsEmpty() {
-        // Наивный перебор O(n!) не тянет крупные (> CANONICAL_MAX_NODES); 10 изолированных узлов → "".
+        // Наивный перебор O(n!) не тянет крупные (> CANONICAL_MAX_NODES); цепочка из 10 углеродов → "".
         // "" = «нет канонической идентичности» (до Моргана), НЕ бросаем — вызывающий не падает.
         val tooBig = MoleculeGraph(
-            nodes = (0..9).map { AtomNode(it, Element.HYDROGEN) },
-            bonds = emptyList(),
+            nodes = (0..9).map { AtomNode(it, Element.CARBON_12) },
+            bonds = (0..8).map { Bond(it, it + 1, order = 1) },
         )
         assertEquals("", tooBig.canonical)
     }
