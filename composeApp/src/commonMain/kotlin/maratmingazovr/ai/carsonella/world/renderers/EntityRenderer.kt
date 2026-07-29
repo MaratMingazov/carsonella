@@ -83,7 +83,6 @@ class EntityRenderer(
         vibrationParams: VibrationParams,
     ) {
         val molecule = entityState.species as Species.Molecular
-        val graph = molecule.graph
         val center = entityState.position
 
         // Добавляем дрожание
@@ -99,7 +98,7 @@ class EntityRenderer(
                 val fill = ElementColors.fill(Species.Atomic(atom.isotope))
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
-                drawAtom(screenPos(atom), atom.radius, fill, symbol, graph.freeValence(atom.localId), slotAngle, highlighted = highlighted)
+                drawAtom(screenPos(atom), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlighted)
             }
         }
     }

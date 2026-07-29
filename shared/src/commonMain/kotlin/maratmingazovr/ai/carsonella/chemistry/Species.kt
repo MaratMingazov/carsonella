@@ -13,7 +13,8 @@ import kotlin.math.round
 data class MolecularAtom(
     val localId: Int,
     val isotope: Element,
-    val position: Position,
+    val position: Position, // позиция, не просто offset
+    val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
 ) {
     val radius: Float get() = isotope.details.radius
 }
@@ -102,8 +103,12 @@ sealed interface Species {
             }
         }
 
-        private fun place(node: AtomNode, center: Position) =
-            MolecularAtom(node.localId, node.isotope, center + graph.atomOffset(node.localId))
+        private fun place(node: AtomNode, center: Position) = MolecularAtom(
+            localId = node.localId,
+            isotope = node.isotope,
+            position = center + graph.atomOffset(node.localId),
+            freeValence = graph.freeValence(node.localId),
+        )
 
         override fun describe(s: EntityState): String {
             // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и
