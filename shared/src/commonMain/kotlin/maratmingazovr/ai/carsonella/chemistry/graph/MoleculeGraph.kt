@@ -149,7 +149,7 @@ data class MoleculeGraph(
      * Кэшируется один раз при построении (граф иммутабелен): один проход по связям копит «занятые»
      * слоты (сумма order у инцидентных рёбер), затем `валентность − занятые` на узел.
      */
-    private val freeSlotsById: Map<Int, Int> = run {
+    private val freeValenceById: Map<Int, Int> = run {
         val used = HashMap<Int, Int>()
         for (bond in bonds) {
             used[bond.atom1] = (used[bond.atom1] ?: 0) + bond.order
@@ -165,18 +165,18 @@ data class MoleculeGraph(
      * Например, когда Углерод + Углерод -> C-C то теперь либо связь усилится С=С
      * либо образуется еще связь H-C-C
      */
-    fun freeSlots(localId: Int): Int =
-        freeSlotsById[localId] ?: error("Узла с localId=$localId нет в графе")
+    fun freeValence(localId: Int): Int =
+        freeValenceById[localId] ?: error("Узла с localId=$localId нет в графе")
 
     /** Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать). */
-    val hasFreeSlot: Boolean = nodes.any { freeSlots(it.localId) > 0 }
+    val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 }
 
     /**
      * localId узла со свободным слотом для новой связи — наименьший среди кандидатов (детерминированно),
      * либо null, если свободных слотов нет. Межатомную геометрию внутри молекулы физика пока не моделирует,
      * поэтому узел выбирается детерминированно, а не «ближайший к партнёру».
      */
-    val firstFreeSlotAtomNode: AtomNode? = nodes.filter { freeSlots(it.localId) > 0 }.minByOrNull { it.localId }
+    val firstFreeValenceAtomNode: AtomNode? = nodes.filter { freeValence(it.localId) > 0 }.minByOrNull { it.localId }
 
     /**
      * Слияние двух молекул в одну (рост, 3b): этот граф остаётся якорем (его нумерация не меняется), к нему
@@ -201,7 +201,7 @@ data class MoleculeGraph(
      * ```
      *
      * merge — чистая операция и НЕ проверяет валентность: что у [thisNode]/[otherNode] есть свободный слот,
-     * гарантирует вызывающий (правило роста через [freeSlots]). Атом-партнёр оборачивается в тривиальный
+     * гарантирует вызывающий (правило роста через [freeValence]). Атом-партнёр оборачивается в тривиальный
      * одноузловой граф и сливается тем же merge (атом = вырожденная молекула, §8).
      */
     fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
@@ -220,7 +220,7 @@ data class MoleculeGraph(
      * а звено цепи O–O–O — нет (средний атом насыщен). Пусто → усиливать нечего.
      */
     val strengthenableBonds: List<Bond> =
-        bonds.filter { it.order < 3 && freeSlots(it.atom1) > 0 && freeSlots(it.atom2) > 0 }
+        bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 }
 
     /**
      * Кандидаты на замыкание кольца: пары атомов, у которых у ОБОИХ свободный слот и которые соединены
@@ -232,7 +232,7 @@ data class MoleculeGraph(
      * weight (см. RingClosure): 5–6 выигрывают по ringStrain. Соседей (`d = 1`) порог `d ≥ 4` отсекает сам.
      */
     val ringClosureCandidates: List<RingClosureCandidate> = run {
-        val freeAtoms = nodes.map { it.localId }.filter { (freeSlotsById[it] ?: 0) > 0 }
+        val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
         if (freeAtoms.size < 2) return@run emptyList()
         val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
         for (bond in bonds) {

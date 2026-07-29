@@ -84,7 +84,7 @@ class MoleculeGrowthTest {
         val graph = (product.species as Species.Molecular).graph
         assertEquals("H2O", graph.formula)
         assertEquals(18f, graph.mass)
-        assertFalse(graph.hasFreeSlot)                  // вода насыщена
+        assertFalse(graph.hasFreeValence)                  // вода насыщена
         assertEquals(10, product.electrons)               // 9 (·OH) + 1 (H) — сохранение электронов
         // новая связь O–H экзотермична → фотон с её энергией
         val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }

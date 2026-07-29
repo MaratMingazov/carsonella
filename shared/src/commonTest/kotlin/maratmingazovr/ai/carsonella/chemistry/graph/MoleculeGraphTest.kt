@@ -114,13 +114,13 @@ class MoleculeGraphTest {
     // --- свободные слоты (3b) ---
 
     @Test
-    fun saturatedMoleculesHaveNoFreeSlots() {
+    fun saturatedMoleculesHaveNoFreeValence() {
         // Вода/метан/этанол — закрытые оболочки: все слоты закрыты, расти некуда.
-        assertEquals(0, water().freeSlots(0))   // O: valence 2 − 2 связи
-        assertEquals(0, water().freeSlots(1))   // H: valence 1 − 1
-        assertFalse(water().hasFreeSlot)
-        assertFalse(methane().hasFreeSlot)
-        assertFalse(ethanol().hasFreeSlot)
+        assertEquals(0, water().freeValence(0))   // O: valence 2 − 2 связи
+        assertEquals(0, water().freeValence(1))   // H: valence 1 − 1
+        assertFalse(water().hasFreeValence)
+        assertFalse(methane().hasFreeValence)
+        assertFalse(ethanol().hasFreeValence)
     }
 
     @Test
@@ -130,9 +130,9 @@ class MoleculeGraphTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertEquals(1, hydroxyl.freeSlots(0))   // O: 2 − 1
-        assertEquals(0, hydroxyl.freeSlots(1))   // H: 1 − 1
-        assertTrue(hydroxyl.hasFreeSlot)
+        assertEquals(1, hydroxyl.freeValence(0))   // O: 2 − 1
+        assertEquals(0, hydroxyl.freeValence(1))   // H: 1 − 1
+        assertTrue(hydroxyl.hasFreeValence)
     }
 
     @Test
@@ -142,16 +142,16 @@ class MoleculeGraphTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 2)),
         )
-        assertEquals(0, o2.freeSlots(0))
-        assertFalse(o2.hasFreeSlot)
+        assertEquals(0, o2.freeValence(0))
+        assertFalse(o2.hasFreeValence)
 
         val singleOO = MoleculeGraph(
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertEquals(1, singleOO.freeSlots(0))
-        assertEquals(1, singleOO.freeSlots(1))
-        assertTrue(singleOO.hasFreeSlot)
+        assertEquals(1, singleOO.freeValence(0))
+        assertEquals(1, singleOO.freeValence(1))
+        assertTrue(singleOO.hasFreeValence)
     }
 
     @Test
@@ -166,24 +166,24 @@ class MoleculeGraphTest {
             ),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1), Bond(0, 3, order = 1)),
         )
-        assertEquals(1, methyl.freeSlots(0))
-        assertTrue(methyl.hasFreeSlot)
+        assertEquals(1, methyl.freeValence(0))
+        assertTrue(methyl.hasFreeValence)
     }
 
     @Test
-    fun freeSlotsOfUnknownNodeFails() {
-        assertFailsWith<IllegalStateException> { water().freeSlots(99) }
+    fun freeValenceOfUnknownNodeFails() {
+        assertFailsWith<IllegalStateException> { water().freeValence(99) }
     }
 
     @Test
     fun firstFreeSlotNodePicksSmallestLocalIdWithSlot() {
-        assertEquals(null, water().firstFreeSlotAtomNode)   // закрытая оболочка — слотов нет
+        assertEquals(null, water().firstFreeValenceAtomNode)   // закрытая оболочка — слотов нет
         // H(0)–O(1): водород насыщен, слот на кислороде → берём узел 1, а не 0.
         val molecule_OH = MoleculeGraph(
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        assertEquals(1, molecule_OH.firstFreeSlotAtomNode!!.localId)
+        assertEquals(1, molecule_OH.firstFreeValenceAtomNode!!.localId)
     }
 
     // --- слияние графов (3b, merge) ---
@@ -207,7 +207,7 @@ class MoleculeGraphTest {
         assertEquals("H2O", result.formula)
         assertEquals(18f, result.mass)
         assertEquals(water().canonical, result.canonical)   // та же молекула, что собранная вручную
-        assertFalse(result.hasFreeSlot)                        // закрытая оболочка
+        assertFalse(result.hasFreeValence)                        // закрытая оболочка
     }
 
     @Test
@@ -218,7 +218,7 @@ class MoleculeGraphTest {
         assertEquals(4, result.nodes.map { it.localId }.toSet().size)   // все localId уникальны
         assertEquals("H2O2", result.formula)
         assertEquals(34f, result.mass)                                // 2*O16 + 2*H = 32+2
-        assertFalse(result.hasFreeSlot)                               // оба O насыщены (по 2 связи)
+        assertFalse(result.hasFreeValence)                               // оба O насыщены (по 2 связи)
     }
 
     @Test
@@ -255,7 +255,7 @@ class MoleculeGraphTest {
         )
         assertEquals("CH4O", result.formula)
         assertEquals(methanolRenumbered.canonical, result.canonical)
-        assertFalse(result.hasFreeSlot)
+        assertFalse(result.hasFreeValence)
     }
 
     @Test
@@ -308,7 +308,7 @@ class MoleculeGraphTest {
         )
         val doubled = oo.strengthenBond(0, 1)
         assertEquals(2, doubled.bonds.single().order)
-        assertFalse(doubled.hasFreeSlot)   // O=O насыщен
+        assertFalse(doubled.hasFreeValence)   // O=O насыщен
     }
 
     @Test

@@ -45,7 +45,7 @@ class MoleculeGrowth(
         if (!first.state().value.alive) return null
         // субъект-молекула гарантирован базой; нужен свободный слот, чтобы было куда расти
         val firstGraph = (first.state().value.species as Species.Molecular).graph
-        if (!firstGraph.hasFreeSlot) return null
+        if (!firstGraph.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
@@ -75,7 +75,7 @@ class MoleculeGrowth(
         val state = entity.state().value
         if (!state.alive) return false
         return when (val species = state.species) {
-            is Species.Molecular -> species.graph.hasFreeSlot
+            is Species.Molecular -> species.graph.hasFreeValence
             is Species.Atomic -> {
                 val element = species.element
                 element.details.type == ElementType.Atom &&
@@ -99,8 +99,8 @@ class MoleculeGrowth(
         val (mol, partnerEntity) = match as Match
         val molGraph = (mol.state().value.species as Species.Molecular).graph
         val partnerGraph = graphOf(partnerEntity)
-        val molNode = molGraph.firstFreeSlotAtomNode!!
-        val partnerNode = partnerGraph.firstFreeSlotAtomNode!!
+        val molNode = molGraph.firstFreeValenceAtomNode!!
+        val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
         return BondEnergy.of(molNode.isotope, partnerNode.isotope, order = 1) ?: 0f
     }
 
@@ -110,8 +110,8 @@ class MoleculeGrowth(
         val partnerGraph = graphOf(partnerEntity)
 
         // matchesMolecule гарантировал свободные слоты у обоих → firstFreeSlotNode не null.
-        val molNode = molGraph.firstFreeSlotAtomNode!!
-        val partnerNode = partnerGraph.firstFreeSlotAtomNode!!
+        val molNode = molGraph.firstFreeValenceAtomNode!!
+        val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
         val merged = molGraph.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
 
 
