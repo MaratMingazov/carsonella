@@ -4,11 +4,11 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
+import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -29,15 +29,16 @@ class BondStrengthening(
 ) : MoleculeReactionRule() {
     override val id = "BondStrengthening"
 
-    private data class Match(val molecule: Entity, val bond: Bond) : MatchedData
+    private data class Match(val molecule: Entity, val bond: MolecularBond) : MatchedData
 
     override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
         if (reagents.size != 1) return null   // как распады: только «сам с собой», без соседей
         val first = reagents.first()
-        if (!first.state().value.alive) return null
+        val state = first.state().value
+        if (!state.alive) return null
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
-        val graph = (first.state().value.species as Species.Molecular).graph
-        val candidate = graph.strengthenableBonds.firstOrNull() ?: return null
+        val molecule = state.species as Species.Molecular
+        val candidate = molecule.strengthenableBonds(state.position).firstOrNull() ?: return null
         return Match(first, candidate)
     }
 
@@ -45,31 +46,27 @@ class BondStrengthening(
     // знаком). Сравнивается с ростом в одном resolve(): у кислорода усиление O=O (3.65) бьёт рост O–O
     // (1.51) → O₂, у углерода рост (C–H 4.28) бьёт усиление C=C (2.77) → цепи. Данные из Match.
     override fun weight(match: MatchedData): Float {
-        val (mol, b) = match as Match
-        val graph = (mol.state().value.species as Species.Molecular).graph
-        val isoA = graph.nodes.first { it.localId == b.atom1 }.isotope
-        val isoB = graph.nodes.first { it.localId == b.atom2 }.isotope
-        val hi = BondEnergy.of(isoA, isoB, b.order + 1) ?: return 0f
-        val lo = BondEnergy.of(isoA, isoB, b.order) ?: return 0f
+        val (_, b) = match as Match
+        val hi = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order + 1) ?: return 0f
+        val lo = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order) ?: return 0f
         return hi - lo
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol, b) = match as Match
         val state = mol.state().value
-        val graph = (state.species as Species.Molecular).graph
-        val strengthened = graph.strengthenBond(b.atom1, b.atom2)
+        val molecule = state.species as Species.Molecular
+        val moleculeElectrons = state.electrons
+        val strengthened = molecule.strengthenBond(b)
         val env = mol.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
-        val isoA = graph.nodes.first { it.localId == b.atom1 }.isotope
-        val isoB = graph.nodes.first { it.localId == b.atom2 }.isotope
-        val hi = BondEnergy.of(isoA, isoB, b.order + 1)
-        val lo = BondEnergy.of(isoA, isoB, b.order)
+        val hi = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order + 1)
+        val lo = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order)
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf(
-            { entityGenerator.createEntity(Species.Molecular(strengthened), state.position, state.direction, state.velocity, state.energy, env, state.electrons) },
+            { entityGenerator.createEntity(strengthened, state.position, state.direction, state.velocity, state.energy, env, state.electrons) },
         )
         if (released != null && released > 0f) {
             spawn += {
@@ -84,7 +81,7 @@ class BondStrengthening(
         return ReactionOutcome(
             consumed = listOf(mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty} связь ${b.atom1}-${b.atom2} ${b.order}→${b.order + 1}" +
+            description = "$id: ${molecule.displaySymbol(moleculeElectrons)} связь ${b.atom1.localId}-${b.atom2.localId} ${b.order}→${b.order + 1}" +
                 (released?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

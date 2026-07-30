@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
+import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
@@ -79,13 +80,6 @@ sealed interface Species {
         /** Брутто-формула в ASCII («H2O») — для ключей и сохранения; для показа есть [displaySymbol]. */
         val formula: String get() = graph.formula
 
-        // Что игрок может сделать с молекулой вручную (механика «лего», см. ReactionSelection).
-        // Наружу — да/нет, а не списки кандидатов: UI решает, показывать ли кнопку, а КАКУЮ именно
-        // связь усилить или где замкнуть кольцо, выбирает уже правило.
-        val canStrengthenBond: Boolean get() = graph.strengthenableBonds.isNotEmpty()
-        val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
-
-
         fun atoms(center: Position): List<MolecularAtom> = graph.nodes.map { place(it, center) }
 
         /** Один атом по номеру узла — точечная версия [atoms] (связи адресуют атомы по `localId`). */
@@ -95,14 +89,26 @@ sealed interface Species {
             return place(node, center)
         }
 
-        /**
-         * Связи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
-         */
-        fun bonds(center: Position): List<MolecularBond> {
+        // вязи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
+        fun bonds(center: Position): List<MolecularBond> = place(graph.bonds, center)
+
+        // Есть ли у молекулы ковалентная связь, которую можно усилить (order + 1)
+        val canStrengthenBond: Boolean get() = graph.strengthenableBonds.isNotEmpty()
+
+        // Связи, которые можно усилить (кратность +1) — поставленные в мир.
+        fun strengthenableBonds(center: Position): List<MolecularBond> = place(graph.strengthenableBonds, center)
+
+        // Усиление связи: НОВАЯ молекула, у которой кратность [bond] на 1 больше (O–O → O=O).
+        fun strengthenBond(bond: MolecularBond): Molecular = Molecular(graph.strengthenBond(bond.atom1.localId, bond.atom2.localId))
+
+        // Может ли молекула замкнуться?
+        val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
+
+
+
+        private fun place(bonds: List<Bond>, center: Position): List<MolecularBond> {
             val placed = atoms(center).associateBy { it.localId }
-            return graph.bonds.map {
-                MolecularBond(placed.getValue(it.atom1), placed.getValue(it.atom2), it.order)
-            }
+            return bonds.map { MolecularBond(placed.getValue(it.atom1), placed.getValue(it.atom2), it.order) }
         }
 
         private fun place(node: AtomNode, center: Position) = MolecularAtom(

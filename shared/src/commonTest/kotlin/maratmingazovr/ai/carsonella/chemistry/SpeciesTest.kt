@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Шаг 2a §3b: агрегаты по [Species] (Elemental → Element/Details, Molecular → граф) и
@@ -51,6 +52,33 @@ class SpeciesTest {
     @Test
     fun formulaPrettyUsesSubscripts() {
         assertEquals("H₂O", water.formulaPretty)
+    }
+
+    @Test
+    fun strengthenBondGivesNewMoleculeAndLeavesOldIntact() {
+        // O–O: у обоих кислородов свободный слот → связь усиливаема. Молекула отвечает про усиление
+        // сама, графа вызывающему не видно: кандидат берётся из strengthenableBonds и им же адресуется.
+        val oo = Species.Molecular(
+            MoleculeGraph(
+                nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+                bonds = listOf(Bond(0, 1, 1)),
+            )
+        )
+        val center = Position(100f, 50f)
+
+        val candidate = oo.strengthenableBonds(center).single()
+        assertEquals(1, candidate.order)
+
+        val o2 = oo.strengthenBond(candidate)
+        assertEquals(2, o2.bonds(center).single().order)   // O–O → O=O
+        assertEquals(1, oo.bonds(center).single().order)   // исходная молекула не изменилась
+        assertTrue(o2.strengthenableBonds(center).isEmpty())   // O=O насыщен — усиливать больше нечего
+    }
+
+    @Test
+    fun saturatedMoleculeHasNothingToStrengthen() {
+        // В H–O–H у каждого водорода валентность занята → ни одна связь не усиливаема.
+        assertTrue(Species.Molecular(water).strengthenableBonds(Position(0f, 0f)).isEmpty())
     }
 
     @Test
