@@ -23,12 +23,13 @@ internal const val SLOT_HZ = 1f / 15f  // вращение свободных с
 
 
 data class VibrationParams(
-    val entityState: EntityState,
-    val time: Float,
+    val id: Long, // чтобы у каждого элемента было свое колебание
+    val energy: Float, // больше энергии -> больше колебание
+    val time: Float, // единый счетчик времени
 ) {
     private val amp = 1f  // амплитуда в пикселях
-    val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
-    private val vibration = time * ANIM_TWO_PI * VIB_HZ * entityState.energy.coerceAtMost(10f)   // вибрация растёт с энергией, но не выше 10
+    val idSeed = (id % 1000).toFloat()   // стаб. сдвиг фазы на объект
+    private val vibration = time * ANIM_TWO_PI * VIB_HZ * energy.coerceAtMost(10f).coerceAtLeast(0.5f)   // вибрация растёт с энергией, но не выше 10
     private val vibrationDx = amp * kotlin.math.cos(vibration + idSeed) // это вибрация каждого атома в зависимости от энергии
     private val vibrationDy = amp * kotlin.math.sin(vibration + idSeed) // это вибрация каждого атома в зависимости от энергии
 
@@ -54,18 +55,18 @@ class EntityRenderer(
         time: Float,
         highlight: Highlight = Highlight.NONE,
     ) {
-        val vibrationParams = VibrationParams(entityState, time) // параметры вибрации
+        val vibrationParams = VibrationParams(entityState.id, entityState.energy, time) // параметры вибрации
         val species = entityState.species
         when (species) {
-            is Species.Molecular -> drawMolecule(drawScope, entityState, highlight, vibrationParams)
-            is Species.Atomic -> drawElemental(drawScope, entityState, highlight.entity, vibrationParams)
+            is Species.Molecular -> drawMolecule(drawScope, entityState, highlight, vibrationParams, time)
+            is Species.Atomic -> drawElemental(drawScope, entityState, highlight, vibrationParams)
         }
     }
 
     fun drawElemental(
         drawScope: DrawScope,
         entityState: EntityState,
-        highlighted: Boolean, // пользователь может навести или выбрать элемент
+        highlight: Highlight,
         vibrationParams: VibrationParams,
     ) {
 
@@ -77,8 +78,8 @@ class EntityRenderer(
 
         with(drawScope) {
             when (element.details.type) {
-                ElementType.SubAtom -> drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlighted)
-                ElementType.Atom -> drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlighted)
+                ElementType.SubAtom -> drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
+                ElementType.Atom -> drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
                 ElementType.Star -> throw RuntimeException("STAR Rendering is not implemented yet")
             }
         }
@@ -90,12 +91,13 @@ class EntityRenderer(
         entityState: EntityState,
         highlight: Highlight,
         vibrationParams: VibrationParams,
+        time: Float,
     ) {
         val molecule = entityState.species as Species.Molecular
         val center = entityState.position
 
         // Добавляем дрожание
-        fun screenPos(atom: MolecularAtom) = atom.position.toOffset() + vibrationParams.positionOffset
+        fun screenPos(atom: MolecularAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 
@@ -106,10 +108,11 @@ class EntityRenderer(
             }
 
             molecule.atoms(center).forEach { atom ->
+                val atomVibrationParams = VibrationParams(atom.localId.toLong(), entityState.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(Species.Atomic(atom.isotope))
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
-                drawAtom(screenPos(atom), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlight.entity)
+                drawAtom(screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlight.entity)
             }
         }
     }
