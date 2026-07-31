@@ -10,6 +10,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
+import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
 
@@ -35,6 +36,14 @@ data class VibrationParams(
     val slotAngle = time * ANIM_TWO_PI * SLOT_HZ + idSeed   // + idSeed: у каждого атома свой стартовый угол
 }
 
+
+data class Highlight(
+    val entity: Boolean = false,       // значит пользователь навел мышкой на элемент и нужно его подсветить
+    val bond: MolecularBond? = null,   // пользователь навел мышкой на конкретную связь молекулы,
+) {
+    companion object { val NONE = Highlight() }
+}
+
 class EntityRenderer(
     private val textMeasurer: TextMeasurer,
 ) {
@@ -43,13 +52,13 @@ class EntityRenderer(
         drawScope: DrawScope,
         entityState: EntityState,
         time: Float,
-        highlighted: Boolean = false,
+        highlight: Highlight = Highlight.NONE,
     ) {
         val vibrationParams = VibrationParams(entityState, time) // параметры вибрации
         val species = entityState.species
         when (species) {
-            is Species.Molecular -> drawMolecule(drawScope, entityState, highlighted, vibrationParams)
-            is Species.Atomic -> drawElemental(drawScope, entityState, highlighted, vibrationParams)
+            is Species.Molecular -> drawMolecule(drawScope, entityState, highlight, vibrationParams)
+            is Species.Atomic -> drawElemental(drawScope, entityState, highlight.entity, vibrationParams)
         }
     }
 
@@ -79,7 +88,7 @@ class EntityRenderer(
     fun drawMolecule(
         drawScope: DrawScope,
         entityState: EntityState,
-        highlighted: Boolean,
+        highlight: Highlight,
         vibrationParams: VibrationParams,
     ) {
         val molecule = entityState.species as Species.Molecular
@@ -91,14 +100,16 @@ class EntityRenderer(
         with(drawScope) {
 
             molecule.bonds(center).forEach { bond ->
-                drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order)
+                // Связь под курсором показываем на кратность выше — пунктирной линией (клик усилит её).
+                val potentialOrder = if (bond == highlight.bond) bond.order + 1 else bond.order
+                drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order, potentialOrder)
             }
 
             molecule.atoms(center).forEach { atom ->
                 val fill = ElementColors.fill(Species.Atomic(atom.isotope))
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
-                drawAtom(screenPos(atom), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlighted)
+                drawAtom(screenPos(atom), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlight.entity)
             }
         }
     }
@@ -106,17 +117,29 @@ class EntityRenderer(
 
 
     // Связь: order параллельных линий (двойная/тройная — со сдвигом перпендикулярно связи).
-    private fun DrawScope.drawBond(a: Offset, b: Offset, order: Int) {
+    // potentialOrder > order — связь под курсором: недостающие линии рисуем ЗЕЛЁНЫМИ и толще, показывая,
+    // что получится после клика. Раскладка считается по potentialOrder, поэтому существующие линии сразу
+    // встают на свои будущие места и видна итоговая связь целиком.
+    private fun DrawScope.drawBond(a: Offset, b: Offset, order: Int, potentialOrder: Int = order) {
         val dir = b - a
         val len = dir.getDistance()
         val perp = if (len > 1e-3f) Offset(-dir.y / len, dir.x / len) else Offset(0f, 1f)
-        val firstShift = -(order - 1) / 2f
+        val total = maxOf(order, potentialOrder)
+        val firstShift = -(total - 1) / 2f
         val lineWidth =  2.5f // ширина линии
         val BOND_LINE_SPACING = 8f       // сдвиг параллельных линий для двойных/тройных связей
         val BOND_COLOR = Color(0xFF212121)     // МИНИМАЛИЗМ: почти чёрная связь (Sokobond, на белом)
-        for (i in 0 until order) {
+        val NEW_BOND_COLOR = Color(0xFF4CAF50) // будущая связь под курсором — зелёная: «кликни, и она появится»
+        val NEW_BOND_LINE_WIDTH = 5f           // вдвое толще обычной, чтобы читалась как приглашение к действию
+        for (i in 0 until total) {
             val shift = perp * ((firstShift + i) * BOND_LINE_SPACING)
-            drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = lineWidth)
+            val isNew = i >= order
+            drawLine(
+                color = if (isNew) NEW_BOND_COLOR else BOND_COLOR,
+                start = a + shift,
+                end = b + shift,
+                strokeWidth = if (isNew) NEW_BOND_LINE_WIDTH else lineWidth,
+            )
         }
     }
 

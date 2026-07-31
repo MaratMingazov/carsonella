@@ -45,10 +45,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.EntityState
+import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
+import maratmingazovr.ai.carsonella.world.renderers.Highlight
 import kotlin.math.round
 
 
@@ -182,27 +184,24 @@ private fun SceneCanvas(
     entitiesState: List<EntityState>,
     renderer: EntityRenderer,
     time: Float,
-    hoverPos: Offset?,
+    hoverPos: Offset?, // где находится курсор
     onHover: (Offset?) -> Unit,
-    selectedId: Long?,
+    selectedId: Long?, // какой элемент сейчас выбран?
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    // Что под курсором — ВЫЧИСЛЯЕМ здесь, в композиции, а не храним в состоянии: это чистая функция
-    // от позиции курсора и положения частиц, оба и так обновляются сами. Раньше хит-тест жил внутри
-    // блока Canvas, то есть в фазе ОТРИСОВКИ, и писал результат в состояние наверх — данные текли
-    // назад (draw → composition). Из-за этого подсветка отставала на кадр (в том же проходе её
-    // рисовали по значению, посчитанному в прошлом), хит-тест гонялся 60 раз в секунду независимо от
-    // того, двигалась ли мышь, а draw-лямбда переставала быть чистой, хотя Compose вправе пропустить
-    // или повторить проход отрисовки.
-    val hoveredId = hoverPos?.let { hitTest(entitiesState, it) }
+
+    val hoveredEntityId = hoverPos?.let { hitTest(entitiesState, it) } // Находится ли под курсором какой то элемент?
+    val selectedElement = selectedId?.let { id -> entitiesState.firstOrNull { it.id == id } } // Какой элемент сейчас выбран.
+    val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedElement, it) } // на какую связь молекулы навел курсор
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
     // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
     val entitiesLatest = rememberUpdatedState(entitiesState)
     val onHoverLatest = rememberUpdatedState(onHover)
     val onSelectLatest = rememberUpdatedState(onSelect)
+    val selectedLatest = rememberUpdatedState(selectedElement)
 
     // Тусклые звёзды фона: позиции нормированы (0..1), генерируем один раз сидированным RNG.
     val stars = remember {
@@ -246,8 +245,15 @@ private fun SceneCanvas(
 
                         // отпустили
                         if (change.changedToUp()) {
+                            val bond = strengthenableBondAt(selectedLatest.value, change.position)
                             if (holding) {
                                 world.dropHeldEntity()            // положили — снова взаимодействует
+                            } else if (bond != null) {
+                                // Клик по связи ВЫБРАННОЙ молекулы = усилить именно её (механика «лего»).
+                                world.requestMoleculeAction(
+                                    selectedLatest.value!!.id,
+                                    ReactionSelection.StrengthenBond(bond),
+                                )
                             } else {
                                 onSelectLatest.value(hitTest(entitiesLatest.value, change.position)) // клик без движения = выбор
                             }
@@ -291,11 +297,19 @@ private fun SceneCanvas(
 //        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
-        // z-порядок = порядок отрисовки; тащимую частицу (heldEntityId) рисуем последней → поверх остальных
         entitiesState
-            .sortedBy { if (it.id == world.heldEntityId) 1 else 0 }   // стабильно: остальные — как в списке
-            .forEach { renderer.render(this, it, time, highlighted = it.id == hoveredId || it.id == selectedId) }
-        // наведение/выбор теперь показывает штриховая оконтовка атома (см. EntityRenderer.drawFlatAtom)
+            .sortedBy { if (it.id == world.heldEntityId) 1 else 0 }   // выделенную частицу рисуем поверх остальных
+            .forEach {
+                val isHoveredOrSelectedEntity = it.id == hoveredEntityId || it.id == selectedId
+                val hoveredBond = if (it.id == selectedId) hoveredBond else null
+                renderer.render(
+                    this, it, time,
+                    Highlight(
+                        entity = isHoveredOrSelectedEntity,
+                        bond = hoveredBond,
+                    ),
+                )
+            }
     }
 }
 
@@ -410,6 +424,42 @@ private fun hitTest(
 }
 
 
+/**
+ * Тут мы определяем навели ли мы курсов на молекулярную связь молекулы
+ * Чтобы потом смогли усилить именно эту связь
+ */
+private fun strengthenableBondAt(
+    molecule: EntityState?,
+    at: Offset,
+    slop: Float = 10f,
+): MolecularBond? {
+    val species = molecule?.species as? Species.Molecular ?: return null
+    val point = at.toPosition()
+    var best: MolecularBond? = null
+    var bestDistance = Float.MAX_VALUE
+    for (bond in species.strengthenableBonds(molecule.position)) {
+        if (point.distanceTo(bond.atom1.position) <= bond.atom1.radius) continue   // это клик по атому
+        if (point.distanceTo(bond.atom2.position) <= bond.atom2.radius) continue
+        val distance = distanceToSegment(point, bond.atom1.position, bond.atom2.position)
+        if (distance <= slop && distance < bestDistance) {
+            bestDistance = distance
+            best = bond
+        }
+    }
+    return best
+}
+
+// Расстояние от точки до ОТРЕЗКА (а не до прямой): проекция, прижатая к концам.
+private fun distanceToSegment(point: Position, a: Position, b: Position): Float {
+    val abx = b.x - a.x
+    val aby = b.y - a.y
+    val lengthSquare = abx * abx + aby * aby
+    if (lengthSquare < 1e-6f) return point.distanceTo(a)   // вырожденный отрезок — это точка
+    val t = (((point.x - a.x) * abx + (point.y - a.y) * aby) / lengthSquare).coerceIn(0f, 1f)
+    return point.distanceTo(Position(a.x + t * abx, a.y + t * aby))
+}
+
+
 // Кнопка в стиле беж-панели: лёгкий OutlinedButton — тёплая тонкая рамка + тёмный текст, скругление
 // (перекликается с чёрной обводкой атомов), вместо яркой Material-заливки.
 @Composable
@@ -462,17 +512,6 @@ private fun SelectedEntityPanel(
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
         val species = selectedElement.species
         if (species is Species.Molecular) {
-            // Пока кнопка усиливает ПЕРВУЮ подходящую связь (как и раньше). Дальше выбор переедет на клик
-            // по самой связи на канве — у MolecularBond есть координаты обоих концов.
-            val strengthenable = species.strengthenableBonds(selectedElement.position)
-            if (strengthenable.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                PanelButton(
-                    text = "Strengthen bond",
-                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond(strengthenable.first())) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
             if (species.canCloseRing) {
                 Spacer(Modifier.height(8.dp))
                 PanelButton(
