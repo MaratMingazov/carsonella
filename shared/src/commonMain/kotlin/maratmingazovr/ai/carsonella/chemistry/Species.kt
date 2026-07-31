@@ -124,6 +124,7 @@ sealed interface Species {
             )
             if (known != null) lines += known.nameRu
             if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
+            if (known != null && known.description.isNotEmpty()) lines += known.description
             lines += "Energy ${round(s.energy * 100) / 100}"
             graph.weakestBondAndEnergy?.let { (_, energy) ->
                 lines += "Weakest bond ${round(energy * 100) / 100} eV"

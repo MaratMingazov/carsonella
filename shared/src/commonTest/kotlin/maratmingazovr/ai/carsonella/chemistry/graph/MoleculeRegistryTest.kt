@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Реестр известных молекул: lookup по каноническому ключу. Опознаёт курируемое подмножество,
@@ -39,6 +40,26 @@ class MoleculeRegistryTest {
         val ooSingle = mol(listOf(o(0), o(1)), listOf(Bond(0, 1, 1)))
         assertEquals("Dioxygen", MoleculeRegistry.lookup(o2.canonical)?.nameEn)
         assertNull(MoleculeRegistry.lookup(ooSingle.canonical))
+    }
+
+    @Test
+    fun recognizesHydrogenPolyoxides() {
+        // Цепочки H–O–…–O–H, которые собираются ростом молекулы: перекись (2 O), триоксидан (3), тетраоксидан (4).
+        val peroxide = mol(listOf(o(0), o(1), h(2), h(3)), listOf(Bond(0, 1, 1), Bond(0, 2, 1), Bond(1, 3, 1)))
+        val trioxidane = mol(listOf(o(0), o(1), o(2), h(3), h(4)), listOf(Bond(0, 1, 1), Bond(1, 2, 1), Bond(0, 3, 1), Bond(2, 4, 1)))
+        val tetraoxidane = mol(
+            listOf(o(0), o(1), o(2), o(3), h(4), h(5)),
+            listOf(Bond(0, 1, 1), Bond(1, 2, 1), Bond(2, 3, 1), Bond(0, 4, 1), Bond(3, 5, 1)),
+        )
+
+        assertEquals("Перекись водорода", MoleculeRegistry.lookup(peroxide.canonical)?.nameRu)
+        assertEquals("Триоксидан", MoleculeRegistry.lookup(trioxidane.canonical)?.nameRu)
+        assertEquals("Тетраоксидан", MoleculeRegistry.lookup(tetraoxidane.canonical)?.nameRu)
+
+        // Описание — то, ради чего реестр вообще нужен игроку: оно должно доезжать до карточки.
+        listOf(peroxide, trioxidane, tetraoxidane).forEach {
+            assertTrue(MoleculeRegistry.lookup(it.canonical)!!.description.isNotEmpty())
+        }
     }
 
     @Test
