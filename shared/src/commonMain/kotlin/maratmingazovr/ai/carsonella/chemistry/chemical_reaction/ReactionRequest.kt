@@ -1,30 +1,42 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.RingClosure
-import kotlin.reflect.KClass
+import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 
 /**
  * Как [ChemicalReactionResolver.resolve] выбирает реакцию для запроса:
  *  - [WeightBased] (дефолт) — ЭМЁРДЖЕНТНО: среди всех применимых правил берётся лучшее по weight.
- *  - остальные — ФОРС игрока: рассматривается ТОЛЬКО правило [ruleClass] (клик в LeftPanel, механика «лего»).
- *    Форс имеет приоритет над weight-отбором.
+ *  - [Forced] — ФОРС игрока (клик, механика «лего»): выполняется ИМЕННО его выбор, минуя
+ *    weight-конкуренцию. Такие выборы обслуживают отдельные правила
+ *    ([maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule]).
  *
- * Привязка к КЛАССУ правила ([ruleClass]), а не к строковому id — типобезопасно: опечатка невозможна,
- * переименование класса подхватывает IDE-рефактор. `rule.id` остаётся строкой только для логов.
+ * Форс несёт ПАРАМЕТР — что именно игрок выбрал. Раньше здесь был enum со ссылкой на класс правила, а
+ * КАКУЮ связь усилить решало само правило (первую подходящую по номеру узла). Теперь связь выбирает
+ * игрок мышью, поэтому выбор едет в запросе; правило само сужает тип выбора до своего.
  */
-enum class ReactionSelection(val ruleClass: KClass<out ReactionRule>?) {
-    WeightBased(null),
-    StrengthenBond(BondStrengthening::class),
-    CloseRing(RingClosure::class),
+sealed interface ReactionSelection {
+
+    data object WeightBased : ReactionSelection
+
+    sealed interface Forced : ReactionSelection
+
+    /**
+     * Усилить кратность КОНКРЕТНОЙ связи (клик по связи выбранной молекулы). [bond] адресует связь
+     * номерами своих узлов — координаты внутри лишь снимок на момент клика, реакция их не читает.
+     */
+    data class StrengthenBond(val bond: MolecularBond) : Forced
+
+    /**
+     * Замкнуть кольцо. Пару атомов пока выбирает само правило (лучший кандидат по weight) —
+     * параметризуем так же, как усиление, когда появится клик по атомам.
+     */
+    data object CloseRing : Forced
 }
 
 /**
  * Запрос реакции от инициатора (`reagents.first()`). [selection] задаёт, как resolve её выберет.
  * Обычные запросы (сущность зовёт себя/соседей в step) идут с [ReactionSelection.WeightBased];
- * форс игрока создаёт `World.requestMoleculeAction` с конкретным [selection].
+ * форс игрока создаёт `World.requestMoleculeAction` с конкретным [ReactionSelection.Forced].
  */
 data class ReactionRequest(
     val reagents: List<Entity>,

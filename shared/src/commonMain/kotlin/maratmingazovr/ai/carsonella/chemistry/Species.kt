@@ -92,9 +92,6 @@ sealed interface Species {
         // вязи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
         fun bonds(center: Position): List<MolecularBond> = place(graph.bonds, center)
 
-        // Есть ли у молекулы ковалентная связь, которую можно усилить (order + 1)
-        val canStrengthenBond: Boolean get() = graph.strengthenableBonds.isNotEmpty()
-
         // Связи, которые можно усилить (кратность +1) — поставленные в мир.
         fun strengthenableBonds(center: Position): List<MolecularBond> = place(graph.strengthenableBonds, center)
 

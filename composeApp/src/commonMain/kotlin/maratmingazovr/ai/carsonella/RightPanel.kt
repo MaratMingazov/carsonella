@@ -462,11 +462,14 @@ private fun SelectedEntityPanel(
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
         val species = selectedElement.species
         if (species is Species.Molecular) {
-            if (species.canStrengthenBond) {
+            // Пока кнопка усиливает ПЕРВУЮ подходящую связь (как и раньше). Дальше выбор переедет на клик
+            // по самой связи на канве — у MolecularBond есть координаты обоих концов.
+            val strengthenable = species.strengthenableBonds(selectedElement.position)
+            if (strengthenable.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 PanelButton(
                     text = "Strengthen bond",
-                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond) },
+                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.StrengthenBond(strengthenable.first())) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

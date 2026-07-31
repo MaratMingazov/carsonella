@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaMinusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.PhotoIonization
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
@@ -81,12 +82,21 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         // --- образование молекул (граф) ---
         CovalentBondFormation(entityGenerator), // ковалентная связь: два нейтральных лёгких атома → двухатомная молекула-граф
         MoleculeGrowth(entityGenerator), // рост молекулы (3b): молекула со свободным слотом + атом/молекула → бо́льшая молекула (O–H + H → H₂O)
-        BondStrengthening(entityGenerator), // усиление связи (3c): ненасыщенная связь молекулы 1→2→3 (O–O → O=O, N₂ → N≡N)
-        RingClosure(entityGenerator), // замыкание кольца: два ненасыщенных атома одной молекулы → цикл (кольцо ≥ 5, weight по ringStrain: 5–6 выгодны)
         StarDissociation(entityGenerator), // распад в звезде: молекула в Star-среде рвёт слабейшую связь за тик, рекурсивно до атомов
         MolecularPhotoIonization(entityGenerator), // отрыв электрона от молекулы под действием света (E ≥ IP): молекула → катион + e⁻
         MolecularSpontaneousEmission(entityGenerator), // спонтанный сброс внутренней энергии: предиссоциация (E ≥ порог связи) ИЛИ излучение фотона (иначе)
 
+    )
+
+    /**
+     * Правила, которые НИКОГДА не срабатывают сами — только по клику игрока (механика «лего», см.
+     * [ForcedReactionRule]). Отдельный список, потому что у них другой контракт: на вход идёт ВЫБОР
+     * игрока, а weight не нужен вовсе — конкуренции нет. Так эмёрджентный отбор физически не может
+     * задеть правило, которое обязано ждать клика.
+     */
+    private val forcedRules = listOf<ForcedReactionRule>(
+        BondStrengthening(entityGenerator), // усиление связи: игрок кликает по связи (O–O → O=O, N–N → N≡N)
+        RingClosure(entityGenerator), // замыкание кольца: два ненасыщенных атома одной молекулы → цикл
     )
 
     /**
@@ -95,13 +105,13 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
      * совпавших выбираем ОДИН исход.
      *
      * ДВА режима (см. [ReactionSelection]):
-     *  - ФОРС игрока (`selection != WeightBased`) имеет ПРИОРИТЕТ: рассматривается только правило
-     *    [ReactionSelection.ruleClass], конкуренции по weight нет — если оно применимо, оно и выполняется.
-     *    Так явный клик игрока (усиление связи / замыкание кольца, механика «лего») не перебивается
-     *    эмёрджентной химией. Первый применимый форс-запрос побеждает.
+     *  - ФОРС игрока ([ReactionSelection.Forced]) имеет ПРИОРИТЕТ: ищем среди [forcedRules] то, которое
+     *    обслуживает этот выбор; конкуренции по weight нет — применимо, значит выполняется. Так явный клик
+     *    (усиление связи / замыкание кольца) не перебивается эмёрджентной химией. Первый применимый
+     *    форс-запрос побеждает.
      *  - ЭМЁРДЖЕНТНО (`WeightBased`, дефолт): среди всех применимых правил по всем weight-запросам берём
-     *    исход с максимальным `weight` (тай-брейк случайно). Так рост и усиление одной молекулы,
-     *    приходящие разными запросами, конкурируют в одном месте (docs/molecule-graph.md §6).
+     *    исход с максимальным `weight` (тай-брейк случайно). Так рост молекулы конкурирует с распадами
+     *    в одном месте (docs/molecule-graph.md §6).
      *
      * produce() зовём ОДИН раз и только для ПОБЕДИТЕЛЯ, в самом конце. Так можно, потому что весь
      * контекст реакции лежит в [MatchedData] — иммутабельном снимке, который вернул matches(). Раньше
@@ -110,12 +120,14 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
      * вообще не вычисляются.
      */
     fun resolve(requests: List<ReactionRequest>): ReactionOutcome? {
-        // 1. Форс игрока: только указанное правило, приоритет над weight. Первый применимый выигрывает.
-        for (req in requests) {
-            val ruleClass = req.selection.ruleClass ?: continue
-            val rule = rules.firstOrNull { it::class == ruleClass } ?: continue
-            val match = rule.matches(req.reagents) ?: continue
-            return rule.produce(match)
+        // 1. Форс игрока: его выбор, приоритет над weight. Первый применимый выигрывает.
+        // Какое правило обслуживает выбор, знает само правило (сужает тип selection до своего).
+        for (request in requests) {
+            val selection = request.selection as? ReactionSelection.Forced ?: continue
+            for (rule in forcedRules) {
+                val match = rule.matches(request.reagents, selection) ?: continue
+                return rule.produce(match)
+            }
         }
         // 2. Эмёрджентно: лучший по weight среди всех правил по всем WeightBased-запросам.
         var best: Candidate? = null

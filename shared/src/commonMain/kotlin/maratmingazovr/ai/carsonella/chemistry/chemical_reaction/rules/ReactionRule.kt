@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 
 /**
  * Данные успешного матча — ИММУТАБЕЛЬНЫЙ снимок всего, что понадобится [ReactionRule.weight] и
@@ -58,6 +59,30 @@ interface ReactionRule {
 
         return Pair(newEntityDirection,newEntityVelocity.coerceAtMost(MAX_VELOCITY))
     }
+}
+
+/**
+ * Правило, которое запускает ТОЛЬКО игрок (механика «лего»): вместе с реагентами приходит его ВЫБОР —
+ * какую именно связь усилить, где замкнуть кольцо.
+ *
+ * ЗАЧЕМ отдельный интерфейс, а не флаг на [ReactionRule]: у форса другой контракт. На вход идёт лишний
+ * аргумент (выбор игрока), а [ReactionRule.weight] не нужен вовсе — форс ни с кем не конкурирует,
+ * resolve выполняет его без отбора. Из-за разных контрактов и списки в резолвере разные (`rules` /
+ * `forcedRules`): так эмёрджентный отбор не может случайно задеть правило, которое обязано ждать клика.
+ *
+ * Правило может реализовать ОБА интерфейса и попасть в оба списка — тогда оно и срабатывает само (выбрав
+ * лучший вариант по weight), и подчиняется выбору игрока (RingClosure сегодня так и живёт).
+ */
+interface ForcedReactionRule {
+    val id: String
+
+    /**
+     * Применимо ли правило к выбору игрока. [selection] сужается реализацией до своего типа
+     * (`selection as? ReactionSelection.StrengthenBond ?: return null`) — чужой выбор не наш.
+     */
+    fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData?
+
+    fun produce(match: MatchedData): ReactionOutcome
 }
 
 // Что делать миру после реакции

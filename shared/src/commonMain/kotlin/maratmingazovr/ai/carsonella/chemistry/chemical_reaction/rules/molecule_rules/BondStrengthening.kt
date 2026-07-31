@@ -7,49 +7,48 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
- * Усиление связи (§6, Шаг 3c): у молекулы связь между двумя НЕнасыщенными атомами усиливается
- * 1→2→3 (O–O → O=O, N–N → N=N → N≡N). Так эмёрджентно рождаются кратные связи, когда рост новым
- * партнёром недоступен.
+ * Усиление связи (§6, Шаг 3c): связь между двумя НЕнасыщенными атомами усиливается 1→2→3
+ * (O–O → O=O, N–N → N=N → N≡N). Так рождаются кратные связи.
  *
- * Внутримолекулярная реакция: работает по ОДНОМУ реагенту (как распады — гейт `reagents.size != 1`).
- * Молекула шлёт `requestReaction(listOf(this))` из `step()`, когда ей есть что усилить (см. Molecule.step).
- * Так усиление отделено от роста: рост — на запросах `listOf(this)+соседи` (partner-first).
+ * ТОЛЬКО ПО КЛИКУ игрока ([ForcedReactionRule]): какую связь усилить, выбирает он — кликом по самой
+ * связи выбранной молекулы, и его выбор приезжает в [ReactionSelection.StrengthenBond]. В эмёрджентном
+ * списке правил этого правила НЕТ, само оно не срабатывает.
  *
- * [weight] пока 0 — энергетический выбор «рост vs усиление» (сравнение выигрышей E из BondEnergy)
- * адаптируем позже; сейчас усиление просто срабатывает, когда молекула запросила его в одиночку.
+ * Почему не эмёрджентно: спонтанное усиление — это ассоциация без активационного барьера, а барьеров
+ * модель пока не знает (см. docs/molecule-graph.md). Цена решения: O₂ и N₂ сами собой не собираются —
+ * `CovalentBondFormation` даёт только одинарную O–O, двойную делает игрок. Вернуть эмёрджентность =
+ * реализовать ещё и [maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule]
+ * (выбор связи там должен идти по максимальному выигрышу энергии, а не по первой подходящей).
  */
 class BondStrengthening(
     private val entityGenerator: IEntityGenerator,
-) : MoleculeReactionRule() {
+) : ForcedReactionRule {
     override val id = "BondStrengthening"
 
     private data class Match(val molecule: Entity, val bond: MolecularBond) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
-        if (reagents.size != 1) return null   // как распады: только «сам с собой», без соседей
+    /**
+     * Связь берём прямо из выбора игрока: пока сущность жива, её граф неизменен (любая перестройка
+     * рождает новую сущность), поэтому `localId` концов и кратность в снимке не могут устареть.
+     * Умерла между кликом и resolve → отсекает `alive`.
+     */
+    override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
+        val choice = selection as? ReactionSelection.StrengthenBond ?: return null   // чужой выбор — не наш
+        if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
         val first = reagents.first()
         val state = first.state().value
         if (!state.alive) return null
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
-        val molecule = state.species as Species.Molecular
-        val candidate = molecule.strengthenableBonds(state.position).firstOrNull() ?: return null
-        return Match(first, candidate)
-    }
-
-    // Прирост энергии связи E(k+1) − E(k) — экзотермично, «+» (контракт weight = энергия реакции со
-    // знаком). Сравнивается с ростом в одном resolve(): у кислорода усиление O=O (3.65) бьёт рост O–O
-    // (1.51) → O₂, у углерода рост (C–H 4.28) бьёт усиление C=C (2.77) → цепи. Данные из Match.
-    override fun weight(match: MatchedData): Float {
-        val (_, b) = match as Match
-        val hi = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order + 1) ?: return 0f
-        val lo = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order) ?: return 0f
-        return hi - lo
+        if (state.species !is Species.Molecular) return null
+        return Match(first, choice.bond)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

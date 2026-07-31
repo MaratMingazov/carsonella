@@ -53,11 +53,9 @@ class Molecule(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        // Спонтанный сброс внутренней энергии (MolecularSpontaneousEmission) — АВТО: зовём себя при
-        // energy > 0 (предиссоциация / излучение). Иначе «горячий» осколок без свободных слотов (напр.
-        // ·OH) застрял бы навсегда. Усиление связи (3c) и замыкание кольца — уже НЕ авто: они запускаются
-        // только по клику игрока (World.requestMoleculeAction → forced ReactionRequest, см. ReactionSelection):
-        // механика «лего». LeftPanel показывает кнопки, читая strengthenableBonds/ringClosureCandidates графа.
+        // Спонтанный сброс внутренней энергии (MolecularSpontaneousEmission) — АВТО.
+        // Усиление связи и замыкание кольца этим зовом НЕ запускаются: они живут в отдельном списке
+        // forcedRules резолвера и ждут клика игрока (World.requestMoleculeAction → см. ForcedReactionRule).
         if (state.value.energy > 0f) {
             requestReaction(listOf(this))
         }

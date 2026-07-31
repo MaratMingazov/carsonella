@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -64,7 +65,7 @@ class RingClosureTest {
         val rule = RingClosure(gen)
         val chain = carbonChain(5)   // концы C0–C4 на пути 4 → кольцо 5
 
-        val match = assertNotNull(rule.matchesMolecule(listOf(chain)))
+        val match = assertNotNull(rule.matches(listOf(chain), ReactionSelection.CloseRing))
         val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(chain), outcome.consumed)   // старая молекула гибнет, спавнится замкнутая
 
@@ -80,14 +81,26 @@ class RingClosureTest {
     }
 
     @Test
-    fun weightFavorsLessStrainedRing() {
-        // При одинаковой связи C–C выгоднее менее напряжённое кольцо: 6 (strain 0.0) сильнее 5 (strain 0.29).
+    fun choosesLessStrainedRingAmongCandidates() {
+        // В цепочке из 6 углеродов есть и 5-кольца (C0–C4, C1–C5), и 6-кольцо (C0–C5). Правило берёт менее
+        // напряжённое: при одной и той же связи C–C кольцо 6 (strain 0.0) выгоднее 5 (strain 0.29).
         val gen = CapturingGenerator()
-        val five = RingClosure(gen).let { r -> r.weight(assertNotNull(r.matchesMolecule(listOf(carbonChain(5))))) }
-        val six = RingClosure(gen).let { r -> r.weight(assertNotNull(r.matchesMolecule(listOf(carbonChain(6))))) }
-        assertTrue(six > five, "6-кольцо (strain 0) должно быть выгоднее 5-кольца (strain 0.29): six=$six five=$five")
-        assertEquals(3.59f - 0.0f, six, 0.001f)
-        assertEquals(3.59f - 0.29f, five, 0.001f)
+        val rule = RingClosure(gen)
+        val outcome = rule.produce(assertNotNull(rule.matches(listOf(carbonChain(6)), ReactionSelection.CloseRing)))
+
+        assertTrue(outcome.description.contains("кольцо 6"), "ожидалось 6-кольцо, выбрано: ${outcome.description}")
+        outcome.spawn.forEach { it() }
+        val photon = gen.spawned.single { (it.species as? Species.Atomic)?.element == Element.PHOTON }
+        assertEquals(3.59f - 0.0f, photon.energy, 0.001f)   // нетто = C–C минус напряжение 6-кольца (0)
+    }
+
+    @Test
+    fun foreignSelectionIsNotOurs() {
+        // Правило обслуживает ТОЛЬКО свой выбор: клик «усилить связь» — не его дело.
+        val chain = carbonChain(5)
+        val state = chain.state().value
+        val someBond = (state.species as Species.Molecular).bonds(state.position).first()
+        assertNull(RingClosure(CapturingGenerator()).matches(listOf(chain), ReactionSelection.StrengthenBond(someBond)))
     }
 
     @Test
@@ -98,7 +111,7 @@ class RingClosureTest {
             bonds = listOf(Bond(0, 1, 1), Bond(0, 2, 1)),
         )
         val mol = Molecule(nextId++, Species.Molecular(water), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 10).also { it.setEnvironment(env) }
-        assertNull(RingClosure(CapturingGenerator()).matchesMolecule(listOf(mol)))
+        assertNull(RingClosure(CapturingGenerator()).matches(listOf(mol), ReactionSelection.CloseRing))
     }
 
     @Test
@@ -106,6 +119,6 @@ class RingClosureTest {
         // Как усиление/распады: правило работает только на «сам с собой». Присутствие соседа → отказ.
         val chain = carbonChain(5)
         val neighbor = Atom(nextId++, Element.HYDROGEN, Position(1f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1).also { it.setEnvironment(env) }
-        assertNull(RingClosure(CapturingGenerator()).matchesMolecule(listOf(chain, neighbor)))
+        assertNull(RingClosure(CapturingGenerator()).matches(listOf(chain, neighbor), ReactionSelection.CloseRing))
     }
 }

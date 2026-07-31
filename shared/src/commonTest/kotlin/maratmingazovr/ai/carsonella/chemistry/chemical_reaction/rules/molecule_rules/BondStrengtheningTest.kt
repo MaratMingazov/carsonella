@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
@@ -22,8 +23,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 /**
- * Шаг 3c: усиление связи. Изолированная O–O усиливается в O=O (эмёрджентный O₂), N–N → N=N;
- * работает только по одному реагенту (само-реакция), насыщенные молекулы не усиливаются.
+ * Шаг 3c: усиление связи — ТОЛЬКО по клику игрока. O–O усиливается в O=O, N–N → N=N; связь приезжает
+ * выбором игрока ([ReactionSelection.StrengthenBond]), само правило её не выбирает. Чужой выбор и
+ * не-self-запрос отсекаются.
  */
 class BondStrengtheningTest {
 
@@ -52,13 +54,20 @@ class BondStrengtheningTest {
         Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
             .also { it.setEnvironment(env) }
 
+    // Выбор игрока: связь берём из кандидатов молекулы — ровно как это делает UI.
+    private fun clickOnFirstStrengthenableBond(mol: Molecule): ReactionSelection.StrengthenBond {
+        val state = mol.state().value
+        val bonds = (state.species as Species.Molecular).strengthenableBonds(state.position)
+        return ReactionSelection.StrengthenBond(bonds.first())
+    }
+
     @Test
     fun isolatedOxygenPairStrengthensToDouble() {
         val gen = CapturingGenerator()
         val rule = BondStrengthening(gen)
         val oo = molecule(diatomic(Element.OXYGEN_16, order = 1), electrons = 16)   // O–O, нейтральный
 
-        val match = assertNotNull(rule.matchesMolecule(listOf(oo)))
+        val match = assertNotNull(rule.matches(listOf(oo), clickOnFirstStrengthenableBond(oo)))
         val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(oo), outcome.consumed)
 
@@ -83,14 +92,16 @@ class BondStrengtheningTest {
         val rule = BondStrengthening(CapturingGenerator())
         val oo = molecule(diatomic(Element.OXYGEN_16, 1), electrons = 16)
         val extra = molecule(diatomic(Element.OXYGEN_16, 1), electrons = 16)
-        assertNull(rule.matchesMolecule(listOf(oo, extra)))   // size != 1 — усиление только «сам с собой»
+        // size != 1 — форс приходит self-запросом (World.requestMoleculeAction), соседей тут быть не может
+        assertNull(rule.matches(listOf(oo, extra), clickOnFirstStrengthenableBond(oo)))
     }
 
     @Test
-    fun saturatedMoleculeDoesNotStrengthen() {
+    fun foreignSelectionIsNotOurs() {
+        // Правило обслуживает ТОЛЬКО свой выбор: клик «замкнуть кольцо» — не его дело.
         val rule = BondStrengthening(CapturingGenerator())
-        val o2 = molecule(diatomic(Element.OXYGEN_16, order = 2), electrons = 16)   // O=O — оба O насыщены
-        assertNull(rule.matchesMolecule(listOf(o2)))
+        val oo = molecule(diatomic(Element.OXYGEN_16, 1), electrons = 16)
+        assertNull(rule.matches(listOf(oo), ReactionSelection.CloseRing))
     }
 
     @Test
@@ -99,7 +110,7 @@ class BondStrengtheningTest {
         val rule = BondStrengthening(gen)
         val nn = molecule(diatomic(Element.NITROGEN_14, order = 1), electrons = 14)   // N–N
 
-        val match = assertNotNull(rule.matchesMolecule(listOf(nn)))
+        val match = assertNotNull(rule.matches(listOf(nn), clickOnFirstStrengthenableBond(nn)))
         rule.produce(match).spawn.forEach { it() }
         val graph = (gen.spawned.single { it.species is Species.Molecular }.species as Species.Molecular).graph
         assertEquals(2, graph.bonds.single().order)   // N–N → N=N (до N≡N — ещё один тик)
