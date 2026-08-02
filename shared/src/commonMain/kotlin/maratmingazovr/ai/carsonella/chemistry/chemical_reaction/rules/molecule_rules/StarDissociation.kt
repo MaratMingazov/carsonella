@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -26,21 +27,20 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class StarDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "StarDissociation"
 
-    private data class Match(val molecule: Entity) : MatchedData
+    private data class Match(val molecule: Molecule) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size != 1) return null   // «сам с собой», как распады/усиление/термоионизация атома
-        val first = reagents.first()
-        if (!first.state().value.alive) return null
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        val graph = (first.state().value.species as Species.Molecular).graph
+        if (!subject.state().value.alive) return null
+        if (subject.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        val graph = subject.graph
         if (graph.weakestBondAndEnergy == null) return null   // рвать нечего (нет связей / тип не в каталоге)
-        return Match(first)
+        return Match(subject)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol) = match as Match
-        val graph = (mol.state().value.species as Species.Molecular).graph
+        val graph = mol.graph
         val bond = graph.weakestBondAndEnergy!!.first             // matches гарантировал наличие связи
         val fragments = graph.split(bond.atom1, bond.atom2)
 

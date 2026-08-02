@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -36,15 +37,15 @@ class MoleculeGrowth(
 ) : MoleculeReactionRule() {
     override val id = "MoleculeGrowth"
 
-    private data class Match(val molecule: Entity, val partner: Entity) : MatchedData
+    private data class Match(val molecule: Molecule, val partner: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
         val first = reagents.first()
         if (!first.state().value.alive) return null
         // субъект-молекула гарантирован базой; нужен свободный слот, чтобы было куда расти
-        val firstGraph = (first.state().value.species as Species.Molecular).graph
+        val firstGraph = subject.graph
         if (!firstGraph.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
@@ -62,7 +63,7 @@ class MoleculeGrowth(
 
         val secondRadius = second.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
-            Match(first, second)
+            Match(subject, second)
         } else {
             null
         }
@@ -97,7 +98,7 @@ class MoleculeGrowth(
     // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Данные из Match.
     override fun weight(match: MatchedData): Float {
         val (mol, partnerEntity) = match as Match
-        val molGraph = (mol.state().value.species as Species.Molecular).graph
+        val molGraph = mol.graph
         val partnerGraph = graphOf(partnerEntity)
         val molNode = molGraph.firstFreeValenceAtomNode!!
         val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
@@ -105,8 +106,8 @@ class MoleculeGrowth(
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, partnerEntity) = match as Match
-        val molGraph = (mol.state().value.species as Species.Molecular).graph
+        val (molecule, partnerEntity) = match as Match
+        val molGraph = molecule.graph
         val partnerGraph = graphOf(partnerEntity)
 
         // matchesMolecule гарантировал свободные слоты у обоих → firstFreeSlotNode не null.
@@ -115,14 +116,14 @@ class MoleculeGrowth(
         val merged = molGraph.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
 
 
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(mol, partnerEntity)
-        val p1 = mol.state().value.centerPosition
+        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(molecule, partnerEntity)
+        val p1 = molecule.state().value.centerPosition
         val p2 = partnerEntity.state().value.centerPosition
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
         // Сохранение электронов (§8): электроны новой молекулы = сумма электронов реагентов.
-        val electrons = mol.state().value.electrons + partnerEntity.state().value.electrons
-        val energy = mol.state().value.energy + partnerEntity.state().value.energy
-        val env = mol.getEnvironment()
+        val electrons = molecule.state().value.electrons + partnerEntity.state().value.electrons
+        val energy = molecule.state().value.energy + partnerEntity.state().value.energy
+        val env = molecule.getEnvironment()
 
         // Образование связи ЭКЗОТЕРМИЧНО: энергию новой связи высвобождаем фотоном (как в CovalentBondFormation).
         val molIso = molNode.isotope
@@ -134,7 +135,7 @@ class MoleculeGrowth(
         if (bondEnergy != null && bondEnergy > 0f) {
             val photonDirection = randomDirection(entityGenerator.random)
             val photonVelocity = MAX_VELOCITY
-            val offset = mol.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
+            val offset = molecule.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
             val photonPosition = midpoint.addVelocity(photonDirection * offset)
             spawn += {
                 // Фотон уносит энергию связи и УЛЕТАЕТ
@@ -144,7 +145,7 @@ class MoleculeGrowth(
         }
 
         return ReactionOutcome(
-            consumed = listOf(mol, partnerEntity),
+            consumed = listOf(molecule, partnerEntity),
             spawn = spawn,
             description = "$id: ${molGraph.formulaPretty} + ${partnerGraph.formulaPretty} -> ${merged.formulaPretty}" +
                 (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),

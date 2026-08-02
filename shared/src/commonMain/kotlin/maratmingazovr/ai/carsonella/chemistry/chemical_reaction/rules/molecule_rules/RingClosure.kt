@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -39,31 +40,30 @@ class RingClosure(
 ) : ForcedReactionRule {
     override val id = "RingClosure"
 
-    private data class Match(val molecule: Entity, val candidate: RingClosureCandidate) : MatchedData
+    private data class Match(val molecule: Molecule, val candidate: RingClosureCandidate) : MatchedData
 
     override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
         if (selection !is ReactionSelection.CloseRing) return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
-        val first = reagents.first()
-        val state = first.state().value
-        if (!state.alive) return null
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
-        val graph = (state.species as? Species.Molecular ?: return null).graph
+        val subject = reagents.first() as? Molecule ?: return null
+        if (!subject.state().value.alive) return null
+        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
+        val graph = subject.graph
         // Кандидат с максимальным выигрышем (энергия связи − напряжение): 5–6 бьют 7+.
         // null-выигрыш (энергия связи неизвестна) отсеиваем.
         val best = graph.ringClosureCandidates
             .mapNotNull { cand -> closureWeight(graph, cand)?.let { cand to it } }
             .maxByOrNull { it.second }
             ?: return null
-        return Match(first, best.first)
+        return Match(subject, best.first)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, cand) = match as Match
-        val state = mol.state().value
-        val graph = (state.species as Species.Molecular).graph
+        val (molecule, cand) = match as Match
+        val state = molecule.state().value
+        val graph = molecule.graph
         val closed = graph.closeRing(cand.atom1, cand.atom2)
-        val env = mol.getEnvironment()
+        val env = molecule.getEnvironment()
 
         // Нетто-энергия (энергия связи − напряжение кольца) уносится фотоном; напряжение остаётся запасённым
         // в геометрии кольца, которую мы явно не моделируем (потому фотон несёт нетто, а не полную энергию связи).
@@ -82,7 +82,7 @@ class RingClosure(
         }
 
         return ReactionOutcome(
-            consumed = listOf(mol),
+            consumed = listOf(molecule),
             spawn = spawn,
             description = "$id: ${graph.formulaPretty} замыкание ${cand.atom1}-${cand.atom2} → кольцо ${cand.ringSize}" +
                 (if (released > 0f) " + γ[${released}eV]" else ""),

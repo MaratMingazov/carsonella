@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -29,14 +30,14 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class PhotoDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "PhotoDissociation"
 
-    private data class Match(val molecule: Entity, val photon: Entity) : MatchedData
+    private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
         val first = reagents.first()
         if (!first.state().value.alive) return null
-        val graph = (first.state().value.species as Species.Molecular).graph
+        val graph = subject.graph
         val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
         val threshold = weakestBondAndEnergy.second
 
@@ -58,7 +59,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val available = first.state().value.energy + nearestPhoton.state().value.energy
         if (available < threshold) return null   // фотона не хватает даже на слабейшую связь → пролетает мимо
 
-        return Match(first, nearestPhoton)
+        return Match(subject, nearestPhoton)
     }
 
     // Распад ЭНДОТЕРМИЧЕН — вес отрицательный (контракт weight = энергия реакции со знаком): разрыв связи
@@ -66,14 +67,14 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
     // только когда строить нечего (напр. насыщенная O=O + фотон — единственный совпавший вариант).
     override fun weight(match: MatchedData): Float {
         val (mol, _) = match as Match
-        val graph = (mol.state().value.species as Species.Molecular).graph
+        val graph = mol.graph
         val threshold = graph.weakestBondAndEnergy?.second ?: return 0f
         return -threshold
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol, ph) = match as Match
-        val graph = (mol.state().value.species as Species.Molecular).graph
+        val graph = mol.graph
         val weakestBondAndEnergy = graph.weakestBondAndEnergy!! // matches гарантирует что не null
         val bond = weakestBondAndEnergy.first
         val threshold = weakestBondAndEnergy.second

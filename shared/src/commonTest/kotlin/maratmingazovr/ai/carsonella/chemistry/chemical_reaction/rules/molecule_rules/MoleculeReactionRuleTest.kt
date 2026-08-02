@@ -44,7 +44,7 @@ class MoleculeReactionRuleTest {
         override val id = "Dummy"
         var delegated = false
         object Stub : MatchedData
-        override fun matchesMolecule(reagents: List<Entity>): MatchedData? { delegated = true; return Stub }
+        override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? { delegated = true; return Stub }
         override fun produce(match: MatchedData) = ReactionOutcome()
     }
 

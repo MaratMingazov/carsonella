@@ -34,7 +34,7 @@ class BondStrengthening(
 ) : ForcedReactionRule {
     override val id = "BondStrengthening"
 
-    private data class Match(val molecule: Entity, val bond: MolecularBond) : MatchedData
+    private data class Match(val molecule: Molecule, val bond: MolecularBond) : MatchedData
 
     /**
      * Связь берём прямо из выбора игрока: пока сущность жива, её граф неизменен (любая перестройка
@@ -44,18 +44,16 @@ class BondStrengthening(
     override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
         val choice = selection as? ReactionSelection.StrengthenBond ?: return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
-        val first = reagents.first()
-        val state = first.state().value
-        if (!state.alive) return null
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
-        if (state.species !is Species.Molecular) return null
-        return Match(first, choice.bond)
+        val subject = reagents.first() as? Molecule ?: return null
+        if (!subject.state().value.alive) return null
+        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
+        return Match(subject, choice.bond)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, bond) = match as Match
         val state = molecule.state().value
-        val graph = (molecule as Molecule).graph
+        val graph = molecule.graph
         val strengthened = Species.Molecular(graph.strengthenBond(bond.atom1.localId, bond.atom2.localId))
         val env = molecule.getEnvironment()
 

@@ -69,7 +69,7 @@ class StarDissociationTest {
         val rule = StarDissociation(gen)
         val w = water(star)
 
-        val match = assertNotNull(rule.matchesMolecule(listOf(w)))          // «сам с собой», без соседей и фотона
+        val match = assertNotNull(rule.matches(listOf(w)))          // «сам с собой», без соседей и фотона
         val outcome = rule.produce(match)
         assertEquals(listOf<Entity>(w), outcome.consumed)
         outcome.spawn.forEach { it() }
@@ -87,7 +87,7 @@ class StarDissociationTest {
         // Второй шаг рекурсии: осколок ·OH снова в звезде → распадается до атомов O + H.
         val gen = CapturingGenerator()
         val rule = StarDissociation(gen)
-        val match = assertNotNull(rule.matchesMolecule(listOf(hydroxyl(star))))
+        val match = assertNotNull(rule.matches(listOf(hydroxyl(star))))
         rule.produce(match).spawn.forEach { it() }
 
         assertEquals(2, gen.spawned.size)
@@ -103,7 +103,7 @@ class StarDissociationTest {
     fun moleculeInSpaceDoesNotThermallyDissociate() {
         // В космосе (не звезда) термического распада нет — молекула стабильна.
         val rule = StarDissociation(CapturingGenerator())
-        assertNull(rule.matchesMolecule(listOf(water(space))))
+        assertNull(rule.matches(listOf(water(space))))
     }
 
     @Test
@@ -112,6 +112,6 @@ class StarDissociationTest {
         val rule = StarDissociation(CapturingGenerator())
         val neighbor = Atom(nextId++, Element.HYDROGEN, Position(1f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
             .also { it.setEnvironment(star) }
-        assertNull(rule.matchesMolecule(listOf(water(star), neighbor)))
+        assertNull(rule.matches(listOf(water(star), neighbor)))
     }
 }

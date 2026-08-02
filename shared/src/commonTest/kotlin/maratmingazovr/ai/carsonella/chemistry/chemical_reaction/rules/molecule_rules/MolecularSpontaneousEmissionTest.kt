@@ -76,7 +76,7 @@ class MolecularSpontaneousEmissionTest {
         val ooBond = BondEnergy.of(Element.OXYGEN_16, Element.OXYGEN_16, 1)!!   // 1.51
         val mol = peroxide(energy = ooBond + 1f)
 
-        val match = assertNotNull(rule.matchesMolecule(listOf(mol)))
+        val match = assertNotNull(rule.matches(listOf(mol)))
         val outcome = rule.produce(match)
 
         assertEquals(listOf<Entity>(mol), outcome.consumed)              // потребляется только молекула — фотона нет
@@ -98,7 +98,7 @@ class MolecularSpontaneousEmissionTest {
 
         // Эмиссия стохастична (chance): крутим matches, пока не сработает (сид фиксирован → детерминизм).
         var fired: MatchedData? = null
-        for (i in 0 until 10_000) { fired = rule.matchesMolecule(listOf(mol)); if (fired != null) break }
+        for (i in 0 until 10_000) { fired = rule.matches(listOf(mol)); if (fired != null) break }
         val match = assertNotNull(fired, "ветка излучения так и не сработала за 10k попыток")
 
         val outcome = rule.produce(match)
@@ -116,7 +116,7 @@ class MolecularSpontaneousEmissionTest {
     @Test
     fun doesNotFireWithoutEnergy() {
         val rule = MolecularSpontaneousEmission(CapturingGenerator())
-        assertNull(rule.matchesMolecule(listOf(water(energy = 0f))))   // остывать нечего
+        assertNull(rule.matches(listOf(water(energy = 0f))))   // остывать нечего
     }
 
     @Test
@@ -124,6 +124,6 @@ class MolecularSpontaneousEmissionTest {
         // В звезде распадом рулит StarDissociation — это правило не вмешивается, даже с большой энергией.
         val star = Environment(temperature = TemperatureMode.Star)
         val rule = MolecularSpontaneousEmission(CapturingGenerator())
-        assertNull(rule.matchesMolecule(listOf(water(energy = 100f, environment = star))))
+        assertNull(rule.matches(listOf(water(energy = 100f, environment = star))))
     }
 }

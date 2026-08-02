@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -29,9 +30,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularPhotoIonization"
 
-    private data class Match(val molecule: Entity, val photon: Entity) : MatchedData
+    private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
         val first = reagents.first()
@@ -57,40 +58,40 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val available = first.state().value.energy + nearestPhoton.state().value.energy
         if (available < threshold) return null   // фотона не хватает на ионизацию → мимо (может сработать распад)
 
-        return Match(first, nearestPhoton)
+        return Match(subject, nearestPhoton)
     }
 
     // Детерминированный шаг: ионизация бьёт распад. weight = 0 > weight распада (−dissociationEnergy),
     // поэтому при E ≥ IP resolve() выбирает ионизацию; при D ≤ E < IP (порог IP не достигнут — matches
     // вернул false) в игре остаётся только распад. Вероятностный branch заменит это позже.
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, ph) = match as Match
-        val graph = (mol.state().value.species as Species.Molecular).graph
+        val (molecule, photon) = match as Match
+        val graph = molecule.graph
         val threshold = graph.energyLevels.last()           // matches гарантирует что лестница непуста
-        val electrons = mol.state().value.electrons
+        val electrons = molecule.state().value.electrons
 
         // Избыток над порогом ионизации уносит вылетевший электрон (энергия молекулы → 0).
-        val available = mol.state().value.energy + ph.state().value.energy
+        val available = molecule.state().value.energy + photon.state().value.energy
         val freeEnergy = (available - threshold).coerceAtLeast(0f)
 
-        val molPosition = mol.state().value.centerPosition
-        val molDirection = mol.state().value.direction
-        val env = mol.getEnvironment()
-        val radius = mol.radius
+        val molPosition = molecule.state().value.centerPosition
+        val molDirection = molecule.state().value.direction
+        val env = molecule.getEnvironment()
+        val radius = molecule.radius
         val electronPosition = molPosition.plus(Position(1f * radius, 0f))
         val electronVelocity = 10 + 0.2f * freeEnergy
 
         // Species НЕ меняется — тот же граф теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
         return ReactionOutcome(
-            consumed = listOf(ph),
+            consumed = listOf(photon),
             updateState = listOf {
-                mol.setElectrons(electrons - 1)
-                mol.setEnergy(0f)
+                molecule.setElectrons(electrons - 1)
+                molecule.setEnergy(0f)
             },
             spawn = listOf {
                 entityGenerator.createEntity(ELECTRON, electronPosition, molDirection, electronVelocity, 0f, env, electrons = 1)
             },
-            description = "$id: ${graph.formulaPretty} + γ[${ph.state().value.energy}eV] -> ${graph.formulaPretty}⁺ + ${ELECTRON.details.label}",
+            description = "$id: ${graph.formulaPretty} + γ[${photon.state().value.energy}eV] -> ${graph.formulaPretty}⁺ + ${ELECTRON.details.label}",
         )
     }
 }

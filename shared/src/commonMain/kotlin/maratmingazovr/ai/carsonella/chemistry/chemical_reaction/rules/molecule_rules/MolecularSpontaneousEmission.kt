@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -39,9 +40,9 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     override val id = "MolecularSpontaneousEmission"
 
     /** [dissociationThreshold] не-null → ветка предиссоциации (распад); null → ветка излучения фотона. */
-    private data class Match(val molecule: Entity, val dissociationThreshold: Float?) : MatchedData
+    private data class Match(val molecule: Molecule, val dissociationThreshold: Float?) : MatchedData
 
-    override fun matchesMolecule(reagents: List<Entity>): MatchedData? {
+    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size != 1) return null          // «сам с собой», как усиление/кольцо/StarDissociation
 
         val first = reagents.first()
@@ -50,47 +51,47 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         if (s.energy <= 0f) return null              // остывать нечего
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
-        val graph = (s.species as Species.Molecular).graph
+        val graph = subject.graph
         val threshold = graph.weakestBondAndEnergy?.second
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
         if (threshold != null && s.energy >= threshold) {
-            return Match(first, threshold)
+            return Match(subject, threshold)
         }
 
         // Ветка 2 — излучение: избыток ниже порога распада, сбрасываем фотоном. Постепенно (chance), как атом.
         if (!chance(0.02f, entityGenerator.random)) return null
-        return Match(first, dissociationThreshold = null)
+        return Match(subject, dissociationThreshold = null)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, threshold) = match as Match
-        val s = mol.state().value
-        val graph = (s.species as Species.Molecular).graph
+        val (molecule, dissociationThreshold) = match as Match
+        val moleculeState = molecule.state().value
+        val graph = molecule.graph
 
-        if (threshold != null) {
+        if (dissociationThreshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало
             // PhotoDissociation без фотона). Порог «тратится», избыток делится по осколкам.
             val bond = graph.weakestBondAndEnergy!!.first
             val fragments = graph.split(bond.atom1, bond.atom2)
-            val excessPerFragment = (s.energy - threshold).coerceAtLeast(0f) / fragments.size
+            val excessPerFragment = (moleculeState.energy - dissociationThreshold).coerceAtLeast(0f) / fragments.size
             return ReactionOutcome(
-                consumed = listOf(mol),
-                spawn = spawnFragments(fragments, mol, entityGenerator, excessPerFragment),
-                description = "$id: ${graph.formulaPretty} (E=${s.energy}eV ≥ ${threshold}eV) -> " +
+                consumed = listOf(molecule),
+                spawn = spawnFragments(fragments, molecule, entityGenerator, excessPerFragment),
+                description = "$id: ${graph.formulaPretty} (E=${moleculeState.energy}eV ≥ ${dissociationThreshold}eV) -> " +
                     fragments.joinToString(" + ") { it.formulaPretty },
             )
         }
 
         // Ветка 2: излучение — вся внутренняя энергия уходит одним фотоном, молекула → energy = 0.
-        val photonEnergy = s.energy
-        val env = mol.getEnvironment()
+        val photonEnergy = moleculeState.energy
+        val env = molecule.getEnvironment()
         return ReactionOutcome(
-            updateState = listOf { mol.setEnergy(0f) },
+            updateState = listOf { molecule.setEnergy(0f) },
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    s.centerPosition.plus(Position(mol.radius, 0f)),
+                    moleculeState.centerPosition.plus(Position(molecule.radius, 0f)),
                     randomDirection(entityGenerator.random),
                     MAX_VELOCITY,
                     energy = photonEnergy,

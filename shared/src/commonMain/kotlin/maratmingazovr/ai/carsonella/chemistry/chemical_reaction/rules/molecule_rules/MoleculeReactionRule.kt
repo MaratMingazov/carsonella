@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -25,12 +26,12 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 abstract class MoleculeReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
-        if (reagents.firstOrNull()?.state()?.value?.species !is Species.Molecular) return null
-        return matchesMolecule(reagents)
+        val subject = reagents.firstOrNull() as? Molecule ?: return null
+        return matchesMolecule(subject, reagents)
     }
 
-    /** Как `matches`, но гарантированно `reagents.first()` — молекула ([Species.Molecular]). */
-    abstract fun matchesMolecule(reagents: List<Entity>): MatchedData?
+    /** Как `matches`, но субъект приходит уже типизированным — кастовать в наследниках не нужно. */
+    abstract fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData?
 
     /**
      * Спавн осколков распада ([MoleculeGraph.split]) — общий для PhotoDissociation/StarDissociation
