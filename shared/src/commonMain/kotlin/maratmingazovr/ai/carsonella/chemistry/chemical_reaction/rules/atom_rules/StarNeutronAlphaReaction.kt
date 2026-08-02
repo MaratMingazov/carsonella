@@ -55,7 +55,7 @@ class StarNeutronAlphaReaction(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.centerPosition
+        val firstAtomPosition = firstAtom.state().value.kinematics.centerPosition
         if (!firstAtom.state().value.alive) return null
         val firstAtomElement = firstAtom.element
         if (firstAtomElement.details.neutronAlphaResult == null) return null
@@ -66,7 +66,7 @@ class StarNeutronAlphaReaction(
                 it is SubAtom && it.element == NEUTRON
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -80,7 +80,7 @@ class StarNeutronAlphaReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.centerPosition
+        val resultPosition = atom1.state().value.kinematics.centerPosition
         val resultElement = atom1Element.details.neutronAlphaResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,α) понижает Z на 2 → лишние электроны
         // (если родитель близок к нейтральному) не помещаются на продукт и улетают свободными e⁻ (shake-off).

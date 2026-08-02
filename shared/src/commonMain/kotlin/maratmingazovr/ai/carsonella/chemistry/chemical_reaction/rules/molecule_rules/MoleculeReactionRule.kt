@@ -58,14 +58,14 @@ abstract class MoleculeReactionRule : ReactionRule {
             // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
             // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
             // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
-            val pos = moleculeState.centerPosition.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
+            val pos = moleculeState.kinematics.centerPosition.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope
-                val kineticVelocity = moleculeState.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(isotope, pos, moleculeState.direction, kineticVelocity, 0f, env, electrons) }
+                val kineticVelocity = moleculeState.kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
+                return@mapIndexed { generator.createEntity(isotope, pos, moleculeState.kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
-                return@mapIndexed { generator.createMolecule(frag, pos, moleculeState.direction, moleculeState.velocity, energyPerFragment, env, electrons) }
+                return@mapIndexed { generator.createMolecule(frag, pos, moleculeState.kinematics.direction, moleculeState.kinematics.velocity, energyPerFragment, env, electrons) }
             }
         }
     }

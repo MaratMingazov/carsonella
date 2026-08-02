@@ -25,10 +25,6 @@ data class EntityState(
     val electrons: Int,
 ) {
 
-    val centerPosition: Position get() = kinematics.centerPosition
-    val direction: Vec2D get() = kinematics.direction
-    val velocity: Float get() = kinematics.velocity
-
 
     /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
@@ -136,8 +132,8 @@ sealed interface Entity :
 
     fun checkBorders(env: IEnvironment) {
 
-        var position = state().value.centerPosition
-        var direction = state().value.direction
+        var position = state().value.kinematics.centerPosition
+        var direction = state().value.kinematics.direction
         val center = env.getEnvCenter()
         val radius = env.getEnvRadius()
 
@@ -208,9 +204,9 @@ sealed interface Entity :
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
-            val elementPosition = element.state().value.centerPosition
-            val rx = state().value.centerPosition.x - elementPosition.x
-            val ry = state().value.centerPosition.y - elementPosition.y
+            val elementPosition = element.state().value.kinematics.centerPosition
+            val rx = state().value.kinematics.centerPosition.x - elementPosition.x
+            val ry = state().value.kinematics.centerPosition.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.radius

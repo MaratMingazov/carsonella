@@ -49,7 +49,7 @@ class BetaMinusDecay(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (parent, parentElement) = match as Match
         val childElement = parentElement.details.betaMinusDecayResult!!
-        val parentPosition = parent.state().value.centerPosition
+        val parentPosition = parent.state().value.kinematics.centerPosition
         val parentRadius = parentElement.details.radius
         // Перенос оболочки на продукт (2C2): β⁻ повышает Z на 1 (n→p) → электроны помещаются, кламп no-op.
         // Вылетающий e⁻ — продукт распада ядра, а не shake-off оболочки.
@@ -62,8 +62,8 @@ class BetaMinusDecay(
                     entityGenerator.createEntity(
                         childElement,
                         parentPosition,
-                        parent.state().value.direction,
-                        parent.state().value.velocity,
+                        parent.state().value.kinematics.direction,
+                        parent.state().value.kinematics.velocity,
                         energy = 0f,
                         environment = parent.getEnvironment(),
                         electrons = childElectrons,

@@ -51,7 +51,7 @@ class StarThermalIonization(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom, element) = match as Match
         val electrons = atom.state().value.electrons
-        val position = atom.state().value.centerPosition
+        val position = atom.state().value.kinematics.centerPosition
         val radius = element.details.radius
         val env = atom.getEnvironment()
         val electronPosition = position.plus(Position(radius, 0f))
@@ -64,8 +64,8 @@ class StarThermalIonization(
                     entityGenerator.createEntity(
                         Element.Proton,
                         position,
-                        atom.state().value.direction,
-                        atom.state().value.velocity,
+                        atom.state().value.kinematics.direction,
+                        atom.state().value.kinematics.velocity,
                         0f,
                         env,
                         electrons = 0

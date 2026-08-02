@@ -69,13 +69,13 @@ class RingClosure(
         val released = closureWeight(graph, cand) ?: 0f
 
         val spawn = mutableListOf<() -> Entity>(
-            { entityGenerator.createMolecule(closed, state.centerPosition, state.direction, state.velocity, state.energy, env, state.electrons) },
+            { entityGenerator.createMolecule(closed, state.kinematics.centerPosition, state.kinematics.direction, state.kinematics.velocity, state.energy, env, state.electrons) },
         )
         if (released > 0f) {
             spawn += {
                 // Фотон уносит нетто-энергию и УЛЕТАЕТ (скорость 40, как в BondStrengthening/SpontaneousEmission):
                 // за тик покидает радиус активации, иначе PhotoDissociation мог бы поймать его и раскрыть кольцо.
-                entityGenerator.createEntity(Element.PHOTON, state.centerPosition, randomDirection(entityGenerator.random),
+                entityGenerator.createEntity(Element.PHOTON, state.kinematics.centerPosition, randomDirection(entityGenerator.random),
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

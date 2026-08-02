@@ -51,7 +51,7 @@ class StarNeutronGammaReaction(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.centerPosition
+        val firstAtomPosition = firstAtom.state().value.kinematics.centerPosition
         if (!firstAtom.state().value.alive) return null
         val firstAtomElement = firstAtom.element
         if (firstAtomElement.details.neutronGammaResult == null) return null
@@ -62,7 +62,7 @@ class StarNeutronGammaReaction(
                 it is SubAtom && it.element == NEUTRON
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -76,7 +76,7 @@ class StarNeutronGammaReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.centerPosition
+        val resultPosition = atom1.state().value.kinematics.centerPosition
         val resultElement = atom1Element.details.neutronGammaResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,γ) не меняет Z → кламп no-op, shake-off не нужен.
         val resultElectrons = minOf(atom1.state().value.electrons, resultElement.details.p)

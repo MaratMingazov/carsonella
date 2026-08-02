@@ -49,8 +49,11 @@ interface ReactionRule {
         val protonMass = entity2.mass
         val sumMass = electronMass + protonMass
 
-        val electronVelocityVector = entity1.state().value.direction.times(entity1.state().value.velocity)
-        val protonVelocityVector = entity2.state().value.direction.times(entity2.state().value.velocity)
+        val entity1State = entity1.state().value
+        val entity2State = entity2.state().value
+
+        val electronVelocityVector = entity1State.kinematics.direction.times(entity1State.kinematics.velocity)
+        val protonVelocityVector = entity2State.kinematics.direction.times(entity2State.kinematics.velocity)
         val impulseVectorTotal = electronVelocityVector.times(electronMass) + protonVelocityVector.times(protonMass)
 
         val newEntityVelocityVector = impulseVectorTotal.div(sumMass)

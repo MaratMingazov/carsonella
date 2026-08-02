@@ -59,7 +59,7 @@ class StarPPChain(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first()
-        val firstAtomPosition = firstAtom.state().value.centerPosition
+        val firstAtomPosition = firstAtom.state().value.kinematics.centerPosition
         if (!firstAtom.state().value.alive) return null
         // Субъект цепочки — и протон (p+p→D), и атом (D+p→³He), поэтому элемент через elementOrNull.
         val firstAtomElement = firstAtom.elementOrNull() ?: return null
@@ -89,7 +89,7 @@ class StarPPChain(
                     it.elementOrNull() == secondElement
                 }
                 .filter { it.state().value.alive }
-                .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
+                .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition) }
                 .minByOrNull { it.second }
                 ?: continue
 
@@ -110,7 +110,7 @@ class StarPPChain(
         val resultElectrons = minOf(atom1.state().value.electrons, result.details.p)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.centerPosition
+        val resultPosition = atom1.state().value.kinematics.centerPosition
         val resultRadius = result.details.radius
         val spawnList = mutableListOf<() -> Entity>()
 

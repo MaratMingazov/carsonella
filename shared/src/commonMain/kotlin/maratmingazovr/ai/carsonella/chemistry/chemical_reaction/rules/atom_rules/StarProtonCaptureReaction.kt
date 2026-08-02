@@ -69,7 +69,7 @@ class StarProtonCaptureReaction(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.centerPosition
+        val firstAtomPosition = firstAtom.state().value.kinematics.centerPosition
         if (!firstAtom.state().value.alive) return null
         val firstAtomElement = firstAtom.element
 
@@ -84,7 +84,7 @@ class StarProtonCaptureReaction(
                 it is SubAtom && it.element == Proton
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -120,7 +120,7 @@ class StarProtonCaptureReaction(
         val (a1, a2, atom1Element, atom2Element, outcome) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val resultPosition = a1.state().value.centerPosition
+        val resultPosition = a1.state().value.kinematics.centerPosition
         // Перенос электронной оболочки на продукт (2C2): продукт наследует электроны target-ядра,
         // но не больше своего Z. (p,γ)/(p,n) повышают Z → кламп no-op; (p,α) понижает Z → лишние
         // электроны улетают свободными e⁻ (shake-off). Захваченный протон голый, испущенная α — голая.

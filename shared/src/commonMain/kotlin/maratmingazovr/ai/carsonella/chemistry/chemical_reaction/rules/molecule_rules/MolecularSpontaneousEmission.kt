@@ -90,7 +90,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    moleculeState.centerPosition.plus(Position(molecule.radius, 0f)),
+                    moleculeState.kinematics.centerPosition.plus(Position(molecule.radius, 0f)),
                     randomDirection(entityGenerator.random),
                     MAX_VELOCITY,
                     energy = photonEnergy,

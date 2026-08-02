@@ -30,7 +30,7 @@ class RecombinationReaction(
     override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first()
-        val firstAtomPosition = reagents.first().state().value.centerPosition
+        val firstAtomPosition = reagents.first().state().value.kinematics.centerPosition
         if (!firstAtom.state().value.alive) return null
         // Субъект — атом ИЛИ голый протон (он пока в SubAtom), поэтому элемент берём через elementOrNull.
         val firstAtomElement = firstAtom.elementOrNull() ?: return null
@@ -46,7 +46,7 @@ class RecombinationReaction(
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.centerPosition.distanceSquareTo(firstAtomPosition)}
+            .map { it to  it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
@@ -64,7 +64,7 @@ class RecombinationReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val electrons = atom1.state().value.electrons
-        val resultPosition = atom1.state().value.centerPosition
+        val resultPosition = atom1.state().value.kinematics.centerPosition
         val env = atom1.getEnvironment()
 
         // Протий — особый случай: p⁺ + e⁻ → HYDROGEN (атом). Element/класс меняется (element неизменяем) →
@@ -100,7 +100,7 @@ class RecombinationReaction(
         // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, energy=0), вылетает фотон.
         val resultElectrons = electrons + 1
         val photonEnergy = atom1Element.energyLevels(resultElectrons).last()
-        val direction = atom1.state().value.direction
+        val direction = atom1.state().value.kinematics.direction
         val radius = atom1Element.details.radius
         return ReactionOutcome(
             consumed = listOf(atom2),

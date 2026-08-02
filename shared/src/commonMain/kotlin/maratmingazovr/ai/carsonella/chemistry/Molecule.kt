@@ -44,7 +44,7 @@ class Molecule(
 
     /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
     val atoms: List<MolecularAtom> get() {
-        val center = state().value.centerPosition
+        val center = state().value.kinematics.centerPosition
         return graph.nodes.map { node ->
             MolecularAtom(
                 localId = node.localId,
@@ -102,7 +102,7 @@ class Molecule(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.centerPosition.distanceSquareTo(entity.state().value.centerPosition) < 10000f }
+            .filter { entity -> state.value.kinematics.centerPosition.distanceSquareTo(entity.state().value.kinematics.centerPosition) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

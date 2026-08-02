@@ -40,23 +40,23 @@ class Star(
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override val radius: Float = element.details.radius
-    override fun distanceToSurface(point: Position): Float = state().value.centerPosition.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceToSurface(point: Position): Float = state().value.kinematics.centerPosition.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
 
     override val saveKey: String = element.name
 
     override fun describe(): String {
-        val s = state().value
+        val state = state().value
         return """
-            |${element.label(s.electrons)}: ${id}
-            |Position (${s.centerPosition.x.toInt()}, ${s.centerPosition.y.toInt()})
-            |Velocity ${round(s.velocity * 100) / 100}
-            |Energy ${round(s.energy * 100) / 100}
+            |${element.label(state.electrons)}: ${id}
+            |Position (${state.kinematics.centerPosition.x.toInt()}, ${state.kinematics.centerPosition.y.toInt()})
+            |Velocity ${round(state.kinematics.velocity * 100) / 100}
+            |Energy ${round(state.energy * 100) / 100}
         """.trimMargin()
     }
 
-    override fun getEnvCenter() = state.value.centerPosition
+    override fun getEnvCenter() = state.value.kinematics.centerPosition
     override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star
     override fun getEnvChildren(): List<Entity> { return children }
@@ -79,7 +79,7 @@ class Star(
         neighbors
             .filter { it.state().value.alive }
             .filter { it.getEnvironment() !== this }
-            .filter { state.value.centerPosition.distanceSquareTo(it.state().value.centerPosition) < (radius + 10) * (radius + 10) }
+            .filter { state.value.kinematics.centerPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) < (radius + 10) * (radius + 10) }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

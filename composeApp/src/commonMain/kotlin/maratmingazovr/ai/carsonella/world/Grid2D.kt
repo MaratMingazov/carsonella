@@ -18,7 +18,7 @@ class Grid2D<T : Entity>(
 
     suspend fun put(entity: T) = mutex.withLock {
         // определяем в какую ячейку должен попасть наш объект
-        val entityGridBox = gridBoxOf(entity.state().value.centerPosition)
+        val entityGridBox = gridBoxOf(entity.state().value.kinematics.centerPosition)
 
         // получим список объектов в этой ячейке и добавим туда наш объект
         val bucket = grid.getOrPut(entityGridBox) { mutableSetOf() }
@@ -29,7 +29,7 @@ class Grid2D<T : Entity>(
      * Удаляет объект из ячейки и при необходимости убирает пустую ячейку.
      */
     suspend fun remove(entity: T) = mutex.withLock {
-        val entityGridBox = gridBoxOf(entity.state().value.centerPosition)
+        val entityGridBox = gridBoxOf(entity.state().value.kinematics.centerPosition)
         grid[entityGridBox]?.remove(entity)
         if (grid[entityGridBox]?.isEmpty() == true) grid.remove(entityGridBox)
     }
@@ -39,7 +39,7 @@ class Grid2D<T : Entity>(
      */
     suspend fun move(entity: T, oldPosition: Position) = mutex.withLock {
         val entityGridBoxOld = gridBoxOf(oldPosition)
-        val entityGridBoxNew = gridBoxOf(entity.state().value.centerPosition)
+        val entityGridBoxNew = gridBoxOf(entity.state().value.kinematics.centerPosition)
 
         if (entityGridBoxOld == entityGridBoxNew) return@withLock
 
@@ -55,7 +55,7 @@ class Grid2D<T : Entity>(
      * Берёт все объекты из ячеек в этом диапазоне.
      */
     suspend fun findEntitiesAround(entity: T, r: Float): List<T> = mutex.withLock {
-        val entityGridBox = gridBoxOf(entity.state().value.centerPosition)
+        val entityGridBox = gridBoxOf(entity.state().value.kinematics.centerPosition)
         val rGridBox = ceil(r / gridBoxSize).toInt().coerceAtLeast(1)
         buildList {
             for (gridBoxAround in gridBoxesAround(entityGridBox, rGridBox)) {

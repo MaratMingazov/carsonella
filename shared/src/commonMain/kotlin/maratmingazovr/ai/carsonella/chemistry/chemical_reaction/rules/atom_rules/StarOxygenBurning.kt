@@ -51,7 +51,7 @@ class StarOxygenBurning(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.centerPosition
+        val firstAtomPosition = firstAtom.state().value.kinematics.centerPosition
         if (firstAtom.element != OXYGEN_16) return null
         if (!firstAtom.state().value.alive) return null
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
@@ -62,7 +62,7 @@ class StarOxygenBurning(
                 it is Atom && it.element == OXYGEN_16
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -85,7 +85,7 @@ class StarOxygenBurning(
         val (atom1, atom2, atom1Element, atom2Element, result, extras) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.centerPosition
+        val resultPosition = atom1.state().value.kinematics.centerPosition
         val resultRadius = result.details.radius
         // Перенос оболочки на продукт (2C2): два ядра сливаются, их электроны (в звезде 0) переходят
         // на продукт, но не больше его Z; лишние улетают свободными e⁻ (shake-off). Extras (α/p/n) — голые.
