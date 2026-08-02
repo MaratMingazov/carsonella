@@ -10,7 +10,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
+import maratmingazovr.ai.carsonella.chemistry.MolecularAtomFull
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Star
@@ -101,7 +101,7 @@ class EntityRenderer(
         val entityState = molecule.state().value
 
         // Добавляем дрожание
-        fun screenPos(atom: MolecularAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
+        fun screenPos(atom: MolecularAtomFull, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 

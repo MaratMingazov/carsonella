@@ -43,10 +43,10 @@ class Molecule(
     override val radius: Float = MOLECULE_RADIUS
 
     /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
-    val atoms: List<MolecularAtom> get() {
+    val atoms: List<MolecularAtomFull> get() {
         val center = state().value.kinematics.position
         return graph.nodes.map { node ->
-            MolecularAtom(
+            MolecularAtomFull(
                 localId = node.localId,
                 isotope = node.isotope,
                 position = center + graph.atomOffset(node.localId),
@@ -75,9 +75,9 @@ class Molecule(
     override val saveKey: String = graph.formula
 
     fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph = graph.merge(other, thisNode, otherNode, bondOrder)
-    fun firstFreeValenceAtom(): MolecularAtom? {
+    fun firstFreeValenceAtom(): MolecularAtomFull? {
         return graph.firstFreeValenceAtomNode?.let { atomNode ->
-            MolecularAtom(
+            MolecularAtomFull(
                 localId = atomNode.localId,
                 isotope = atomNode.isotope,
                 position = state().value.kinematics.position + graph.atomOffset(atomNode.localId),

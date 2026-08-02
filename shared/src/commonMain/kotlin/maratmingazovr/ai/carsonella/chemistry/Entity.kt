@@ -42,7 +42,7 @@ data class EntityState(
 /**
  * Атом молекулы, поставленный в мир
  */
-data class MolecularAtom(
+data class MolecularAtomFull(
     val localId: Int,
     val isotope: Element,
     val position: Position, // позиция, не просто offset
@@ -55,8 +55,8 @@ data class MolecularAtom(
  * Связь молекулы, поставленная в мир: оба конца — уже с координатами.
  */
 data class MolecularBond(
-    val atom1: MolecularAtom,
-    val atom2: MolecularAtom,
+    val atom1: MolecularAtomFull,
+    val atom2: MolecularAtomFull,
     val order: Int,
 )
 
