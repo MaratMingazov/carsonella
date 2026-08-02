@@ -10,8 +10,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Шаг 2a §3b: агрегаты по [Species] (Elemental → Element/Details, Molecular → граф) и
- * подстрочная формула. Чистые функции — тестируются без сущностей.
+ * Агрегаты сущности (символ с зарядом, масса) и работа молекулы со своими связями.
+ * Раньше всё это жило на [Species] и тестировалось без сущностей; после переноса на [Entity]
+ * тесты идут через сущности — имя файла осталось от прежней прописки.
  */
 class SpeciesTest {
 
@@ -24,6 +25,9 @@ class SpeciesTest {
         ),
         bonds = listOf(Bond(0, 1, 1), Bond(0, 2, 1)),
     )
+
+    private fun molecule(graph: MoleculeGraph, at: Position = Position(100f, 50f)) =
+        Molecule(1L, graph, at, Vec2D(0f, 0f), 0f, 0f, electrons = graph.protons)
 
     private fun waterEntity(electrons: Int) =
         Molecule(1L, water, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
@@ -57,27 +61,25 @@ class SpeciesTest {
     fun strengthenBondGivesNewMoleculeAndLeavesOldIntact() {
         // O–O: у обоих кислородов свободный слот → связь усиливаема. Молекула отвечает про усиление
         // сама, графа вызывающему не видно: кандидат берётся из strengthenableBonds и им же адресуется.
-        val oo = Species.Molecular(
-            MoleculeGraph(
-                nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
-                bonds = listOf(Bond(0, 1, 1)),
-            )
+        val ooGraph = MoleculeGraph(
+            nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
+            bonds = listOf(Bond(0, 1, 1)),
         )
-        val center = Position(100f, 50f)
+        val oo = molecule(ooGraph)
 
-        val candidate = oo.strengthenableBonds(center).single()
+        val candidate = oo.strengthenableBonds.single()
         assertEquals(1, candidate.order)
 
-        val o2 = oo.strengthenBond(candidate)
-        assertEquals(2, o2.bonds(center).single().order)   // O–O → O=O
-        assertEquals(1, oo.bonds(center).single().order)   // исходная молекула не изменилась
-        assertTrue(o2.strengthenableBonds(center).isEmpty())   // O=O насыщен — усиливать больше нечего
+        val o2 = molecule(ooGraph.strengthenBond(candidate.atom1.localId, candidate.atom2.localId))
+        assertEquals(2, o2.bonds.single().order)   // O–O → O=O
+        assertEquals(1, oo.bonds.single().order)   // исходная молекула не изменилась
+        assertTrue(o2.strengthenableBonds.isEmpty())   // O=O насыщен — усиливать больше нечего
     }
 
     @Test
     fun saturatedMoleculeHasNothingToStrengthen() {
         // В H–O–H у каждого водорода валентность занята → ни одна связь не усиливаема.
-        assertTrue(Species.Molecular(water).strengthenableBonds(Position(0f, 0f)).isEmpty())
+        assertTrue(molecule(water).strengthenableBonds.isEmpty())
     }
 
     @Test

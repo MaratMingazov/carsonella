@@ -186,25 +186,25 @@ class World(
         val saved = entities.toList().filter {it.state().value.alive }
         val savedIds = saved.mapTo(mutableSetOf()) { it.id }
 
-        val entityDtos = saved.map { e ->
-            val s = e.state().value
+        val entityDtos = saved.map { entity ->
+            val entityState = entity.state().value
             // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
             // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
-            val parentId = (e.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
+            val parentId = (entity.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
             EntityDto(
-                id = e.id,
+                id = entity.id,
                 // element.name для Elemental (round-trip через Element.valueOf); молекулу так не сохранить —
                 // отдаём формулу, на загрузке отсеётся как «неизвестный элемент» (graph-save — отдельный рефактор).
-                element = when (val sp = s.species) {
+                element = when (val sp = entityState.species) {
                     is Species.Atomic -> sp.element.name
-                    is Species.Molecular -> sp.formula
+                    is Species.Molecular -> sp.graph.formula
                 },
-                alive = s.alive,
-                x = s.centerPosition.x, y = s.centerPosition.y,
-                dirX = s.direction.x, dirY = s.direction.y,
-                velocity = s.velocity,
-                energy = s.energy,
-                electrons = s.electrons,
+                alive = entityState.alive,
+                x = entityState.centerPosition.x, y = entityState.centerPosition.y,
+                dirX = entityState.direction.x, dirY = entityState.direction.y,
+                velocity = entityState.velocity,
+                energy = entityState.energy,
+                electrons = entityState.electrons,
                 parentId = parentId,
             )
         }
@@ -213,7 +213,7 @@ class World(
             .groupingBy {
                 when (val sp = it.state().value.species) {
                     is Species.Atomic -> sp.element.name
-                    is Species.Molecular -> sp.formula
+                    is Species.Molecular -> sp.graph.formula
                 }
             }
             .eachCount()

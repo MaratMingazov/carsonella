@@ -56,9 +56,7 @@ class BondStrengtheningTest {
 
     // Выбор игрока: связь берём из кандидатов молекулы — ровно как это делает UI.
     private fun clickOnFirstStrengthenableBond(mol: Molecule): ReactionSelection.StrengthenBond {
-        val state = mol.state().value
-        val bonds = (state.species as Species.Molecular).strengthenableBonds(state.centerPosition)
-        return ReactionSelection.StrengthenBond(bonds.first())
+        return ReactionSelection.StrengthenBond(mol.strengthenableBonds.first())
     }
 
     @Test

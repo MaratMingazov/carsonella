@@ -48,6 +48,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.world.World
@@ -447,12 +448,11 @@ private fun strengthenableBondAt(
     at: Offset,
     slop: Float = 10f,
 ): MolecularBond? {
-    val state = molecule?.state()?.value ?: return null
-    val species = state.species as? Species.Molecular ?: return null
+    val mol = molecule as? Molecule ?: return null
     val point = at.toPosition()
     var best: MolecularBond? = null
     var bestDistance = Float.MAX_VALUE
-    for (bond in species.strengthenableBonds(state.centerPosition)) {
+    for (bond in mol.strengthenableBonds) {
         if (point.distanceTo(bond.atom1.position) <= bond.atom1.radius) continue   // это клик по атому
         if (point.distanceTo(bond.atom2.position) <= bond.atom2.radius) continue
         val distance = distanceToSegment(point, bond.atom1.position, bond.atom2.position)
@@ -526,18 +526,16 @@ private fun SelectedEntityPanel(
         }
 
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
-        val species = selectedElement.species
-        if (species is Species.Molecular) {
-            if (species.canCloseRing) {
-                Spacer(Modifier.height(8.dp))
-                PanelButton(
-                    text = "Close ring",
-                    onClick = { onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+        if (selectedEntity is Molecule && selectedEntity.canCloseRing) {
+            Spacer(Modifier.height(8.dp))
+            PanelButton(
+                text = "Close ring",
+                onClick = { onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing) },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
         // Редактор энергии (пока только фотон).
+        val species = selectedElement.species
         if (species is Species.Atomic && species.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(

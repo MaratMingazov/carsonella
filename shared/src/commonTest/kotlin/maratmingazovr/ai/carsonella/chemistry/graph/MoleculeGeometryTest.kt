@@ -1,8 +1,9 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,6 +17,11 @@ import kotlin.test.assertTrue
 class MoleculeGeometryTest {
 
     private val center = Position(0f, 0f)
+
+    // Проекцию (структура из графа + координаты) собирает сущность, поэтому тесты постановки
+    // в мир идут через Molecule; тесты самой раскладки — прямо через graph.atomOffset.
+    private fun molecule(graph: MoleculeGraph, at: Position) =
+        Molecule(1L, graph, at, Vec2D(0f, 0f), 0f, 0f, electrons = graph.protons)
 
     @Test
     fun diatomicIsTwoCenteredPoints() {
@@ -41,13 +47,13 @@ class MoleculeGeometryTest {
 
     @Test
     fun placedAtomIsCentrePlusOffset() {
-        // Мировые координаты собирает молекула (Species.Molecular), граф даёт только смещение.
+        // Мировые координаты собирает сущность, граф даёт только смещение.
         val h2 = MoleculeGraph(
             nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
         val moleculeAt = Position(100f, 50f)
-        val atom = Species.Molecular(h2).atom(localId = 1, center = moleculeAt)
+        val atom = molecule(h2, moleculeAt).atoms.first { it.localId == 1 }
 
         assertEquals(1, atom.localId)
         assertEquals(Element.HYDROGEN, atom.isotope)
@@ -66,17 +72,18 @@ class MoleculeGeometryTest {
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
         val moleculeAt = Position(100f, 50f)
-        val molecule = Species.Molecular(water)
-        val bonds = molecule.bonds(moleculeAt)
+        val mol = molecule(water, moleculeAt)
+        val bonds = mol.bonds
+        val atomsById = mol.atoms.associateBy { it.localId }
 
         assertEquals(2, bonds.size)
         bonds.forEach { bond ->
             assertEquals(0, bond.atom1.localId)                                   // оба раза от кислорода
             assertEquals(Element.HYDROGEN, bond.atom2.isotope)
             assertEquals(1, bond.order)
-            // Концы — те же атомы, что отдаёт atom(): один источник координат.
-            assertEquals(molecule.atom(bond.atom1.localId, moleculeAt), bond.atom1)
-            assertEquals(molecule.atom(bond.atom2.localId, moleculeAt), bond.atom2)
+            // Концы — те же атомы, что отдаёт atoms: один источник координат.
+            assertEquals(atomsById.getValue(bond.atom1.localId), bond.atom1)
+            assertEquals(atomsById.getValue(bond.atom2.localId), bond.atom2)
         }
         // Длина связи = расстояние между поставленными концами, а не какая-то константа.
         val length = bonds.first().atom1.position.distanceTo(bonds.first().atom2.position)
@@ -89,7 +96,7 @@ class MoleculeGeometryTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.OXYGEN_16)),
             bonds = listOf(Bond(0, 1, order = 2)),   // O=O
         )
-        assertEquals(2, Species.Molecular(oxygen).bonds(Position(0f, 0f)).single().order)
+        assertEquals(2, molecule(oxygen, center).bonds.single().order)
     }
 
     @Test
@@ -103,7 +110,7 @@ class MoleculeGeometryTest {
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
         val moleculeAt = Position(100f, 50f)
-        val atoms = Species.Molecular(water).atoms(moleculeAt)
+        val atoms = molecule(water, moleculeAt).atoms
 
         assertEquals(listOf(0, 1, 2), atoms.map { it.localId })
         // Тот же ответ, что и поштучно.

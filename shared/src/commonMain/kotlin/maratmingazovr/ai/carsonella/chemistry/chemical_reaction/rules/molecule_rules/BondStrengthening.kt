@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
@@ -52,16 +53,15 @@ class BondStrengthening(
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, b) = match as Match
-        val state = mol.state().value
-        val molecule = state.species as Species.Molecular
-        val moleculeElectrons = state.electrons
-        val strengthened = molecule.strengthenBond(b)
-        val env = mol.getEnvironment()
+        val (molecule, bond) = match as Match
+        val state = molecule.state().value
+        val graph = (molecule as Molecule).graph
+        val strengthened = Species.Molecular(graph.strengthenBond(bond.atom1.localId, bond.atom2.localId))
+        val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
-        val hi = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order + 1)
-        val lo = BondEnergy.of(b.atom1.isotope, b.atom2.isotope, b.order)
+        val hi = BondEnergy.of(bond.atom1.isotope, bond.atom2.isotope, bond.order + 1)
+        val lo = BondEnergy.of(bond.atom1.isotope, bond.atom2.isotope, bond.order)
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf(
@@ -78,9 +78,9 @@ class BondStrengthening(
         }
 
         return ReactionOutcome(
-            consumed = listOf(mol),
+            consumed = listOf(molecule),
             spawn = spawn,
-            description = "$id: ${mol.displaySymbol} связь ${b.atom1.localId}-${b.atom2.localId} ${b.order}→${b.order + 1}" +
+            description = "$id: ${molecule.displaySymbol} связь ${bond.atom1.localId}-${bond.atom2.localId} ${bond.order}→${bond.order + 1}" +
                 (released?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

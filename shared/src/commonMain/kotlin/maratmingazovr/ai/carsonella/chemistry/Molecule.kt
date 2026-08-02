@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
+import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
@@ -42,8 +43,33 @@ class Molecule(
     override val protons: Int = graph.protons
     override val radius: Float = MOLECULE_RADIUS
 
-    val atoms: List<MolecularAtom> get() = Species.Molecular(graph).atoms(state().value.centerPosition) // Атомы, поставленные в мир: структура из графа, координаты из состояния.
-    val bonds: List<MolecularBond> get() = Species.Molecular(graph).bonds(state().value.centerPosition) // Связи, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
+    /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
+    val atoms: List<MolecularAtom> get() {
+        val center = state().value.centerPosition
+        return graph.nodes.map { node ->
+            MolecularAtom(
+                localId = node.localId,
+                isotope = node.isotope,
+                position = center + graph.atomOffset(node.localId),
+                freeValence = graph.freeValence(node.localId),
+            )
+        }
+    }
+
+    /** Связи, поставленные в мир: у каждой оба конца — готовые MolecularAtom. */
+    val bonds: List<MolecularBond> get() = place(graph.bonds)
+
+    /** Связи, которые можно усилить (кратность +1) — поставленные в мир. */
+    val strengthenableBonds: List<MolecularBond> get() = place(graph.strengthenableBonds)
+
+    /** Есть ли пара атомов, между которыми можно замкнуть цикл. */
+    val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
+
+    private fun place(bonds: List<Bond>): List<MolecularBond> {
+        val byId = atoms.associateBy { it.localId }
+        return bonds.map { MolecularBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order) }
+    }
+
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
     override val energyLevels: List<Float> = graph.energyLevels
