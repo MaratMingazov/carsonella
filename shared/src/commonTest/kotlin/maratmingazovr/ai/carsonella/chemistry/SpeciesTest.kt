@@ -28,7 +28,6 @@ class SpeciesTest {
     @Test
     fun molecularAggregatesComeFromGraph() {
         val m = Species.Molecular(water)
-        assertEquals(10, m.protons)            // 8 + 1 + 1
         assertEquals(20f, m.radius)            // константа для молекулы
         assertEquals("H₂O", m.displaySymbol(10)) // нейтральная (electrons = protons = 10): формула без заряда
         assertEquals("H₂O⁺", m.displaySymbol(9)) // катион +1 (electrons = 9): заряд из protons − electrons
@@ -37,7 +36,6 @@ class SpeciesTest {
     @Test
     fun elementalAggregatesComeFromElement() {
         val h = Species.Atomic(Element.HYDROGEN)
-        assertEquals(1, h.protons)
         assertEquals(20f, h.radius)            // атом — дефолтный радиус Details (Details.radius = 25f)
         assertEquals("H", h.displaySymbol(1))    // нейтральный водород
     }

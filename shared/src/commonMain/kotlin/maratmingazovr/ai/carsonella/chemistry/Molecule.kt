@@ -38,6 +38,7 @@ class Molecule(
     override fun state() = state
 
     override val mass: Float get() = graph.mass
+    override val protons: Int get() = graph.protons
 
     override fun step() {
         val neighbors = getNeighbors()

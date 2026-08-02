@@ -39,6 +39,7 @@ class Star(
     override fun state() = state
 
     override val mass: Float get() = (element.details.p + element.details.n).toFloat()
+    override val protons: Int get() = element.details.p
 
     override fun getEnvCenter() = state.value.centerPosition
     override fun getEnvRadius() = radiusCounter

@@ -31,7 +31,6 @@ data class EntityState(
     val direction: Vec2D get() = kinematics.direction
     val velocity: Float get() = kinematics.velocity
 
-    val protons: Int get() = species.protons
     val radius: Float get() = species.radius
     val displaySymbol: String get() = species.displaySymbol(electrons)
     val energyLevels: List<Float> get() = species.energyLevels(electrons) // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
@@ -113,6 +112,7 @@ interface Entity :
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
 
     val mass: Float
+    val protons: Int
 
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
@@ -219,7 +219,7 @@ interface Entity :
         var fx = 0f
         var fy = 0f
         val myElectronsCount = state().value.electrons
-        val myProtonsCount = state().value.protons
+        val myProtonsCount = protons
         val myRadius = state().value.radius
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
@@ -249,7 +249,7 @@ interface Entity :
             val gravityForce = 0
 
             // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
-            val elementProtonsCount = element.state().value.protons
+            val elementProtonsCount = element.protons
             val fRepulsion =if (myProtonsCount == 0 || elementProtonsCount == 0) {
                 0f // если протоны есть только у одного из нас, то отталкивания не будет
             } else {
