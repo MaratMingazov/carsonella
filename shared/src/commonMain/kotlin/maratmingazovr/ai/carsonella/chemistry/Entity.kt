@@ -39,17 +39,18 @@ data class EntityState(
 
 }
 
-/**
- * Атом молекулы, поставленный в мир
- */
-data class MolecularAtomFull(
+data class MolecularAtom(
     val localId: Int,
     val isotope: Element,
-    val position: Position, // позиция, не просто offset
     val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
 ) {
-    val radius: Float get() = isotope.details.radius
+    val radius: Float = isotope.details.radius
 }
+
+data class MolecularAtomFull(
+    val structure: MolecularAtom,
+    val kinematics: Kinematics,
+)
 
 /**
  * Связь молекулы, поставленная в мир: оба конца — уже с координатами.

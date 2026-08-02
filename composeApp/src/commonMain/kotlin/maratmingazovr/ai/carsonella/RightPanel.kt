@@ -432,9 +432,9 @@ private fun strengthenableBondAt(
     var best: MolecularBond? = null
     var bestDistance = Float.MAX_VALUE
     for (bond in mol.strengthenableBonds) {
-        if (point.distanceTo(bond.atom1.position) <= bond.atom1.radius) continue   // это клик по атому
-        if (point.distanceTo(bond.atom2.position) <= bond.atom2.radius) continue
-        val distance = distanceToSegment(point, bond.atom1.position, bond.atom2.position)
+        if (point.distanceTo(bond.atom1.kinematics.position) <= bond.atom1.structure.radius) continue   // это клик по атому
+        if (point.distanceTo(bond.atom2.kinematics.position) <= bond.atom2.structure.radius) continue
+        val distance = distanceToSegment(point, bond.atom1.kinematics.position, bond.atom2.kinematics.position)
         if (distance <= slop && distance < bestDistance) {
             bestDistance = distance
             best = bond

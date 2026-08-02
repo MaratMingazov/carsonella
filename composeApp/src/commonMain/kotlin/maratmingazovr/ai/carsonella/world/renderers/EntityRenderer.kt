@@ -101,7 +101,7 @@ class EntityRenderer(
         val entityState = molecule.state().value
 
         // Добавляем дрожание
-        fun screenPos(atom: MolecularAtomFull, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
+        fun screenPos(atom: MolecularAtomFull, atomVibrationParams: VibrationParams = vibrationParams) = atom.kinematics.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 
@@ -112,11 +112,11 @@ class EntityRenderer(
             }
 
             molecule.atoms.forEach { atom ->
-                val atomVibrationParams = VibrationParams(atom.localId.toLong(), entityState.energy, time) // параметры вибрации
-                val fill = ElementColors.fill(atom.isotope)
-                val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
-                val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
-                drawAtom(screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlight.entity)
+                val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), entityState.energy, time) // параметры вибрации
+                val fill = ElementColors.fill(atom.structure.isotope)
+                val symbol = atom.structure.isotope.details.symbol.filter { it.isLetter() }
+                val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.structure.localId * 1.3f
+                drawAtom(screenPos(atom, atomVibrationParams), atom.structure.radius, fill, symbol, atom.structure.freeValence, slotAngle, highlighted = highlight.entity)
             }
         }
     }

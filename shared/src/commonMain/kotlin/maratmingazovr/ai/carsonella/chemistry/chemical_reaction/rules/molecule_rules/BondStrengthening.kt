@@ -53,12 +53,12 @@ class BondStrengthening(
         val (molecule, bond) = match as Match
         val state = molecule.state().value
         val graph = molecule.graph
-        val strengthened = graph.strengthenBond(bond.atom1.localId, bond.atom2.localId)
+        val strengthened = graph.strengthenBond(bond.atom1.structure.localId, bond.atom2.structure.localId)
         val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
-        val hi = BondEnergy.of(bond.atom1.isotope, bond.atom2.isotope, bond.order + 1)
-        val lo = BondEnergy.of(bond.atom1.isotope, bond.atom2.isotope, bond.order)
+        val hi = BondEnergy.of(bond.atom1.structure.isotope, bond.atom2.structure.isotope, bond.order + 1)
+        val lo = BondEnergy.of(bond.atom1.structure.isotope, bond.atom2.structure.isotope, bond.order)
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf(
@@ -77,7 +77,7 @@ class BondStrengthening(
         return ReactionOutcome(
             consumed = listOf(molecule),
             spawn = spawn,
-            description = "$id: ${molecule.displaySymbol} связь ${bond.atom1.localId}-${bond.atom2.localId} ${bond.order}→${bond.order + 1}" +
+            description = "$id: ${molecule.displaySymbol} связь ${bond.atom1.structure.localId}-${bond.atom2.structure.localId} ${bond.order}→${bond.order + 1}" +
                 (released?.let { " + γ[${it}eV]" } ?: ""),
         )
     }
