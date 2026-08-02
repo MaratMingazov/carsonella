@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -75,8 +76,7 @@ class StarPhotodisintegration(
         val (nearestPhoton, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == PHOTON
+                it is SubAtom && it.element == PHOTON
             }
             .filter { it.state().value.alive }
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }

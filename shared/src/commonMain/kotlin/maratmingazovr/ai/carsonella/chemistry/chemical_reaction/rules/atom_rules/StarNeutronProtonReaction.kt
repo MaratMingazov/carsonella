@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -59,8 +60,7 @@ class StarNeutronProtonReaction(
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == NEUTRON
+                it is SubAtom && it.element == NEUTRON
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

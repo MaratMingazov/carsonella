@@ -38,10 +38,8 @@ class StarAlphaGammaReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == HELIUM_4
-            }
+            .filterIsInstance<Atom>()
+            .filter { it.element == HELIUM_4 }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.centerPosition.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
@@ -49,9 +47,7 @@ class StarAlphaGammaReaction(
 
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        val secondSpecies = secondAtom.state().value.species
-        if (secondSpecies !is Species.Atomic) return null
-        val secondAtomElement = secondSpecies.element
+        val secondAtomElement = secondAtom.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
             Match(firstAtom, secondAtom, firstAtomElement, secondAtomElement)

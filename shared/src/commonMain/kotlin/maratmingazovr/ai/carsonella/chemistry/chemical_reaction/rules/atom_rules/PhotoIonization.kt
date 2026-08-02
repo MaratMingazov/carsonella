@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -58,8 +59,7 @@ class PhotoIonization (
         val (nearestPhoton, distance) = others
             .asSequence()
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == PHOTON
+                it is SubAtom && it.element == PHOTON
             }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }

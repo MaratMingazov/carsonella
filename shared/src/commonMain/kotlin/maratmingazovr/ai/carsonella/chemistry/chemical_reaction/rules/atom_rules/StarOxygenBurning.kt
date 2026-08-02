@@ -60,8 +60,7 @@ class StarOxygenBurning(
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == OXYGEN_16
+                it is Atom && it.element == OXYGEN_16
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

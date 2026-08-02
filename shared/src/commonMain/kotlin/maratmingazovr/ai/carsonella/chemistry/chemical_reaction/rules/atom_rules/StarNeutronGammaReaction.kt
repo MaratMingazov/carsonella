@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -59,8 +60,7 @@ class StarNeutronGammaReaction(
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == NEUTRON
+                it is SubAtom && it.element == NEUTRON
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.elementOrNull
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -43,10 +44,8 @@ class RecombinationReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == ELECTRON
-            }
+            .filterIsInstance<SubAtom>()
+            .filter { it.element == ELECTRON }
             .filter { it.state().value.alive }
             .map { it to  it.state().value.centerPosition.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
@@ -54,9 +53,7 @@ class RecombinationReaction(
 
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
-        val secondSpecies = secondAtom.state().value.species
-        if (secondSpecies !is Species.Atomic) return null
-        val secondAtomElement = secondSpecies.element
+        val secondAtomElement = secondAtom.element
 
         return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
             Match(firstAtom, secondAtom, firstAtomElement, secondAtomElement)

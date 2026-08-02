@@ -87,8 +87,7 @@ class StarPPChain(
             val (secondAtom, distanceSquare) = reagents
                 .drop(1)
                 .filter {
-                    val sp = it.state().value.species
-                    sp is Species.Atomic && sp.element == secondElement
+                    it.elementOrNull() == secondElement
                 }
                 .filter { it.state().value.alive }
                 .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

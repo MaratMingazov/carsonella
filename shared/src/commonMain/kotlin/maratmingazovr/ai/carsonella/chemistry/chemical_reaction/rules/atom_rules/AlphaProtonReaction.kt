@@ -63,18 +63,14 @@ class AlphaProtonReaction(
         val (alphaCandidate, distanceSquare) = reagents
             .drop(1)
             .filter { it.state().value.alive }
-            .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == HELIUM_4
-            }
+            .filterIsInstance<Atom>()
+            .filter { it.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
             ?: return null
 
-        val alphaSpecies = alphaCandidate.state().value.species
-        if (alphaSpecies !is Species.Atomic) return null
-        val alphaElement = alphaSpecies.element
+        val alphaElement = alphaCandidate.element
         val contactRadiusSquare = firstElement.details.radius * alphaElement.details.radius * 2f
         if (distanceSquare >= contactRadiusSquare) return null
 

@@ -17,6 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -81,8 +82,7 @@ class StarProtonCaptureReaction(
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == Proton
+                it is SubAtom && it.element == Proton
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

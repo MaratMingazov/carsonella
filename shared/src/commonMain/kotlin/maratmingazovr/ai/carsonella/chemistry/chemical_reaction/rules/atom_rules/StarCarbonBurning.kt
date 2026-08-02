@@ -60,8 +60,7 @@ class StarCarbonBurning(
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == CARBON_12
+                it is Atom && it.element == CARBON_12
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }

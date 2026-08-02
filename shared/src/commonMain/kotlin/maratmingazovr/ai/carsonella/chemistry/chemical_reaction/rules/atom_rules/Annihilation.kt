@@ -51,8 +51,7 @@ class Annihilation(
         val (nearestElectron, distanceSquare) = reagents
             .drop(1)
             .filter {
-                val sp = it.state().value.species
-                sp is Species.Atomic && sp.element == ELECTRON
+                it is SubAtom && it.element == ELECTRON
             }
             .filter { it.state().value.alive }
             .map { it to it.state().value.centerPosition.distanceSquareTo(positronPosition) }

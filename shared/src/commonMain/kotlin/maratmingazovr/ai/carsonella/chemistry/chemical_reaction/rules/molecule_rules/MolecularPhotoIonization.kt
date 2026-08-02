@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -46,7 +47,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
 
         val nearestPhoton = reagents.drop(1)
             .asSequence()
-            .filter { val sp = it.state().value.species; sp is Species.Atomic && sp.element == Element.PHOTON }
+            .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
             .map { it to firstPosition.distanceSquareTo(it.state().value.centerPosition) }
