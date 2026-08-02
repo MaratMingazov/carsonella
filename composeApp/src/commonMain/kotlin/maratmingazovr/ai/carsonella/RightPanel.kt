@@ -100,7 +100,7 @@ fun RightPanel(
                                     val id = selectedId
                                     val mouse = hoverPos
                                     if (id != null && mouse != null) {
-                                        val selected = entities.firstOrNull { it.state().value.id == id }?.state()?.value
+                                        val selected = entities.firstOrNull { it.id == id }?.state()?.value
                                         if (selected != null) {
                                             val from = selected.centerPosition.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
@@ -202,11 +202,11 @@ private fun SceneCanvas(
     // .value обязателен: зависимость регистрирует ЧТЕНИЕ значения, а не создание State. Без него
     // поток собирается, но композиция об этом не узнаёт.
     entities.forEach { entity ->
-        androidx.compose.runtime.key(entity.state().value.id) { entity.state().collectAsState().value }
+        androidx.compose.runtime.key(entity.id) { entity.state().collectAsState().value }
     }
 
     val hoveredEntityId = hoverPos?.let { hitTest(entities, it) } // Находится ли под курсором какой то элемент?
-    val selectedEntity = selectedId?.let { id -> entities.firstOrNull { it.state().value.id == id } } // Какой элемент сейчас выбран.
+    val selectedEntity = selectedId?.let { id -> entities.firstOrNull { it.id == id } } // Какой элемент сейчас выбран.
     val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedEntity, it) } // на какую связь молекулы навел курсор
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
@@ -264,7 +264,7 @@ private fun SceneCanvas(
                             } else if (bond != null) {
                                 // Клик по связи ВЫБРАННОЙ молекулы = усилить именно её (механика «лего»).
                                 world.requestMoleculeAction(
-                                    selectedLatest.value!!.state().value.id,
+                                    selectedLatest.value!!.id,
                                     ReactionSelection.StrengthenBond(bond),
                                 )
                             } else {
@@ -311,9 +311,9 @@ private fun SceneCanvas(
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
         entities
-            .sortedBy { if (it.state().value.id == world.heldEntityId) 1 else 0 }   // выделенную частицу рисуем поверх остальных
+            .sortedBy { if (it.id == world.heldEntityId) 1 else 0 }   // выделенную частицу рисуем поверх остальных
             .forEach { entity ->
-                val id = entity.state().value.id
+                val id = entity.id
                 val isHoveredOrSelectedEntity = id == hoveredEntityId || id == selectedId
                 val hoveredBond = if (id == selectedId) hoveredBond else null
                 renderer.render(
@@ -431,7 +431,7 @@ private fun hitTest(
         val distance = entity.distanceToSurface(point)
         if (distance <= slop && distance < bestDistance) {
             bestDistance = distance
-            bestId = entity.state().value.id
+            bestId = entity.id
         }
     }
     return bestId
@@ -501,7 +501,7 @@ private fun SelectedEntityPanel(
     onMoleculeAction: (Long, ReactionSelection) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedEntity = entities.firstOrNull { it.state().value.id == selectedElementId } ?: return
+    val selectedEntity = entities.firstOrNull { it.id == selectedElementId } ?: return
     val selectedElement by selectedEntity.state().collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
 
     Column(
@@ -532,7 +532,7 @@ private fun SelectedEntityPanel(
                 Spacer(Modifier.height(8.dp))
                 PanelButton(
                     text = "Close ring",
-                    onClick = { onMoleculeAction(selectedElement.id, ReactionSelection.CloseRing) },
+                    onClick = { onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -542,7 +542,7 @@ private fun SelectedEntityPanel(
             Spacer(Modifier.height(8.dp))
             EnergyEditor(
                 energyEv = selectedElement.energy,
-                onApply = { energy -> onSetEnergy(selectedElement.id, energy) },
+                onApply = { energy -> onSetEnergy(selectedEntity.id, energy) },
             )
         }
     }

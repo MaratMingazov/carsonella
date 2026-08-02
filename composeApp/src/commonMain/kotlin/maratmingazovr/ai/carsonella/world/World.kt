@@ -93,7 +93,7 @@ class World(
                 // если кто-то добавит сущность во время шага
                 val snapshot = entities.toList()
                 snapshot.forEach { entity ->
-                    if (entity.state().value.alive && entity.state().value.id != heldEntityId) entity.step()
+                    if (entity.state().value.alive && entity.id != heldEntityId) entity.step()
                 }
 
                 // Resolve phase — группируем запросы по ИНИЦИАТОРУ (первый реагент) и применяем ОДИН
@@ -104,7 +104,7 @@ class World(
                 val requests = _pendingRequests.toList()
                 _pendingRequests.clear()
                 requests
-                    .groupBy { it.reagents.first().state().value.id }
+                    .groupBy { it.reagents.first().id }
                     .forEach { (_, reqs) -> runReaction(reqs) }
 
                 delay(tickMs)
@@ -114,13 +114,13 @@ class World(
     }
 
     fun applyForceToEntity(entityId: Long, force: Vec2D) {
-        entities.find { it.state().value.id == entityId }?.run { applyForce(force) }
+        entities.find { it.id == entityId }?.run { applyForce(force) }
     }
 
     // Игрок задаёт энергию выбранной частице из панели (например, энергию фотона).
     // setEnergy клампит энергию ≥ 0. Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
     fun setEntityEnergy(entityId: Long, energy: Float) {
-        entities.find { it.state().value.id == entityId }?.setEnergy(energy)
+        entities.find { it.id == entityId }?.setEnergy(energy)
     }
 
     // Игрок форсит реакцию у выбранной молекулы из панели (усиление связи / замыкание кольца, механика
@@ -128,21 +128,21 @@ class World(
     // weight-конкуренцию (см. ReactionSelection). Тот же диспетчер, что у тика (Compose Main) → без гонки,
     // как setEntityEnergy/moveEntityTo. Реагент — сама молекула (self-request).
     fun requestMoleculeAction(entityId: Long, selection: ReactionSelection) {
-        val entity = entities.find { it.state().value.id == entityId } ?: return
+        val entity = entities.find { it.id == entityId } ?: return
         _pendingRequests.add(ReactionRequest(listOf(entity), selection))
     }
 
     // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
     // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
     fun moveEntityTo(entityId: Long, position: Position) {
-        entities.find { it.state().value.id == entityId }?.moveTo(position)
+        entities.find { it.id == entityId }?.moveTo(position)
     }
 
     // Игрок удаляет выбранную частицу с канвы (клавиша Delete). Убиваем через тот же destroy(),
     // что и реакции: onDeath-callback уберёт её из среды и из entities. Если она была «в руке» —
     // снимаем held, чтобы тик не остался с ссылкой на удалённую частицу.
     fun removeEntity(entityId: Long) {
-        val entity = entities.find { it.state().value.id == entityId } ?: return
+        val entity = entities.find { it.id == entityId } ?: return
         if (heldEntityId == entityId) heldEntityId = null
         entity.destroy()
     }
@@ -150,7 +150,7 @@ class World(
     // «Поднять» частицу: помечаем held (тик перестаёт её шагать) и убираем из детей среды,
     // чтобы соседи её не видели — пока в руке, она ни с кем не взаимодействует.
     fun pickUpEntity(entityId: Long) {
-        val entity = entities.find { it.state().value.id == entityId } ?: return
+        val entity = entities.find { it.id == entityId } ?: return
         heldEntityId = entityId
         entity.getEnvironment().removeEnvChild(entity)
     }
@@ -160,7 +160,7 @@ class World(
     // поэтому вытащенная из звезды частица реально остаётся в космосе, а не затягивается обратно.
     fun dropHeldEntity() {
         val id = heldEntityId ?: return
-        val entity = entities.find { it.state().value.id == id }
+        val entity = entities.find { it.id == id }
         entity?.updateMyEnvironment(environment)
         // z = порядок отрисовки: положенную частицу двигаем в конец списка, чтобы осталась ПОВЕРХ остальных
         // (а не вернулась на свой прежний индекс и под соседей). Побочно: теперь она шагает/инициирует последней.
@@ -184,15 +184,15 @@ class World(
      */
     fun toSnapshot(): WorldSnapshotDto {
         val saved = entities.toList().filter {it.state().value.alive }
-        val savedIds = saved.mapTo(mutableSetOf()) { it.state().value.id }
+        val savedIds = saved.mapTo(mutableSetOf()) { it.id }
 
         val entityDtos = saved.map { e ->
             val s = e.state().value
             // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
             // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
-            val parentId = (e.getEnvironment() as? Entity)?.state()?.value?.id?.takeIf { it in savedIds }
+            val parentId = (e.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
             EntityDto(
-                id = s.id,
+                id = e.id,
                 // element.name для Elemental (round-trip через Element.valueOf); молекулу так не сохранить —
                 // отдаём формулу, на загрузке отсеётся как «неизвестный элемент» (graph-save — отдельный рефактор).
                 element = when (val sp = s.species) {
@@ -320,7 +320,7 @@ class World(
         // Поднятую частицу исключаем из реагентов (страховка от устаревшего запроса прошлого тика);
         // selection (форс игрока / WeightBased) сохраняем через copy.
         val filtered = requests
-            .map { req -> req.copy(reagents = req.reagents.filter { it.state().value.id != heldEntityId }) }
+            .map { req -> req.copy(reagents = req.reagents.filter { it.id != heldEntityId }) }
             .filter { it.reagents.isNotEmpty() }
         val result = _chemicalReactionResolver.resolve(filtered) ?: return
         if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"

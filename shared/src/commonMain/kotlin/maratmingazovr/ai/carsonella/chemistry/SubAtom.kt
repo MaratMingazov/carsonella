@@ -14,7 +14,7 @@ import kotlin.math.round
 
 
 class SubAtom(
-    id: Long,
+    override val id: Long,
     val element: Element,
     position: Position,
     direction: Vec2D,
@@ -31,7 +31,6 @@ class SubAtom(
 {
     private var state = MutableStateFlow(
         EntityState(
-            id = id,
             species = Species.Atomic(element),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),

@@ -17,7 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.round
 
 class Atom(
-    id: Long,
+    override val id: Long,
     val element: Element,
     position: Position,
     direction: Vec2D,
@@ -45,7 +45,6 @@ class Atom(
 
     private var state = MutableStateFlow(
         EntityState(
-            id = id,
             species = Species.Atomic(element),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),

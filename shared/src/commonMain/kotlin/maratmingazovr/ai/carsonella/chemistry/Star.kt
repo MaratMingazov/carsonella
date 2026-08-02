@@ -9,7 +9,7 @@ import kotlin.math.round
 
 
 class Star(
-    id: Long,
+    override val id: Long,
     val element: Element,
     position: Position,
     direction: Vec2D,
@@ -27,7 +27,6 @@ class Star(
 {
     private var state = MutableStateFlow(
         EntityState(
-            id = id,
             species = Species.Atomic(element),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
@@ -49,7 +48,7 @@ class Star(
     override fun describe(): String {
         val s = state().value
         return """
-            |${element.label(s.electrons)}: ${s.id}
+            |${element.label(s.electrons)}: ${id}
             |Position (${s.centerPosition.x.toInt()}, ${s.centerPosition.y.toInt()})
             |Velocity ${round(s.velocity * 100) / 100}
             |Energy ${round(s.energy * 100) / 100}

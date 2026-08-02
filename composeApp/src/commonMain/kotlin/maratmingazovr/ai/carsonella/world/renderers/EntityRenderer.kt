@@ -57,7 +57,7 @@ class EntityRenderer(
         highlight: Highlight = Highlight.NONE,
     ) {
         val entityState = entity.state().value
-        val vibrationParams = VibrationParams(entityState.id, entityState.energy, time) // параметры вибрации
+        val vibrationParams = VibrationParams(entity.id, entityState.energy, time) // параметры вибрации
         when (entityState.species) {
             is Species.Molecular -> drawMolecule(drawScope, entity, highlight, vibrationParams, time)
             is Species.Atomic -> drawElemental(drawScope, entity, highlight, vibrationParams)
@@ -217,7 +217,7 @@ class EntityRenderer(
         val entityState = entity.state().value
         // параметры вибрации/пульса — от общего time на частоте STAR_HZ
         val amp = 1f + entityState.energy                  // амплитуда в пикселях
-        val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
+        val idSeed = (entity.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
         val ph = time * ANIM_TWO_PI * STAR_HZ
         val dx = amp * kotlin.math.cos(ph + idSeed)
         val dy = amp * kotlin.math.sin(ph + idSeed)

@@ -11,7 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
 class Molecule(
-    id: Long,
+    override val id: Long,
     val graph: MoleculeGraph,
     position: Position,
     direction: Vec2D,
@@ -28,7 +28,6 @@ class Molecule(
 {
     private var state = MutableStateFlow(
         EntityState(
-            id = id,
             species = Species.Molecular(graph),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),

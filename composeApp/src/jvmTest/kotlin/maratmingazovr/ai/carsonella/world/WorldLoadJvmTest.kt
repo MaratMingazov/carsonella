@@ -33,7 +33,7 @@ class WorldLoadJvmTest {
         summary = mapOf("Star" to 1, "Proton" to 1, "HYDROGEN" to 1),
     )
 
-    private fun World.entityById(id: Long): Entity = entities.first { it.state().value.id == id }
+    private fun World.entityById(id: Long): Entity = entities.first { it.id == id }
 
     @Test
     fun restoresAllEntitiesAndTick() {
@@ -42,7 +42,7 @@ class WorldLoadJvmTest {
 
         assertEquals(3, world.entities.size)
         assertEquals(100L, world.tick)
-        assertEquals(setOf(0L, 1L, 2L), world.entities.mapTo(mutableSetOf()) { it.state().value.id })
+        assertEquals(setOf(0L, 1L, 2L), world.entities.mapTo(mutableSetOf()) { it.id })
     }
 
     @Test
@@ -56,12 +56,12 @@ class WorldLoadJvmTest {
 
         // протон должен сидеть внутри звезды
         assertSame(star, proton.getEnvironment(), "родитель протона — звезда")
-        assertTrue(star.getEnvChildren().any { it.state().value.id == 1L }, "звезда содержит протон")
+        assertTrue(star.getEnvChildren().any { it.id == 1L }, "звезда содержит протон")
 
         // водород — в корневой среде, не внутри звезды
         assertSame(world.environment, hydrogen.getEnvironment(), "водород в корневой среде")
-        assertTrue(world.environment.getEnvChildren().any { it.state().value.id == 2L })
-        assertTrue(star.getEnvChildren().none { it.state().value.id == 2L }, "водорода в звезде быть не должно")
+        assertTrue(world.environment.getEnvChildren().any { it.id == 2L })
+        assertTrue(star.getEnvChildren().none { it.id == 2L }, "водорода в звезде быть не должно")
     }
 
     @Test
@@ -88,7 +88,7 @@ class WorldLoadJvmTest {
             direction = maratmingazovr.ai.carsonella.Vec2D(1f, 0f),
             velocity = 0f, energy = 0f, environment = world.environment, electrons = 1,
         )
-        assertEquals(3L, created.state().value.id)
+        assertEquals(3L, created.id)
     }
 
     @Test
