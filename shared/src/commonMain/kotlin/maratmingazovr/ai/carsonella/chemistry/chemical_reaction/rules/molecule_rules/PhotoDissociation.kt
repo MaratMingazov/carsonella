@@ -39,7 +39,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
         val threshold = weakestBondAndEnergy.second
 
-        val subjectPosition = subject.state().value.kinematics.centerPosition
+        val subjectPosition = subject.state().value.kinematics.position
         val radius = subject.radius
         val activationDistanceSquare = radius * radius
 
@@ -48,7 +48,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
             .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
-            .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) }
+            .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first

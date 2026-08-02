@@ -62,7 +62,7 @@ class PhotoIonization (
             }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
-            .map { it to first.state().value.kinematics.centerPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) }
+            .map { it to first.state().value.kinematics.position.distanceSquareTo(it.state().value.kinematics.position) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -106,7 +106,7 @@ class PhotoIonization (
             val energyIonization = entityElement.energyLevels(electrons).last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
             val freeEnergy = entityEnergy + photonEnergy - energyIonization
-            val entityPosition = atom.state().value.kinematics.centerPosition
+            val entityPosition = atom.state().value.kinematics.position
             val entityDirection = atom.state().value.kinematics.direction
             val entityVelocity = atom.state().value.kinematics.velocity
             val entityRadius = entityElement.details.radius

@@ -77,7 +77,7 @@ class EntityRenderer(
         withValenceSlots: Boolean,
     ) {
         val entityState = entity.state().value
-        val position = entityState.kinematics.centerPosition.toOffset()  + vibrationParams.positionOffset
+        val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
         val fillColor = ElementColors.fill(element)
         val symbol = element.details.symbol.filter { it.isLetter() }
 
@@ -224,7 +224,7 @@ class EntityRenderer(
         val ph = time * ANIM_TWO_PI * STAR_HZ
         val dx = amp * kotlin.math.cos(ph + idSeed)
         val dy = amp * kotlin.math.sin(ph + idSeed)
-        val position = entityState.kinematics.centerPosition.toOffset()  + Offset(dx, dy)
+        val position = entityState.kinematics.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
         val baseRadius = entity.radius + 5f   // базовый радиус круга

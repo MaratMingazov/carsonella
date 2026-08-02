@@ -30,7 +30,7 @@ class RecombinationReaction(
     override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first()
-        val firstAtomPosition = reagents.first().state().value.kinematics.centerPosition
+        val firstAtomPosition = reagents.first().state().value.kinematics.position
         if (!firstAtom.state().value.alive) return null
         // Субъект — атом ИЛИ голый протон (он пока в SubAtom), поэтому элемент берём через elementOrNull.
         val firstAtomElement = firstAtom.elementOrNull() ?: return null
@@ -46,7 +46,7 @@ class RecombinationReaction(
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition)}
+            .map { it to  it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
@@ -64,7 +64,7 @@ class RecombinationReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val electrons = atom1.state().value.electrons
-        val resultPosition = atom1.state().value.kinematics.centerPosition
+        val resultPosition = atom1.state().value.kinematics.position
         val env = atom1.getEnvironment()
 
         // Протий — особый случай: p⁺ + e⁻ → HYDROGEN (атом). Element/класс меняется (element неизменяем) →

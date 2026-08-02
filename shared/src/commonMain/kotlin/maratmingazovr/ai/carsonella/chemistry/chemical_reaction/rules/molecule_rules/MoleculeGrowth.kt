@@ -37,13 +37,13 @@ class MoleculeGrowth(
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val subjectPosition = subject.state().value.kinematics.centerPosition
+        val subjectPosition = subject.state().value.kinematics.position
         val subjectRadius = subject.radius
 
         val (second, distanceSquare) = neighbors
             .filter { canBond(it) }
             .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(subjectPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(subjectPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -106,8 +106,8 @@ class MoleculeGrowth(
 
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(molecule, partnerEntity)
-        val p1 = molecule.state().value.kinematics.centerPosition
-        val p2 = partnerEntity.state().value.kinematics.centerPosition
+        val p1 = molecule.state().value.kinematics.position
+        val p2 = partnerEntity.state().value.kinematics.position
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
         // Сохранение электронов (§8): электроны новой молекулы = сумма электронов реагентов.
         val electrons = molecule.state().value.electrons + partnerEntity.state().value.electrons

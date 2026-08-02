@@ -194,7 +194,7 @@ class World(
                 id = entity.id,
                 element = entity.saveKey,
                 alive = entityState.alive,
-                x = entityState.kinematics.centerPosition.x, y = entityState.kinematics.centerPosition.y,
+                x = entityState.kinematics.position.x, y = entityState.kinematics.position.y,
                 dirX = entityState.kinematics.direction.x, dirY = entityState.kinematics.direction.y,
                 velocity = entityState.kinematics.velocity,
                 energy = entityState.energy,

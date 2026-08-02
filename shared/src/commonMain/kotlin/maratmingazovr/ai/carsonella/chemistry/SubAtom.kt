@@ -43,7 +43,7 @@ class SubAtom(
     override val mass: Float = if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override val radius: Float = element.details.radius
-    override fun distanceToSurface(point: Position): Float = state().value.kinematics.centerPosition.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
 
@@ -107,7 +107,7 @@ class SubAtom(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.kinematics.centerPosition.distanceSquareTo(entity.state().value.kinematics.centerPosition) < 5000f }
+            .filter { entity -> state.value.kinematics.position.distanceSquareTo(entity.state().value.kinematics.position) < 5000f }
             .takeIf { it.isNotEmpty() }
             ?.let {requestReaction(listOf(this) + it) }
     }
@@ -130,7 +130,7 @@ class SubAtom(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.kinematics.centerPosition.distanceSquareTo(entity.state().value.kinematics.centerPosition) < 5000f }
+            .filter { entity -> state.value.kinematics.position.distanceSquareTo(entity.state().value.kinematics.position) < 5000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
     }

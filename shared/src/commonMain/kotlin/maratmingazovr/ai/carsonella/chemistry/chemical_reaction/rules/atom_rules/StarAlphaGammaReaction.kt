@@ -30,7 +30,7 @@ class StarAlphaGammaReaction(
     override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = reagents.first().state().value.kinematics.centerPosition
+        val firstAtomPosition = reagents.first().state().value.kinematics.position
         if (!firstAtom.state().value.alive) return null
         val firstAtomElement = firstAtom.element
         if (firstAtomElement.details.alphaGammaResult == null) return null // значит элемент не участвует в альфа захвате
@@ -40,7 +40,7 @@ class StarAlphaGammaReaction(
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.kinematics.centerPosition.distanceSquareTo(firstAtomPosition)}
+            .map { it to  it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
@@ -59,7 +59,7 @@ class StarAlphaGammaReaction(
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
 
         val (direction,velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.kinematics.centerPosition
+        val resultPosition = atom1.state().value.kinematics.position
         val resultElement = atom1Element.details.alphaGammaResult!!
         // Перенос электронной оболочки на продукт (2C2): наследует электроны родителя-ядра,
         // но не больше своего Z. (α,γ) повышает Z → кламп здесь no-op, shake-off не нужен.

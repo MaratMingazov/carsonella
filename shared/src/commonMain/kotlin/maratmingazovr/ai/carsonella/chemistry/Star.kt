@@ -40,7 +40,7 @@ class Star(
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override val radius: Float = element.details.radius
-    override fun distanceToSurface(point: Position): Float = state().value.kinematics.centerPosition.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
 
@@ -50,13 +50,13 @@ class Star(
         val state = state().value
         return """
             |${element.label(state.electrons)}: ${id}
-            |Position (${state.kinematics.centerPosition.x.toInt()}, ${state.kinematics.centerPosition.y.toInt()})
+            |Position (${state.kinematics.position.x.toInt()}, ${state.kinematics.position.y.toInt()})
             |Velocity ${round(state.kinematics.velocity * 100) / 100}
             |Energy ${round(state.energy * 100) / 100}
         """.trimMargin()
     }
 
-    override fun getEnvCenter() = state.value.kinematics.centerPosition
+    override fun getEnvCenter() = state.value.kinematics.position
     override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star
     override fun getEnvChildren(): List<Entity> { return children }
@@ -79,7 +79,7 @@ class Star(
         neighbors
             .filter { it.state().value.alive }
             .filter { it.getEnvironment() !== this }
-            .filter { state.value.kinematics.centerPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) < (radius + 10) * (radius + 10) }
+            .filter { state.value.kinematics.position.distanceSquareTo(it.state().value.kinematics.position) < (radius + 10) * (radius + 10) }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

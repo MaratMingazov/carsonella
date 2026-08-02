@@ -67,7 +67,7 @@ abstract class MoleculeReactionRule : ReactionRule {
             // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
             // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
             // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
-            val pos = moleculeState.kinematics.centerPosition.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
+            val pos = moleculeState.kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope

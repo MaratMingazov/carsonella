@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.sqrt
 
 data class Kinematics(
-    val centerPosition: Position,
+    val position: Position,
     val direction: Vec2D,
     val velocity: Float,
 )
@@ -111,17 +111,17 @@ sealed interface Entity :
     fun applyNewPosition() {
         val kinematics = state().value.kinematics
         val newPosition = Position(
-            x = kinematics.centerPosition.x + kinematics.direction.x * kinematics.velocity,
-            y = kinematics.centerPosition.y + kinematics.direction.y * kinematics.velocity
+            x = kinematics.position.x + kinematics.direction.x * kinematics.velocity,
+            y = kinematics.position.y + kinematics.direction.y * kinematics.velocity
         )
-        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = newPosition))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = newPosition))
     }
 
     // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
     // спокойно осталась там, куда её положили, а не улетела по инерции.
     fun moveTo(position: Position) {
         val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = position, velocity = 0f))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, velocity = 0f))
     }
 
     fun reduceVelocity() {
@@ -132,7 +132,7 @@ sealed interface Entity :
 
     fun checkBorders(env: IEnvironment) {
 
-        var position = state().value.kinematics.centerPosition
+        var position = state().value.kinematics.position
         var direction = state().value.kinematics.direction
         val center = env.getEnvCenter()
         val radius = env.getEnvRadius()
@@ -156,7 +156,7 @@ sealed interface Entity :
         }
         
         val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = position, direction = direction))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, direction = direction))
     }
 
     fun addEnergy(energy: Float) {
@@ -204,9 +204,9 @@ sealed interface Entity :
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
-            val elementPosition = element.state().value.kinematics.centerPosition
-            val rx = state().value.kinematics.centerPosition.x - elementPosition.x
-            val ry = state().value.kinematics.centerPosition.y - elementPosition.y
+            val elementPosition = element.state().value.kinematics.position
+            val rx = state().value.kinematics.position.x - elementPosition.x
+            val ry = state().value.kinematics.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.radius

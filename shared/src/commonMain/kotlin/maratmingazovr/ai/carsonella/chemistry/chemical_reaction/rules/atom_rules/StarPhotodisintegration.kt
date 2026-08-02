@@ -71,7 +71,7 @@ class StarPhotodisintegration(
         }
         if (candidates.isEmpty()) return null
 
-        val firstPosition = first.state().value.kinematics.centerPosition
+        val firstPosition = first.state().value.kinematics.position
         val (nearestPhoton, distanceSquare) = reagents
             .drop(1)
             .filter {
@@ -79,7 +79,7 @@ class StarPhotodisintegration(
             }
             .filter { it.state().value.alive }
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }
-            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -96,7 +96,7 @@ class StarPhotodisintegration(
         val parent = channel.parent
         val ejected = channel.ejected
 
-        val position = a.state().value.kinematics.centerPosition
+        val position = a.state().value.kinematics.position
         val direction = a.state().value.kinematics.direction
         val velocity = a.state().value.kinematics.velocity
         val radius = parent.details.radius
