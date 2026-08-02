@@ -52,20 +52,20 @@ abstract class MoleculeReactionRule : ReactionRule {
         generator: IEntityGenerator,
         energyPerFragment: Float,
     ): List<() -> Entity> {
-        val s = molecule.state().value
+        val moleculeState = molecule.state().value
         val env = molecule.getEnvironment()
         return fragments.mapIndexed { i, frag ->
             // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
             // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
             // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
-            val pos = s.centerPosition.plus(Position((i - (fragments.size - 1) / 2f) * s.radius * FRAGMENT_SEPARATION, 0f))
+            val pos = moleculeState.centerPosition.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
             val electrons = frag.protons               // нейтральный осколок (гомолитика)
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope
-                val kineticVelocity = s.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(Species.Atomic(isotope), pos, s.direction, kineticVelocity, 0f, env, electrons) }
+                val kineticVelocity = moleculeState.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
+                return@mapIndexed { generator.createEntity(Species.Atomic(isotope), pos, moleculeState.direction, kineticVelocity, 0f, env, electrons) }
             } else {
-                return@mapIndexed { generator.createEntity(Species.Molecular(frag), pos, s.direction, s.velocity, energyPerFragment, env, electrons) }
+                return@mapIndexed { generator.createEntity(Species.Molecular(frag), pos, moleculeState.direction, moleculeState.velocity, energyPerFragment, env, electrons) }
             }
         }
     }

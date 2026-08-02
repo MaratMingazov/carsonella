@@ -11,13 +11,11 @@ import kotlin.math.round
 
 
 sealed interface Species {
-    val radius: Float
     fun displaySymbol(electrons: Int): String
     fun energyLevels(electrons: Int): List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
     fun describe(s: EntityState): String
 
     data class Atomic(val element: Element) : Species {
-        override val radius: Float get() = element.details.radius
         override fun displaySymbol(electrons: Int): String = element.symbol(electrons)
         override fun energyLevels(electrons: Int): List<Float> = element.energyLevels(electrons)
         override fun describe(s: EntityState): String = when (element.details.type) {
@@ -48,7 +46,6 @@ sealed interface Species {
     }
 
     data class Molecular(val graph: MoleculeGraph) : Species {
-        override val radius: Float get() = MOLECULE_RADIUS
         override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
         override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
@@ -109,5 +106,3 @@ sealed interface Species {
     }
 }
 
-// Пока константа (как старый дефолт Details.radius); при желании позже выведем из размера графа.
-private const val MOLECULE_RADIUS = 20f

@@ -31,7 +31,6 @@ data class EntityState(
     val direction: Vec2D get() = kinematics.direction
     val velocity: Float get() = kinematics.velocity
 
-    val radius: Float get() = species.radius
     val displaySymbol: String get() = species.displaySymbol(electrons)
     val energyLevels: List<Float> get() = species.energyLevels(electrons) // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
 
@@ -113,6 +112,12 @@ interface Entity :
 
     val mass: Float
     val protons: Int
+
+    /**
+     * ВРЕМЕННЫЙ член: он не применим в молекуле
+     * MOLECULE_RADIUS там просто затычка. - поэтому скоро удалим из интерфейса
+     */
+    val radius: Float
 
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
@@ -220,7 +225,7 @@ interface Entity :
         var fy = 0f
         val myElectronsCount = state().value.electrons
         val myProtonsCount = protons
-        val myRadius = state().value.radius
+        val myRadius = radius
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
@@ -229,7 +234,7 @@ interface Entity :
             val ry = state().value.centerPosition.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
-            val elementRadius = element.state().value.radius
+            val elementRadius = element.radius
             val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
             // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
             if (distance2 > maxRadius2) return@forEach // вне радиуса действия

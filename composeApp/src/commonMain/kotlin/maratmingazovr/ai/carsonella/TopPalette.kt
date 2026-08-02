@@ -62,7 +62,7 @@ internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier) {
     val species = Species.Atomic(element)
     val fill = ElementColors.fill(species)
     val symbol = element.details.symbol.filter { it.isLetter() }
-    val radiusPx = species.radius   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
+    val radiusPx = element.details.radius   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
     // box в dp под кружок + обводку; toDp переводит px в dp, чтобы Canvas в px вышел ровно 2*radius (+запас)
     val boxDp = with(LocalDensity.current) { (radiusPx * 2f + 5f).toDp() }
 

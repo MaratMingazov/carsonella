@@ -39,6 +39,7 @@ class Molecule(
 
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
+    override val radius: Float get() = MOLECULE_RADIUS
 
     override fun step() {
         val neighbors = getNeighbors()
@@ -75,3 +76,7 @@ class Molecule(
     }
 
 }
+
+// Затычка: у молекулы нет своего радиуса, её протяжённость — это атомы (см. Entity.radius).
+// internal, а не private: то же число нужно CovalentBondFormation, где сущности ещё нет.
+internal const val MOLECULE_RADIUS = 20f

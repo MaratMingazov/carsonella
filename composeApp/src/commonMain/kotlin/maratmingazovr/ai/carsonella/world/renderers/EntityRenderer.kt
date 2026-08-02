@@ -72,7 +72,7 @@ class EntityRenderer(
         val entityState = entity.state().value
         val position = entityState.centerPosition.toOffset()  + vibrationParams.positionOffset
         val element = (entityState.species as Species.Atomic).element
-        val radius = entityState.species.radius
+        val radius = entity.radius
         val fillColor = ElementColors.fill(entityState.species)
         val symbol = element.details.symbol.filter { it.isLetter() }
 
@@ -224,7 +224,7 @@ class EntityRenderer(
         val position = entityState.centerPosition.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
-        val baseRadius = entityState.radius + 5f   // базовый радиус круга
+        val baseRadius = entity.radius + 5f   // базовый радиус круга
         val pulse = 10f * kotlin.math.abs(kotlin.math.sin(ph + idSeed)) // амплитуда пульса
         val pulsingRadius = baseRadius + pulse
 

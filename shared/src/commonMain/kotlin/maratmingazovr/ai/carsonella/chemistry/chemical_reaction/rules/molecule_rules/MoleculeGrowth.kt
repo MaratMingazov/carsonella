@@ -50,7 +50,7 @@ class MoleculeGrowth(
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
         val firstPosition = first.state().value.centerPosition
-        val firstRadius = first.state().value.radius
+        val firstRadius = first.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
@@ -60,7 +60,7 @@ class MoleculeGrowth(
             .minByOrNull { it.second }
             ?: return null
 
-        val secondRadius = second.state().value.radius
+        val secondRadius = second.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
             Match(first, second)
         } else {
@@ -134,7 +134,7 @@ class MoleculeGrowth(
         if (bondEnergy != null && bondEnergy > 0f) {
             val photonDirection = randomDirection(entityGenerator.random)
             val photonVelocity = MAX_VELOCITY
-            val offset = mol.state().value.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
+            val offset = mol.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
             val photonPosition = midpoint.addVelocity(photonDirection * offset)
             spawn += {
                 // Фотон уносит энергию связи и УЛЕТАЕТ

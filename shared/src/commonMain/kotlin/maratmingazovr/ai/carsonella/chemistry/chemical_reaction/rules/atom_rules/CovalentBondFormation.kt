@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.MOLECULE_RADIUS
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -41,7 +42,7 @@ class CovalentBondFormation(
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
         val firstPosition = first.state().value.centerPosition
-        val firstRadius = first.state().value.radius
+        val firstRadius = first.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
@@ -51,7 +52,7 @@ class CovalentBondFormation(
             .minByOrNull { it.second }
             ?: return null
 
-        val secondRadius = second.state().value.radius
+        val secondRadius = second.radius
         return if (distanceSquare < firstRadius * secondRadius * 2f) {
             Match(first, second)
         } else {
@@ -107,7 +108,7 @@ class CovalentBondFormation(
             spawn += {
                 val photonVelocity = MAX_VELOCITY
                 val photonDirection = randomDirection(entityGenerator.random)
-                val offset = moleculeSpecies.radius + Element.PHOTON.details.radius // нужно выйти за радиус атома
+                val offset = MOLECULE_RADIUS + Element.PHOTON.details.radius // нужно выйти за радиус атома
                 val photonPosition = midpoint.addVelocity(photonDirection * offset)
                 entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection, photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
             }

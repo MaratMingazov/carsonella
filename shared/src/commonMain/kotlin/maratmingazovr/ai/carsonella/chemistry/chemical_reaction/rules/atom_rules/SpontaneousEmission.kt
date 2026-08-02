@@ -55,7 +55,7 @@ class SpontaneousEmission(
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity.state().value.energy
         val entityPosition = entity.state().value.centerPosition
-        val entityRadius = entity.state().value.radius
+        val entityRadius = entity.radius
         val levels = entityElement.energyLevels(entity.state().value.electrons)
         val index = levels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")

@@ -57,6 +57,7 @@ class Atom(
 
     override val mass: Float get() = (element.details.p + element.details.n).toFloat()
     override val protons: Int get() = element.details.p
+    override val radius: Float get() = element.details.radius
 
 
     override fun step() {

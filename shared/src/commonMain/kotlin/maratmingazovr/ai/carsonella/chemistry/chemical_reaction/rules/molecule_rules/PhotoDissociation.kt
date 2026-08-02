@@ -41,7 +41,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val threshold = weakestBondAndEnergy.second
 
         val firstPosition = first.state().value.centerPosition
-        val radius = first.state().value.radius
+        val radius = first.radius
         val activationDistanceSquare = radius * radius
 
         val nearestPhoton = reagents.drop(1)

@@ -103,7 +103,7 @@ class StarEmission (
                     val fromCenter = Vec2D(pos.x - center.x, pos.y - center.y)
                     // Ребёнок ровно в центре звезды — направления «наружу» нет, берём случайное.
                     val outward = if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
-                    val ejectDistance = star.state().value.radius + 20f
+                    val ejectDistance = star.radius + 20f
                     reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
                     // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
