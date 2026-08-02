@@ -12,16 +12,24 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.sqrt
 
+data class Kinematics(
+    val position: Position,
+    val direction: Vec2D,
+    val velocity: Float,
+)
+
 data class EntityState(
     val id: Long,
     val species: Species,
     val alive: Boolean,
-    val position: Position,
-    val direction: Vec2D,
-    val velocity: Float,
+    val kinematics: Kinematics,
     val energy: Float,
     val electrons: Int,
 ) {
+
+    val position: Position get() = kinematics.position
+    val direction: Vec2D get() = kinematics.direction
+    val velocity: Float get() = kinematics.velocity
 
     val mass: Float get() = species.mass
     val protons: Int get() = species.protons
@@ -64,12 +72,10 @@ data class EntityState(
      */
     fun copyWith(
         alive: Boolean = this.alive,
-        position: Position = this.position,
-        direction: Vec2D = this.direction,
-        velocity: Float = this.velocity,
+        kinematics: Kinematics = this.kinematics,
         energy: Float = this.energy,
         electrons: Int = this.electrons,
-    ): EntityState = copy(alive = alive, position = position, direction = direction, velocity = velocity, energy = energy, electrons = electrons)
+    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, electrons = electrons)
 
     override fun toString(): String = species.describe(this)
 }
@@ -122,26 +128,25 @@ interface Entity :
     }
 
     fun applyNewPosition() {
-        state().value = state().value.copyWith(position =
-            Position(
-                x = state().value.position.x + state().value.direction.x * state().value.velocity,
-                y = state().value.position.y + state().value.direction.y * state().value.velocity
-            )
+        val kinematics = state().value.kinematics
+        val newPosition = Position(
+            x = kinematics.position.x + kinematics.direction.x * kinematics.velocity,
+            y = kinematics.position.y + kinematics.direction.y * kinematics.velocity
         )
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = newPosition))
     }
 
     // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
     // спокойно осталась там, куда её положили, а не улетела по инерции.
     fun moveTo(position: Position) {
-        state().value = state().value.copyWith(position = position, velocity = 0f)
+        val kinematics = state().value.kinematics
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, velocity = 0f))
     }
 
     fun reduceVelocity() {
-        if (state().value.velocity < 0.1f) {
-            state().value = state().value.copyWith(velocity = 0f)
-        } else {
-            state().value = state().value.copyWith(velocity = state().value.velocity * 0.99f)
-        }
+        val kinematics = state().value.kinematics
+        val newVelocity = if (kinematics.velocity < 0.1f) 0f else kinematics.velocity * 0.99f
+        state().value = state().value.copyWith(kinematics = kinematics.copy(velocity = newVelocity))
     }
 
     fun checkBorders(env: IEnvironment) {
@@ -168,16 +173,9 @@ interface Entity :
             val dot = direction.x * nx + direction.y * ny
             direction = direction.copy(x = direction.x - 2 * dot * nx, y = direction.y - 2 * dot * ny)
         }
-
-//        if (position.x !in left..right) {
-//            position = position.copy(x = position.x.coerceIn(left, right))
-//            direction = direction.copy(x = -direction.x)
-//        }
-//        if (position.y !in bottom..top) {
-//            position = position.copy(y = position.y.coerceIn(bottom, top))
-//            direction = direction.copy(y = -direction.y)
-//        }
-        state().value = state().value.copyWith(position = position, direction = direction)
+        
+        val kinematics = state().value.kinematics
+        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, direction = direction))
     }
 
     fun addEnergy(energy: Float) {
@@ -196,7 +194,9 @@ interface Entity :
     }
 
     fun addVelocity(moreVelocity: Float) {
-        state().value = state().value.copyWith(velocity = state().value.velocity + moreVelocity)
+        val kinematics = state().value.kinematics
+        val newVelocity = kinematics.velocity + moreVelocity
+        state().value = state().value.copyWith(kinematics = kinematics.copy(velocity = newVelocity))
     }
 
     fun mass(): Float = state().value.mass
@@ -205,11 +205,12 @@ interface Entity :
 
         if (mass() < 0.001f) return
         val a = force.div(mass())
-        val newVelocityVector = state().value.direction.times(state().value.velocity).plus(a)
+        val kinematics = state().value.kinematics
+        val newVelocityVector = kinematics.direction.times(kinematics.velocity).plus(a)
         val newVelocity = newVelocityVector.length()
-        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else state().value.direction
+        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else kinematics.direction
 
-        state().value = state().value.copyWith(direction = newDirection, velocity = newVelocity)
+        state().value = state().value.copyWith(kinematics = kinematics.copy(direction = newDirection, velocity = newVelocity))
     }
 
     /**

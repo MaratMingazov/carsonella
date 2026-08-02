@@ -29,9 +29,7 @@ class Molecule(
             id = id,
             species = species,
             alive = true,
-            position = position,
-            direction = direction,
-            velocity = velocity,
+            kinematics = Kinematics(position, direction, velocity),
             energy = energy,
             electrons = electrons,
         )
