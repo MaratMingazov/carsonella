@@ -100,9 +100,9 @@ class StarEmission (
                     val pos = reagent.state().value.position
                     // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),
                     // чтобы звезда не засосала его обратно тем же тиком. Нормальный выброс (импульс) — позже.
-                    var outward = Vec2D(pos.x - center.x, pos.y - center.y)
-                    if (outward.length() < 1e-6f) outward = randomDirection(entityGenerator.random)
-                    outward.normalizeInPlace()
+                    val fromCenter = Vec2D(pos.x - center.x, pos.y - center.y)
+                    // Ребёнок ровно в центре звезды — направления «наружу» нет, берём случайное.
+                    val outward = if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
                     val ejectDistance = star.state().value.radius + 20f
                     reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт

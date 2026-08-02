@@ -33,34 +33,29 @@ data class Position(val x: Float, val y: Float) {
     }
 }
 
-data class Vec2D(var x: Float, var y: Float) {
+/**
+ * Вектор на плоскости. ИММУТАБЕЛЕН: любая операция возвращает новый объект.
+ *
+ */
+data class Vec2D(val x: Float, val y: Float) {
     operator fun plus(v: Vec2D) = Vec2D(x + v.x, y + v.y)
     operator fun times(k: Float) = Vec2D(x * k, y * k)
-    fun addInPlace(v: Vec2D) { x += v.x; y += v.y }
-    fun scaleInPlace(k: Float) { x *= k; y *= k }
-    fun divInPlace(k: Float) {
-        require(k != 0f) { "Division by zero" }
-        x /= k; y /= k
-    }
     fun div(k: Float) : Vec2D {
         require(k != 0f) { "Division by zero" }
         return Vec2D(x / k, y / k)
     }
 
-    fun scaleTo(newLength: Float) {
-        val l = length()
-        if (l > 1e-12) { // чтобы не делить на ноль
-            val factor = newLength / l
-            x *= factor
-            y *= factor
-        } else {
-            // если длина ≈ 0 — задаём фиксированное направление
-            x = newLength
-            y = 0f
-        }
-    }
     fun length() = kotlin.math.sqrt(x*x + y*y)
-    fun normalizeInPlace() { val L = length(); if (L > 1e-6f) { x /= L; y /= L } }
+
+    /**
+     * Единичный вектор того же направления. У нулевого вектора направления НЕТ, 
+     * поэтому он возвращается как есть — вызывающий сам решает, чем его заменить
+     */
+    fun normalized(): Vec2D {
+        val l = length()
+        return if (l > 1e-6f) Vec2D(x / l, y / l) else this
+    }
+
     companion object {
         fun fromAngle(angleRad: Float, r: Float) = Vec2D(kotlin.math.cos(angleRad) * r, kotlin.math.sin(angleRad) * r)
     }

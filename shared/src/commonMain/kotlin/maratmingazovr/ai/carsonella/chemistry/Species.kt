@@ -8,26 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 
 
-/**
- * Атом молекулы, поставленный в мир
- */
-data class MolecularAtom(
-    val localId: Int,
-    val isotope: Element,
-    val position: Position, // позиция, не просто offset
-    val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
-) {
-    val radius: Float get() = isotope.details.radius
-}
 
-/**
- * Связь молекулы, поставленная в мир: оба конца — уже с координатами.
- */
-data class MolecularBond(
-    val atom1: MolecularAtom,
-    val atom2: MolecularAtom,
-    val order: Int,
-)
 
 sealed interface Species {
     val mass: Float

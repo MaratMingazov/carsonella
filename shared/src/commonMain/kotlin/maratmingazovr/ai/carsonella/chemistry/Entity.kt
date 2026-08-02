@@ -41,6 +41,18 @@ data class EntityState(
         is Species.Molecular -> species.atoms(position).minOf { it.position.distanceTo(point) - it.radius }
     }
 
+    val atoms: List<MolecularAtom> = when (val species = species) {
+        is Species.Atomic -> listOf(MolecularAtom(0, species.element, position, species.element.valence(electrons)))
+        is Species.Molecular -> species.atoms(position)
+    }
+
+    // вязи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
+    val bonds: List<MolecularBond> = when (val species = species) {
+        is Species.Atomic -> listOf()
+        is Species.Molecular -> species.bonds(position)
+    }
+
+
     /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
      * только когда .value присваивается новый объект.
@@ -56,6 +68,27 @@ data class EntityState(
 
     override fun toString(): String = species.describe(this)
 }
+
+/**
+ * Атом молекулы, поставленный в мир
+ */
+data class MolecularAtom(
+    val localId: Int,
+    val isotope: Element,
+    val position: Position, // позиция, не просто offset
+    val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
+) {
+    val radius: Float get() = isotope.details.radius
+}
+
+/**
+ * Связь молекулы, поставленная в мир: оба конца — уже с координатами.
+ */
+data class MolecularBond(
+    val atom1: MolecularAtom,
+    val atom2: MolecularAtom,
+    val order: Int,
+)
 
 interface Entity :
     DeathNotifiable,
@@ -178,11 +211,12 @@ interface Entity :
      * Здесь мы вычисляем с какой силой два элемента притягиваются друг к другу
      */
     fun calculateForce(elements: List<Entity>): Vec2D {
-        val fVector = Vec2D(0f, 0f)
+        var fx = 0f
+        var fy = 0f
         val myElectronsCount = state().value.electrons
         val myProtonsCount = state().value.protons
         val myRadius = state().value.radius
-        if (myElectronsCount == 0 && myProtonsCount == 0) {return fVector}
+        if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
             val elementPosition = element.state().value.position
@@ -221,10 +255,10 @@ interface Entity :
             }
 
             val fScalar = fAttraction + fRepulsion + gravityForce
-            fVector.x += rx * fScalar
-            fVector.y += ry * fScalar
+            fx += rx * fScalar
+            fy += ry * fScalar
         }
-        return fVector
+        return Vec2D(fx, fy)
     }
 }
 
