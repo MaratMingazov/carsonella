@@ -17,6 +17,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -63,7 +65,7 @@ fun RightPanel(
     selectedId: Long?,
     onSelect: (Long?) -> Unit,
     world: World,
-    entitiesState: List<EntityState>,
+    entities: List<Entity>,
     renderer: EntityRenderer,
     time: Float,
     onSetEnergy: (Long, Float) -> Unit,
@@ -98,7 +100,7 @@ fun RightPanel(
                                     val id = selectedId
                                     val mouse = hoverPos
                                     if (id != null && mouse != null) {
-                                        val selected = entitiesState.firstOrNull { it.id == id }
+                                        val selected = entities.firstOrNull { it.state().value.id == id }?.state()?.value
                                         if (selected != null) {
                                             val from = selected.position.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
@@ -124,7 +126,7 @@ fun RightPanel(
             ) {
                 SceneCanvas(
                     world = world,
-                    entitiesState = entitiesState,
+                    entities = entities,
                     renderer = renderer,
                     time = time,
                     hoverPos = hoverPos,
@@ -138,7 +140,7 @@ fun RightPanel(
                 // Info-оверлей: карточка в углу канвы при выборе частицы (клик по пустому месту снимает выбор)
                 SelectedEntityPanel(
                     selectedElementId = selectedId,
-                    entitiesState = entitiesState,
+                    entities = entities,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
                     modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 170.dp),
@@ -181,7 +183,7 @@ private data class StarDot(val nx: Float, val ny: Float, val radius: Float, val 
 @Composable
 private fun SceneCanvas(
     world: World,
-    entitiesState: List<EntityState>,
+    entities: List<Entity>,
     renderer: EntityRenderer,
     time: Float,
     hoverPos: Offset?, // где находится курсор
@@ -191,6 +193,17 @@ private fun SceneCanvas(
     modifier: Modifier = Modifier
 ) {
 
+    // Подписка живёт здесь, потому что здесь состояния и читают: холст рисует всех.
+    // collectAsState вызывается в цикле, поэтому каждый элемент оборачиваем в key(id):
+    // слот подписки привязан к сущности (по id), а не к позиции в списке. Без этого при
+    // рождении/смерти частиц слоты «съезжают» и часть подписок теряется → сущность (в т.ч.
+    // звезда) может перестать перерисовываться.
+    // Имя key занято расширением KeyEvent.key, поэтому зовём по полному имени.
+    val entitiesState = entities.map { entity ->
+        androidx.compose.runtime.key(entity.state().value.id) {
+            val state by entity.state().collectAsState(); state
+        }
+    }
 
     val hoveredEntityId = hoverPos?.let { hitTest(entitiesState, it) } // Находится ли под курсором какой то элемент?
     val selectedElement = selectedId?.let { id -> entitiesState.firstOrNull { it.id == id } } // Какой элемент сейчас выбран.
@@ -481,12 +494,13 @@ private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = 
 @Composable
 private fun SelectedEntityPanel(
     selectedElementId: Long?,
-    entitiesState: List<EntityState>,
+    entities: List<Entity>,
     onSetEnergy: (Long, Float) -> Unit,
     onMoleculeAction: (Long, ReactionSelection) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedElement = entitiesState.firstOrNull { it.id == selectedElementId } ?: return
+    val selectedEntity = entities.firstOrNull { it.state().value.id == selectedElementId } ?: return
+    val selectedElement by selectedEntity.state().collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
 
     Column(
         modifier.fillMaxWidth()
