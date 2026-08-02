@@ -23,7 +23,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 data class AtomNode(
     val localId: Int,        // номер узла, локальный для этой молекулы; на него ссылаются связи
     val isotope: Element,    // HYDROGEN, OXYGEN_16 — ядро узла (p/n/символ)
-
 )
 
 /**
