@@ -28,7 +28,6 @@ class SpeciesTest {
     @Test
     fun molecularAggregatesComeFromGraph() {
         val m = Species.Molecular(water)
-        assertEquals(18f, m.mass)              // 16 + 1 + 1
         assertEquals(10, m.protons)            // 8 + 1 + 1
         assertEquals(20f, m.radius)            // константа для молекулы
         assertEquals("H₂O", m.displaySymbol(10)) // нейтральная (electrons = protons = 10): формула без заряда
@@ -38,7 +37,6 @@ class SpeciesTest {
     @Test
     fun elementalAggregatesComeFromElement() {
         val h = Species.Atomic(Element.HYDROGEN)
-        assertEquals(1f, h.mass)               // p+n = 1
         assertEquals(1, h.protons)
         assertEquals(20f, h.radius)            // атом — дефолтный радиус Details (Details.radius = 25f)
         assertEquals("H", h.displaySymbol(1))    // нейтральный водород
@@ -46,7 +44,10 @@ class SpeciesTest {
 
     @Test
     fun electronMassIsSpecialCased() {
-        assertEquals(1f, Species.Atomic(Element.ELECTRON).mass)
+        val e = SubAtom(1L, Element.ELECTRON, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
+        assertEquals(1f, e.mass)
+        val positron = SubAtom(2L, Element.POSITRON, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 0)
+        assertEquals(1f, positron.mass)   // позитрону спецкейс не нужен — у него p = 1
     }
 
     @Test
@@ -93,6 +94,6 @@ class SpeciesTest {
             electrons = 10,
         )
         assertEquals(Species.Molecular(water), m.state().value.species)
-        assertEquals(18f, m.mass())   // Entity.mass() идёт через species → graph
+        assertEquals(18f, m.mass)   // Entity.mass — прямо из графа, минуя species
     }
 }

@@ -31,7 +31,6 @@ data class EntityState(
     val direction: Vec2D get() = kinematics.direction
     val velocity: Float get() = kinematics.velocity
 
-    val mass: Float get() = species.mass
     val protons: Int get() = species.protons
     val radius: Float get() = species.radius
     val displaySymbol: String get() = species.displaySymbol(electrons)
@@ -112,6 +111,8 @@ interface Entity :
     fun state(): MutableStateFlow<EntityState>
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
+
+    val mass: Float
 
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
@@ -199,12 +200,10 @@ interface Entity :
         state().value = state().value.copyWith(kinematics = kinematics.copy(velocity = newVelocity))
     }
 
-    fun mass(): Float = state().value.mass
-
     fun applyForce(force: Vec2D) {
 
-        if (mass() < 0.001f) return
-        val a = force.div(mass())
+        if (mass < 0.001f) return
+        val a = force.div(mass)
         val kinematics = state().value.kinematics
         val newVelocityVector = kinematics.direction.times(kinematics.velocity).plus(a)
         val newVelocity = newVelocityVector.length()

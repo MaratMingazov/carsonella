@@ -38,6 +38,8 @@ class Star(
 
     override fun state() = state
 
+    override val mass: Float get() = (element.details.p + element.details.n).toFloat()
+
     override fun getEnvCenter() = state.value.centerPosition
     override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star

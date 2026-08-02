@@ -41,6 +41,8 @@ class SubAtom(
 
     override fun state() = state
 
+    override val mass: Float get() = if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
+
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()

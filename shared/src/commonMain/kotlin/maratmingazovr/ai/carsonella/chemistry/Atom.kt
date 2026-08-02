@@ -55,6 +55,7 @@ class Atom(
 
     override fun state() = state
 
+    override val mass: Float get() = (element.details.p + element.details.n).toFloat()
 
 
     override fun step() {

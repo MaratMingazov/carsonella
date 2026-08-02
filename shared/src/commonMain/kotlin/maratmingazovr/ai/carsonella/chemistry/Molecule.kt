@@ -37,6 +37,8 @@ class Molecule(
 
     override fun state() = state
 
+    override val mass: Float get() = graph.mass
+
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
