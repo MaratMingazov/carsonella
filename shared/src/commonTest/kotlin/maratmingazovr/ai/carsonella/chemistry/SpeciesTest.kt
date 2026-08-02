@@ -25,17 +25,19 @@ class SpeciesTest {
         bonds = listOf(Bond(0, 1, 1), Bond(0, 2, 1)),
     )
 
+    private fun waterEntity(electrons: Int) =
+        Molecule(1L, water, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
+
     @Test
-    fun molecularAggregatesComeFromGraph() {
-        val m = Species.Molecular(water)
-        assertEquals("H₂O", m.displaySymbol(10)) // нейтральная (electrons = protons = 10): формула без заряда
-        assertEquals("H₂O⁺", m.displaySymbol(9)) // катион +1 (electrons = 9): заряд из protons − electrons
+    fun moleculeSymbolCarriesCharge() {
+        assertEquals("H₂O", waterEntity(electrons = 10).displaySymbol) // нейтральная (electrons = protons = 10)
+        assertEquals("H₂O⁺", waterEntity(electrons = 9).displaySymbol) // катион +1: заряд из protons − electrons
     }
 
     @Test
-    fun elementalAggregatesComeFromElement() {
-        val h = Species.Atomic(Element.HYDROGEN)
-        assertEquals("H", h.displaySymbol(1))    // нейтральный водород
+    fun atomSymbolComesFromElement() {
+        val h = Atom(1L, Element.HYDROGEN, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
+        assertEquals("H", h.displaySymbol)    // нейтральный водород
     }
 
     @Test

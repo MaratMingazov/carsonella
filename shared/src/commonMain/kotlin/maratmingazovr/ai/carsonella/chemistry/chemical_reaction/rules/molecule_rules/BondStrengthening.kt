@@ -80,7 +80,7 @@ class BondStrengthening(
         return ReactionOutcome(
             consumed = listOf(mol),
             spawn = spawn,
-            description = "$id: ${molecule.displaySymbol(moleculeElectrons)} связь ${b.atom1.localId}-${b.atom2.localId} ${b.order}→${b.order + 1}" +
+            description = "$id: ${mol.displaySymbol} связь ${b.atom1.localId}-${b.atom2.localId} ${b.order}→${b.order + 1}" +
                 (released?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

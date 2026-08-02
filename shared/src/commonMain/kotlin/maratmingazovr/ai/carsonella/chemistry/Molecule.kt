@@ -37,9 +37,11 @@ class Molecule(
 
     override fun state() = state
 
-    override val mass: Float get() = graph.mass
-    override val protons: Int get() = graph.protons
-    override val radius: Float get() = MOLECULE_RADIUS
+    override val mass: Float = graph.mass
+    override val protons: Int = graph.protons
+    override val radius: Float = MOLECULE_RADIUS
+    override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
+    override val energyLevels: List<Float> = graph.energyLevels
 
     override fun step() {
         val neighbors = getNeighbors()

@@ -11,13 +11,9 @@ import kotlin.math.round
 
 
 sealed interface Species {
-    fun displaySymbol(electrons: Int): String
-    fun energyLevels(electrons: Int): List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
     fun describe(s: EntityState): String
 
     data class Atomic(val element: Element) : Species {
-        override fun displaySymbol(electrons: Int): String = element.symbol(electrons)
-        override fun energyLevels(electrons: Int): List<Float> = element.energyLevels(electrons)
         override fun describe(s: EntityState): String = when (element.details.type) {
             ElementType.Atom -> """
                 |${element.label(s.electrons)}
@@ -46,8 +42,6 @@ sealed interface Species {
     }
 
     data class Molecular(val graph: MoleculeGraph) : Species {
-        override fun displaySymbol(electrons: Int): String = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
-        override fun energyLevels(electrons: Int): List<Float> = graph.energyLevels
 
         /** Брутто-формула в ASCII («H2O») — для ключей и сохранения; для показа есть [displaySymbol]. */
         val formula: String get() = graph.formula

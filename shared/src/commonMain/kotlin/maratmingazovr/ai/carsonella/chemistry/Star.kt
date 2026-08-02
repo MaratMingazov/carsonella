@@ -38,9 +38,11 @@ class Star(
 
     override fun state() = state
 
-    override val mass: Float get() = (element.details.p + element.details.n).toFloat()
-    override val protons: Int get() = element.details.p
-    override val radius: Float get() = element.details.radius
+    override val mass: Float = (element.details.p + element.details.n).toFloat()
+    override val protons: Int = element.details.p
+    override val radius: Float = element.details.radius
+    override val displaySymbol: String get() = element.symbol(state().value.electrons)
+    override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
 
     override fun getEnvCenter() = state.value.centerPosition
     override fun getEnvRadius() = radiusCounter

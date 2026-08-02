@@ -37,7 +37,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val first = reagents.first()
         val entityState = first.state().value
         if (!entityState.alive) return null
-        val threshold = entityState.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
+        val threshold = first.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
         val firstPosition = entityState.centerPosition
         val radius = first.radius

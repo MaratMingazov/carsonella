@@ -31,8 +31,6 @@ data class EntityState(
     val direction: Vec2D get() = kinematics.direction
     val velocity: Float get() = kinematics.velocity
 
-    val displaySymbol: String get() = species.displaySymbol(electrons)
-    val energyLevels: List<Float> get() = species.energyLevels(electrons) // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
 
     /**
      * Атомы сущности, поставленные в мир: у атома — он сам (узел 0), у молекулы — все узлы графа.
@@ -112,6 +110,8 @@ interface Entity :
 
     val mass: Float
     val protons: Int
+    val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд. Зависит от electrons
+    val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Тоже зависит от electrons.
 
     /**
      * ВРЕМЕННЫЙ член: он не применим в молекуле
