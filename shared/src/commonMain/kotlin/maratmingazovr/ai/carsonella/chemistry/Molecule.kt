@@ -34,9 +34,7 @@ data class MoleculeBond(
 class Molecule(
     override val id: Long,
     val graph: MoleculeGraph,
-    position: Position,
-    direction: Vec2D,
-    velocity: Float,
+    kinematics: Kinematics,
     energy: Float,
     electrons: Int,
 ):
@@ -50,7 +48,7 @@ class Molecule(
     private var state = MutableStateFlow(
         EntityState(
             alive = true,
-            kinematics = Kinematics(position, direction, velocity),
+            kinematics = kinematics,
             energy = energy,
             electrons = electrons,
         )

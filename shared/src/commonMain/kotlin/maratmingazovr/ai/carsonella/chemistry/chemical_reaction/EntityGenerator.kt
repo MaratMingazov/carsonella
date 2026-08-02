@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
+import maratmingazovr.ai.carsonella.chemistry.Kinematics
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
@@ -32,7 +33,7 @@ class EntityGenerator(
         graph: MoleculeGraph, position: Position, direction: Vec2D,
         velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
     ): Entity = register(
-        Molecule(idGen.nextId(), graph, position, direction, velocity, energy, electrons),
+        Molecule(idGen.nextId(), graph, Kinematics(position, direction, velocity), energy, electrons),
         environment,
     )
 
