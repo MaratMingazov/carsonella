@@ -7,12 +7,14 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
-import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
-import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
-import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.Star
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.toOffset
 
 
@@ -56,46 +58,47 @@ class EntityRenderer(
         time: Float,
         highlight: Highlight = Highlight.NONE,
     ) {
-        val entityState = entity.state().value
-        val vibrationParams = VibrationParams(entity.id, entityState.energy, time) // параметры вибрации
-        when (entityState.species) {
-            is Species.Molecular -> drawMolecule(drawScope, entity, highlight, vibrationParams, time)
-            is Species.Atomic -> drawElemental(drawScope, entity, highlight, vibrationParams)
+        val vibrationParams = VibrationParams(entity.id, entity.state().value.energy, time) // параметры вибрации
+        when (entity) {
+            is Molecule -> drawMolecule(drawScope, entity, highlight, vibrationParams, time)
+            is Atom -> drawElemental(drawScope, entity, entity.element, highlight, vibrationParams, withValenceSlots = true)
+            is SubAtom -> drawElemental(drawScope, entity, entity.element, highlight, vibrationParams, withValenceSlots = false)
+            is Star -> drawStar(drawScope, entity, time)
         }
     }
 
-    fun drawElemental(
+    // Кружок с символом: атом рисуется со свободными валентными слотами, частица — без них.
+    private fun drawElemental(
         drawScope: DrawScope,
         entity: Entity,
+        element: Element,
         highlight: Highlight,
         vibrationParams: VibrationParams,
+        withValenceSlots: Boolean,
     ) {
         val entityState = entity.state().value
         val position = entityState.centerPosition.toOffset()  + vibrationParams.positionOffset
-        val element = (entityState.species as Species.Atomic).element
-        val radius = entity.radius
-        val fillColor = ElementColors.fill(entityState.species)
+        val fillColor = ElementColors.fill(element)
         val symbol = element.details.symbol.filter { it.isLetter() }
 
         with(drawScope) {
-            when (element.details.type) {
-                ElementType.SubAtom -> drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
-                ElementType.Atom -> drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
-                ElementType.Star -> throw RuntimeException("STAR Rendering is not implemented yet")
+            if (withValenceSlots) {
+                drawAtom(position, entity.radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
+            } else {
+                drawSubAtom(position, entity.radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
             }
         }
     }
 
     // Молекула рисуется структурно: атомы-кружки по раскладке графа + связи-линии (кратность = число линий).
-    fun drawMolecule(
+    private fun drawMolecule(
         drawScope: DrawScope,
-        entity: Entity,
+        molecule: Molecule,
         highlight: Highlight,
         vibrationParams: VibrationParams,
         time: Float,
     ) {
-        val entityState = entity.state().value
-        val molecule = entity as Molecule
+        val entityState = molecule.state().value
 
         // Добавляем дрожание
         fun screenPos(atom: MolecularAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
@@ -110,7 +113,7 @@ class EntityRenderer(
 
             molecule.atoms.forEach { atom ->
                 val atomVibrationParams = VibrationParams(atom.localId.toLong(), entityState.energy, time) // параметры вибрации
-                val fill = ElementColors.fill(Species.Atomic(atom.isotope))
+                val fill = ElementColors.fill(atom.isotope)
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
                 drawAtom(screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, atom.freeValence, slotAngle, highlighted = highlight.entity)
@@ -209,9 +212,9 @@ class EntityRenderer(
     }
 
 
-    fun drawStar(
+    private fun drawStar(
         drawScope: DrawScope,
-        entity: Entity,
+        entity: Star,
         time: Float,
     ) {
         val entityState = entity.state().value

@@ -29,7 +29,6 @@ class Molecule(
 {
     private var state = MutableStateFlow(
         EntityState(
-            species = Species.Molecular(graph),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,
@@ -73,6 +72,9 @@ class Molecule(
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
     override val energyLevels: List<Float> = graph.energyLevels
+
+    override val saveKey: String = graph.formula
+    override fun toSpecies(): Species = Species.Molecular(graph)
 
     override fun describe(): String {
         // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и

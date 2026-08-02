@@ -3,10 +3,8 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -44,7 +42,6 @@ class StarThermalIonization(
         val first = reagents.first() as? Atom ?: return null
         if (!first.state().value.alive) return null
         val element = first.element
-        if (element.details.type != ElementType.Atom) return null
         if (first.state().value.electrons <= 0) return null
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 

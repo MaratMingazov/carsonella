@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
@@ -59,8 +58,7 @@ fun TopPalette(palette: List<Element>, modifier: Modifier = Modifier) {
 @Composable
 internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
-    val species = Species.Atomic(element)
-    val fill = ElementColors.fill(species)
+    val fill = ElementColors.fill(element)
     val symbol = element.details.symbol.filter { it.isLetter() }
     val radiusPx = element.details.radius   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
     // box в dp под кружок + обводку; toDp переводит px в dp, чтобы Canvas в px вышел ровно 2*radius (+запас)

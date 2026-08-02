@@ -55,8 +55,8 @@ class RingClosureTest {
     @Test
     fun chainOfThreeHasNoCandidates_floorAtFive() {
         // Тройка C–C–C: концы на пути 2 → кольцо 3 < 5 → НЕ предлагаем (иначе преждевременный циклопропан).
-        assertTrue(carbonChain(3).let { (it.state().value.species as Species.Molecular).graph }.ringClosureCandidates.isEmpty())
-        assertTrue(carbonChain(4).let { (it.state().value.species as Species.Molecular).graph }.ringClosureCandidates.isEmpty())
+        assertTrue(carbonChain(3).graph.ringClosureCandidates.isEmpty())
+        assertTrue(carbonChain(4).graph.ringClosureCandidates.isEmpty())
     }
 
     @Test

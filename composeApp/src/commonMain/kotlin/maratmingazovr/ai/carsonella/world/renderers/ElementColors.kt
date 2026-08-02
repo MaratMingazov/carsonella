@@ -9,7 +9,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Species
 
 
 object ElementColors {
@@ -28,15 +27,9 @@ object ElementColors {
     )
     private val FILL_DEFAULT = Color(0xFFD5D5D5)  // молекула-фолбэк / неизвестный элемент — мягкий серый
 
-    /** Сплошная заливка кружка атома (плоский стиль). */
-    fun fill(species: Species): Color = when (species) {
-        is Species.Molecular -> FILL_DEFAULT
-        is Species.Atomic -> fillElement(species.element)
-    }
-
-    // Заливка по идентичности: субатомы — по типу частицы (иначе позитрон/протон с p=1 случайно
-    // получили бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
-    private fun fillElement(element: Element): Color = when (element) {
+    // Сплошная заливка кружка (плоский стиль). Субатомы — по типу частицы (иначе позитрон/протон
+    // с p=1 случайно получили бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
+    fun fill(element: Element): Color = when (element) {
         Element.PHOTON -> Color(0xFFFFE9A8) // тёплый бледно-жёлтый (свет)
         Element.ELECTRON -> Color(0xFFAFD3F2) // голубой (−)
         Element.POSITRON -> Color(0xFFF6B8C4) // розовый (+)

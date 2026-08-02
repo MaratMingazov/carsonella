@@ -8,7 +8,6 @@ import maratmingazovr.ai.carsonella.chemistry.elementOrNull
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData

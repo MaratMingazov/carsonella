@@ -13,7 +13,6 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.world.save.EntityDto
 import maratmingazovr.ai.carsonella.world.save.EnvironmentDto
 import maratmingazovr.ai.carsonella.world.save.WorldJson
@@ -193,12 +192,7 @@ class World(
             val parentId = (entity.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
             EntityDto(
                 id = entity.id,
-                // element.name для Elemental (round-trip через Element.valueOf); молекулу так не сохранить —
-                // отдаём формулу, на загрузке отсеётся как «неизвестный элемент» (graph-save — отдельный рефактор).
-                element = when (val sp = entityState.species) {
-                    is Species.Atomic -> sp.element.name
-                    is Species.Molecular -> sp.graph.formula
-                },
+                element = entity.saveKey,
                 alive = entityState.alive,
                 x = entityState.centerPosition.x, y = entityState.centerPosition.y,
                 dirX = entityState.direction.x, dirY = entityState.direction.y,
@@ -211,10 +205,7 @@ class World(
 
         val summary = saved
             .groupingBy {
-                when (val sp = it.state().value.species) {
-                    is Species.Atomic -> sp.element.name
-                    is Species.Molecular -> sp.graph.formula
-                }
+                it.saveKey
             }
             .eachCount()
 

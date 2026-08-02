@@ -4,6 +4,9 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
+import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -75,23 +78,22 @@ class MoleculeGrowth(
     private fun canBond(entity: Entity): Boolean {
         val state = entity.state().value
         if (!state.alive) return false
-        return when (val species = state.species) {
-            is Species.Molecular -> species.graph.hasFreeValence
-            is Species.Atomic -> {
-                val element = species.element
-                element.details.type == ElementType.Atom &&
-                    state.electrons == element.details.p &&   // нейтральный — есть электроны для общей пары
-                    element.valence(state.electrons) > 0
-            }
+        // Проверка класса заменяет прежний тег ElementType: частица и звезда — не Atom, связей не образуют.
+        return when (entity) {
+            is Molecule -> entity.graph.hasFreeValence
+            is Atom -> state.electrons == entity.element.details.p &&   // нейтральный — есть электроны для общей пары
+                entity.element.valence(state.electrons) > 0
+            is SubAtom, is Star -> false
         }
     }
 
     // Партнёр как граф: молекула → её граф; атом → одноузловой граф (атом = вырожденная молекула, §8).
-    private fun graphOf(entity: Entity): MoleculeGraph =
-        when (val species = entity.state().value.species) {
-            is Species.Molecular -> species.graph
-            is Species.Atomic -> MoleculeGraph(listOf(AtomNode(0, species.element)), emptyList())
-        }
+    // Зовётся только после canBond, поэтому частица и звезда сюда не доходят.
+    private fun graphOf(entity: Entity): MoleculeGraph = when (entity) {
+        is Molecule -> entity.graph
+        is Atom -> MoleculeGraph(listOf(AtomNode(0, entity.element)), emptyList())
+        is SubAtom, is Star -> error("graphOf: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
+    }
 
     // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
     // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),

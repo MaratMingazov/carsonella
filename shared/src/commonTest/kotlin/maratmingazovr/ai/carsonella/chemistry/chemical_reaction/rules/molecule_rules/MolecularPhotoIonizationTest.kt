@@ -61,7 +61,7 @@ class MolecularPhotoIonizationTest {
     @Test
     fun ionizationEnergyIsMinAtomicIp() {
         // Вода: все атомы дают 13.6 эВ → IP = 13.6.
-        assertEquals(13.6f, water().state().value.species.let { (it as Species.Molecular).graph.energyLevels.last() }, 0.001f)
+        assertEquals(13.6f, water().graph.energyLevels.last(), 0.001f)
 
         // CH₄: C (11.26) легче кислорода/водорода (13.6) → минимум по атомам = 11.26.
         val methane = MoleculeGraph(
@@ -90,7 +90,7 @@ class MolecularPhotoIonizationTest {
         // Заряд молекулы меняется через updateState: тот же граф, electrons 10 → 9 (катион +1).
         outcome.updateState.forEach { it() }
         assertEquals(9, w.state().value.electrons)
-        assertTrue(w.state().value.species is Species.Molecular)   // граф не подменён
+        assertEquals("H2O", w.graph.formula)   // граф не подменён: ионизация меняет только заряд
 
         // Вылетает ровно один электрон (нейтральный e⁻), энергия избытка ушла в скорость, не в energy.
         outcome.spawn.forEach { it() }

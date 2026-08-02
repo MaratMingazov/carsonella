@@ -3,7 +3,6 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome

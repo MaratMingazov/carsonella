@@ -93,7 +93,7 @@ class SpeciesTest {
             energy = 0f,
             electrons = 10,
         )
-        assertEquals(Species.Molecular(water), m.state().value.species)
-        assertEquals(18f, m.mass)   // Entity.mass — прямо из графа, минуя species
+        assertEquals(water, m.graph)
+        assertEquals(18f, m.mass)   // Entity.mass — прямо из графа
     }
 }

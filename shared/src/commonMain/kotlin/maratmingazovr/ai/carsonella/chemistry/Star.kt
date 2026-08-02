@@ -27,7 +27,6 @@ class Star(
 {
     private var state = MutableStateFlow(
         EntityState(
-            species = Species.Atomic(element),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,
@@ -44,6 +43,9 @@ class Star(
     override fun distanceToSurface(point: Position): Float = state().value.centerPosition.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+
+    override val saveKey: String = element.name
+    override fun toSpecies(): Species = Species.Atomic(element)
 
     override fun describe(): String {
         val s = state().value

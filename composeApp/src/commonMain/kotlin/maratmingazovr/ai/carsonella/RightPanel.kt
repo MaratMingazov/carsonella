@@ -49,7 +49,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
@@ -101,12 +101,13 @@ fun RightPanel(
                                     val id = selectedId
                                     val mouse = hoverPos
                                     if (id != null && mouse != null) {
-                                        val selected = entities.firstOrNull { it.id == id }?.state()?.value
-                                        if (selected != null) {
+                                        val selectedEntity = entities.firstOrNull { it.id == id }
+                                        val selected = selectedEntity?.state()?.value
+                                        if (selectedEntity != null && selected != null) {
                                             val from = selected.centerPosition.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
                                             // Из выбранного элемента стреляем фотоном
-                                            world.entityGenerator.createEntity(species = selected.species, Position(selected.centerPosition.x, selected.centerPosition.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment, electrons = selected.electrons)
+                                            world.entityGenerator.createEntity(species = selectedEntity.toSpecies(), Position(selected.centerPosition.x, selected.centerPosition.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment, electrons = selected.electrons)
                                         }
                                     }
                                 }
@@ -535,8 +536,7 @@ private fun SelectedEntityPanel(
             )
         }
         // Редактор энергии (пока только фотон).
-        val species = selectedElement.species
-        if (species is Species.Atomic && species.element == Element.PHOTON) {
+        if (selectedEntity is SubAtom && selectedEntity.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(
                 energyEv = selectedElement.energy,

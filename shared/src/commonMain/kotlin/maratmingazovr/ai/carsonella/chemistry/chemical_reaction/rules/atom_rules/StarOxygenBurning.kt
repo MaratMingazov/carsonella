@@ -16,7 +16,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome

@@ -2,7 +2,6 @@ package maratmingazovr.ai.carsonella.world
 
 import kotlinx.coroutines.CoroutineScope
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.world.save.EntityDto
 import maratmingazovr.ai.carsonella.world.save.EnvironmentDto
 import maratmingazovr.ai.carsonella.world.save.WorldSnapshotDto
@@ -106,6 +105,6 @@ class WorldLoadJvmTest {
             )
         )
         assertEquals(1, world.entities.size)
-        assertEquals("OXYGEN_16", (world.entities.first().state().value.species as Species.Atomic).element.name)
+        assertEquals("OXYGEN_16", world.entities.first().saveKey)
     }
 }

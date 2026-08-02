@@ -19,7 +19,6 @@ data class Kinematics(
 )
 
 data class EntityState(
-    val species: Species,
     val alive: Boolean,
     val kinematics: Kinematics,
     val energy: Float,
@@ -77,12 +76,14 @@ sealed interface Entity :
     val mass: Float
     val protons: Int
     val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд. Зависит от electrons
+    val saveKey: String // Ключ для сохранения
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Тоже зависит от electrons.
 
     fun state(): MutableStateFlow<EntityState>
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
     fun describe(): String // Человекочитаемое описание для карточки Info.
+    fun toSpecies(): Species
 
     /**
      * Расстояние от [point] до ПОВЕРХНОСТИ сущности: 
