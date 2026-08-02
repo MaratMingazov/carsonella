@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.EntityState
-import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
@@ -426,10 +426,10 @@ private fun strengthenableBondAt(
     molecule: Entity?,
     at: Offset,
     slop: Float = 10f,
-): MolecularBond? {
+): MoleculeBond? {
     val mol = molecule as? Molecule ?: return null
     val point = at.toPosition()
-    var best: MolecularBond? = null
+    var best: MoleculeBond? = null
     var bestDistance = Float.MAX_VALUE
     for (bond in mol.strengthenableBonds) {
         if (point.distanceTo(bond.atom1.kinematics.position) <= bond.atom1.structure.radius) continue   // это клик по атому

@@ -12,6 +12,25 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.Float
 
 
+data class MoleculeAtomStructure(
+    val localId: Int,
+    val isotope: Element,
+    val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
+) {
+    val radius: Float = isotope.details.radius
+}
+
+data class MoleculeAtom(
+    val structure: MoleculeAtomStructure,
+    val kinematics: Kinematics,
+)
+
+data class MoleculeBond(
+    val atom1: MoleculeAtom,
+    val atom2: MoleculeAtom,
+    val order: Int,
+)
+
 class Molecule(
     override val id: Long,
     val graph: MoleculeGraph,
@@ -44,28 +63,28 @@ class Molecule(
     override val radius: Float = MOLECULE_RADIUS
 
     /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
-    val atoms: List<MolecularAtomFull> get() {
+    val atoms: List<MoleculeAtom> get() {
         val center = state().value.kinematics.position
         return graph.nodes.map { node ->
-            MolecularAtomFull(
-                structure = MolecularAtom(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId),),
+            MoleculeAtom(
+                structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId),),
                 kinematics = Kinematics(position = center + graph.atomOffset(node.localId), direction = state.value.kinematics.direction, velocity = state.value.kinematics.velocity,),
             )
         }
     }
 
     /** Связи, поставленные в мир: у каждой оба конца — готовые MolecularAtom. */
-    val bonds: List<MolecularBond> get() = place(graph.bonds)
+    val bonds: List<MoleculeBond> get() = place(graph.bonds)
 
     /** Связи, которые можно усилить (кратность +1) — поставленные в мир. */
-    val strengthenableBonds: List<MolecularBond> get() = place(graph.strengthenableBonds)
+    val strengthenableBonds: List<MoleculeBond> get() = place(graph.strengthenableBonds)
 
     /** Есть ли пара атомов, между которыми можно замкнуть цикл. */
     val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
 
-    private fun place(bonds: List<Bond>): List<MolecularBond> {
+    private fun place(bonds: List<Bond>): List<MoleculeBond> {
         val byId = atoms.associateBy { it.structure.localId }
-        return bonds.map { MolecularBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order) }
+        return bonds.map { MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order) }
     }
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
@@ -74,9 +93,9 @@ class Molecule(
     override val saveKey: String = graph.formula
 
     fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph = graph.merge(other, thisNode, otherNode, bondOrder)
-    fun firstFreeValenceAtom(): MolecularAtom? {
+    fun firstFreeValenceAtom(): MoleculeAtomStructure? {
         return graph.firstFreeValenceAtomNode?.let { atomNode ->
-            MolecularAtom(localId = atomNode.localId, isotope = atomNode.isotope, freeValence = graph.freeValence(atomNode.localId),)
+            MoleculeAtomStructure(localId = atomNode.localId, isotope = atomNode.isotope, freeValence = graph.freeValence(atomNode.localId),)
         }
     }
 

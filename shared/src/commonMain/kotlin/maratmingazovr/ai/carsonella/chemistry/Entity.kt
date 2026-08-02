@@ -39,27 +39,7 @@ data class EntityState(
 
 }
 
-data class MolecularAtom(
-    val localId: Int,
-    val isotope: Element,
-    val freeValence: Int, // Свободная валентность: сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле.
-) {
-    val radius: Float = isotope.details.radius
-}
 
-data class MolecularAtomFull(
-    val structure: MolecularAtom,
-    val kinematics: Kinematics,
-)
-
-/**
- * Связь молекулы, поставленная в мир: оба конца — уже с координатами.
- */
-data class MolecularBond(
-    val atom1: MolecularAtomFull,
-    val atom2: MolecularAtomFull,
-    val order: Int,
-)
 
 sealed interface Entity :
     DeathNotifiable,

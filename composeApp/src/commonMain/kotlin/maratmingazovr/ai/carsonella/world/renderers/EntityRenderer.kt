@@ -10,8 +10,8 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.MolecularAtomFull
-import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
@@ -43,7 +43,7 @@ data class VibrationParams(
 
 data class Highlight(
     val entity: Boolean = false,       // значит пользователь навел мышкой на элемент и нужно его подсветить
-    val bond: MolecularBond? = null,   // пользователь навел мышкой на конкретную связь молекулы,
+    val bond: MoleculeBond? = null,   // пользователь навел мышкой на конкретную связь молекулы,
 ) {
     companion object { val NONE = Highlight() }
 }
@@ -101,7 +101,7 @@ class EntityRenderer(
         val entityState = molecule.state().value
 
         // Добавляем дрожание
-        fun screenPos(atom: MolecularAtomFull, atomVibrationParams: VibrationParams = vibrationParams) = atom.kinematics.position.toOffset() + atomVibrationParams.positionOffset
+        fun screenPos(atom: MoleculeAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.kinematics.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 

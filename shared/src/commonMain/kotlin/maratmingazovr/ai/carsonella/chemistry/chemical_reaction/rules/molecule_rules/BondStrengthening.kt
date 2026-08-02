@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
-import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
@@ -33,7 +33,7 @@ class BondStrengthening(
 ) : ForcedReactionRule {
     override val id = "BondStrengthening"
 
-    private data class Match(val molecule: Molecule, val bond: MolecularBond) : MatchedData
+    private data class Match(val molecule: Molecule, val bond: MoleculeBond) : MatchedData
 
     /**
      * Связь берём прямо из выбора игрока: пока сущность жива, её граф неизменен (любая перестройка

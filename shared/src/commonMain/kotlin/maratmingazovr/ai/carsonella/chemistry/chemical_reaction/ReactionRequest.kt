@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.MolecularBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 
 /**
  * Как [ChemicalReactionResolver.resolve] выбирает реакцию для запроса:
@@ -24,7 +24,7 @@ sealed interface ReactionSelection {
      * Усилить кратность КОНКРЕТНОЙ связи (клик по связи выбранной молекулы). [bond] адресует связь
      * номерами своих узлов — координаты внутри лишь снимок на момент клика, реакция их не читает.
      */
-    data class StrengthenBond(val bond: MolecularBond) : Forced
+    data class StrengthenBond(val bond: MoleculeBond) : Forced
 
     /**
      * Замкнуть кольцо. Пару атомов пока выбирает само правило (лучший кандидат по weight) —
