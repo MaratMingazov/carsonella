@@ -5,6 +5,8 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
+import kotlin.math.round
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
@@ -42,6 +44,23 @@ class Molecule(
     override val radius: Float = MOLECULE_RADIUS
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
     override val energyLevels: List<Float> = graph.energyLevels
+
+    override fun describe(): String {
+        // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и
+        // структурная формула (связность) — отдельными строками. Аноним → просто брутто-формула.
+        val known = MoleculeRegistry.lookup(graph.canonical)
+        val lines = mutableListOf(
+            if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
+        )
+        if (known != null) lines += known.nameRu
+        if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
+        if (known != null && known.description.isNotEmpty()) lines += known.description
+        lines += "Energy ${round(state().value.energy * 100) / 100}"
+        graph.weakestBondAndEnergy?.let { (_, energy) ->
+            lines += "Weakest bond ${round(energy * 100) / 100} eV"
+        }
+        return lines.joinToString("\n")
+    }
 
     override fun step() {
         val neighbors = getNeighbors()

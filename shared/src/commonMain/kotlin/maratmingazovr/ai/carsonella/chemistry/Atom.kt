@@ -14,6 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
+import kotlin.math.round
 
 class Atom(
     id: Long,
@@ -60,6 +61,17 @@ class Atom(
     override val radius: Float = element.details.radius
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+
+    override fun describe(): String {
+        val s = state().value
+        return """
+            |${element.label(s.electrons)}
+            |Protons: ${element.details.p}
+            |Neutrons: ${element.details.n}
+            |Electrons: ${s.electrons}
+            |Energy ${round(s.energy * 100) / 100} eV
+        """.trimMargin()
+    }
 
 
     override fun step() {

@@ -72,7 +72,6 @@ data class EntityState(
         electrons: Int = this.electrons,
     ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, electrons = electrons)
 
-    override fun toString(): String = species.describe(this)
 }
 
 /**
@@ -112,6 +111,8 @@ interface Entity :
     val protons: Int
     val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд. Зависит от electrons
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Тоже зависит от electrons.
+
+    fun describe(): String // Человекочитаемое описание для карточки Info.
 
     /**
      * ВРЕМЕННЫЙ член: он не применим в молекуле

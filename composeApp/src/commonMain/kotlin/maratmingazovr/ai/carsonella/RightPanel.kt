@@ -513,7 +513,7 @@ private fun SelectedEntityPanel(
     ) {
         Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
         Spacer(Modifier.height(8.dp))
-        Text(selectedElement.toString(), style = MaterialTheme.typography.bodySmall)
+        Text(selectedEntity.describe(), style = MaterialTheme.typography.bodySmall)
 
         // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Пусто → не показываем.
         val levels = selectedEntity.energyLevels

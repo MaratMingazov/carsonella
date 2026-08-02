@@ -4,47 +4,17 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
-import kotlin.math.round
 
 
 
 
 sealed interface Species {
-    fun describe(s: EntityState): String
 
-    data class Atomic(val element: Element) : Species {
-        override fun describe(s: EntityState): String = when (element.details.type) {
-            ElementType.Atom -> """
-                |${element.label(s.electrons)}
-                |Protons: ${element.details.p}
-                |Neutrons: ${element.details.n}
-                |Electrons: ${s.electrons}
-                |Energy ${round(s.energy * 100) / 100} eV
-            """.trimMargin()
-
-            ElementType.SubAtom -> {
-                val base = """
-                    |${element.label(s.electrons)}
-                    |Energy ${round(s.energy * 100) / 100}
-                """.trimMargin()
-                // Спектр осмыслен только у фотона (у него energy — это E=hν) — см. SubAtom.
-                if (element == Element.PHOTON) "$base\nСпектр: ${lightBandFromEnergyEv(s.energy).label}" else base
-            }
-
-            ElementType.Star -> """
-                |${element.label(s.electrons)}: ${s.id}
-                |Position (${s.centerPosition.x.toInt()}, ${s.centerPosition.y.toInt()})
-                |Velocity ${round(s.velocity * 100) / 100}
-                |Energy ${round(s.energy * 100) / 100}
-            """.trimMargin()
-        }
-    }
+    data class Atomic(val element: Element) : Species
 
     data class Molecular(val graph: MoleculeGraph) : Species {
 
-        /** Брутто-формула в ASCII («H2O») — для ключей и сохранения; для показа есть [displaySymbol]. */
-        val formula: String get() = graph.formula
+        val formula: String get() = graph.formula // Брутто-формула в ASCII («H2O») — для ключей и сохранения
 
         fun atoms(center: Position): List<MolecularAtom> = graph.nodes.map { place(it, center) }
 
@@ -81,22 +51,6 @@ sealed interface Species {
             freeValence = graph.freeValence(node.localId),
         )
 
-        override fun describe(s: EntityState): String {
-            // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и
-            // структурная формула (связность) — отдельными строками. Аноним → просто брутто-формула.
-            val known = MoleculeRegistry.lookup(graph.canonical)
-            val lines = mutableListOf(
-                if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
-            )
-            if (known != null) lines += known.nameRu
-            if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
-            if (known != null && known.description.isNotEmpty()) lines += known.description
-            lines += "Energy ${round(s.energy * 100) / 100}"
-            graph.weakestBondAndEnergy?.let { (_, energy) ->
-                lines += "Weakest bond ${round(energy * 100) / 100} eV"
-            }
-            return lines.joinToString("\n")
-        }
     }
 }
 

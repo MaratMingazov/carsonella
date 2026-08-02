@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import kotlin.math.round
 
 
 class SubAtom(
@@ -46,6 +47,16 @@ class SubAtom(
     override val radius: Float = element.details.radius
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+
+    override fun describe(): String {
+        val state = state().value
+        val base = """
+            |${element.label(state.electrons)}
+            |Energy ${round(state.energy * 100) / 100}
+        """.trimMargin()
+        // Спектр осмыслен только у фотона (у него energy — это E=hv).
+        return if (element == PHOTON) "$base\nСпектр: ${lightBandFromEnergyEv(state.energy).label}" else base
+    }
 
     override fun step() {
         val neighbors = getNeighbors()

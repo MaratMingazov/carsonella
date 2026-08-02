@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import kotlin.math.round
 
 
 class Star(
@@ -43,6 +44,16 @@ class Star(
     override val radius: Float = element.details.radius
     override val displaySymbol: String get() = element.symbol(state().value.electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+
+    override fun describe(): String {
+        val s = state().value
+        return """
+            |${element.label(s.electrons)}: ${s.id}
+            |Position (${s.centerPosition.x.toInt()}, ${s.centerPosition.y.toInt()})
+            |Velocity ${round(s.velocity * 100) / 100}
+            |Energy ${round(s.energy * 100) / 100}
+        """.trimMargin()
+    }
 
     override fun getEnvCenter() = state.value.centerPosition
     override fun getEnvRadius() = radiusCounter
