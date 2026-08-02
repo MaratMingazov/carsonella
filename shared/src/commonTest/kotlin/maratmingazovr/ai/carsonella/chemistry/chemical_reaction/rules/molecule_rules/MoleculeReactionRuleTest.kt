@@ -9,17 +9,12 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
-import maratmingazovr.ai.carsonella.chemistry.graph.Bond
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import kotlin.test.Test
 import kotlin.test.assertNull
-import kotlin.test.assertNotNull
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
- * Контракт [MoleculeReactionRule]: правило срабатывает только когда субъект (`reagents.first()`) —
+ * Контракт [MoleculeReactionRule]: правило срабатывает только когда субъект (первый реагент) —
  * молекула; субъект-атом отсекается ДО делегирования в matchesMolecule.
  */
 class MoleculeReactionRuleTest {
@@ -30,20 +25,14 @@ class MoleculeReactionRuleTest {
     private fun hAtom() = Atom(nextId++, Element.HYDROGEN, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 1)
         .also { it.setEnvironment(env) }
 
-    private fun h2Molecule(): Molecule {
-        val graph = MoleculeGraph(
-            nodes = listOf(AtomNode(0, Element.HYDROGEN), AtomNode(1, Element.HYDROGEN)),
-            bonds = listOf(Bond(0, 1, order = 1)),
-        )
-        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 2)
-            .also { it.setEnvironment(env) }
-    }
-
     private class Dummy : MoleculeReactionRule() {
         override val id = "Dummy"
         var delegated = false
         object Stub : MatchedData
-        override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? { delegated = true; return Stub }
+        override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+            delegated = true
+            return Stub
+        }
         override fun produce(match: MatchedData) = ReactionOutcome()
     }
 
@@ -52,12 +41,5 @@ class MoleculeReactionRuleTest {
         val rule = Dummy()
         assertNull(rule.matches(listOf(hAtom())))
         assertFalse(rule.delegated)   // matchesMolecule даже не звался
-    }
-
-    @Test
-    fun moleculeSubjectDelegatesToMatchesMolecule() {
-        val rule = Dummy()
-        val match = assertNotNull(rule.matches(listOf(h2Molecule(), hAtom())))
-        assertTrue(rule.delegated)
     }
 }

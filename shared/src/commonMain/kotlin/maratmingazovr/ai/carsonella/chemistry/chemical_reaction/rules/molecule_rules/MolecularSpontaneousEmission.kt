@@ -41,8 +41,8 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     /** [dissociationThreshold] не-null → ветка предиссоциации (распад); null → ветка излучения фотона. */
     private data class Match(val molecule: Molecule, val dissociationThreshold: Float?) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
-        if (reagents.size != 1) return null          // «сам с собой», как усиление/кольцо/StarDissociation
+    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isNotEmpty()) return null      // «сам с собой»
 
         val subjectState = subject.state().value
         if (!subjectState.alive) return null

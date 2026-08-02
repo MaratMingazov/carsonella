@@ -40,8 +40,8 @@ class MoleculeGrowth(
 
     private data class Match(val molecule: Molecule, val partner: Entity) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
+    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null   // расти не с кем
 
         if (!subject.state().value.alive) return null
         // нужен свободный слот, чтобы было куда расти
@@ -52,8 +52,7 @@ class MoleculeGrowth(
         val subjectPosition = subject.state().value.kinematics.centerPosition
         val subjectRadius = subject.radius
 
-        val (second, distanceSquare) = reagents
-            .drop(1)
+        val (second, distanceSquare) = neighbors
             .filter { canBond(it) }
             .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
             .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(subjectPosition) }

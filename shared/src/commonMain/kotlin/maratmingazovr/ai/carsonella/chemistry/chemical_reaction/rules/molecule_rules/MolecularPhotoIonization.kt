@@ -32,8 +32,8 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
 
     private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
+    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null   // ионизовать нечем: фотон приходит соседом
 
         val subjectState = subject.state().value
         if (!subjectState.alive) return null
@@ -43,7 +43,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val radius = subject.radius
         val activationDistanceSquare = radius * radius
 
-        val nearestPhoton = reagents.drop(1)
+        val nearestPhoton = neighbors
             .asSequence()
             .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }

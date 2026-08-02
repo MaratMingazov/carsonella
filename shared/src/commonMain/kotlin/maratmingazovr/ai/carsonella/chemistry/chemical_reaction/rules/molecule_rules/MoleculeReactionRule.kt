@@ -9,8 +9,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 /**
- * Базовый класс для молекулярных правил (рост 3b, граф-диссоциация, …): субъект реакции
- * (`reagents.first()`) ОБЯЗАН быть [Molecule] — и приходит наследнику уже типизированным.
+ * Базовый класс для молекулярных правил (рост 3b, граф-диссоциация, …): субъект реакции — первый
+ * реагент — ОБЯЗАН быть [Molecule]. База разбирает запрос на субъект и соседей, поэтому наследник
+ * получает уже типизированную молекулу и хвост отдельным аргументом.
  *
  * Симметрично AtomReactionRule, но с двумя отличиями:
  *  - гейтит субъект на [Molecule] (а не на «не молекулу»);
@@ -26,11 +27,19 @@ abstract class MoleculeReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
         val subject = reagents.firstOrNull() as? Molecule ?: return null
-        return matchesMolecule(subject, reagents)
+        return matchesMolecule(subject, reagents.subList(1, reagents.size))
     }
 
-    /** Как `matches`, но субъект приходит уже типизированным — кастовать в наследниках не нужно. */
-    abstract fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData?
+    /**
+     * Как `matches`, но разложенное на части: субъект приходит типизированным (кастовать не нужно),
+     * а [neighbors] — ХВОСТ запроса, то есть соседи, которых нашёл инициатор, БЕЗ него самого.
+     * Пустой хвост = self-запрос («сам с собой»: остывание, распад в звезде).
+     *
+     * [neighbors] — вью на исходный список (`subList`), а не копия: `matches` гоняется по всем правилам
+     * на каждый запрос, и копировать хвост на каждое из них незачем. Вью живёт ровно столько же, сколько
+     * сам запрос, и никто его не мутирует.
+     */
+    abstract fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData?
 
     /**
      * Спавн осколков распада ([MoleculeGraph.split]) — общий для PhotoDissociation/StarDissociation

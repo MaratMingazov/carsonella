@@ -14,7 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  *
  * Зеркало [StarThermalIonization] для атомов (атом в звезде теряет по электрону за тик до голого ядра):
  * триггер — САМА СРЕДА (Star), а не фотон; тепловой энергии в звезде с избытком, поэтому порога/фотона
- * НЕТ (в отличие от [PhotoDissociation]). Внутримолекулярная реакция «сам с собой» (`reagents.size == 1`),
+ * НЕТ (в отличие от [PhotoDissociation]). Внутримолекулярная реакция «сам с собой» (запрос без соседей),
  * как распады/усиление: молекула зовёт себя из `Molecule.step`, когда она в звезде.
  *
  * Рекурсия — сама собой: осколок-молекула на следующем тике снова в звезде → снова рвётся, пока не
@@ -28,8 +28,8 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
 
     private data class Match(val molecule: Molecule) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
-        if (reagents.size != 1) return null   // «сам с собой», как распады/усиление/термоионизация атома
+    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isNotEmpty()) return null   // «сам с собой»
         if (!subject.state().value.alive) return null
         if (subject.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         val graph = subject.graph
