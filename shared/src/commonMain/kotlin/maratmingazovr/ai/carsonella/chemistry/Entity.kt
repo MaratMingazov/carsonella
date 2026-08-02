@@ -30,27 +30,32 @@ data class EntityState(
     val energyLevels: List<Float> get() = species.energyLevels(electrons) // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
 
     /**
-     * Расстояние от [point] до ПОВЕРХНОСТИ сущности: `< 0` — точка внутри, `0` — на кромке, `> 0` —
-     * снаружи. Радиус уже учтён, наружу выходит одно число.
+     * Атомы сущности, поставленные в мир: у атома — он сам (узел 0), у молекулы — все узлы графа.
      *
-     * У молекулы берётся ближайший АТОМ
-     *
+     * Вычисляется один раз при первм запросе и потом хранится
      */
-    fun distanceToSurface(point: Position): Float = when (val species = species) {
-        is Species.Atomic -> position.distanceTo(point) - species.radius
-        is Species.Molecular -> species.atoms(position).minOf { it.position.distanceTo(point) - it.radius }
+    val atoms: List<MolecularAtom> by lazy(LazyThreadSafetyMode.NONE) {
+        when (val species = species) {
+            is Species.Atomic -> listOf(MolecularAtom(0, species.element, position, species.element.valence(electrons)))
+            is Species.Molecular -> species.atoms(position)
+        }
     }
 
-    val atoms: List<MolecularAtom> = when (val species = species) {
-        is Species.Atomic -> listOf(MolecularAtom(0, species.element, position, species.element.valence(electrons)))
-        is Species.Molecular -> species.atoms(position)
+    // Связи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom. У атома связей нет.
+    val bonds: List<MolecularBond> by lazy(LazyThreadSafetyMode.NONE) {
+        when (val species = species) {
+            is Species.Atomic -> listOf()
+            is Species.Molecular -> species.bonds(position)
+        }
     }
 
-    // вязи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
-    val bonds: List<MolecularBond> = when (val species = species) {
-        is Species.Atomic -> listOf()
-        is Species.Molecular -> species.bonds(position)
-    }
+    /**
+     * Расстояние от [point] до ПОВЕРХНОСТИ сущности: 
+     * `< 0` — точка внутри, 
+     * `0` — на кромке, 
+     * `> 0` — снаружи. У молекулы берётся ближайший АТОМ.
+     */
+    fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius }
 
 
     /**
