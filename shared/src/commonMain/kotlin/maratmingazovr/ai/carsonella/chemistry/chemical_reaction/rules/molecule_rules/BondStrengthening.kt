@@ -6,7 +6,6 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
@@ -54,7 +53,7 @@ class BondStrengthening(
         val (molecule, bond) = match as Match
         val state = molecule.state().value
         val graph = molecule.graph
-        val strengthened = Species.Molecular(graph.strengthenBond(bond.atom1.localId, bond.atom2.localId))
+        val strengthened = graph.strengthenBond(bond.atom1.localId, bond.atom2.localId)
         val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
@@ -63,7 +62,7 @@ class BondStrengthening(
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf(
-            { entityGenerator.createEntity(strengthened, state.centerPosition, state.direction, state.velocity, state.energy, env, state.electrons) },
+            { entityGenerator.createMolecule(strengthened, state.centerPosition, state.direction, state.velocity, state.energy, env, state.electrons) },
         )
         if (released != null && released > 0f) {
             spawn += {

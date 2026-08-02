@@ -4,7 +4,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -15,8 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * Зеркало образования связи (CovalentBondFormation/MoleculeGrowth ИЗЛУЧАЮТ фотон энергии связи) — здесь
  * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([MoleculeGraph.weakestBond]), порог = её энергия
  * ([MoleculeGraph.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([MoleculeGraph.split]),
- * а не из хардкода: осколок из одного узла → атом ([Species.Atomic]), из ≥2 узлов → молекула
- * ([Species.Molecular]). Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
+ * а не из хардкода: осколок из одного узла → атом, из ≥2 узлов → молекула. Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
  * до атомов.
  *
  * Рамки этого шага:

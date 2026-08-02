@@ -3,14 +3,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -132,7 +130,7 @@ class MoleculeGrowth(
         val partnerIso = partnerNode.isotope
         val bondEnergy = BondEnergy.of(molIso, partnerIso, order = 1)
         val spawn = mutableListOf(
-            { entityGenerator.createEntity(Species.Molecular(merged), midpoint, direction, velocity, energy, env, electrons) },
+            { entityGenerator.createMolecule(merged, midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             val photonDirection = randomDirection(entityGenerator.random)

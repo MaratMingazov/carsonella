@@ -6,7 +6,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -18,7 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * только субъект — молекула.
  *
  * Порог = последний уровень [MoleculeGraph.energyLevels] (минимум атомного IP по графу, кэш на графе). В отличие от
- * атома, молекулярный ион НЕ требует смены Species: заряд живёт в [EntityState.electrons] как счётчик,
+ * атома, молекулярный ион НЕ требует нового графа: заряд живёт в [EntityState.electrons] как счётчик,
  * а граф не меняется — поэтому здесь `updateState` (electrons−1), а не consume+spawn (как у H → Proton).
  *
  * Рамки этого шага (детерминированно; вероятностное ветвление — отдельным правилом):
@@ -82,7 +81,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val electronPosition = molPosition.plus(Position(1f * radius, 0f))
         val electronVelocity = 10 + 0.2f * freeEnergy
 
-        // Species НЕ меняется — тот же граф теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
+        // Граф НЕ меняется — та же молекула теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
         return ReactionOutcome(
             consumed = listOf(photon),
             updateState = listOf {

@@ -9,12 +9,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * Агрегаты сущности (символ с зарядом, масса) и работа молекулы со своими связями.
- * Раньше всё это жило на [Species] и тестировалось без сущностей; после переноса на [Entity]
- * тесты идут через сущности — имя файла осталось от прежней прописки.
- */
-class SpeciesTest {
+/** Агрегаты сущности (символ с зарядом, масса) и работа молекулы со своими связями. */
+class EntityTest {
 
     // H–O–H
     private val water = MoleculeGraph(
@@ -83,7 +79,7 @@ class SpeciesTest {
     }
 
     @Test
-    fun moleculeEntityCarriesMolecularSpecies() {
+    fun moleculeCarriesItsGraph() {
         val m = Molecule(
             id = 1L,
             graph = water,

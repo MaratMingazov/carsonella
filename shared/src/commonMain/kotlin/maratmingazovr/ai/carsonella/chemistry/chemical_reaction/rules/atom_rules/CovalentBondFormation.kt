@@ -4,11 +4,9 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.MOLECULE_RADIUS
-import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -24,7 +22,7 @@ import maratmingazovr.ai.carsonella.randomDirection
  * валентными слотами → одна двухатомная молекула.
  *
  * ВЫЧИСЛЯЕМОЕ правило, а не попарная таблица: годится для любой пары лёгких атомов. Идентичность
- * продукта — его граф ([maratmingazovr.ai.carsonella.chemistry.Species.Molecular]), не enum-константа. Многоатомные реагенты
+ * продукта — его граф, не enum-константа. Многоатомные реагенты
  * (атом+молекула → вода) — следующий шаг (3b).
  */
 class CovalentBondFormation(
@@ -94,13 +92,12 @@ class CovalentBondFormation(
             nodes = listOf(AtomNode(0, iso1), AtomNode(1, iso2)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        val moleculeSpecies = Species.Molecular(graph)
 
         // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
         // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
         val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
         val spawn = mutableListOf(
-            { entityGenerator.createEntity(moleculeSpecies, midpoint, direction, velocity, energy, env, electrons) },
+            { entityGenerator.createMolecule(graph, midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {

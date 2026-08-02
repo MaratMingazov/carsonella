@@ -630,7 +630,7 @@ const val MAX_VELOCITY = 10f
 private fun sup(n: Int): String = n.toString().map { SUPERSCRIPT_DIGITS[it - '0'] }.joinToString("")
 
 // Надстрочный заряд иона: 0 → "", 1 → "⁺", n≥2 → "ⁿ⁺" (конвенция: +1 без цифры).
-// internal (не private): переиспользуется в Species.displaySymbol для заряда молекулы-иона.
+// internal (не private): переиспользуется в Molecule.displaySymbol для заряда молекулы-иона.
 internal fun chargeSuffix(charge: Int): String = when {
     charge <= 0 -> ""
     charge == 1 -> "⁺"

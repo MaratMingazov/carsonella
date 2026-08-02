@@ -6,19 +6,18 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedDat
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
 /**
- * Базовый класс для атомных/ядерных/субатомных правил (§«крах» docs/molecule-graph.md).
+ * Базовый класс для правил, где субъект — НЕ молекула: атом, частица или звезда.
  *
- * Эти правила читают [Entity.state]`.element`,
- * который БРОСАЕТ на [Species.Molecular]. Резолвер гоняет `matches()` по всем правилам на каждый запрос,
- * поэтому без фильтра молекула роняет всё — двумя путями:
- *  - молекула как субъект (`reagents.first()`) — `Molecule.step()` запрашивает реакцию первой собой;
- *  - молекула как сосед (хвост) — атом-субъект перебирает соседей, читая их `.element`.
+ * Резолвер гоняет `matches()` по всем правилам на каждый запрос, а `Molecule.step()` запрашивает
+ * реакцию первой собой — поэтому субъекта-молекулу надо отсечь здесь, иначе каждое правило
+ * проверяло бы это само.
  *
- * [matches] закрывает оба: субъект-не-[Species.Atomic] → правило не наше (return false);
- * соседи-молекулы выкидываются из хвоста. В [matchesAtoms] приходит список, где ВСЕ реагенты —
- * [Species.Atomic] и `first()` — исходный субъект, так что весь `.element`-код безопасен.
+ * Хвост НЕ фильтруется: соседей наследники разбирают сами, и каждый проверяет класс того, кого ищет
+ * (`it is SubAtom && it.element == NEUTRON`). Сузить субъект до одного класса нельзя — `Annihilation`
+ * ждёт позитрон, `StarEmission` звезду, `StarPPChain` и `RecombinationReaction` работают и с атомом,
+ * и с голым протоном. Поэтому наследники кастуют субъекта к тому, что нужно именно им.
  *
- * Молекулярные правила (диссоциация графа и т.п.) живут в пакете `molecule_rules` и матчатся по графу.
+ * Молекулярные правила живут в пакете `molecule_rules` и матчатся по графу.
  */
 abstract class AtomReactionRule : ReactionRule {
 
@@ -28,6 +27,6 @@ abstract class AtomReactionRule : ReactionRule {
         return matchesAtoms(reagents)
     }
 
-    /** Как прежний `matches`, но `reagents` гарантированно состоит только из [Species.Atomic]. */
+    /** Как `matches`, но субъект гарантированно не молекула. */
     abstract fun matchesAtoms(reagents: List<Entity>): MatchedData?
 }

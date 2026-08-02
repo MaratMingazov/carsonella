@@ -3,7 +3,6 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
-import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
@@ -11,10 +10,10 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 /**
  * Базовый класс для молекулярных правил (рост 3b, граф-диссоциация, …): субъект реакции
- * (`reagents.first()`) ОБЯЗАН быть молекулой [Species.Molecular].
+ * (`reagents.first()`) ОБЯЗАН быть [Molecule] — и приходит наследнику уже типизированным.
  *
  * Симметрично AtomReactionRule, но с двумя отличиями:
- *  - гейтит субъект на [Species.Molecular] (а не на Elemental);
+ *  - гейтит субъект на [Molecule] (а не на «не молекулу»);
  *  - хвост НЕ фильтрует — партнёром молекулы законно бывает и атом (рост атом+молекула, фотон при
  *    диссоциации), и другая молекула (рост молекула+молекула). Правила-наследники читают граф/`species`,
  *    а НЕ шов [Entity.state]`.element`, поэтому соседи-молекулы их не роняют (в отличие от атомных правил,
@@ -39,9 +38,9 @@ abstract class MoleculeReactionRule : ReactionRule {
      * наследуют её направление, нейтральны (гомолитика: electrons = протоны осколка).
      *
      * КЛЮЧЕВОЕ — куда кладём [energyPerFragment] (долю энергии на осколок) зависит от типа осколка:
-     *  - Молекула ([Species.Molecular]) — во ВНУТРЕННЮЮ (колебательную) энергию: осколок «горячее» и легче
+     *  - Молекула — во ВНУТРЕННЮЮ (колебательную) энергию: осколок «горячее» и легче
      *    распадётся дальше (каскад). У молекулы энергия квазинепрерывна — произвольное значение допустимо.
-     *  - Атом ([Species.Atomic]) — в КИНЕТИКУ (velocity), а energy = 0. Внутренняя энергия атома
+     *  - Атом — в КИНЕТИКУ (velocity), а energy = 0. Внутренняя энергия атома
      *    КВАНТОВАНА (только дискретные уровни, инвариант проверяет SpontaneousEmission), и избыток распада
      *    (обычно << первого уровня возбуждения) в неё не влезает. Положили бы в energy — атом получил бы
      *    «не-уровень» и уронил бы ассерт SpontaneousEmission на следующем тике. Резонансное электронное
@@ -64,9 +63,9 @@ abstract class MoleculeReactionRule : ReactionRule {
             if (frag.nodes.size == 1) {
                 val isotope = frag.nodes.single().isotope
                 val kineticVelocity = moleculeState.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(Species.Atomic(isotope), pos, moleculeState.direction, kineticVelocity, 0f, env, electrons) }
+                return@mapIndexed { generator.createEntity(isotope, pos, moleculeState.direction, kineticVelocity, 0f, env, electrons) }
             } else {
-                return@mapIndexed { generator.createEntity(Species.Molecular(frag), pos, moleculeState.direction, moleculeState.velocity, energyPerFragment, env, electrons) }
+                return@mapIndexed { generator.createMolecule(frag, pos, moleculeState.direction, moleculeState.velocity, energyPerFragment, env, electrons) }
             }
         }
     }
