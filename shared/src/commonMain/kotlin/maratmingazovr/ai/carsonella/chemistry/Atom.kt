@@ -17,7 +17,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 
 class Atom(
     id: Long,
-    element: Element,
+    val element: Element,
     position: Position,
     direction: Vec2D,
     velocity: Float,

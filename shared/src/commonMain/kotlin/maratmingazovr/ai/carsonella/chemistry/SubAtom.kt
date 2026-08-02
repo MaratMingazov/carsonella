@@ -14,7 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.*
 
 class SubAtom(
     id: Long,
-    element: Element,
+    val element: Element,
     position: Position,
     direction: Vec2D,
     velocity: Float,

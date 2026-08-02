@@ -51,7 +51,7 @@ class BondStrengtheningTest {
     )
 
     private fun molecule(graph: MoleculeGraph, electrons: Int): Molecule =
-        Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
+        Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
             .also { it.setEnvironment(env) }
 
     // Выбор игрока: связь берём из кандидатов молекулы — ровно как это делает UI.

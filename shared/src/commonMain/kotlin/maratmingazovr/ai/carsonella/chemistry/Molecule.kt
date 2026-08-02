@@ -5,11 +5,12 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
 class Molecule(
     id: Long,
-    species: Species.Molecular,
+    val graph: MoleculeGraph,
     position: Position,
     direction: Vec2D,
     velocity: Float,
@@ -26,7 +27,7 @@ class Molecule(
     private var state = MutableStateFlow(
         EntityState(
             id = id,
-            species = species,
+            species = Species.Molecular(graph),
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,

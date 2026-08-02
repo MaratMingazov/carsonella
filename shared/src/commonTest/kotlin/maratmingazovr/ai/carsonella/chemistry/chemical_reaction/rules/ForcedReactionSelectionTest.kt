@@ -58,7 +58,7 @@ class ForcedReactionSelectionTest {
             nodes = listOf(AtomNode(0, element), AtomNode(1, element)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        return Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
+        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons)
             .also { it.setEnvironment(env) }
     }
 

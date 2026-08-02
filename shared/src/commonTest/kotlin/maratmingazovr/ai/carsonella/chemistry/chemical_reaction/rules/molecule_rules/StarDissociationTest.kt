@@ -49,7 +49,7 @@ class StarDissociationTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.HYDROGEN), AtomNode(2, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1), Bond(0, 2, order = 1)),
         )
-        return Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 10)
+        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 10)
             .also { it.setEnvironment(inEnv) }
     }
 
@@ -58,7 +58,7 @@ class StarDissociationTest {
             nodes = listOf(AtomNode(0, Element.OXYGEN_16), AtomNode(1, Element.HYDROGEN)),
             bonds = listOf(Bond(0, 1, order = 1)),
         )
-        return Molecule(nextId++, Species.Molecular(graph), Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 9)
+        return Molecule(nextId++, graph, Position(0f, 0f), Vec2D(0f, 0f), 0f, 0f, electrons = 9)
             .also { it.setEnvironment(inEnv) }
     }
 

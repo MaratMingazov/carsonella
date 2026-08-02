@@ -85,7 +85,7 @@ class SpeciesTest {
     fun moleculeEntityCarriesMolecularSpecies() {
         val m = Molecule(
             id = 1L,
-            species = Species.Molecular(water),
+            graph = water,
             position = Position(0f, 0f),
             direction = Vec2D(0f, 0f),
             velocity = 0f,
