@@ -56,7 +56,7 @@ class StarThermalIonization(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom, element) = match as Match
         val electrons = atom.state().value.electrons
-        val position = atom.state().value.position
+        val position = atom.state().value.centerPosition
         val radius = element.details.radius
         val env = atom.getEnvironment()
         val electronPosition = position.plus(Position(radius, 0f))

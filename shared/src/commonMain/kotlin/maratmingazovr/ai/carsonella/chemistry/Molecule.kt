@@ -5,7 +5,6 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 
 class Molecule(
@@ -47,7 +46,7 @@ class Molecule(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+            .filter { entity -> state.value.centerPosition.distanceSquareTo(entity.state().value.centerPosition) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

@@ -200,7 +200,7 @@ class World(
                     is Species.Molecular -> sp.formula
                 },
                 alive = s.alive,
-                x = s.position.x, y = s.position.y,
+                x = s.centerPosition.x, y = s.centerPosition.y,
                 dirX = s.direction.x, dirY = s.direction.y,
                 velocity = s.velocity,
                 energy = s.energy,

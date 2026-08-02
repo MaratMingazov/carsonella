@@ -38,7 +38,7 @@ class Star(
 
     override fun state() = state
 
-    override fun getEnvCenter() = state.value.position
+    override fun getEnvCenter() = state.value.centerPosition
     override fun getEnvRadius() = radiusCounter
     override fun getEnvTemperature() = TemperatureMode.Star
     override fun getEnvChildren(): List<Entity> { return children }
@@ -62,7 +62,7 @@ class Star(
         neighbors
             .filter { it.state().value.alive }
             .filter { it.getEnvironment() !== this }
-            .filter { state.value.position.distanceSquareTo(it.state().value.position) < (radius + 10) * (radius + 10) }
+            .filter { state.value.centerPosition.distanceSquareTo(it.state().value.centerPosition) < (radius + 10) * (radius + 10) }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

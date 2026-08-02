@@ -40,14 +40,14 @@ class CovalentBondFormation(
         // Внутри звезды слишком горячо — молекулы не образуются.
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val firstPosition = first.state().value.position
+        val firstPosition = first.state().value.centerPosition
         val firstRadius = first.state().value.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
             .filter { canBond(it) }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.position.distanceSquareTo(firstPosition) }
+            .map { it to it.state().value.centerPosition.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -78,8 +78,8 @@ class CovalentBondFormation(
         val iso2 = (a2.state().value.species as Species.Atomic).element
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val p1 = a1.state().value.position
-        val p2 = a2.state().value.position
+        val p1 = a1.state().value.centerPosition
+        val p2 = a2.state().value.centerPosition
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
         // Сохранение: электроны молекулы = сумма электронов реагентов (оба нейтральны → нейтральная молекула).
         val electrons = a1.state().value.electrons + a2.state().value.electrons

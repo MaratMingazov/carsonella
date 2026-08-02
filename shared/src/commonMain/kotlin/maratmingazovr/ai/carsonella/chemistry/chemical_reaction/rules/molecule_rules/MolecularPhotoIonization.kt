@@ -39,7 +39,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         if (!entityState.alive) return null
         val threshold = entityState.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
-        val firstPosition = entityState.position
+        val firstPosition = entityState.centerPosition
         val radius = entityState.radius
         val activationDistanceSquare = radius * radius
 
@@ -48,7 +48,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
             .filter { val sp = it.state().value.species; sp is Species.Atomic && sp.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to firstPosition.distanceSquareTo(it.state().value.position) }
+            .map { it to firstPosition.distanceSquareTo(it.state().value.centerPosition) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first
@@ -73,7 +73,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val available = mol.state().value.energy + ph.state().value.energy
         val freeEnergy = (available - threshold).coerceAtLeast(0f)
 
-        val molPosition = mol.state().value.position
+        val molPosition = mol.state().value.centerPosition
         val molDirection = mol.state().value.direction
         val env = mol.getEnvironment()
         val radius = mol.state().value.radius

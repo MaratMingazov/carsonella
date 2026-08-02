@@ -67,7 +67,7 @@ class Atom(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.position.distanceSquareTo(entity.state().value.position) < 10000f }
+            .filter { entity -> state.value.centerPosition.distanceSquareTo(entity.state().value.centerPosition) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

@@ -52,7 +52,7 @@ class BetaMinusDecay(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (parent, parentElement) = match as Match
         val childElement = parentElement.details.betaMinusDecayResult!!
-        val parentPosition = parent.state().value.position
+        val parentPosition = parent.state().value.centerPosition
         val parentRadius = parentElement.details.radius
         // Перенос оболочки на продукт (2C2): β⁻ повышает Z на 1 (n→p) → электроны помещаются, кламп no-op.
         // Вылетающий e⁻ — продукт распада ядра, а не shake-off оболочки.

@@ -99,7 +99,7 @@ class RingClosureTest {
         // Правило обслуживает ТОЛЬКО свой выбор: клик «усилить связь» — не его дело.
         val chain = carbonChain(5)
         val state = chain.state().value
-        val someBond = (state.species as Species.Molecular).bonds(state.position).first()
+        val someBond = (state.species as Species.Molecular).bonds(state.centerPosition).first()
         assertNull(RingClosure(CapturingGenerator()).matches(listOf(chain), ReactionSelection.StrengthenBond(someBond)))
     }
 

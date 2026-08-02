@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.sqrt
 
 data class Kinematics(
-    val position: Position,
+    val centerPosition: Position,
     val direction: Vec2D,
     val velocity: Float,
 )
@@ -27,7 +27,7 @@ data class EntityState(
     val electrons: Int,
 ) {
 
-    val position: Position get() = kinematics.position
+    val centerPosition: Position get() = kinematics.centerPosition
     val direction: Vec2D get() = kinematics.direction
     val velocity: Float get() = kinematics.velocity
 
@@ -44,8 +44,8 @@ data class EntityState(
      */
     val atoms: List<MolecularAtom> by lazy(LazyThreadSafetyMode.NONE) {
         when (val species = species) {
-            is Species.Atomic -> listOf(MolecularAtom(0, species.element, position, species.element.valence(electrons)))
-            is Species.Molecular -> species.atoms(position)
+            is Species.Atomic -> listOf(MolecularAtom(0, species.element, centerPosition, species.element.valence(electrons)))
+            is Species.Molecular -> species.atoms(centerPosition)
         }
     }
 
@@ -53,7 +53,7 @@ data class EntityState(
     val bonds: List<MolecularBond> by lazy(LazyThreadSafetyMode.NONE) {
         when (val species = species) {
             is Species.Atomic -> listOf()
-            is Species.Molecular -> species.bonds(position)
+            is Species.Molecular -> species.bonds(centerPosition)
         }
     }
 
@@ -130,17 +130,17 @@ interface Entity :
     fun applyNewPosition() {
         val kinematics = state().value.kinematics
         val newPosition = Position(
-            x = kinematics.position.x + kinematics.direction.x * kinematics.velocity,
-            y = kinematics.position.y + kinematics.direction.y * kinematics.velocity
+            x = kinematics.centerPosition.x + kinematics.direction.x * kinematics.velocity,
+            y = kinematics.centerPosition.y + kinematics.direction.y * kinematics.velocity
         )
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = newPosition))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = newPosition))
     }
 
     // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
     // спокойно осталась там, куда её положили, а не улетела по инерции.
     fun moveTo(position: Position) {
         val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, velocity = 0f))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = position, velocity = 0f))
     }
 
     fun reduceVelocity() {
@@ -151,7 +151,7 @@ interface Entity :
 
     fun checkBorders(env: IEnvironment) {
 
-        var position = state().value.position
+        var position = state().value.centerPosition
         var direction = state().value.direction
         val center = env.getEnvCenter()
         val radius = env.getEnvRadius()
@@ -175,7 +175,7 @@ interface Entity :
         }
         
         val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, direction = direction))
+        state().value = state().value.copyWith(kinematics = kinematics.copy(centerPosition = position, direction = direction))
     }
 
     fun addEnergy(energy: Float) {
@@ -225,9 +225,9 @@ interface Entity :
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
-            val elementPosition = element.state().value.position
-            val rx = state().value.position.x - elementPosition.x
-            val ry = state().value.position.y - elementPosition.y
+            val elementPosition = element.state().value.centerPosition
+            val rx = state().value.centerPosition.x - elementPosition.x
+            val ry = state().value.centerPosition.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.state().value.radius

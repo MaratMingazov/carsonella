@@ -102,10 +102,10 @@ fun RightPanel(
                                     if (id != null && mouse != null) {
                                         val selected = entities.firstOrNull { it.state().value.id == id }?.state()?.value
                                         if (selected != null) {
-                                            val from = selected.position.toOffset()
+                                            val from = selected.centerPosition.toOffset()
                                             val dir = direction(from, mouse)   // единичный вектор к мыши
                                             // Из выбранного элемента стреляем фотоном
-                                            world.entityGenerator.createEntity(species = selected.species, Position(selected.position.x, selected.position.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment, electrons = selected.electrons)
+                                            world.entityGenerator.createEntity(species = selected.species, Position(selected.centerPosition.x, selected.centerPosition.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment, electrons = selected.electrons)
                                         }
                                     }
                                 }
@@ -450,7 +450,7 @@ private fun strengthenableBondAt(
     val point = at.toPosition()
     var best: MolecularBond? = null
     var bestDistance = Float.MAX_VALUE
-    for (bond in species.strengthenableBonds(molecule.position)) {
+    for (bond in species.strengthenableBonds(molecule.centerPosition)) {
         if (point.distanceTo(bond.atom1.position) <= bond.atom1.radius) continue   // это клик по атому
         if (point.distanceTo(bond.atom2.position) <= bond.atom2.radius) continue
         val distance = distanceToSegment(point, bond.atom1.position, bond.atom2.position)

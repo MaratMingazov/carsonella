@@ -47,7 +47,7 @@ class Annihilation(
         if (species !is Species.Atomic) return null
         if (species.element != POSITRON) return null
 
-        val positronPosition = first.state().value.position
+        val positronPosition = first.state().value.centerPosition
         val positronRadius = POSITRON.details.radius
 
         val (nearestElectron, distanceSquare) = reagents
@@ -57,7 +57,7 @@ class Annihilation(
                 sp is Species.Atomic && sp.element == ELECTRON
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.position.distanceSquareTo(positronPosition) }
+            .map { it to it.state().value.centerPosition.distanceSquareTo(positronPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -78,8 +78,8 @@ class Annihilation(
         val photonDirection = if (velocity > 1e-6f) direction else randomDirection(entityGenerator.random)
         val oppositeDirection = Vec2D(-photonDirection.x, -photonDirection.y)
 
-        val positronPosition = positronEntity.state().value.position
-        val electronPosition = electronEntity.state().value.position
+        val positronPosition = positronEntity.state().value.centerPosition
+        val electronPosition = electronEntity.state().value.centerPosition
         val centerPosition = Position(
             (positronPosition.x + electronPosition.x) / 2f,
             (positronPosition.y + electronPosition.y) / 2f,

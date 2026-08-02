@@ -70,7 +70,7 @@ class EntityRenderer(
         vibrationParams: VibrationParams,
     ) {
 
-        val position = entityState.position.toOffset()  + vibrationParams.positionOffset
+        val position = entityState.centerPosition.toOffset()  + vibrationParams.positionOffset
         val element = (entityState.species as Species.Atomic).element
         val radius = entityState.species.radius
         val fillColor = ElementColors.fill(entityState.species)
@@ -94,7 +94,7 @@ class EntityRenderer(
         time: Float,
     ) {
         val molecule = entityState.species as Species.Molecular
-        val center = entityState.position
+        val center = entityState.centerPosition
 
         // Добавляем дрожание
         fun screenPos(atom: MolecularAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
@@ -219,7 +219,7 @@ class EntityRenderer(
         val ph = time * ANIM_TWO_PI * STAR_HZ
         val dx = amp * kotlin.math.cos(ph + idSeed)
         val dy = amp * kotlin.math.sin(ph + idSeed)
-        val position = entityState.position.toOffset()  + Offset(dx, dy)
+        val position = entityState.centerPosition.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
         val baseRadius = entityState.radius + 5f   // базовый радиус круга

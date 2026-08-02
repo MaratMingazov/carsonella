@@ -70,8 +70,8 @@ class WorldLoadJvmTest {
         world.applySnapshot(snapshot())
 
         val proton = world.entityById(1).state().value
-        assertEquals(805f, proton.position.x)
-        assertEquals(402f, proton.position.y)
+        assertEquals(805f, proton.centerPosition.x)
+        assertEquals(402f, proton.centerPosition.y)
         assertEquals(1f, proton.velocity)
         assertEquals(0, proton.electrons)
     }

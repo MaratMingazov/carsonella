@@ -65,14 +65,14 @@ class BondStrengthening(
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf(
-            { entityGenerator.createEntity(strengthened, state.position, state.direction, state.velocity, state.energy, env, state.electrons) },
+            { entityGenerator.createEntity(strengthened, state.centerPosition, state.direction, state.velocity, state.energy, env, state.electrons) },
         )
         if (released != null && released > 0f) {
             spawn += {
                 // Фотон уносит прирост энергии связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик
                 // покидает радиус активации, иначе PhotoDissociation мог бы поймать его и распустить молекулу —
                 // тот же цикл образование↔распад, что и при росте/образовании связи.
-                entityGenerator.createEntity(Element.PHOTON, state.position, randomDirection(entityGenerator.random),
+                entityGenerator.createEntity(Element.PHOTON, state.centerPosition, randomDirection(entityGenerator.random),
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

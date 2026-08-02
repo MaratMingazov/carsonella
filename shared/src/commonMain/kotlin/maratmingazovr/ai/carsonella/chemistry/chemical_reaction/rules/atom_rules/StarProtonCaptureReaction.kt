@@ -68,7 +68,7 @@ class StarProtonCaptureReaction(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first()
-        val firstAtomPosition = firstAtom.state().value.position
+        val firstAtomPosition = firstAtom.state().value.centerPosition
         if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
@@ -87,7 +87,7 @@ class StarProtonCaptureReaction(
                 sp is Species.Atomic && sp.element == Proton
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -123,7 +123,7 @@ class StarProtonCaptureReaction(
         val (a1, a2, atom1Element, atom2Element, outcome) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val resultPosition = a1.state().value.position
+        val resultPosition = a1.state().value.centerPosition
         // Перенос электронной оболочки на продукт (2C2): продукт наследует электроны target-ядра,
         // но не больше своего Z. (p,γ)/(p,n) повышают Z → кламп no-op; (p,α) понижает Z → лишние
         // электроны улетают свободными e⁻ (shake-off). Захваченный протон голый, испущенная α — голая.

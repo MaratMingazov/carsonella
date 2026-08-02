@@ -44,7 +44,7 @@ sealed interface Species {
 
             ElementType.Star -> """
                 |${element.label(s.electrons)}: ${s.id}
-                |Position (${s.position.x.toInt()}, ${s.position.y.toInt()})
+                |Position (${s.centerPosition.x.toInt()}, ${s.centerPosition.y.toInt()})
                 |Velocity ${round(s.velocity * 100) / 100}
                 |Energy ${round(s.energy * 100) / 100}
             """.trimMargin()

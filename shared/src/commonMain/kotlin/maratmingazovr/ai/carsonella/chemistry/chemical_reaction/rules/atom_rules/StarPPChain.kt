@@ -59,7 +59,7 @@ class StarPPChain(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
         val firstAtom = reagents.first()
-        val firstAtomPosition = firstAtom.state().value.position
+        val firstAtomPosition = firstAtom.state().value.centerPosition
         if (!firstAtom.state().value.alive) return null
         // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
         val firstSpecies = firstAtom.state().value.species
@@ -92,7 +92,7 @@ class StarPPChain(
                     sp is Species.Atomic && sp.element == secondElement
                 }
                 .filter { it.state().value.alive }
-                .map { it to it.state().value.position.distanceSquareTo(firstAtomPosition) }
+                .map { it to it.state().value.centerPosition.distanceSquareTo(firstAtomPosition) }
                 .minByOrNull { it.second }
                 ?: continue
 
@@ -113,7 +113,7 @@ class StarPPChain(
         val resultElectrons = minOf(atom1.state().value.electrons, result.details.p)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.position
+        val resultPosition = atom1.state().value.centerPosition
         val resultRadius = result.details.radius
         val spawnList = mutableListOf<() -> Entity>()
 
