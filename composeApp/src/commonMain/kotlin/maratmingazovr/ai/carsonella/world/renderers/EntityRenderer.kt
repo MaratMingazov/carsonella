@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
-import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -51,25 +51,25 @@ class EntityRenderer(
 
     fun render(
         drawScope: DrawScope,
-        entityState: EntityState,
+        entity: Entity,
         time: Float,
         highlight: Highlight = Highlight.NONE,
     ) {
+        val entityState = entity.state().value
         val vibrationParams = VibrationParams(entityState.id, entityState.energy, time) // параметры вибрации
-        val species = entityState.species
-        when (species) {
-            is Species.Molecular -> drawMolecule(drawScope, entityState, highlight, vibrationParams, time)
-            is Species.Atomic -> drawElemental(drawScope, entityState, highlight, vibrationParams)
+        when (entityState.species) {
+            is Species.Molecular -> drawMolecule(drawScope, entity, highlight, vibrationParams, time)
+            is Species.Atomic -> drawElemental(drawScope, entity, highlight, vibrationParams)
         }
     }
 
     fun drawElemental(
         drawScope: DrawScope,
-        entityState: EntityState,
+        entity: Entity,
         highlight: Highlight,
         vibrationParams: VibrationParams,
     ) {
-
+        val entityState = entity.state().value
         val position = entityState.centerPosition.toOffset()  + vibrationParams.positionOffset
         val element = (entityState.species as Species.Atomic).element
         val radius = entityState.species.radius
@@ -88,11 +88,12 @@ class EntityRenderer(
     // Молекула рисуется структурно: атомы-кружки по раскладке графа + связи-линии (кратность = число линий).
     fun drawMolecule(
         drawScope: DrawScope,
-        entityState: EntityState,
+        entity: Entity,
         highlight: Highlight,
         vibrationParams: VibrationParams,
         time: Float,
     ) {
+        val entityState = entity.state().value
         val molecule = entityState.species as Species.Molecular
         val center = entityState.centerPosition
 
@@ -210,9 +211,10 @@ class EntityRenderer(
 
     fun drawStar(
         drawScope: DrawScope,
-        entityState: EntityState,
+        entity: Entity,
         time: Float,
     ) {
+        val entityState = entity.state().value
         // параметры вибрации/пульса — от общего time на частоте STAR_HZ
         val amp = 1f + entityState.energy                  // амплитуда в пикселях
         val idSeed = (entityState.id % 1000).toFloat()   // стаб. сдвиг фазы на объект

@@ -193,28 +193,28 @@ private fun SceneCanvas(
     modifier: Modifier = Modifier
 ) {
 
-    // Подписка живёт здесь, потому что здесь состояния и читают: холст рисует всех.
-    // collectAsState вызывается в цикле, поэтому каждый элемент оборачиваем в key(id):
-    // слот подписки привязан к сущности (по id), а не к позиции в списке. Без этого при
-    // рождении/смерти частиц слоты «съезжают» и часть подписок теряется → сущность (в т.ч.
-    // звезда) может перестать перерисовываться.
+    // ПОДПИСКА. Ниже значения читаются прямо из сущностей (entity.state().value), но БЕЗ этого блока
+    // Compose не узнает об изменениях: сцена замрёт при живом мире — логи в консоли пойдут, картинка нет.
+    // Строка «работает тем, что существует», результат никому не нужен — не удалять.
+    // key(id) нужен потому, что collectAsState зовётся в цикле: слот подписки привязан к сущности, а не
+    // к позиции в списке, иначе при рождении/смерти частиц слоты «съезжают» и часть подписок теряется.
     // Имя key занято расширением KeyEvent.key, поэтому зовём по полному имени.
-    val entitiesState = entities.map { entity ->
-        androidx.compose.runtime.key(entity.state().value.id) {
-            val state by entity.state().collectAsState(); state
-        }
+    // .value обязателен: зависимость регистрирует ЧТЕНИЕ значения, а не создание State. Без него
+    // поток собирается, но композиция об этом не узнаёт.
+    entities.forEach { entity ->
+        androidx.compose.runtime.key(entity.state().value.id) { entity.state().collectAsState().value }
     }
 
-    val hoveredEntityId = hoverPos?.let { hitTest(entitiesState, it) } // Находится ли под курсором какой то элемент?
-    val selectedElement = selectedId?.let { id -> entitiesState.firstOrNull { it.id == id } } // Какой элемент сейчас выбран.
-    val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedElement, it) } // на какую связь молекулы навел курсор
+    val hoveredEntityId = hoverPos?.let { hitTest(entities, it) } // Находится ли под курсором какой то элемент?
+    val selectedEntity = selectedId?.let { id -> entities.firstOrNull { it.state().value.id == id } } // Какой элемент сейчас выбран.
+    val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedEntity, it) } // на какую связь молекулы навел курсор
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
     // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
-    val entitiesLatest = rememberUpdatedState(entitiesState)
+    val entitiesLatest = rememberUpdatedState(entities)
     val onHoverLatest = rememberUpdatedState(onHover)
     val onSelectLatest = rememberUpdatedState(onSelect)
-    val selectedLatest = rememberUpdatedState(selectedElement)
+    val selectedLatest = rememberUpdatedState(selectedEntity)
 
     // Тусклые звёзды фона: позиции нормированы (0..1), генерируем один раз сидированным RNG.
     val stars = remember {
@@ -264,7 +264,7 @@ private fun SceneCanvas(
                             } else if (bond != null) {
                                 // Клик по связи ВЫБРАННОЙ молекулы = усилить именно её (механика «лего»).
                                 world.requestMoleculeAction(
-                                    selectedLatest.value!!.id,
+                                    selectedLatest.value!!.state().value.id,
                                     ReactionSelection.StrengthenBond(bond),
                                 )
                             } else {
@@ -310,13 +310,14 @@ private fun SceneCanvas(
 //        world.environment.setWorldHeight(size.height)
 
         // отрисовка сущностей; символ показываем только у наведённой/выбранной
-        entitiesState
-            .sortedBy { if (it.id == world.heldEntityId) 1 else 0 }   // выделенную частицу рисуем поверх остальных
-            .forEach {
-                val isHoveredOrSelectedEntity = it.id == hoveredEntityId || it.id == selectedId
-                val hoveredBond = if (it.id == selectedId) hoveredBond else null
+        entities
+            .sortedBy { if (it.state().value.id == world.heldEntityId) 1 else 0 }   // выделенную частицу рисуем поверх остальных
+            .forEach { entity ->
+                val id = entity.state().value.id
+                val isHoveredOrSelectedEntity = id == hoveredEntityId || id == selectedId
+                val hoveredBond = if (id == selectedId) hoveredBond else null
                 renderer.render(
-                    this, it, time,
+                    this, entity, time,
                     Highlight(
                         entity = isHoveredOrSelectedEntity,
                         bond = hoveredBond,
@@ -419,7 +420,7 @@ fun ConsolePanel(
  * Строгое `<` оставляет победу первому в списке при ничьей.
  */
 private fun hitTest(
-    entities: List<EntityState>,
+    entities: List<Entity>,
     at: Offset,
     slop: Float = 20f
 ): Long? {
@@ -427,10 +428,11 @@ private fun hitTest(
     var bestId: Long? = null
     var bestDistance = Float.MAX_VALUE
     for (entity in entities) {
-        val distance = entity.distanceToSurface(point)
+        val state = entity.state().value
+        val distance = state.distanceToSurface(point)
         if (distance <= slop && distance < bestDistance) {
             bestDistance = distance
-            bestId = entity.id
+            bestId = state.id
         }
     }
     return bestId
@@ -442,15 +444,16 @@ private fun hitTest(
  * Чтобы потом смогли усилить именно эту связь
  */
 private fun strengthenableBondAt(
-    molecule: EntityState?,
+    molecule: Entity?,
     at: Offset,
     slop: Float = 10f,
 ): MolecularBond? {
-    val species = molecule?.species as? Species.Molecular ?: return null
+    val state = molecule?.state()?.value ?: return null
+    val species = state.species as? Species.Molecular ?: return null
     val point = at.toPosition()
     var best: MolecularBond? = null
     var bestDistance = Float.MAX_VALUE
-    for (bond in species.strengthenableBonds(molecule.centerPosition)) {
+    for (bond in species.strengthenableBonds(state.centerPosition)) {
         if (point.distanceTo(bond.atom1.position) <= bond.atom1.radius) continue   // это клик по атому
         if (point.distanceTo(bond.atom2.position) <= bond.atom2.radius) continue
         val distance = distanceToSegment(point, bond.atom1.position, bond.atom2.position)
