@@ -10,6 +10,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.ElementType
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MolecularAtom
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MolecularBond
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.toOffset
@@ -94,21 +95,20 @@ class EntityRenderer(
         time: Float,
     ) {
         val entityState = entity.state().value
-        val molecule = entityState.species as Species.Molecular
-        val center = entityState.centerPosition
+        val molecule = entity as Molecule
 
         // Добавляем дрожание
         fun screenPos(atom: MolecularAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 
-            molecule.bonds(center).forEach { bond ->
+            molecule.bonds.forEach { bond ->
                 // Связь под курсором показываем на кратность выше — пунктирной линией (клик усилит её).
                 val potentialOrder = if (bond == highlight.bond) bond.order + 1 else bond.order
                 drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order, potentialOrder)
             }
 
-            molecule.atoms(center).forEach { atom ->
+            molecule.atoms.forEach { atom ->
                 val atomVibrationParams = VibrationParams(atom.localId.toLong(), entityState.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(Species.Atomic(atom.isotope))
                 val symbol = atom.isotope.details.symbol.filter { it.isLetter() }

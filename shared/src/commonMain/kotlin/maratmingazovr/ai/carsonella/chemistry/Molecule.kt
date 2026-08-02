@@ -42,6 +42,10 @@ class Molecule(
     override val mass: Float = graph.mass
     override val protons: Int = graph.protons
     override val radius: Float = MOLECULE_RADIUS
+
+    val atoms: List<MolecularAtom> get() = Species.Molecular(graph).atoms(state().value.centerPosition) // Атомы, поставленные в мир: структура из графа, координаты из состояния.
+    val bonds: List<MolecularBond> get() = Species.Molecular(graph).bonds(state().value.centerPosition) // Связи, поставленные в мир: у каждой оба конца — готовые MolecularAtom.
+    override fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
     override val energyLevels: List<Float> = graph.energyLevels
 

@@ -428,11 +428,10 @@ private fun hitTest(
     var bestId: Long? = null
     var bestDistance = Float.MAX_VALUE
     for (entity in entities) {
-        val state = entity.state().value
-        val distance = state.distanceToSurface(point)
+        val distance = entity.distanceToSurface(point)
         if (distance <= slop && distance < bestDistance) {
             bestDistance = distance
-            bestId = state.id
+            bestId = entity.state().value.id
         }
     }
     return bestId

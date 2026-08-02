@@ -33,35 +33,6 @@ data class EntityState(
 
 
     /**
-     * Атомы сущности, поставленные в мир: у атома — он сам (узел 0), у молекулы — все узлы графа.
-     *
-     * Вычисляется один раз при первм запросе и потом хранится
-     */
-    val atoms: List<MolecularAtom> by lazy(LazyThreadSafetyMode.NONE) {
-        when (val species = species) {
-            is Species.Atomic -> listOf(MolecularAtom(0, species.element, centerPosition, species.element.valence(electrons)))
-            is Species.Molecular -> species.atoms(centerPosition)
-        }
-    }
-
-    // Связи молекулы, поставленные в мир: у каждой оба конца — готовые MolecularAtom. У атома связей нет.
-    val bonds: List<MolecularBond> by lazy(LazyThreadSafetyMode.NONE) {
-        when (val species = species) {
-            is Species.Atomic -> listOf()
-            is Species.Molecular -> species.bonds(centerPosition)
-        }
-    }
-
-    /**
-     * Расстояние от [point] до ПОВЕРХНОСТИ сущности: 
-     * `< 0` — точка внутри, 
-     * `0` — на кромке, 
-     * `> 0` — снаружи. У молекулы берётся ближайший АТОМ.
-     */
-    fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius }
-
-
-    /**
      * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
      * только когда .value присваивается новый объект.
      */
@@ -113,6 +84,14 @@ interface Entity :
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Тоже зависит от electrons.
 
     fun describe(): String // Человекочитаемое описание для карточки Info.
+
+    /**
+     * Расстояние от [point] до ПОВЕРХНОСТИ сущности: 
+     * `< 0` — точка внутри, 
+     * `0` — на кромке,
+     * `> 0` — снаружи.
+     */
+    fun distanceToSurface(point: Position): Float
 
     /**
      * ВРЕМЕННЫЙ член: он не применим в молекуле
