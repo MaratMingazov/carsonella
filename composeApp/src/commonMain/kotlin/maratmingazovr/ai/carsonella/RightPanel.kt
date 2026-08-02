@@ -96,21 +96,6 @@ fun RightPanel(
                         when (e.type) {
                             KeyDown -> {
                                 keys = keys + e.key
-                                // ► действие по пробелу
-                                if (e.key == Key.Spacebar) {
-                                    val id = selectedId
-                                    val mouse = hoverPos
-                                    if (id != null && mouse != null) {
-                                        val selectedEntity = entities.firstOrNull { it.id == id }
-                                        val selected = selectedEntity?.state()?.value
-                                        if (selectedEntity != null && selected != null) {
-                                            val from = selected.centerPosition.toOffset()
-                                            val dir = direction(from, mouse)   // единичный вектор к мыши
-                                            // Из выбранного элемента стреляем фотоном
-                                            world.entityGenerator.createEntity(species = selectedEntity.toSpecies(), Position(selected.centerPosition.x, selected.centerPosition.y),  direction = dir, velocity = 10f, energy = selected.energy, environment = world.environment, electrons = selected.electrons)
-                                        }
-                                    }
-                                }
                                 // ► удаление выбранной частицы. На macOS основная клавиша удаления
                                 // репортится как Backspace, поэтому ловим и Delete, и Backspace.
                                 if (e.key == Key.Delete || e.key == Key.Backspace) {
@@ -327,13 +312,6 @@ private fun SceneCanvas(
                 )
             }
     }
-}
-
-private fun direction(from: Offset, to: Offset): Vec2D {
-    val dx = to.x - from.x
-    val dy = to.y - from.y
-    val len = Vec2D(dx, dy).length()
-    return if (len > 1e-6f) Vec2D(dx / len, dy / len) else Vec2D(0f, 0f)
 }
 
 @Composable

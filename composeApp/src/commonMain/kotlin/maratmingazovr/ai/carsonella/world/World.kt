@@ -22,8 +22,8 @@ import maratmingazovr.ai.carsonella.world.save.writeSaveFile
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ChemicalReactionResolver
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
-import maratmingazovr.ai.carsonella.world.generators.EntityGenerator
-import maratmingazovr.ai.carsonella.world.generators.IdGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.EntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
 class World(
     private val _scope: CoroutineScope,
@@ -51,7 +51,7 @@ class World(
     // инициирует) и убрана из детей среды (её никто не видит как соседа → ни сил, ни реакций).
     var heldEntityId: Long? = null
         private set
-    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, logs, palette, random)
+    val entityGenerator = EntityGenerator(_idGen, entities, _pendingRequests, log = { logs += "${currentTime()}: $it" }, random)
 
     // Отложенная загрузка: load() кладёт сюда слепок, а применяется он внутри тика —
     // чтобы «тик оставался единственным писателем мира» (см. README, технические TODO).

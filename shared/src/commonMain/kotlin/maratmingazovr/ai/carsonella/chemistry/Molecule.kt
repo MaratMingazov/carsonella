@@ -74,7 +74,6 @@ class Molecule(
     override val energyLevels: List<Float> = graph.energyLevels
 
     override val saveKey: String = graph.formula
-    override fun toSpecies(): Species = Species.Molecular(graph)
 
     override fun describe(): String {
         // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и

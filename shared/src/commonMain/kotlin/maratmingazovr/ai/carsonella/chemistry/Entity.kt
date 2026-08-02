@@ -83,7 +83,6 @@ sealed interface Entity :
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
     fun describe(): String // Человекочитаемое описание для карточки Info.
-    fun toSpecies(): Species
 
     /**
      * Расстояние от [point] до ПОВЕРХНОСТИ сущности: 

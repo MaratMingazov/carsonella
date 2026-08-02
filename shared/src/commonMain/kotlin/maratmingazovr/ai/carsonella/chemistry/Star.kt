@@ -45,7 +45,6 @@ class Star(
     override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
 
     override val saveKey: String = element.name
-    override fun toSpecies(): Species = Species.Atomic(element)
 
     override fun describe(): String {
         val s = state().value
