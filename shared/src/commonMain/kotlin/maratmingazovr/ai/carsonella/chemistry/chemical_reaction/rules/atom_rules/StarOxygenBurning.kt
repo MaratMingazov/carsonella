@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SILICON_28
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -50,12 +51,9 @@ class StarOxygenBurning(
 
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
-        val firstAtom = reagents.first()
+        val firstAtom = reagents.first() as? Atom ?: return null
         val firstAtomPosition = firstAtom.state().value.centerPosition
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        if (firstSpecies.element != OXYGEN_16) return null
+        if (firstAtom.element != OXYGEN_16) return null
         if (!firstAtom.state().value.alive) return null
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 

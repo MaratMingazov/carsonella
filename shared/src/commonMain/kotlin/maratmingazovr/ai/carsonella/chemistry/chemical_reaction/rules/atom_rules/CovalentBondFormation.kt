@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.MOLECULE_RADIUS
 import maratmingazovr.ai.carsonella.chemistry.ElementType
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -31,13 +32,12 @@ class CovalentBondFormation(
 ) : ReactionRule {
     override val id = "CovalentBond"
 
-    private data class Match(val atom1: Entity, val atom2: Entity) : MatchedData
+    private data class Match(val atom1: Atom, val atom2: Atom) : MatchedData
 
     override fun matches(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
-        if (!canBond(first)) return null
+        val first = bondableAtom(reagents.first()) ?: return null
         // Внутри звезды слишком горячо — молекулы не образуются.
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
@@ -46,7 +46,7 @@ class CovalentBondFormation(
 
         val (second, distanceSquare) = reagents
             .drop(1)
-            .filter { canBond(it) }
+            .mapNotNull { bondableAtom(it) }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
             .map { it to it.state().value.centerPosition.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
@@ -60,23 +60,21 @@ class CovalentBondFormation(
         }
     }
 
-    // Атом способен на ковалентную связь: живой, нейтральный лёгкий атом со свободным слотом.
-    // Через Species (не через шов .element): связываем только Elemental-атомы.
-    private fun canBond(entity: Entity): Boolean {
-        val state = entity.state().value
-        if (!state.alive) return false
-        val species = state.species
-        if (species !is Species.Atomic) return false              // молекулы пока не связываем (3b)
-        val element = species.element
-        if (element.details.type != ElementType.Atom) return false   // только атомы (не частицы/звезда/модуль)
-        if (state.electrons != element.details.p) return false       // только нейтральные (есть электроны для общей пары)
-        return element.valence(state.electrons) > 0                  // есть свободный слот (0 → благородный/тяжёлый)
+    // Атом, способный на ковалентную связь: живой, нейтральный лёгкий атом со свободным слотом. Иначе null.
+    // Проверка класса заменяет прежний тег ElementType: частицы, звезда и молекулы — не Atom.
+    private fun bondableAtom(entity: Entity): Atom? {
+        val atom = entity as? Atom ?: return null
+        val state = atom.state().value
+        if (!state.alive) return null
+        if (state.electrons != atom.element.details.p) return null   // только нейтральные (есть электроны для общей пары)
+        if (atom.element.valence(state.electrons) == 0) return null  // нет свободного слота (благородный/тяжёлый)
+        return atom
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (a1, a2) = match as Match
-        val iso1 = (a1.state().value.species as Species.Atomic).element
-        val iso2 = (a2.state().value.species as Species.Atomic).element
+        val iso1 = a1.element
+        val iso2 = a2.element
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
         val p1 = a1.state().value.centerPosition

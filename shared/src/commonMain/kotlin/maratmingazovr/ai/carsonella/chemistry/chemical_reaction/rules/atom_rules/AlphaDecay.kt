@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -32,12 +33,9 @@ class AlphaDecay(
 
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size != 1) return null
-        val first = reagents.first()
+        val first = reagents.first() as? Atom ?: return null
         if (!first.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val species = first.state().value.species
-        if (species !is Species.Atomic) return null
-        val element = species.element
+        val element = first.element
         if (element.details.alphaDecayResult == null) return null
 
         if (!chance(0.02f, entityGenerator.random)) return null

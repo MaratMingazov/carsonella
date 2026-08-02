@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.elementOrNull
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -61,10 +62,8 @@ class StarPPChain(
         val firstAtom = reagents.first()
         val firstAtomPosition = firstAtom.state().value.centerPosition
         if (!firstAtom.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        val firstAtomElement = firstSpecies.element
+        // Субъект цепочки — и протон (p+p→D), и атом (D+p→³He), поэтому элемент через elementOrNull.
+        val firstAtomElement = firstAtom.elementOrNull() ?: return null
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         // В зависимости от первого реагента определяем какие варианты второго реагента возможны и что родится.

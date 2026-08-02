@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -58,12 +59,9 @@ class StarPhotodisintegration(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
+        val first = reagents.first() as? Atom ?: return null
         if (!first.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        val element = firstSpecies.element
+        val element = first.element
 
         // Доступные обратные каналы — реверс полей захвата (N — продукт какого-то захвата P→N).
         val candidates = buildList {

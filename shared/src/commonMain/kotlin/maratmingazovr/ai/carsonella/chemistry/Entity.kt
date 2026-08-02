@@ -690,3 +690,17 @@ data class Details(
     val alphaDecayResult: Element? = null, // α-распад. Ядро испускает ⁴He²⁺ (голое ядро гелия): A(Z) → A′(Z-2) + ⁴He. Замыкает свинцово-висмутовый цикл s-процесса: ²¹⁰Po → ²⁰⁶Pb + α. Generic — по образцу betaMinusDecayResult.
 )
 
+
+/**
+ * Элемент сущности, если он у неё есть. ВРЕМЕННАЯ опора для двух правил, где субъектом бывает и атом,
+ * и голый протон (StarPPChain, RecombinationReaction): протон лежит в SubAtom, хотя физически это ядро.
+ *
+ * Когда протон станет атомом, а частицы потеряют element, компилятор приведёт сюда сам — when по
+ * запечатанной иерархии перестанет быть исчерпывающим.
+ */
+fun Entity.elementOrNull(): Element? = when (this) {
+    is Atom -> element
+    is SubAtom -> element
+    is Star -> element
+    is Molecule -> null
+}

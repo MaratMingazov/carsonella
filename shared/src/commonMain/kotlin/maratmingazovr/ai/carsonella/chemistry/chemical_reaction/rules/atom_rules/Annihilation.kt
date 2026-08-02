@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -40,12 +41,9 @@ class Annihilation(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
+        val first = reagents.first() as? SubAtom ?: return null
         if (!first.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val species = first.state().value.species
-        if (species !is Species.Atomic) return null
-        if (species.element != POSITRON) return null
+        if (first.element != POSITRON) return null
 
         val positronPosition = first.state().value.centerPosition
         val positronRadius = POSITRON.details.radius

@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -32,11 +33,8 @@ class StarEmission (
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.isEmpty()) return null
 
-        val first = reagents.first()
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val species = first.state().value.species
-        if (species !is Species.Atomic) return null
-        if (species.element != Element.Star) return null
+        // Класс Star строится только для Element.Star, поэтому отдельная проверка элемента не нужна.
+        val first = reagents.first() as? Star ?: return null
         if (!first.state().value.alive) return null
 
         // Поглощение: запрос вида [звезда + соседи снаружи] — втягиваем их сразу, без chance.

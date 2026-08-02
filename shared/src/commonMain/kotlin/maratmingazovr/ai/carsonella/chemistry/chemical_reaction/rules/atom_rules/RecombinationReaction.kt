@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.elementOrNull
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -31,10 +32,8 @@ class RecombinationReaction(
         val firstAtom = reagents.first()
         val firstAtomPosition = reagents.first().state().value.centerPosition
         if (!firstAtom.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        val firstAtomElement = firstSpecies.element
+        // Субъект — атом ИЛИ голый протон (он пока в SubAtom), поэтому элемент берём через elementOrNull.
+        val firstAtomElement = firstAtom.elementOrNull() ?: return null
         val firstElectrons = firstAtom.state().value.electrons
         if (!canGainElectron(firstAtomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
         // уровни состояния-результата (на 1 электрон больше); для протона результат — HYDROGEN

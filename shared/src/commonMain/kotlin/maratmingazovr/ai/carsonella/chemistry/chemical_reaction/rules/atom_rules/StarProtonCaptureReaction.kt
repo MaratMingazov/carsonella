@@ -16,6 +16,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -67,13 +68,10 @@ class StarProtonCaptureReaction(
 
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
-        val firstAtom = reagents.first()
+        val firstAtom = reagents.first() as? Atom ?: return null
         val firstAtomPosition = firstAtom.state().value.centerPosition
         if (!firstAtom.state().value.alive) return null
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = firstAtom.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        val firstAtomElement = firstSpecies.element
+        val firstAtomElement = firstAtom.element
 
         val gammaResult = firstAtomElement.details.protonGammaResult
         val alphaResult = firstAtomElement.details.protonAlphaResult

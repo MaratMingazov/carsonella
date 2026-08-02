@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Species
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -51,14 +52,11 @@ class AlphaProtonReaction(
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
+        val first = reagents.first() as? Atom ?: return null
         if (!first.state().value.alive) return null
         if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
 
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val firstSpecies = first.state().value.species
-        if (firstSpecies !is Species.Atomic) return null
-        val firstElement = firstSpecies.element
+        val firstElement = first.element
         if (firstElement.details.alphaProtonResult == null) return null
 
         val firstPosition = first.state().value.centerPosition

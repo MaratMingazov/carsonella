@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.Species
@@ -32,13 +33,10 @@ class SpontaneousEmission(
 
     override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
         if (reagents.size != 1) return null
-        val first = reagents.first()
+        val first = reagents.first() as? Atom ?: return null
         if (!first.state().value.alive) return null
 
-        // species в локальный val → smart-cast к Elemental ниже (через Entity компилятор сам этого не знает).
-        val species = first.state().value.species
-        if (species !is Species.Atomic) return null
-        val firstElement = species.element
+        val firstElement = first.element
         val levels = firstElement.energyLevels(first.state().value.electrons)
         if (levels.isEmpty()) return null
         if (first.state().value.energy == 0f) return null
