@@ -20,18 +20,6 @@ import maratmingazovr.ai.carsonella.randomDirection
 /**
  * Рост молекулы: молекула со свободным валентным слотом притягивает ближайшего соседа,
  * у которого тоже есть свободный слот, и сливается с ним в одну бо́льшую молекулу.
- *
- * Субъект — всегда молекула ([MoleculeReactionRule]). Партнёром может быть:
- *  - **атом** (нейтральный лёгкий, `valence > 0`) — атом+молекула: так O–H ловит второй H → H₂O;
- *  - **другая молекула** (есть свободный слот) — молекула+молекула: ·CH₃ + ·OH → CH₃OH.
- *
- * Атом-партнёр оборачивается в одноузловой граф, и оба случая сливаются одним [MoleculeGraph.merge]
- * (атом = вырожденная молекула, §8). Связь стартует одинарной (`order = 1`) — как в 3a; кратность
- * эмёрджентна (рост/усиление, см. §6).
- *
- * Выбор партнёра — ПЕРМИССИВНЫЙ (решение 3b): любой свободный слот + близость, единственный гард —
- * потолок валентности (его держит `freeSlots`). Радикалы-интермедиаты допускаются и растут дальше;
- * энергетика/предпочтения связей — отдельный слой реализма позже (§5.3/§6).
  */
 class MoleculeGrowth(
     private val entityGenerator: IEntityGenerator,
@@ -94,12 +82,16 @@ class MoleculeGrowth(
     // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),
     // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Данные из Match.
     override fun weight(match: MatchedData): Float {
-        val (mol, partnerEntity) = match as Match
-        val molGraph = mol.graph
-        val partnerGraph = graphOf(partnerEntity)
-        val molNode = molGraph.firstFreeValenceAtomNode!!
-        val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
-        return BondEnergy.of(molNode.isotope, partnerNode.isotope, order = 1) ?: 0f
+        val (molecule, partnerEntity) = match as Match
+        val partnerEntityIsotop = getIsotope(partnerEntity)
+        val moleculeAtomIsotope = molecule.firstFreeValenceAtom()!!.isotope
+        return BondEnergy.of(moleculeAtomIsotope, partnerEntityIsotop, order = 1) ?: 0f
+    }
+
+    private fun getIsotope(entity: Entity): Element = when (entity) {
+        is Molecule -> entity.firstFreeValenceAtom()!!.isotope
+        is Atom -> entity.element
+        is SubAtom, is Star -> error("graphOf: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
@@ -110,7 +102,7 @@ class MoleculeGrowth(
         // matchesMolecule гарантировал свободные слоты у обоих → firstFreeSlotNode не null.
         val molNode = molGraph.firstFreeValenceAtomNode!!
         val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
-        val merged = molGraph.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
+        val newMoleculeGraph = molecule.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
 
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(molecule, partnerEntity)
@@ -127,7 +119,7 @@ class MoleculeGrowth(
         val partnerIso = partnerNode.isotope
         val bondEnergy = BondEnergy.of(molIso, partnerIso, order = 1)
         val spawn = mutableListOf(
-            { entityGenerator.createMolecule(merged, midpoint, direction, velocity, energy, env, electrons) },
+            { entityGenerator.createMolecule(newMoleculeGraph, midpoint, direction, velocity, energy, env, electrons) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             val photonDirection = randomDirection(entityGenerator.random)
@@ -144,7 +136,7 @@ class MoleculeGrowth(
         return ReactionOutcome(
             consumed = listOf(molecule, partnerEntity),
             spawn = spawn,
-            description = "$id: ${molGraph.formulaPretty} + ${partnerGraph.formulaPretty} -> ${merged.formulaPretty}" +
+            description = "$id: ${molGraph.formulaPretty} + ${partnerGraph.formulaPretty} -> ${newMoleculeGraph.formulaPretty}" +
                 (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }

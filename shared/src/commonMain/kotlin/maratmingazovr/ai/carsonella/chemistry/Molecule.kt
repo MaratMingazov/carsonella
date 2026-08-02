@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
@@ -72,12 +73,21 @@ class Molecule(
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
     override val energyLevels: List<Float> = graph.energyLevels
-
     override val saveKey: String = graph.formula
 
+    fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph = graph.merge(other, thisNode, otherNode, bondOrder)
+    fun firstFreeValenceAtom(): MolecularAtom? {
+        return graph.firstFreeValenceAtomNode?.let { atomNode ->
+            MolecularAtom(
+                localId = atomNode.localId,
+                isotope = atomNode.isotope,
+                position = state().value.kinematics.centerPosition + graph.atomOffset(atomNode.localId),
+                freeValence = graph.freeValence(atomNode.localId),
+            )
+        }
+    }
+
     override fun describe(): String {
-        // Известная молекула из реестра: англ. имя + брутто-формула первой строкой, затем русское имя и
-        // структурная формула (связность) — отдельными строками. Аноним → просто брутто-формула.
         val known = MoleculeRegistry.lookup(graph.canonical)
         val lines = mutableListOf(
             if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
@@ -118,9 +128,6 @@ class Molecule(
         // молекула (у неё strengthenableBonds пусто) обязана распасться в звезде.
         if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
-
-
-
     override fun destroy() {
         state.value = state.value.copy(alive = false)
         notifyDeath()

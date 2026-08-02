@@ -70,18 +70,18 @@ class CovalentBondFormation(
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (a1, a2) = match as Match
-        val iso1 = a1.element
-        val iso2 = a2.element
+        val (atom1, atom2) = match as Match
+        val iso1 = atom1.element
+        val iso2 = atom2.element
 
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(a1, a2)
-        val p1 = a1.state().value.kinematics.centerPosition
-        val p2 = a2.state().value.kinematics.centerPosition
+        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
+        val p1 = atom1.state().value.kinematics.centerPosition
+        val p2 = atom2.state().value.kinematics.centerPosition
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
         // Сохранение: электроны молекулы = сумма электронов реагентов (оба нейтральны → нейтральная молекула).
-        val electrons = a1.state().value.electrons + a2.state().value.electrons
-        val energy = a1.state().value.energy + a2.state().value.energy
-        val env = a1.getEnvironment()
+        val electrons = atom1.state().value.electrons + atom2.state().value.electrons
+        val energy = atom1.state().value.energy + atom2.state().value.energy
+        val env = atom1.getEnvironment()
 
         // Начинаем всегда с ОДИНАРНОЙ связи (order = 1) — это корректно для любой пары. Кратность НЕ
         // вычисляем заранее (octet/valence — лишь приближение). Дальше молекула эволюционирует на
@@ -110,9 +110,9 @@ class CovalentBondFormation(
         }
 
         return ReactionOutcome(
-            consumed = listOf(a1, a2),
+            consumed = listOf(atom1, atom2),
             spawn = spawn,
-            description = "$id: ${iso1.symbol(a1.state().value.electrons)} + ${iso2.symbol(a2.state().value.electrons)} -> ${graph.formulaPretty}" +
+            description = "$id: ${iso1.symbol(atom1.state().value.electrons)} + ${iso2.symbol(atom2.state().value.electrons)} -> ${graph.formulaPretty}" +
                 (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }
