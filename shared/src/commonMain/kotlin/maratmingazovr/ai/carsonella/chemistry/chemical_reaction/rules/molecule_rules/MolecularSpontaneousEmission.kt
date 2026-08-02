@@ -44,17 +44,16 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size != 1) return null          // «сам с собой», как усиление/кольцо/StarDissociation
 
-        val first = reagents.first()
-        val s = first.state().value
-        if (!s.alive) return null
-        if (s.energy <= 0f) return null              // остывать нечего
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
+        val subjectState = subject.state().value
+        if (!subjectState.alive) return null
+        if (subjectState.energy <= 0f) return null              // остывать нечего
+        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
         val graph = subject.graph
         val threshold = graph.weakestBondAndEnergy?.second
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
-        if (threshold != null && s.energy >= threshold) {
+        if (threshold != null && subjectState.energy >= threshold) {
             return Match(subject, threshold)
         }
 

@@ -43,27 +43,25 @@ class MoleculeGrowth(
     override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
-        if (!first.state().value.alive) return null
-        // субъект-молекула гарантирован базой; нужен свободный слот, чтобы было куда расти
-        val firstGraph = subject.graph
-        if (!firstGraph.hasFreeValence) return null
+        if (!subject.state().value.alive) return null
+        // нужен свободный слот, чтобы было куда расти
+        if (!subject.graph.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
-        if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
+        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val firstPosition = first.state().value.kinematics.centerPosition
-        val firstRadius = first.radius
+        val subjectPosition = subject.state().value.kinematics.centerPosition
+        val subjectRadius = subject.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
             .filter { canBond(it) }
-            .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(firstPosition) }
+            .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
+            .map { it to it.state().value.kinematics.centerPosition.distanceSquareTo(subjectPosition) }
             .minByOrNull { it.second }
             ?: return null
 
         val secondRadius = second.radius
-        return if (distanceSquare < firstRadius * secondRadius * 2f) {
+        return if (distanceSquare < subjectRadius * secondRadius * 2f) {
             Match(subject, second)
         } else {
             null

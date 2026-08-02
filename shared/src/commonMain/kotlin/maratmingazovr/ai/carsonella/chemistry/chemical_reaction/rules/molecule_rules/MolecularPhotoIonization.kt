@@ -35,27 +35,26 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
     override fun matchesMolecule(subject: Molecule, reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
 
-        val first = reagents.first()
-        val entityState = first.state().value
-        if (!entityState.alive) return null
-        val threshold = first.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
+        val subjectState = subject.state().value
+        if (!subjectState.alive) return null
+        val threshold = subject.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
-        val firstPosition = entityState.kinematics.centerPosition
-        val radius = first.radius
+        val subjectPosition = subjectState.kinematics.centerPosition
+        val radius = subject.radius
         val activationDistanceSquare = radius * radius
 
         val nearestPhoton = reagents.drop(1)
             .asSequence()
             .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
-            .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to firstPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) }
+            .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
+            .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.centerPosition) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first
             ?: return null
 
-        val available = first.state().value.energy + nearestPhoton.state().value.energy
+        val available = subjectState.energy + nearestPhoton.state().value.energy
         if (available < threshold) return null   // фотона не хватает на ионизацию → мимо (может сработать распад)
 
         return Match(subject, nearestPhoton)
