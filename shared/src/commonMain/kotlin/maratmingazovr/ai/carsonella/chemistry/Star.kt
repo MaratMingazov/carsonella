@@ -65,7 +65,6 @@ class Star(
     override fun step() {
         val neighbors = getNeighbors()
         val environment = getEnvironment()
-        val element = (state.value.species as Species.Atomic).element
         val radius = element.details.radius
 
         //applyForce(calculateForce(neighbors))

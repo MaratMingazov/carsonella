@@ -65,7 +65,7 @@ data class MolecularBond(
     val order: Int,
 )
 
-interface Entity :
+sealed interface Entity :
     DeathNotifiable,
     NeighborsAware,
     ReactionRequester,
