@@ -130,7 +130,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
             val selection = request.selection as? ReactionSelection.Forced ?: continue
             for (rule in forcedRules) {
                 val match = rule.matches(request.reagents, selection) ?: continue
-                return rule.produce(match)
+                return rule.produce(match).copy(ruleId = rule.id)
             }
         }
         // 2. Эмёрджентно: лучший по weight среди всех правил по всем WeightBased-запросам.
@@ -146,7 +146,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
             val chosen = candidates.filter { it.weight == maxWeight }.random(entityGenerator.random)
             if (best == null || chosen.weight > best.weight) best = chosen
         }
-        return best?.let { it.rule.produce(it.match) }
+        return best?.let { it.rule.produce(it.match).copy(ruleId = it.rule.id) }
     }
 
     /** Сматчившееся правило вместе со своим матчем и посчитанным весом — кандидат на применение. */

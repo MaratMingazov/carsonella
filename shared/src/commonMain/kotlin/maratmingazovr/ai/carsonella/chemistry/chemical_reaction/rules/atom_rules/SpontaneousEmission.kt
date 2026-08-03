@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -68,7 +69,7 @@ class SpontaneousEmission(
         return ReactionOutcome(
             // setEnergy(targetEnergy) вместо addEnergy(-energyToExpose) — записываем точное значение
             // уровня из таблицы, чтобы не накапливался float-дрейф и contains() не падал на следующем тике.
-            updateState = listOf { entity.setEnergy(targetEnergy) },
+            updateState = listOf(StateUpdate(entity) { entity.setEnergy(targetEnergy) }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,

@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 
 /**
  * Молекулярная фотоионизация: фотон достаточной энергии выбивает из молекулы электрон — молекула
@@ -83,10 +84,10 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         // Граф НЕ меняется — та же молекула теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
         return ReactionOutcome(
             consumed = listOf(photon),
-            updateState = listOf {
+            updateState = listOf(StateUpdate(molecule) {
                 molecule.setElectrons(electrons - 1)
                 molecule.setEnergy(0f)
-            },
+            }),
             spawn = listOf {
                 entityGenerator.createEntity(ELECTRON, electronPosition, molDirection, electronVelocity, 0f, env, electrons = 1)
             },

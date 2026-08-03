@@ -10,6 +10,7 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -85,7 +86,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         val photonEnergy = moleculeState.energy
         val env = molecule.getEnvironment()
         return ReactionOutcome(
-            updateState = listOf { molecule.setEnergy(0f) },
+            updateState = listOf(StateUpdate(molecule) { molecule.setEnergy(0f) }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,

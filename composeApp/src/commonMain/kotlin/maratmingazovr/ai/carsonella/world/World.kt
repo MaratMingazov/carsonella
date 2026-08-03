@@ -314,11 +314,18 @@ class World(
             .map { req -> req.copy(reagents = req.reagents.filter { it.id != heldEntityId }) }
             .filter { it.reagents.isNotEmpty() }
         val result = _chemicalReactionResolver.resolve(filtered) ?: return
-        if (result.description.isNotEmpty()) logs += "${currentTime()}: ${result.description}"
+
+        // Символы участников ДО применения исхода: consumed сейчас умрут, выжившие — изменятся.
+        val survivors = result.updateState.map { it.entity }.distinctBy { it.id } // на одну сущность бывает несколько мутаций
+        val before = (result.consumed + survivors).map { it.displaySymbol }
 
         result.consumed.forEach { it.destroy() }
-        result.spawn.forEach { it() }
-        result.updateState.forEach { it() }
+        val products = result.spawn.map { it() }
+        result.updateState.forEach { it.mutate() }
+
+        // Символы ПОСЛЕ: у выживших они уже новые (H → H⁺), продукты только что родились.
+        val after = survivors.map { it.displaySymbol } + products.map { it.displaySymbol }
+        logs += "${currentTime()}: ${result.ruleId}: ${before.joinToString(" + ")} -> ${after.joinToString(" + ")}"
     }
 
     companion object {

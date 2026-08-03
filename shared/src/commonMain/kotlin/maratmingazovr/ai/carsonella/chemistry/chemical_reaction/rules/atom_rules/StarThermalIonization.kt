@@ -8,6 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
@@ -60,26 +61,32 @@ class StarThermalIonization(
         if (element == Element.HYDROGEN) {
             return ReactionOutcome(
                 consumed = listOf(atom),
-                spawn = listOf {
-                    entityGenerator.createEntity(
-                        Element.Proton,
-                        position,
-                        atom.state().value.kinematics.direction,
-                        atom.state().value.kinematics.velocity,
-                        0f,
-                        env,
-                        electrons = 0
-                    )
-                    entityGenerator.createEntity(
-                        Element.ELECTRON,
-                        electronPosition,
-                        randomDirection(entityGenerator.random),
-                        10f,
-                        0f,
-                        env,
-                        electrons = 1
-                    )
-                },
+                // Лямбда на КАЖДЫЙ продукт: мир собирает описание из их результатов, а из одной
+                // лямбды с двумя createEntity наружу вернулась бы только вторая сущность.
+                spawn = listOf(
+                    {
+                        entityGenerator.createEntity(
+                            Element.Proton,
+                            position,
+                            atom.state().value.kinematics.direction,
+                            atom.state().value.kinematics.velocity,
+                            0f,
+                            env,
+                            electrons = 0
+                        )
+                    },
+                    {
+                        entityGenerator.createEntity(
+                            Element.ELECTRON,
+                            electronPosition,
+                            randomDirection(entityGenerator.random),
+                            10f,
+                            0f,
+                            env,
+                            electrons = 1
+                        )
+                    },
+                ),
                 description = "$id: ${element.label(electrons)} -> ${Element.Proton.details.label} + ${Element.ELECTRON.details.label}",
             )
         }
@@ -88,7 +95,7 @@ class StarThermalIonization(
         // основное состояние: у нового зарядового состояния другие уровни, старая энергия для него не
         // валидна (инвариант Atom; конструкторный require не ловит updateState-путь — чиним здесь).
         return ReactionOutcome(
-            updateState = listOf { atom.setElectrons(electrons - 1); atom.setEnergy(0f) },
+            updateState = listOf(StateUpdate(atom) { atom.setElectrons(electrons - 1); atom.setEnergy(0f) }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.ELECTRON,

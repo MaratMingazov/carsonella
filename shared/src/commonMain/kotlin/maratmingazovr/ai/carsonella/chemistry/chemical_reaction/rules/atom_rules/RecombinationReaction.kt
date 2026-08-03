@@ -12,6 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.canGainElectron
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 
 // «Ион ловит электрон, излучает фотон».
 class RecombinationReaction(
@@ -75,20 +76,26 @@ class RecombinationReaction(
             val radius = Element.HYDROGEN.details.radius
             return ReactionOutcome(
                 consumed = listOf(atom1, atom2),
-                spawn = listOf {
-                    entityGenerator.createEntity(
-                        Element.HYDROGEN, resultPosition, direction, velocity,
-                        energy = 0f, env, electrons = 1,
-                    )
-                    entityGenerator.createEntity(
-                        Element.PHOTON,
-                        Position(
-                            resultPosition.x + 1.5f * direction.x * radius,
-                            resultPosition.y + 1.5f * direction.y * radius
-                        ),
-                        direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
-                    )
-                },
+                // Лямбда на КАЖДЫЙ продукт: мир собирает из их результатов описание реакции, а из
+                // одной лямбды с двумя createEntity наружу вернулась бы только вторая сущность.
+                spawn = listOf(
+                    {
+                        entityGenerator.createEntity(
+                            Element.HYDROGEN, resultPosition, direction, velocity,
+                            energy = 0f, env, electrons = 1,
+                        )
+                    },
+                    {
+                        entityGenerator.createEntity(
+                            Element.PHOTON,
+                            Position(
+                                resultPosition.x + 1.5f * direction.x * radius,
+                                resultPosition.y + 1.5f * direction.y * radius
+                            ),
+                            direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
+                        )
+                    },
+                ),
                 description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${
                     Element.HYDROGEN.symbol(
                         1
@@ -104,12 +111,12 @@ class RecombinationReaction(
         val radius = atom1Element.details.radius
         return ReactionOutcome(
             consumed = listOf(atom2),
-            updateState = listOf {
+            updateState = listOf(StateUpdate(atom1) {
                 atom1.setElectrons(resultElectrons)
                 // Электрон сел сразу в основное состояние (фотон унёс энергию связи). Сбрасываем energy в 0:
                 // старая энергия иона для нового заряда не валидна (инвариант Atom на updateState-пути).
                 atom1.setEnergy(0f)
-            },
+            }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,

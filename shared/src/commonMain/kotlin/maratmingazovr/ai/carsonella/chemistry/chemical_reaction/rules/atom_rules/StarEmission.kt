@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.collections.List
 
@@ -58,7 +59,7 @@ class StarEmission (
         // alive-гард — на случай, если реагент уже потреблён другим запросом в этом же тике.
         if (absorbReagents.isNotEmpty()) {
             return ReactionOutcome(
-                updateState = absorbReagents.map { r -> { if (r.state().value.alive) r.updateMyEnvironment(star) } },
+                updateState = absorbReagents.map { r -> StateUpdate(r) { if (r.state().value.alive) r.updateMyEnvironment(star) } },
                 description = "$id: ${Element.Star.details.symbol} <- " +
                         absorbReagents.joinToString { it.displaySymbol },
             )
@@ -89,10 +90,10 @@ class StarEmission (
             // из-за которого продукты нуклеосинтеза (Li, N, Ne, Mg, Si, … вплоть до ⁵⁶Ni) застревали
             // внутри звезды и игроку не показывались.
             val reagent = entityReagents.randomOrNull(entityGenerator.random)
-            val updateList = mutableListOf<() -> Unit>()
+            val updateList = mutableListOf<StateUpdate>()
             var description = ""
             if (reagent != null) {
-                updateList += {
+                updateList += StateUpdate(reagent) {
                     val center = star.state().value.kinematics.position
                     val pos = reagent.state().value.kinematics.position
                     // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),

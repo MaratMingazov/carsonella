@@ -69,29 +69,35 @@ class StarAlphaGammaReaction(
 
         return ReactionOutcome(
             consumed = listOf(atom1, atom2),
-            spawn = listOf {
-                entityGenerator.createEntity(
-                    resultElement,
-                    resultPosition,
-                    direction,
-                    velocity,
-                    energy = 0f,
-                    atom1.getEnvironment(),
-                    electrons = resultElectrons,
-                )
-                entityGenerator.createEntity(
-                    Element.PHOTON,
-                    Position(
-                        resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
-                        resultPosition.y + 1.5f * direction.y * resultElement.details.radius
-                    ),
-                    direction,
-                    MAX_VELOCITY,
-                    energy = resultPhotonEnergy,
-                    environment = atom1.getEnvironment(),
-                    electrons = 0,
-                )
-            },
+            // Лямбда на КАЖДЫЙ продукт: мир собирает описание из их результатов, а из одной лямбды
+            // с двумя createEntity наружу вернулась бы только вторая сущность.
+            spawn = listOf(
+                {
+                    entityGenerator.createEntity(
+                        resultElement,
+                        resultPosition,
+                        direction,
+                        velocity,
+                        energy = 0f,
+                        atom1.getEnvironment(),
+                        electrons = resultElectrons,
+                    )
+                },
+                {
+                    entityGenerator.createEntity(
+                        Element.PHOTON,
+                        Position(
+                            resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
+                            resultPosition.y + 1.5f * direction.y * resultElement.details.radius
+                        ),
+                        direction,
+                        MAX_VELOCITY,
+                        energy = resultPhotonEnergy,
+                        environment = atom1.getEnvironment(),
+                        electrons = 0,
+                    )
+                },
+            ),
             description = "$id: ${atom1Element.symbol(atom1.state().value.electrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} -> ${
                 resultElement.symbol(
                     resultElectrons

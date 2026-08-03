@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.math.abs
 
@@ -95,7 +96,7 @@ class PhotoIonization (
             // addEnergy(level - entityEnergy) дал бы a + (b - a), что в float не гарантирует b бит-в-бит.
             return ReactionOutcome(
                 consumed = listOf(photon),
-                updateState = listOf { atom.setEnergy(level) },
+                updateState = listOf(StateUpdate(atom) { atom.setEnergy(level) }),
                 description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${
                     entityElement.label(
                         electrons
@@ -122,26 +123,32 @@ class PhotoIonization (
                 val ionPosition = entityPosition.plus(Position(-1f * entityRadius, 0f))
                 return ReactionOutcome(
                     consumed = listOf(photon, atom),
-                    spawn = listOf {
-                        entityGenerator.createEntity(
-                            Proton,
-                            ionPosition,
-                            entityDirection,
-                            entityVelocity,
-                            0f,
-                            env,
-                            electrons = 0
-                        )
-                        entityGenerator.createEntity(
-                            ELECTRON,
-                            electronPosition,
-                            electronDirection,
-                            electronVelocity,
-                            0f,
-                            env,
-                            electrons = 1
-                        )
-                    },
+                    // Лямбда на КАЖДЫЙ продукт: мир собирает описание из их результатов, а из одной
+                    // лямбды с двумя createEntity наружу вернулась бы только вторая сущность.
+                    spawn = listOf(
+                        {
+                            entityGenerator.createEntity(
+                                Proton,
+                                ionPosition,
+                                entityDirection,
+                                entityVelocity,
+                                0f,
+                                env,
+                                electrons = 0
+                            )
+                        },
+                        {
+                            entityGenerator.createEntity(
+                                ELECTRON,
+                                electronPosition,
+                                electronDirection,
+                                electronVelocity,
+                                0f,
+                                env,
+                                electrons = 1
+                            )
+                        },
+                    ),
                     description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${Proton.details.label} + ${ELECTRON.details.label}"
                 )
             }
@@ -149,10 +156,10 @@ class PhotoIonization (
             // Element НЕ меняется — тот же атом теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
             return ReactionOutcome(
                 consumed = listOf(photon),
-                updateState = listOf {
+                updateState = listOf(StateUpdate(atom) {
                     atom.setElectrons(electrons - 1)
                     atom.setEnergy(0f)
-                },
+                }),
                 spawn = listOf {
                     entityGenerator.createEntity(
                         ELECTRON,
