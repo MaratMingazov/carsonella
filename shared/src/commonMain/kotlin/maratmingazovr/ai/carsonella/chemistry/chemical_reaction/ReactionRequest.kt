@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 
 /**
- * Как [ChemicalReactionResolver.resolve] выбирает реакцию для запроса:
+ * Как ChemicalReactionResolver.resolve выбирает реакцию для запроса:
  *  - [WeightBased] (дефолт) — ЭМЁРДЖЕНТНО: среди всех применимых правил берётся лучшее по weight.
  *  - [Forced] — ФОРС игрока (клик, механика «лего»): выполняется ИМЕННО его выбор, минуя
  *    weight-конкуренцию. Такие выборы обслуживают отдельные правила

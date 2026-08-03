@@ -73,8 +73,6 @@ class CovalentBondFormation(
         val (atom1, atom2) = match as Match
         val iso1 = atom1.element
         val iso2 = atom2.element
-
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
         val p1 = atom1.state().value.kinematics.position
         val p2 = atom2.state().value.kinematics.position
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
@@ -97,7 +95,7 @@ class CovalentBondFormation(
         // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
         val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
         val spawn = mutableListOf(
-            { entityGenerator.createMolecule(graph, midpoint, direction, velocity, energy, env, electrons) },
+            { entityGenerator.createMolecule(atom1, atom2, env) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
             spawn += {

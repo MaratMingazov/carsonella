@@ -3,8 +3,10 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaProtonReaction
@@ -49,6 +51,7 @@ interface IEntityGenerator {
 
     /** Молекула — по графу. Отдельный метод, а не перегрузка: у молекулы и элемента общего типа нет. */
     fun createMolecule(graph: MoleculeGraph, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
+    fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity
 }
 
 

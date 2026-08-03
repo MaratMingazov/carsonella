@@ -5,6 +5,7 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
@@ -45,6 +46,18 @@ class Molecule(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
+
+    constructor(id: Long, atom1: Atom, atom2: Atom) : this(
+        id = id,
+        graph = MoleculeGraph(
+            nodes = listOf(AtomNode(0, atom1.element), AtomNode(1, atom2.element)),
+            bonds = listOf(Bond(0, 1, order = 1)),
+        ),
+        kinematics = mergedKinematics(atom1, atom2),
+        energy = atom1.state().value.energy + atom2.state().value.energy,
+        electrons = atom1.state().value.electrons + atom2.state().value.electrons,
+    )
+
     private var state = MutableStateFlow(
         EntityState(
             alive = true,
@@ -143,6 +156,25 @@ class Molecule(
         notifyDeath()
     }
 
+}
+
+/**
+ * Кинематика молекулы, собранной из двух атомов: центр — середина отрезка между ними, движение — из
+ * сохранения импульса (m₁v₁ + m₂v₂) / (m₁ + m₂).
+ */
+private fun mergedKinematics(atom1: Atom, atom2: Atom): Kinematics {
+    val k1 = atom1.state().value.kinematics
+    val k2 = atom2.state().value.kinematics
+
+    val impulse = k1.direction * k1.velocity * atom1.mass + k2.direction * k2.velocity * atom2.mass
+    val velocityVector = impulse.div(atom1.mass + atom2.mass)
+    val velocity = velocityVector.length()
+
+    return Kinematics(
+        position = Position((k1.position.x + k2.position.x) / 2f, (k1.position.y + k2.position.y) / 2f),
+        direction = if (velocity > 1e-6f) velocityVector.div(velocity) else Vec2D(1f, 0f),
+        velocity = velocity.coerceAtMost(MAX_VELOCITY),
+    )
 }
 
 // Затычка: у молекулы нет своего радиуса, её протяжённость — это атомы (см. Entity.radius).

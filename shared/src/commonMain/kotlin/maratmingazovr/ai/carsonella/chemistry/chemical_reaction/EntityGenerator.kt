@@ -37,6 +37,15 @@ class EntityGenerator(
         environment,
     )
 
+    override fun createMolecule(
+        atom1: Atom,
+        atom2: Atom,
+        environment: IEnvironment,
+    ): Entity = register(
+        Molecule(idGen.nextId(), atom1, atom2),
+        environment,
+    )
+
     /**
      * То же, что createEntity, но с заранее заданным id вместо idGen.nextId().
      * Нужно при загрузке сохранения: id должны совпасть с сохранёнными, чтобы корректно
