@@ -103,6 +103,20 @@ data class MoleculeGraph(
 
 
     /**
+     * Энергия КАЖДОЙ связи (эВ), посчитанная один раз при рождении графа. Раньше эти же числа считались
+     * здесь ради одного минимума и выбрасывались, а спрашивают их часто: порог распада — каждый тик,
+     * отрисовка связи — каждый кадр, а [BondEnergy.of] это lookup с аллокацией ключа-Triple.
+     *
+     * Связи, чей тип не в каталоге [BondEnergy], в мапу не попадают (для CHNO не случается).
+     */
+    private val energyByBond: Map<Bond, Float> = bonds
+        .mapNotNull { bond -> BondEnergy.of(isotopeById.getValue(bond.atom1), isotopeById.getValue(bond.atom2), bond.order)?.let { energy -> bond to energy } }
+        .toMap()
+
+    /** Энергия связи [bond] (эВ) из кеша графа; null — тип связи не в каталоге [BondEnergy]. */
+    fun energyOf(bond: Bond): Float? = energyByBond[bond]
+
+    /**
      * Слабейшая связь молекулы и её энергия — ПОРОГ ДИССОЦИАЦИИ.
      * Слабейшая связь требует меньше всего энергии → рвётся первой.
      *
@@ -111,9 +125,9 @@ data class MoleculeGraph(
      * Нам это нужно, чтобы понять какая связь разорветс во время диссоциации.
      * Но если молекула кольцо, тогда после разрыва молекула остается
      */
-     val weakestBondAndEnergy: Pair<Bond, Float>? = bonds
-        .mapNotNull { bond -> BondEnergy.of(isotopeById.getValue(bond.atom1), isotopeById.getValue(bond.atom2), bond.order)?.let { energy -> bond to energy } }
-        .minByOrNull { it.second }
+     val weakestBondAndEnergy: Pair<Bond, Float>? = energyByBond.entries
+        .minByOrNull { it.value }
+        ?.let { (bond, energy) -> bond to energy }
 
     /**
      * Энергетическая лестница молекулы список уровней, где ПОСЛЕДНИЙ = порог (первый потенциал ионизации, IP). Кэш на графе (иммутабелен).

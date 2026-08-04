@@ -11,6 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelectio
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -36,9 +37,14 @@ class BondStrengthening(
     private data class Match(val molecule: Molecule, val bond: MoleculeBond) : MatchedData
 
     /**
-     * Связь берём прямо из выбора игрока: пока сущность жива, её граф неизменен (любая перестройка
-     * рождает новую сущность), поэтому `localId` концов и кратность в снимке не могут устареть.
-     * Умерла между кликом и resolve → отсекает `alive`.
+     * Связь берём прямо из выбора игрока. Снимок не устаревает, но уже НЕ потому, что граф неизменен —
+     * усиление правит его на месте ([Molecule.strengthenBond]). Держится это на двух вещах: за тик
+     * молекула получает ровно одно усиление (запросы сгруппированы по инициатору, resolve применяет один
+     * исход), а `localId` концов усиление не двигает — меняется только кратность ребра. Умерла между
+     * кликом и resolve → отсекает `alive`.
+     *
+     * Единственное, что в снимке всё же может разойтись с графом — `bond.order`, и по нему `produce`
+     * считает энергию фотона. Пока усиление за тик одно, разойтись негде.
      */
     override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
         val choice = selection as? ReactionSelection.StrengthenBond ?: return null   // чужой выбор — не наш
@@ -49,21 +55,24 @@ class BondStrengthening(
         return Match(subject, choice.bond)
     }
 
+    /**
+     * Молекула реакцию ПЕРЕЖИВАЕТ: состав не изменился, изменилась только кратность связи, поэтому это та
+     * же сущность — исход мутирует её через [StateUpdate], как ионизация мутирует атом, а не рождает новый.
+     * Отсюда же бонус: id сохраняется, и выделение молекулы у игрока не слетает — усиливать можно кликами
+     * подряд (O–O → O=O → O≡O).
+     */
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, bond) = match as Match
         val state = molecule.state().value
-        val graph = molecule.graph
-        val strengthened = graph.strengthenBond(bond.atom1.structure.localId, bond.atom2.structure.localId)
         val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
+        // E(k) связь несёт в себе (кеш графа), за E(k+1) идём в каталог — связи такой кратности ещё нет.
         val hi = BondEnergy.of(bond.atom1.structure.isotope, bond.atom2.structure.isotope, bond.order + 1)
-        val lo = BondEnergy.of(bond.atom1.structure.isotope, bond.atom2.structure.isotope, bond.order)
+        val lo = bond.energy
         val released = if (hi != null && lo != null) hi - lo else null
 
-        val spawn = mutableListOf(
-            { entityGenerator.createMolecule(strengthened, state.kinematics.position, state.kinematics.direction, state.kinematics.velocity, state.energy, env, state.electrons) },
-        )
+        val spawn = mutableListOf<() -> Entity>()
         if (released != null && released > 0f) {
             spawn += {
                 // Фотон уносит прирост энергии связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик
@@ -75,10 +84,8 @@ class BondStrengthening(
         }
 
         return ReactionOutcome(
-            consumed = listOf(molecule),
             spawn = spawn,
-            description = "$id: ${molecule.displaySymbol} связь ${bond.atom1.structure.localId}-${bond.atom2.structure.localId} ${bond.order}→${bond.order + 1}" +
-                (released?.let { " + γ[${it}eV]" } ?: ""),
+            updateState = listOf(StateUpdate(molecule) { molecule.strengthenBond(bond) }),
         )
     }
 }

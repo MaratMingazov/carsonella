@@ -30,11 +30,12 @@ data class MoleculeBond(
     val atom1: MoleculeAtom,
     val atom2: MoleculeAtom,
     val order: Int,
+    val energy: Float?, // Энергия связи (эВ) — сколько нужно, чтобы её разорвать. null — тип связи не в каталоге
 )
 
 class Molecule(
     override val id: Long,
-    val graph: MoleculeGraph,
+    graph: MoleculeGraph,
     kinematics: Kinematics,
     energy: Float,
     electrons: Int,
@@ -46,6 +47,19 @@ class Molecule(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
+
+    /**
+     * Структура молекулы. `var` с приватным сеттером: перестройка, которая НЕ меняет состав (усиление
+     * связи, замыкание кольца), происходит с той же сущностью — как атом при ионизации остаётся собой,
+     * меняя лишь electrons. Пересоздание нужно там, где сущностей было две, а стала одна (образование
+     * связи, рост): их не сшить мутацией.
+     *
+     * Сам граф остаётся иммутабельным: мутатор кладёт сюда НОВЫЙ граф. Поэтому всё, что из него
+     * выводится (mass, protons, atoms, …), обязано быть геттером, а не посчитанным при рождении val —
+     * иначе закешируется от старой структуры.
+     */
+    var graph: MoleculeGraph = graph
+        private set
 
     constructor(id: Long, atom1: Atom, atom2: Atom) : this(
         id = id,
@@ -92,8 +106,10 @@ class Molecule(
 
     override fun state() = state
 
-    override val mass: Float = graph.mass
-    override val protons: Int = graph.protons
+    // Выводится из графа → геттер, а не val (см. graph). Не пересчёт: одно разыменование в кеш графа,
+    // где mass/protons посчитаны один раз при его рождении.
+    override val mass: Float get() = graph.mass
+    override val protons: Int get() = graph.protons
     override val radius: Float = MOLECULE_RADIUS
 
     /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
@@ -116,15 +132,25 @@ class Molecule(
     /** Есть ли пара атомов, между которыми можно замкнуть цикл. */
     val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
 
+    /** Слабейшая связь — она рвётся первой при распаде. Поставленная в мир, как и [bonds]. null — рвать нечего. */
+    val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> place(listOf(bond)).single() }
+
+    /**
+     * ПОРОГ ДИССОЦИАЦИИ (эВ) — энергия слабейшей связи, то же, что `weakestBond?.energy`. Отдельно, потому
+     * что это одно чтение кеша графа, а [weakestBond] ставит связь в мир (строит все атомы). Правила
+     * спрашивают порог в matches/weight, то есть на каждый тик — им нужен дешёвый путь.
+     */
+    val dissociationEnergy: Float? get() = graph.weakestBondAndEnergy?.second
+
     private fun place(bonds: List<Bond>): List<MoleculeBond> {
         val byId = atoms.associateBy { it.structure.localId }
-        return bonds.map { MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order) }
+        return bonds.map { MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it)) }
     }
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
-    override val energyLevels: List<Float> = graph.energyLevels
-    override val saveKey: String = graph.formula
+    override val energyLevels: List<Float> get() = graph.energyLevels
+    override val saveKey: String get() = graph.formula
 
     /**
      * Первый атом со свободной валентностью — ПОСТАВЛЕННЫЙ в мир (структура + координаты), а не одна
@@ -135,7 +161,42 @@ class Molecule(
         val node = graph.firstFreeValenceAtomNode ?: return null
         return atoms.first { it.structure.localId == node.localId }
     }
-    val hasFreeValence: Boolean = graph.hasFreeValence
+    val hasFreeValence: Boolean get() = graph.hasFreeValence
+
+    /**
+     * Усиление связи [bond]: её кратность растёт на 1 (O–O → O=O, N=N → N≡N). Состав не меняется, поэтому
+     * это ТА ЖЕ сущность — новую молекулу не рождаем (см. graph), и id, а с ним и выделение игрока в UI,
+     * сохраняется: связь можно усиливать кликами подряд.
+     *
+     * Свободную валентность концов проверяем по ЖИВОМУ графу, а не по снимку в [bond]: усиление занимает
+     * по слоту у КАЖДОГО конца (тот же инвариант, по которому [MoleculeGraph.strengthenableBonds] отбирает
+     * связи для клика), и смысл проверки — поймать устаревший выбор игрока, а снимок сверять с самим собой
+     * бесполезно. Потолок кратности (≤3) проверит сам [MoleculeGraph].
+     */
+    fun strengthenBond(bond: MoleculeBond) {
+        val atom1 = bond.atom1.structure.localId
+        val atom2 = bond.atom2.structure.localId
+        require(graph.freeValence(atom1) > 0 && graph.freeValence(atom2) > 0) {
+            "Связь $atom1–$atom2 в ${graph.formula} не усилить: у конца нет свободного слота"
+        }
+        graph = graph.strengthenBond(atom1, atom2)
+
+        // ЗАТЫЧКА, но по делу. Усиленная связь обязана ПРИТЯНУТЬ свои атомы друг к другу, а притягивать
+        // пока нечего: своих координат у атомов нет, offset считается из графа (MoleculeGeometry), и там
+        // bondLengthPx кратность вообще игнорирует. Поэтому сдвигаем на пиксель молекулу целиком.
+        //
+        // Заодно — и сегодня это главное — сдвиг ДОНОСИТ перестройку до экрана. Compose перерисовывает
+        // сцену по эмиссиям state() (см. подписку в RightPanel), граф в EntityState не входит, а
+        // MutableStateFlow глотает РАВНЫЕ значения. Покоящаяся молекула (velocity 0, соседей рядом нет)
+        // каждый тик кладёт в поток равный state, эмиссий нет — и усиленная связь так и осталась бы
+        // нарисованной одинарной. Именно в этом состоянии игрок и кликает по связям.
+        //
+        // Когда атомы получат свои позиции: если те станут частью состояния — здесь появится честное
+        // стягивание концов связи, и пиксель уйдёт сам; если останутся производными от графа (как
+        // atomOffsets сейчас), уведомлять придётся иначе.
+        val kinematics = state.value.kinematics
+        state.value = state.value.copyWith(kinematics = kinematics.copy(position = kinematics.position + Position(1f, 0f)))
+    }
 
     override fun describe(): String {
         val known = MoleculeRegistry.lookup(graph.canonical)
@@ -146,7 +207,7 @@ class Molecule(
         if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
         if (known != null && known.description.isNotEmpty()) lines += known.description
         lines += "Energy ${round(state().value.energy * 100) / 100}"
-        graph.weakestBondAndEnergy?.let { (_, energy) ->
+        dissociationEnergy?.let { energy ->
             lines += "Weakest bond ${round(energy * 100) / 100} eV"
         }
         return lines.joinToString("\n")

@@ -31,7 +31,7 @@ class MoleculeGrowth(
 
         if (!subject.state().value.alive) return null
         // нужен свободный слот, чтобы было куда расти
-        if (!subject.graph.hasFreeValence) return null
+        if (!subject.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
