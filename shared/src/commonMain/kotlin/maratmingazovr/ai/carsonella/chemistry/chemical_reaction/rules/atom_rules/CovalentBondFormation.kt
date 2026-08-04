@@ -11,9 +11,6 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
-import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
-import maratmingazovr.ai.carsonella.chemistry.graph.Bond
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -71,29 +68,14 @@ class CovalentBondFormation(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2) = match as Match
-        val iso1 = atom1.element
-        val iso2 = atom2.element
         val p1 = atom1.state().value.kinematics.position
         val p2 = atom2.state().value.kinematics.position
-        val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
-        // Сохранение: электроны молекулы = сумма электронов реагентов (оба нейтральны → нейтральная молекула).
-        val electrons = atom1.state().value.electrons + atom2.state().value.electrons
-        val energy = atom1.state().value.energy + atom2.state().value.energy
+        val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
         val env = atom1.getEnvironment()
-
-        // Начинаем всегда с ОДИНАРНОЙ связи (order = 1) — это корректно для любой пары. Кратность НЕ
-        // вычисляем заранее (octet/valence — лишь приближение). Дальше молекула эволюционирует на
-        // следующих тиках: если у атома остался свободный слот, он либо притянет ЕЩЁ атом/молекулу (3b),
-        // либо, если партнёров рядом нет, УСИЛИТ эту связь до двойной/тройной (3c) — так эмёрджентно
-        // получаются O=O, N≡N, а углерод расходует слоты на разных партнёров (цепи). См. §6 дока.
-        val graph = MoleculeGraph(
-            nodes = listOf(AtomNode(0, iso1), AtomNode(1, iso2)),
-            bonds = listOf(Bond(0, 1, order = 1)),
-        )
 
         // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
         // Так сохраняется энергия, и этот фотон дальше может фото-ионизировать/диссоциировать соседей.
-        val bondEnergy = BondEnergy.of(iso1, iso2, order = 1)
+        val bondEnergy = BondEnergy.of(atom1.element, atom2.element, order = 1)
         val spawn = mutableListOf(
             { entityGenerator.createMolecule(atom1, atom2, env) },
         )
@@ -110,8 +92,6 @@ class CovalentBondFormation(
         return ReactionOutcome(
             consumed = listOf(atom1, atom2),
             spawn = spawn,
-            description = "$id: ${iso1.symbol(atom1.state().value.electrons)} + ${iso2.symbol(atom2.state().value.electrons)} -> ${graph.formulaPretty}" +
-                (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }
 }
