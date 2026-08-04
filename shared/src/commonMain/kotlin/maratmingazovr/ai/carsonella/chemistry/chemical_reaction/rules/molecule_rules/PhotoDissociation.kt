@@ -12,8 +12,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * Фотодиссоциация: фотон достаточной энергии рвёт молекулу по слабейшей связи.
  *
  * Зеркало образования связи (CovalentBondFormation/MoleculeGrowth ИЗЛУЧАЮТ фотон энергии связи) — здесь
- * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([MoleculeGraph.weakestBond]), порог = её энергия
- * ([MoleculeGraph.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([MoleculeGraph.split]),
+ * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([Molecule.weakestBond]), порог = её энергия
+ * ([Molecule.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([MoleculeGraph.split]),
  * а не из хардкода: осколок из одного узла → атом, из ≥2 узлов → молекула. Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
  * до атомов.
  *
@@ -35,9 +35,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         if (neighbors.isEmpty()) return null   // рвать некому: фотон приходит соседом
 
         if (!subject.state().value.alive) return null
-        val graph = subject.graph
-        val weakestBondAndEnergy = graph.weakestBondAndEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
-        val threshold = weakestBondAndEnergy.second
+        val threshold = subject.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
 
         val subjectPosition = subject.state().value.kinematics.position
         val radius = subject.radius
@@ -65,19 +63,16 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
     // только когда строить нечего (напр. насыщенная O=O + фотон — единственный совпавший вариант).
     override fun weight(match: MatchedData): Float {
         val (mol, _) = match as Match
-        val graph = mol.graph
-        val threshold = graph.weakestBondAndEnergy?.second ?: return 0f
+        val threshold = mol.dissociationEnergy ?: return 0f
         return -threshold
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol, ph) = match as Match
-        val graph = mol.graph
-        val weakestBondAndEnergy = graph.weakestBondAndEnergy!! // matches гарантирует что не null
-        val bond = weakestBondAndEnergy.first
-        val threshold = weakestBondAndEnergy.second
+        val bond = mol.weakestBond!!          // matches гарантирует что не null
+        val threshold = bond.energy!!         // связь из каталога — иначе weakestBond её не выбрал бы
 
-        val fragments = graph.split(bond.atom1, bond.atom2)
+        val fragments = mol.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
 
         // Избыток (доступная − порог) делим поровну на осколки — не теряем (§6/§8, сохранение энергии).
         // Куда именно кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
@@ -89,8 +84,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         return ReactionOutcome(
             consumed = listOf(ph, mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty} + γ[${ph.state().value.energy}eV] -> " +
-                fragments.joinToString(" + ") { it.formulaPretty },
         )
     }
 }

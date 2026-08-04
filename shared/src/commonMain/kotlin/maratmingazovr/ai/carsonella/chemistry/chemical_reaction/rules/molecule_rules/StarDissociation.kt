@@ -19,7 +19,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  *
  * Рекурсия — сама собой: осколок-молекула на следующем тике снова в звезде → снова рвётся, пока не
  * останутся атомы. Порядок разрыва (слабейшая связь) на финал не влияет — всё равно всё распадётся —
- * но переиспользует [MoleculeGraph.weakestBond]/[MoleculeGraph.split] (общая графовая хирургия) и физически
+ * но переиспользует [Molecule.weakestBond]/[MoleculeGraph.split] (общая графовая хирургия) и физически
  * осмыслен (у слабейшей связи самый низкий барьер). Энергия осколков — доля энергии молекулы: разрыв
  * оплачивает тепловая ванна звезды (её не тратим), собственную энергию молекулы не теряем.
  */
@@ -32,16 +32,14 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         if (neighbors.isNotEmpty()) return null   // «сам с собой»
         if (!subject.state().value.alive) return null
         if (subject.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        val graph = subject.graph
-        if (graph.weakestBondAndEnergy == null) return null   // рвать нечего (нет связей / тип не в каталоге)
+        if (subject.dissociationEnergy == null) return null   // рвать нечего (нет связей / тип не в каталоге)
         return Match(subject)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol) = match as Match
-        val graph = mol.graph
-        val bond = graph.weakestBondAndEnergy!!.first             // matches гарантировал наличие связи
-        val fragments = graph.split(bond.atom1, bond.atom2)
+        val bond = mol.weakestBond!!                              // matches гарантировал наличие связи
+        val fragments = mol.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
 
         // Делим собственную энергию молекулы на осколки (разрыв оплачивает тепловая ванна звезды, её не
         // тратим). Куда кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
@@ -52,7 +50,6 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
         return ReactionOutcome(
             consumed = listOf(mol),
             spawn = spawn,
-            description = "$id: ${graph.formulaPretty} (звезда) -> " + fragments.joinToString(" + ") { it.formulaPretty },
         )
     }
 }

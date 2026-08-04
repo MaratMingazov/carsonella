@@ -66,8 +66,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
     // вернул false) в игре остаётся только распад. Вероятностный branch заменит это позже.
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, photon) = match as Match
-        val graph = molecule.graph
-        val threshold = graph.energyLevels.last()           // matches гарантирует что лестница непуста
+        val threshold = molecule.energyLevels.last()           // matches гарантирует что лестница непуста
         val electrons = molecule.state().value.electrons
 
         // Избыток над порогом ионизации уносит вылетевший электрон (энергия молекулы → 0).
@@ -91,7 +90,6 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
             spawn = listOf {
                 entityGenerator.createEntity(ELECTRON, electronPosition, molDirection, electronVelocity, 0f, env, electrons = 1)
             },
-            description = "$id: ${graph.formulaPretty} + γ[${photon.state().value.energy}eV] -> ${graph.formulaPretty}⁺ + ${ELECTRON.details.label}",
         )
     }
 }

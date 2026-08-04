@@ -50,8 +50,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         if (subjectState.energy <= 0f) return null              // остывать нечего
         if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
-        val graph = subject.graph
-        val threshold = graph.weakestBondAndEnergy?.second
+        val threshold = subject.dissociationEnergy
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
         if (threshold != null && subjectState.energy >= threshold) {
@@ -66,19 +65,16 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, dissociationThreshold) = match as Match
         val moleculeState = molecule.state().value
-        val graph = molecule.graph
 
         if (dissociationThreshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало
             // PhotoDissociation без фотона). Порог «тратится», избыток делится по осколкам.
-            val bond = graph.weakestBondAndEnergy!!.first
-            val fragments = graph.split(bond.atom1, bond.atom2)
+            val bond = molecule.weakestBond!!
+            val fragments = molecule.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
             val excessPerFragment = (moleculeState.energy - dissociationThreshold).coerceAtLeast(0f) / fragments.size
             return ReactionOutcome(
                 consumed = listOf(molecule),
                 spawn = spawnFragments(fragments, molecule, entityGenerator, excessPerFragment),
-                description = "$id: ${graph.formulaPretty} (E=${moleculeState.energy}eV ≥ ${dissociationThreshold}eV) -> " +
-                    fragments.joinToString(" + ") { it.formulaPretty },
             )
         }
 
@@ -98,7 +94,6 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
                     electrons = 0,
                 )
             },
-            description = "$id: ${graph.formulaPretty} -> ${graph.formulaPretty} + γ[${photonEnergy}eV]",
         )
     }
 }
