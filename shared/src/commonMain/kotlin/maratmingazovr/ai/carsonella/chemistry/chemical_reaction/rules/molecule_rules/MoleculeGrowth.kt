@@ -12,8 +12,6 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
-import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
@@ -63,19 +61,11 @@ class MoleculeGrowth(
         if (!state.alive) return false
         // Проверка класса заменяет прежний тег ElementType: частица и звезда — не Atom, связей не образуют.
         return when (entity) {
-            is Molecule -> entity.graph.hasFreeValence
+            is Molecule -> entity.hasFreeValence
             is Atom -> state.electrons == entity.element.details.p &&   // нейтральный — есть электроны для общей пары
                 entity.element.valence(state.electrons) > 0
             is SubAtom, is Star -> false
         }
-    }
-
-    // Партнёр как граф: молекула → её граф; атом → одноузловой граф (атом = вырожденная молекула, §8).
-    // Зовётся только после canBond, поэтому частица и звезда сюда не доходят.
-    private fun graphOf(entity: Entity): MoleculeGraph = when (entity) {
-        is Molecule -> entity.graph
-        is Atom -> MoleculeGraph(listOf(AtomNode(0, entity.element)), emptyList())
-        is SubAtom, is Star -> error("graphOf: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
     }
 
     // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
@@ -84,44 +74,43 @@ class MoleculeGrowth(
     override fun weight(match: MatchedData): Float {
         val (molecule, partnerEntity) = match as Match
         val partnerEntityIsotop = getIsotope(partnerEntity)
-        val moleculeAtomIsotope = molecule.firstFreeValenceAtom()!!.isotope
+        val moleculeAtomIsotope = molecule.firstFreeValenceAtom()!!.structure.isotope
         return BondEnergy.of(moleculeAtomIsotope, partnerEntityIsotop, order = 1) ?: 0f
     }
 
+    // Изотоп того атома партнёра, который войдёт в новую связь. Зовётся только после canBond,
+    // поэтому частица и звезда сюда не доходят.
     private fun getIsotope(entity: Entity): Element = when (entity) {
-        is Molecule -> entity.firstFreeValenceAtom()!!.isotope
+        is Molecule -> entity.firstFreeValenceAtom()!!.structure.isotope
         is Atom -> entity.element
-        is SubAtom, is Star -> error("graphOf: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
+        is SubAtom, is Star -> error("getIsotope: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, partnerEntity) = match as Match
-        val molGraph = molecule.graph
-        val partnerGraph = graphOf(partnerEntity)
-
-        // matchesMolecule гарантировал свободные слоты у обоих → firstFreeSlotNode не null.
-        val molNode = molGraph.firstFreeValenceAtomNode!!
-        val partnerNode = partnerGraph.firstFreeValenceAtomNode!!
-        val newMoleculeGraph = molecule.merge(partnerGraph, thisNode = molNode.localId, otherNode = partnerNode.localId, bondOrder = 1)
-
-
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(molecule, partnerEntity)
-        val p1 = molecule.state().value.kinematics.position
-        val p2 = partnerEntity.state().value.kinematics.position
-        val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
-        // Сохранение электронов (§8): электроны новой молекулы = сумма электронов реагентов.
-        val electrons = molecule.state().value.electrons + partnerEntity.state().value.electrons
-        val energy = molecule.state().value.energy + partnerEntity.state().value.energy
         val env = molecule.getEnvironment()
 
+        // matchesMolecule гарантировал свободные слоты у обоих → firstFreeValenceAtom не null.
+        val molAtom = molecule.firstFreeValenceAtom()!!
+
         // Образование связи ЭКЗОТЕРМИЧНО: энергию новой связи высвобождаем фотоном (как в CovalentBondFormation).
-        val molIso = molNode.isotope
-        val partnerIso = partnerNode.isotope
-        val bondEnergy = BondEnergy.of(molIso, partnerIso, order = 1)
-        val spawn = mutableListOf(
-            { entityGenerator.createMolecule(newMoleculeGraph, midpoint, direction, velocity, energy, env, electrons) },
+        val bondEnergy = BondEnergy.of(molAtom.structure.isotope, getIsotope(partnerEntity), order = 1)
+
+        // Само слияние — дело конструкторов Molecule: граф, кинематику, энергию и электроны (сохранение, §8)
+        // считают они. Правилу остаётся выбрать перегрузку по типу партнёра: молекула или атом.
+        val spawn = mutableListOf<() -> Entity>(
+            {
+                when (partnerEntity) {
+                    is Molecule -> entityGenerator.createMolecule(molecule, molAtom, partnerEntity, partnerEntity.firstFreeValenceAtom()!!, env)
+                    is Atom -> entityGenerator.createMolecule(molecule, molAtom, partnerEntity, env)
+                    is SubAtom, is Star -> error("produce: ${partnerEntity::class.simpleName} не может расти — canBond должен был отсеять")
+                }
+            },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
+            val p1 = molecule.state().value.kinematics.position
+            val p2 = partnerEntity.state().value.kinematics.position
+            val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
             val photonDirection = randomDirection(entityGenerator.random)
             val photonVelocity = MAX_VELOCITY
             val offset = molecule.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
@@ -136,8 +125,6 @@ class MoleculeGrowth(
         return ReactionOutcome(
             consumed = listOf(molecule, partnerEntity),
             spawn = spawn,
-            description = "$id: ${molGraph.formulaPretty} + ${partnerGraph.formulaPretty} -> ${newMoleculeGraph.formulaPretty}" +
-                (bondEnergy?.let { " + γ[${it}eV]" } ?: ""),
         )
     }
 }

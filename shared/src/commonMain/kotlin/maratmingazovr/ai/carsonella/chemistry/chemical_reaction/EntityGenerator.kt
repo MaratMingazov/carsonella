@@ -11,6 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
 import maratmingazovr.ai.carsonella.chemistry.Kinematics
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
@@ -43,6 +44,27 @@ class EntityGenerator(
         environment: IEnvironment,
     ): Entity = register(
         Molecule(idGen.nextId(), atom1, atom2),
+        environment,
+    )
+
+    override fun createMolecule(
+        molecule1: Molecule,
+        atom1: MoleculeAtom,
+        molecule2: Molecule,
+        atom2: MoleculeAtom,
+        environment: IEnvironment,
+    ): Entity = register(
+        Molecule(idGen.nextId(), molecule1, atom1, molecule2, atom2),
+        environment,
+    )
+
+    override fun createMolecule(
+        molecule: Molecule,
+        atom: MoleculeAtom,
+        partner: Atom,
+        environment: IEnvironment,
+    ): Entity = register(
+        Molecule(idGen.nextId(), molecule, atom, partner),
         environment,
     )
 

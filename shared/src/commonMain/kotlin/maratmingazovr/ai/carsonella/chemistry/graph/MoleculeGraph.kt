@@ -405,6 +405,18 @@ data class MoleculeGraph(
         recurse(0)
         best!!
     }
+
+    companion object {
+        /**
+         * Симметричная форма [merge]: связь кратности [bondOrder] между узлом [node1] графа [graph1] и
+         * узлом [node2] графа [graph2]. Перенумерацию узлов второго графа делает instance-merge.
+         *
+         * Зачем дубль к методу: слияние симметрично («этот» и «другой» тут равноправны), а в делегирующем
+         * вызове конструктора [Molecule] выбирать, у кого из двух молекул звать метод, неестественно.
+         */
+        fun merge(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int, bondOrder: Int): MoleculeGraph =
+            graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = bondOrder)
+    }
 }
 
 /** Потолок наивного перебора O(n!) в MoleculeGraph.canonical; выше канон = "" (до Моргана, Стадия 2). */

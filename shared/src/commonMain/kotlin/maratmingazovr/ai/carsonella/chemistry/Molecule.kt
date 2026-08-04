@@ -58,6 +58,29 @@ class Molecule(
         electrons = atom1.state().value.electrons + atom2.state().value.electrons,
     )
 
+    constructor(id: Long, molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom) : this(
+        id = id,
+        graph = mergedGraph(
+            molecule1.graph, atom1.structure.localId,
+            molecule2.graph, atom2.structure.localId,
+        ),
+        kinematics = mergedKinematics(molecule1, molecule2),
+        energy = molecule1.state().value.energy + molecule2.state().value.energy,
+        electrons = molecule1.state().value.electrons + molecule2.state().value.electrons,
+    )
+
+    /** Рост молекулы атомом: атом — вырожденная молекула из одного узла (§8), дальше то же слияние. */
+    constructor(id: Long, molecule: Molecule, atom: MoleculeAtom, partner: Atom) : this(
+        id = id,
+        graph = mergedGraph(
+            molecule.graph, atom.structure.localId,
+            MoleculeGraph(nodes = listOf(AtomNode(0, partner.element)), bonds = emptyList()), 0,
+        ),
+        kinematics = mergedKinematics(molecule, partner),
+        energy = molecule.state().value.energy + partner.state().value.energy,
+        electrons = molecule.state().value.electrons + partner.state().value.electrons,
+    )
+
     private var state = MutableStateFlow(
         EntityState(
             alive = true,
@@ -103,12 +126,16 @@ class Molecule(
     override val energyLevels: List<Float> = graph.energyLevels
     override val saveKey: String = graph.formula
 
-    fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph = graph.merge(other, thisNode, otherNode, bondOrder)
-    fun firstFreeValenceAtom(): MoleculeAtomStructure? {
-        return graph.firstFreeValenceAtomNode?.let { atomNode ->
-            MoleculeAtomStructure(localId = atomNode.localId, isotope = atomNode.isotope, freeValence = graph.freeValence(atomNode.localId),)
-        }
+    /**
+     * Первый атом со свободной валентностью — ПОСТАВЛЕННЫЙ в мир (структура + координаты), а не одна
+     * структура: именно такой атом ждут конструкторы слияния [Molecule], им нужна кинематика конца связи.
+     * null — молекула насыщена, расти/усиливать нечем.
+     */
+    fun firstFreeValenceAtom(): MoleculeAtom? {
+        val node = graph.firstFreeValenceAtomNode ?: return null
+        return atoms.first { it.structure.localId == node.localId }
     }
+    val hasFreeValence: Boolean = graph.hasFreeValence
 
     override fun describe(): String {
         val known = MoleculeRegistry.lookup(graph.canonical)
@@ -159,15 +186,29 @@ class Molecule(
 }
 
 /**
+ * Граф молекулы, собранной из двух графов: между узлами [node1] и [node2] появляется ОДИНАРНАЯ связь
+ * (та же договорённость, что у пары атомов — кратность нарастает потом, см. BondStrengthening).
+ *
+ * Проверки живут здесь, а не в теле конструктора: делегирующий вызов `: this(...)` исполняется раньше
+ * тела, и к моменту, когда до него дойдёт очередь, граф был бы уже собран. `freeValence` заодно падает
+ * на несуществующем узле, так что отдельная проверка на членство не нужна.
+ */
+private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int): MoleculeGraph {
+    require(graph1.freeValence(node1) > 0) { "Узел $node1 в ${graph1.formula} насыщен: связь образовать нечем" }
+    require(graph2.freeValence(node2) > 0) { "Узел $node2 в ${graph2.formula} насыщен: связь образовать нечем" }
+    return MoleculeGraph.merge(graph1, node1, graph2, node2, bondOrder = 1)
+}
+
+/**
  * Кинематика молекулы, собранной из двух атомов: центр — середина отрезка между ними, движение — из
  * сохранения импульса (m₁v₁ + m₂v₂) / (m₁ + m₂).
  */
-private fun mergedKinematics(atom1: Atom, atom2: Atom): Kinematics {
-    val k1 = atom1.state().value.kinematics
-    val k2 = atom2.state().value.kinematics
+private fun mergedKinematics(entity1: Entity, entity2: Entity): Kinematics {
+    val k1 = entity1.state().value.kinematics
+    val k2 = entity2.state().value.kinematics
 
-    val impulse = k1.direction * k1.velocity * atom1.mass + k2.direction * k2.velocity * atom2.mass
-    val velocityVector = impulse.div(atom1.mass + atom2.mass)
+    val impulse = k1.direction * k1.velocity * entity1.mass + k2.direction * k2.velocity * entity2.mass
+    val velocityVector = impulse.div(entity1.mass + entity2.mass)
     val velocity = velocityVector.length()
 
     return Kinematics(
