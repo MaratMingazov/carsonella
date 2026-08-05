@@ -33,6 +33,12 @@ data class MoleculeBond(
     val energy: Float?, // Энергия связи (эВ) — сколько нужно, чтобы её разорвать. null — тип связи не в каталоге
 )
 
+data class MoleculeRingCandidate(
+    val atom1: MoleculeAtom,
+    val atom2: MoleculeAtom,
+    val ringSize: Int, // Сколько атомов окажется в цикле, если пару связать. Считается по графу (длина пути)
+)
+
 class Molecule(
     override val id: Long,
     graph: MoleculeGraph,
@@ -129,8 +135,16 @@ class Molecule(
     /** Связи, которые можно усилить (кратность +1) — поставленные в мир. */
     val strengthenableBonds: List<MoleculeBond> get() = place(graph.strengthenableBonds)
 
-    /** Есть ли пара атомов, между которыми можно замкнуть цикл. */
+    /** Есть ли пара атомов, между которыми можно замкнуть цикл. Дешёвая проверка: кандидаты кеширует граф. */
     val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
+
+    /** Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило. */
+    val ringClosureCandidates: List<MoleculeRingCandidate> get() {
+        val candidates = graph.ringClosureCandidates
+        if (candidates.isEmpty()) return emptyList()
+        val byId = atoms.associateBy { it.structure.localId }
+        return candidates.map { MoleculeRingCandidate(byId.getValue(it.atom1), byId.getValue(it.atom2), it.ringSize) }
+    }
 
     /** Слабейшая связь — она рвётся первой при распаде. Поставленная в мир, как и [bonds]. null — рвать нечего. */
     val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> place(listOf(bond)).single() }
@@ -180,20 +194,45 @@ class Molecule(
             "Связь $atom1–$atom2 в ${graph.formula} не усилить: у конца нет свободного слота"
         }
         graph = graph.strengthenBond(atom1, atom2)
+        nudgeAfterRebuild()
+    }
 
-        // ЗАТЫЧКА, но по делу. Усиленная связь обязана ПРИТЯНУТЬ свои атомы друг к другу, а притягивать
-        // пока нечего: своих координат у атомов нет, offset считается из графа (MoleculeGeometry), и там
-        // bondLengthPx кратность вообще игнорирует. Поэтому сдвигаем на пиксель молекулу целиком.
-        //
-        // Заодно — и сегодня это главное — сдвиг ДОНОСИТ перестройку до экрана. Compose перерисовывает
-        // сцену по эмиссиям state() (см. подписку в RightPanel), граф в EntityState не входит, а
-        // MutableStateFlow глотает РАВНЫЕ значения. Покоящаяся молекула (velocity 0, соседей рядом нет)
-        // каждый тик кладёт в поток равный state, эмиссий нет — и усиленная связь так и осталась бы
-        // нарисованной одинарной. Именно в этом состоянии игрок и кликает по связям.
-        //
-        // Когда атомы получат свои позиции: если те станут частью состояния — здесь появится честное
-        // стягивание концов связи, и пиксель уйдёт сам; если останутся производными от графа (как
-        // atomOffsets сейчас), уведомлять придётся иначе.
+    /**
+     * Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан). Как и
+     * усиление, состав не меняется — это та же сущность, новую молекулу не рождаем (см. graph).
+     *
+     * Проверяем по ЖИВОМУ графу (снимок сверять с самим собой бесполезно): новая связь занимает по слоту
+     * у каждого конца, поэтому оба обязаны быть ненасыщенными — тот же инвариант, по которому
+     * [ringClosureCandidates] отбирает пары. Что узлы существуют, различны и ещё не связаны, проверит сам
+     * [MoleculeGraph.closeRing].
+     */
+    fun closeRing(atom1: MoleculeAtom, atom2: MoleculeAtom) {
+        val id1 = atom1.structure.localId
+        val id2 = atom2.structure.localId
+        require(graph.freeValence(id1) > 0 && graph.freeValence(id2) > 0) {
+            "Кольцо $id1–$id2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
+        }
+        graph = graph.closeRing(id1, id2)
+        nudgeAfterRebuild()
+    }
+
+    /**
+     * Сдвиг молекулы на пиксель после перестройки графа. ЗАТЫЧКА, но по делу: новая связь обязана
+     * ПРИТЯНУТЬ свои атомы друг к другу, а притягивать пока нечего — своих координат у атомов нет, offset
+     * считается из графа ([MoleculeGeometry]), и там bondLengthPx кратность вообще игнорирует. Поэтому
+     * двигаем молекулу целиком.
+     *
+     * Заодно — и сегодня это главное — сдвиг ДОНОСИТ перестройку до экрана. Compose перерисовывает сцену
+     * по эмиссиям state() (см. подписку в RightPanel), граф в EntityState не входит, а MutableStateFlow
+     * глотает РАВНЫЕ значения. Покоящаяся молекула (velocity 0, соседей рядом нет) каждый тик кладёт в
+     * поток равный state, эмиссий нет — и усиленная связь так и осталась бы нарисованной одинарной.
+     * Именно в этом состоянии игрок и кликает.
+     *
+     * Когда атомы получат свои позиции: если те станут частью состояния — здесь появится честное
+     * стягивание концов связи, и пиксель уйдёт сам; если останутся производными от графа (как atomOffsets
+     * сейчас), уведомлять придётся иначе.
+     */
+    private fun nudgeAfterRebuild() {
         val kinematics = state.value.kinematics
         state.value = state.value.copyWith(kinematics = kinematics.copy(position = kinematics.position + Position(1f, 0f)))
     }
