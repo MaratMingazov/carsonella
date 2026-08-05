@@ -3,9 +3,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 /**
@@ -42,6 +45,41 @@ abstract class MoleculeReactionRule : ReactionRule {
     abstract fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData?
 
     /**
+     * Разрыв связи [bond] — ОБЩИЙ исход для всех, кто рвёт связи (фотодиссоциация, распад в звезде,
+     * предиссоциация). [energyToShare] — энергия, остающаяся продуктам после того, как порог оплатил
+     * разрыв; сколько её, решает вызывающий (у него свой источник: фотон, тепло звезды, своя внутренняя).
+     *
+     * Случая ДВА, и различает их сама связь:
+     *  - КОЛЬЦЕВАЯ ([MoleculeBond.inRing]) — граф остаётся связным: молекула не распадается, кольцо
+     *    раскрывается в цепь. Это 1→1, поэтому мутация на месте ([Molecule.openRing]), id и выделение
+     *    игрока живут, а энергия остаётся внутренней энергией той же молекулы.
+     *  - МОСТ — молекула гибнет, осколки рождаются заново (см. [spawnFragments]).
+     *
+     * Правилу эту развилку знать не нужно, поэтому она здесь, а не в трёх produce.
+     */
+    protected fun breakBond(
+        molecule: Molecule,
+        bond: MoleculeBond,
+        generator: IEntityGenerator,
+        energyToShare: Float,
+    ): ReactionOutcome {
+        val energy = energyToShare.coerceAtLeast(0f)
+        if (bond.inRing) {
+            return ReactionOutcome(
+                updateState = listOf(StateUpdate(molecule) {
+                    molecule.openRing(bond)
+                    molecule.setEnergy(energy)
+                }),
+            )
+        }
+        val fragments = molecule.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
+        return ReactionOutcome(
+            consumed = listOf(molecule),
+            spawn = spawnFragments(fragments, molecule, generator, energy / fragments.size),
+        )
+    }
+
+    /**
      * Спавн осколков распада ([MoleculeGraph.split]) — общий для PhotoDissociation/StarDissociation
      * (одна графовая хирургия → один способ «выложить» осколки). Осколки разводятся по оси X от [molecule],
      * наследуют её направление, нейтральны (гомолитика: electrons = протоны осколка).
@@ -55,7 +93,7 @@ abstract class MoleculeReactionRule : ReactionRule {
      *    «не-уровень» и уронил бы ассерт SpontaneousEmission на следующем тике. Резонансное электронное
      *    возбуждение осколка-атома (редкость) не моделируем — весь избыток идёт в движение.
      */
-    protected fun spawnFragments(
+    private fun spawnFragments(
         fragments: List<MoleculeGraph>,
         molecule: Entity,
         generator: IEntityGenerator,

@@ -68,13 +68,12 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
 
         if (dissociationThreshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало
-            // PhotoDissociation без фотона). Порог «тратится», избыток делится по осколкам.
-            val bond = molecule.weakestBond!!
-            val fragments = molecule.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
-            val excessPerFragment = (moleculeState.energy - dissociationThreshold).coerceAtLeast(0f) / fragments.size
-            return ReactionOutcome(
-                consumed = listOf(molecule),
-                spawn = spawnFragments(fragments, molecule, entityGenerator, excessPerFragment),
+            // PhotoDissociation без фотона). Порог «тратится», избыток достаётся продуктам.
+            return breakBond(
+                molecule,
+                molecule.weakestBond!!,
+                entityGenerator,
+                energyToShare = moleculeState.energy - dissociationThreshold,
             )
         }
 

@@ -79,10 +79,16 @@ data class MoleculeGraph(
     val mass: Float = nodes.sumOf { it.isotope.details.p + it.isotope.details.n }.toFloat() // Масса молекулы — сумма нуклонов (p + n) всех узлов.
     private val isotopeById: Map<Int, Element> = nodes.associate { it.localId to it.isotope }
 
-    /** localId всех узлов, достижимых из [start] по связям (BFS). Опора инварианта связности. */
-    private fun reachableFrom(start: Int): Set<Int> {
+    /**
+     * localId всех узлов, достижимых из [start] по связям (BFS). Опора инварианта связности.
+     *
+     * [without] — связь, которую при обходе не видим: так проверяется, держится ли граф без неё. Нужен
+     * только для разового подсчёта [ringBonds] при рождении графа, в запросах не участвует.
+     */
+    private fun reachableFrom(start: Int, without: Bond? = null): Set<Int> {
         val neighbours = HashMap<Int, MutableList<Int>>()
         for (bond in bonds) {
+            if (bond == without) continue
             neighbours.getOrPut(bond.atom1) { mutableListOf() }.add(bond.atom2)
             neighbours.getOrPut(bond.atom2) { mutableListOf() }.add(bond.atom1)
         }
@@ -101,6 +107,26 @@ data class MoleculeGraph(
 
 
 
+
+    /**
+     * Связи, лежащие в ЦИКЛЕ: разорви такую — граф останется связным, то есть молекула не распадётся, а
+     * кольцо раскроется в цепь. Все прочие связи — мосты, их разрыв даёт два осколка. Различать
+     * обязательно: раскрытие кольца это преобразование 1→1 (те же атомы, та же сущность), а распад —
+     * смерть молекулы и рождение осколков.
+     *
+     * Критерий — связность без ребра, а не пометка «это ребро замкнуло кольцо». Так оно описывает ФАКТ,
+     * а не историю: работает и в бицикле (связь, общая двум кольцам, кольцевая), и после раскрытия одного
+     * из колец — новый граф пересчитает набор сам.
+     *
+     * Считается один раз при рождении графа (как freeValenceById/energyByBond): по одному BFS на связь,
+     * молекулы у нас малые. Дальше это готовый набор, [isRingBond] только смотрит в него.
+     */
+    private val ringBonds: Set<Bond> = bonds.filterTo(HashSet()) { bond ->
+        bond.atom2 in reachableFrom(bond.atom1, without = bond)
+    }
+
+    /** Лежит ли связь [atom1]–[atom2] в цикле (её разрыв НЕ развалит молекулу). См. [ringBonds]. */
+    fun isRingBond(atom1: Int, atom2: Int): Boolean = ringBonds.any { sameBond(it, atom1, atom2) }
 
     /**
      * Энергия КАЖДОЙ связи (эВ), посчитанная один раз при рождении графа. Раньше эти же числа считались
@@ -240,6 +266,21 @@ data class MoleculeGraph(
         require(atom1 != atom2) { "Кольцо из одного узла невозможно: atom1 == atom2 == $atom1" }
         require(bonds.none { sameBond(it, atom1, atom2) }) { "Узлы $atom1–$atom2 уже связаны — это усиление, не кольцо" }
         return MoleculeGraph(nodes = nodes, bonds = bonds + Bond(atom1, atom2, order = 1))
+    }
+
+    /**
+     * Разрыв КОЛЬЦЕВОЙ связи: убираем ребро [atom1]–[atom2], цикл раскрывается в цепь, граф остаётся
+     * ОДИН. Отличие от [split] не только в этом: здесь сохраняется нумерация узлов, тогда как split
+     * компактит localId в 0-based. Для раскрытия это принципиально — атомы те же, сущность та же, и
+     * снимки ([MoleculeAtom]/[MoleculeBond]) на руках у UI и правил не должны протухнуть.
+     *
+     * Связь обязана быть кольцевой ([isRingBond]); на мосте граф распался бы, и это поймает проверка
+     * связности в [init] — но звать тут надо не это, а [split].
+     */
+    fun removeRingBond(atom1: Int, atom2: Int): MoleculeGraph {
+        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
+        require(isRingBond(atom1, atom2)) { "Связь $atom1–$atom2 не в цикле: её разрыв развалит молекулу — это split" }
+        return MoleculeGraph(nodes = nodes, bonds = bonds.filterNot { sameBond(it, atom1, atom2) })
     }
 
     /**

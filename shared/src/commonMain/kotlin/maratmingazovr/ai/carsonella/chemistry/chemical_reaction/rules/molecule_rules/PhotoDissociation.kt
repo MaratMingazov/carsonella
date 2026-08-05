@@ -72,18 +72,11 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val bond = mol.weakestBond!!          // matches гарантирует что не null
         val threshold = bond.energy!!         // связь из каталога — иначе weakestBond её не выбрал бы
 
-        val fragments = mol.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
-
-        // Избыток (доступная − порог) делим поровну на осколки — не теряем (§6/§8, сохранение энергии).
-        // Куда именно кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
+        // Избыток (доступная − порог) не теряем (§6/§8, сохранение энергии) — он уходит продуктам.
+        // Кольцо это или распад и куда именно кладётся энергия — забота breakBond.
         val available = mol.state().value.energy + ph.state().value.energy
-        val excessPerFragment = (available - threshold).coerceAtLeast(0f) / fragments.size
+        val outcome = breakBond(mol, bond, entityGenerator, energyToShare = available - threshold)
 
-        val spawn = spawnFragments(fragments, mol, entityGenerator, excessPerFragment)
-
-        return ReactionOutcome(
-            consumed = listOf(ph, mol),
-            spawn = spawn,
-        )
+        return outcome.copy(consumed = outcome.consumed + ph)   // фотон ПОГЛОЩЁН в любом из случаев
     }
 }

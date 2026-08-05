@@ -39,17 +39,9 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
     override fun produce(match: MatchedData): ReactionOutcome {
         val (mol) = match as Match
         val bond = mol.weakestBond!!                              // matches гарантировал наличие связи
-        val fragments = mol.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
 
-        // Делим собственную энергию молекулы на осколки (разрыв оплачивает тепловая ванна звезды, её не
-        // тратим). Куда кладём долю (внутренняя энергия молекулы / кинетика атома) — решает spawnFragments.
-        val energyPerFragment = mol.state().value.energy / fragments.size
-
-        val spawn = spawnFragments(fragments, mol, entityGenerator, energyPerFragment)
-
-        return ReactionOutcome(
-            consumed = listOf(mol),
-            spawn = spawn,
-        )
+        // Разрыв оплачивает тепловая ванна звезды — собственную энергию молекулы не тратим, она целиком
+        // достаётся продуктам. Куда её положить и кольцо это или распад — забота breakBond.
+        return breakBond(mol, bond, entityGenerator, energyToShare = mol.state().value.energy)
     }
 }

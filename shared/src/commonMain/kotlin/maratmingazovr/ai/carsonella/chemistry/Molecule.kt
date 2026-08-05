@@ -31,6 +31,7 @@ data class MoleculeBond(
     val atom2: MoleculeAtom,
     val order: Int,
     val energy: Float?, // Энергия связи (эВ) — сколько нужно, чтобы её разорвать. null — тип связи не в каталоге
+    val inRing: Boolean, // Лежит в цикле: разрыв раскроет кольцо, а не развалит молекулу на осколки
 )
 
 data class MoleculeRingCandidate(
@@ -158,7 +159,9 @@ class Molecule(
 
     private fun place(bonds: List<Bond>): List<MoleculeBond> {
         val byId = atoms.associateBy { it.structure.localId }
-        return bonds.map { MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it)) }
+        return bonds.map {
+            MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it.atom1, it.atom2))
+        }
     }
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
@@ -201,6 +204,21 @@ class Molecule(
             "Кольцо $id1–$id2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
         }
         graph = graph.closeRing(id1, id2)
+        nudgeAfterRebuild()
+    }
+
+    /**
+     * Раскрытие кольца: рвём связь, лежащую в цикле → цикл разворачивается в цепь, а молекула НЕ
+     * распадается. Атомы те же, состав тот же — значит это та же сущность, как усиление и замыкание
+     * (id и выделение игрока живут). Разрыв связи-МОСТА — другое дело: там молекула гибнет, а осколки
+     * рождаются заново, это делают правила распада через [MoleculeGraph.split].
+     *
+     * Своего `require` здесь нет: что связь кольцевая (а значит снимок [MoleculeBond.inRing] не протух),
+     * проверяет по живому графу сам [MoleculeGraph.removeRingBond] — он же сохраняет нумерацию узлов,
+     * в отличие от [MoleculeGraph.split].
+     */
+    fun openRing(bond: MoleculeBond) {
+        graph = graph.removeRingBond(bond.atom1.structure.localId, bond.atom2.structure.localId)
         nudgeAfterRebuild()
     }
 
