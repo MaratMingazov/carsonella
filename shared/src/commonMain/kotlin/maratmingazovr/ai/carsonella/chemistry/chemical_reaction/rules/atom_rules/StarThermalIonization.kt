@@ -87,7 +87,6 @@ class StarThermalIonization(
                         )
                     },
                 ),
-                description = "$id: ${element.label(electrons)} -> ${Element.Proton.details.label} + ${Element.ELECTRON.details.label}",
             )
         }
 
@@ -107,7 +106,6 @@ class StarThermalIonization(
                     electrons = 1
                 )
             },
-            description = "$id: ${element.label(electrons)} -> ${element.label(electrons - 1)} + ${Element.ELECTRON.details.label}",
         )
     }
 }

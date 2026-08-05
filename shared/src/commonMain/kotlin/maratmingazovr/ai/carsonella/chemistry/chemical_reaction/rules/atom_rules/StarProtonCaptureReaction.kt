@@ -160,11 +160,6 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,γ): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
-                        resultElement.symbol(
-                            resultElectrons
-                        )
-                    } + ${PHOTON.details.symbol}",
                 )
             }
             is Outcome.Alpha -> {
@@ -211,15 +206,9 @@ class StarProtonCaptureReaction(
                         )
                     }
                 }
-                val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
                 ReactionOutcome(
                     consumed = listOf(a1, a2),
                     spawn = spawnList,
-                    description = "$id (p,α): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
-                        resultElement.symbol(
-                            resultElectrons
-                        )
-                    } + ${HELIUM_4.symbol(0)}$electronTail",
                 )
             }
             is Outcome.Neutron -> {
@@ -255,11 +244,6 @@ class StarProtonCaptureReaction(
                             )
                         },
                     ),
-                    description = "$id (p,n): ${atom1Element.symbol(parentElectrons)} + ${atom2Element.details.symbol} → ${
-                        resultElement.symbol(
-                            resultElectrons
-                        )
-                    } + ${NEUTRON.details.symbol}",
                 )
             }
         }

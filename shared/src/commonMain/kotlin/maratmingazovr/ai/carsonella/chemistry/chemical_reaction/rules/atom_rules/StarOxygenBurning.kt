@@ -153,12 +153,6 @@ class StarOxygenBurning(
 
         return ReactionOutcome(
             consumed = listOf(atom1, atom2),
-            spawn = spawnList,
-            description = "$id: ${atom1Element.symbol(atom1.state().value.electrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} -> ${
-                result.symbol(
-                    resultElectrons
-                )
-            } + ${PHOTON.details.symbol} [$resultPhotonEnergy ev]"
-        )
+            spawn = spawnList,)
     }
 }

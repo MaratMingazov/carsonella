@@ -76,11 +76,6 @@ class AlphaDecay(
                     )
                 },
             ),
-            description = "$id: ${parentElement.symbol(parent.state().value.electrons)} → ${
-                childElement.symbol(
-                    childElectrons
-                )
-            } + ${HELIUM_4.details.symbol}",
         )
     }
 }

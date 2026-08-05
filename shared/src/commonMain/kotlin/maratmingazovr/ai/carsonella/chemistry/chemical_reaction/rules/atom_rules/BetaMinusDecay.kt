@@ -81,11 +81,6 @@ class BetaMinusDecay(
                     )
                 },
             ),
-            description = "$id: ${parentElement.symbol(parent.state().value.electrons)} → ${
-                childElement.symbol(
-                    childElectrons
-                )
-            } + ${ELECTRON.details.symbol}",
         )
     }
 }

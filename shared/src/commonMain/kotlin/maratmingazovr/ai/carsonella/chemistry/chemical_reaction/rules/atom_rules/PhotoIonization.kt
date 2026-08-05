@@ -96,13 +96,7 @@ class PhotoIonization (
             // addEnergy(level - entityEnergy) дал бы a + (b - a), что в float не гарантирует b бит-в-бит.
             return ReactionOutcome(
                 consumed = listOf(photon),
-                updateState = listOf(StateUpdate(atom) { atom.setEnergy(level) }),
-                description = "$id: ${entityElement.label(electrons)} (${entityEnergy}eV) + ${photonElement.details.label} (${photonEnergy}eV) -> ${
-                    entityElement.label(
-                        electrons
-                    )
-                } (${level}eV)"
-            )
+                updateState = listOf(StateUpdate(atom) { atom.setEnergy(level) }),)
         } else {
             val energyIonization = entityElement.energyLevels(electrons).last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
@@ -148,9 +142,7 @@ class PhotoIonization (
                                 electrons = 1
                             )
                         },
-                    ),
-                    description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${Proton.details.label} + ${ELECTRON.details.label}"
-                )
+                    ),)
             }
 
             // Element НЕ меняется — тот же атом теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
@@ -170,13 +162,7 @@ class PhotoIonization (
                         env,
                         electrons = 1
                     )
-                },
-                description = "$id: ${entityElement.label(electrons)} + ${photonElement.details.label} -> ${
-                    entityElement.label(
-                        electrons - 1
-                    )
-                } + ${ELECTRON.details.label}"
-            )
+                },)
         }
     }
 }

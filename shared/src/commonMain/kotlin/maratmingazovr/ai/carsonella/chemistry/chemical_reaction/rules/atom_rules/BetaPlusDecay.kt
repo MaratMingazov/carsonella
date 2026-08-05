@@ -95,11 +95,9 @@ class BetaPlusDecay(
             }
         }
 
-        val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(parent),
             spawn = spawnList,
-            description = "$id: ${parentElement.symbol(parentElectrons)} → ${childElement.symbol(childElectrons)} + ${POSITRON.details.symbol}$electronTail",
         )
     }
 }

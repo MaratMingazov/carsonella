@@ -60,8 +60,6 @@ class StarEmission (
         if (absorbReagents.isNotEmpty()) {
             return ReactionOutcome(
                 updateState = absorbReagents.map { r -> StateUpdate(r) { if (r.state().value.alive) r.updateMyEnvironment(star) } },
-                description = "$id: ${Element.Star.details.symbol} <- " +
-                        absorbReagents.joinToString { it.displaySymbol },
             )
         }
 
@@ -70,8 +68,6 @@ class StarEmission (
          */
         if (entityReagents.size < 20) {
             val resultElement =  if (!chance(0.5f, entityGenerator.random))  Element.Proton else Element.ELECTRON
-            // Fuel-ветка молчит в логе: при chance(0.012) за тик это ~0.75 раз/сек на звезду —
-            // лог заглушает реальные реакции (CNO, α-захват, (α,p)). Outflow-ветку логируем.
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createEntity(
@@ -91,7 +87,6 @@ class StarEmission (
             // внутри звезды и игроку не показывались.
             val reagent = entityReagents.randomOrNull(entityGenerator.random)
             val updateList = mutableListOf<StateUpdate>()
-            var description = ""
             if (reagent != null) {
                 updateList += StateUpdate(reagent) {
                     val center = star.state().value.kinematics.position
@@ -109,9 +104,8 @@ class StarEmission (
                     reagent.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
                 }
-                description = "$id: ${Element.Star.details.symbol} → ${reagent.displaySymbol}"
             }
-            return ReactionOutcome(updateState = updateList, description = description)
+            return ReactionOutcome(updateState = updateList)
         }
 
     }

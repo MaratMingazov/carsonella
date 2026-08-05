@@ -81,7 +81,6 @@ class SpontaneousEmission(
                     electrons = 0,
                 )
             },
-            description = "$id: ${entityElement.details.label} -> ${Element.PHOTON.details.symbol} [$photonEnergy ev]",
         )
     }
 

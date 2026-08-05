@@ -97,12 +97,6 @@ class StarAlphaGammaReaction(
                         electrons = 0,
                     )
                 },
-            ),
-            description = "$id: ${atom1Element.symbol(atom1.state().value.electrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} -> ${
-                resultElement.symbol(
-                    resultElectrons
-                )
-            } + ${Element.PHOTON.details.symbol} [$resultPhotonEnergy ev]"
-        )
+            ),)
     }
 }

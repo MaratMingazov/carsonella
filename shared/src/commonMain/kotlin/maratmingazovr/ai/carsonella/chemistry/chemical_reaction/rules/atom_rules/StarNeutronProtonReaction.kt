@@ -126,15 +126,9 @@ class StarNeutronProtonReaction(
             }
         }
 
-        val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(atom1, atom2),
             spawn = spawnList,
-            description = "$id: ${atom1Element.symbol(parentElectrons)} + ${atom2Element.symbol(atom2.state().value.electrons)} → ${
-                resultElement.symbol(
-                    resultElectrons
-                )
-            } + ${Proton.details.symbol}$electronTail",
         )
     }
 }

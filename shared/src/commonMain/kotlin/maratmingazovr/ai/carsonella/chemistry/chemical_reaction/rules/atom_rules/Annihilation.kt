@@ -115,7 +115,6 @@ class Annihilation(
                     )
                 },
             ),
-            description = "$id: ${POSITRON.details.symbol} + ${ELECTRON.details.symbol} → 2 ${Element.PHOTON.details.symbol} [$photonEnergy ev]",
         )
     }
 }

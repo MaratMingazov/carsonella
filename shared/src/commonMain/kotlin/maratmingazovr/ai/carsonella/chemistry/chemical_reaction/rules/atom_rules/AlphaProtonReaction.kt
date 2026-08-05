@@ -130,15 +130,9 @@ class AlphaProtonReaction(
             }
         }
 
-        val electronTail = if (freedAlphaElectrons > 0) " + ${freedAlphaElectrons}${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(t, a),
             spawn = spawnList,
-            description = "$id: ${targetElement.symbol(t.state().value.electrons)} + ${alphaElement.symbol(a.state().value.electrons)} → ${
-                resultElement.symbol(
-                    targetElectrons
-                )
-            } + ${Proton.details.symbol}$electronTail",
         )
     }
 }

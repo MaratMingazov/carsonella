@@ -95,13 +95,7 @@ class RecombinationReaction(
                             direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
                         )
                     },
-                ),
-                description = "$id: ${atom1Element.details.symbol} + ${atom2Element.details.symbol} -> ${
-                    Element.HYDROGEN.symbol(
-                        1
-                    )
-                } + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
-            )
+                ),)
         }
 
         // Обычный ион ловит электрон: Element НЕ меняется — updateState(electrons+1, energy=0), вылетает фотон.
@@ -126,12 +120,6 @@ class RecombinationReaction(
                     ),
                     direction, MAX_VELOCITY, energy = photonEnergy, environment = env, electrons = 0,
                 )
-            },
-            description = "$id: ${atom1Element.symbol(electrons)} + ${atom2Element.details.symbol} -> ${
-                atom1Element.symbol(
-                    resultElectrons
-                )
-            } + ${Element.PHOTON.details.symbol} [$photonEnergy ev]"
-        )
+            },)
     }
 }

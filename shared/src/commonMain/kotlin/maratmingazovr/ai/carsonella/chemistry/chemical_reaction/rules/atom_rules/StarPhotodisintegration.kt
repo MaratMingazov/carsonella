@@ -139,15 +139,9 @@ class StarPhotodisintegration(
             }
         }
 
-        val electronTail = if (shakeOff > 0) " + $shakeOff${ELECTRON.details.symbol}" else ""
         return ReactionOutcome(
             consumed = listOf(a, ph),
             spawn = spawnList,
-            description = "$id: ${atomElement.symbol(a.state().value.electrons)} + ${PHOTON.details.symbol} → ${
-                parent.symbol(
-                    parentElectrons
-                )
-            } + ${ejected.symbol(0)}$electronTail",
         )
     }
 

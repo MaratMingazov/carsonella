@@ -98,6 +98,5 @@ data class ReactionOutcome(
     val consumed: List<Entity> = listOf(),       // атомы, которые участвовали в реакции, как правило они умирают
     val spawn: List<() -> Entity> = listOf(),    // новые атомы и молекулы, которые появились. Вот тут нужно каким то образом сказать что нужно создать
     val updateState: List<StateUpdate> = listOf(),  // реагенты, которые реакцию пережили, но изменились
-    val description: String = "",                   // строка для лога
     val ruleId: String = "",                        // кто сработал; проставляет резолвер, правилу думать не нужно
 )
