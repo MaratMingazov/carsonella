@@ -188,7 +188,7 @@ class Molecule(
     val hasFreeValence: Boolean get() = graph.hasFreeValence
 
     /**
-     * Усиление связи [bond]: её кратность растёт на 1 (O–O → O=O, N=N → N≡N). Состав не меняется.
+     * Усиливаем связь bond: её кратность растёт на 1 (O–O → O=O, N=N → N≡N). Меняем граф
      */
     fun strengthenBond(bond: MoleculeBond) {
         val atom1 = bond.atom1.structure.localId
@@ -201,8 +201,7 @@ class Molecule(
     }
 
     /**
-     * Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан).
-     * Состав не меняется
+     * Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан). Меняем граф
      */
     fun closeRing(atom1: MoleculeAtom, atom2: MoleculeAtom) {
         val id1 = atom1.structure.localId
