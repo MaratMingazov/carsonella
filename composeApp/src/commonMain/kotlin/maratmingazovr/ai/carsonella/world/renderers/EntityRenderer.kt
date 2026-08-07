@@ -99,19 +99,20 @@ class EntityRenderer(
         time: Float,
     ) {
         val entityState = molecule.state().value
+        val shape = molecule.shape // снимок: атомы и связи одной раскладки, а не два независимых зова
 
         // Добавляем дрожание
         fun screenPos(atom: MoleculeAtom, atomVibrationParams: VibrationParams = vibrationParams) = atom.kinematics.position.toOffset() + atomVibrationParams.positionOffset
 
         with(drawScope) {
 
-            molecule.bonds.forEach { bond ->
+            shape.bonds.forEach { bond ->
                 // Связь под курсором показываем на кратность выше — пунктирной линией (клик усилит её).
                 val potentialOrder = if (bond == highlight.bond) bond.order + 1 else bond.order
                 drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order, potentialOrder)
             }
 
-            molecule.atoms.forEach { atom ->
+            shape.atoms.forEach { atom ->
                 val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), entityState.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(atom.structure.isotope)
                 val symbol = atom.structure.isotope.details.symbol.filter { it.isLetter() }

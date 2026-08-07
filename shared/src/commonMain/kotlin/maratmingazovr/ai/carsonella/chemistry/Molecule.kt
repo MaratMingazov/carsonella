@@ -34,6 +34,11 @@ data class MoleculeBond(
     val inRing: Boolean, // Лежит в цикле: разрыв раскроет кольцо, а не развалит молекулу на осколки
 )
 
+data class MoleculeShape(
+    val atoms: List<MoleculeAtom>,
+    val bonds: List<MoleculeBond>,
+)
+
 data class MoleculeRingCandidate(
     val atom1: MoleculeAtom,
     val atom2: MoleculeAtom,
@@ -119,22 +124,24 @@ class Molecule(
     override val protons: Int get() = graph.protons
     override val radius: Float = MOLECULE_RADIUS
 
+    val shape: MoleculeShape get() {
+        val atoms = atoms
+        return MoleculeShape(atoms, place(graph.bonds, atoms))
+    }
+
     /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
-    val atoms: List<MoleculeAtom> get() {
+    private val atoms: List<MoleculeAtom> get() {
         val center = state().value.kinematics.position
         return graph.nodes.map { node ->
             MoleculeAtom(
-                structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId),),
-                kinematics = Kinematics(position = center + graph.atomOffset(node.localId), direction = state.value.kinematics.direction, velocity = state.value.kinematics.velocity,),
+                structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId)),
+                kinematics = Kinematics(position = center + graph.atomOffset(node.localId), direction = state.value.kinematics.direction, velocity = state.value.kinematics.velocity),
             )
         }
     }
 
-    /** Связи, поставленные в мир: у каждой оба конца — готовые MolecularAtom. */
-    val bonds: List<MoleculeBond> get() = place(graph.bonds)
-
     /** Связи, которые можно усилить (кратность +1) — поставленные в мир. */
-    val strengthenableBonds: List<MoleculeBond> get() = place(graph.strengthenableBonds)
+    val strengthenableBonds: List<MoleculeBond> get() = place(graph.strengthenableBonds, atoms)
 
     /** Есть ли пара атомов, между которыми можно замкнуть цикл. Дешёвая проверка: кандидаты кеширует граф. */
     val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty()
@@ -147,8 +154,8 @@ class Molecule(
         return candidates.map { MoleculeRingCandidate(byId.getValue(it.atom1), byId.getValue(it.atom2), it.ringSize) }
     }
 
-    /** Слабейшая связь — она рвётся первой при распаде. Поставленная в мир, как и [bonds]. null — рвать нечего. */
-    val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> place(listOf(bond)).single() }
+    /** Слабейшая связь — она рвётся первой при распаде. Поставленная в мир, как и [shape]. null — рвать нечего. */
+    val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> place(listOf(bond), atoms).single() }
 
     /**
      * ПОРОГ ДИССОЦИАЦИИ (эВ) — энергия слабейшей связи, то же, что `weakestBond?.energy`. Отдельно, потому
@@ -157,7 +164,7 @@ class Molecule(
      */
     val dissociationEnergy: Float? get() = graph.weakestBondAndEnergy?.second
 
-    private fun place(bonds: List<Bond>): List<MoleculeBond> {
+    private fun place(bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
         val byId = atoms.associateBy { it.structure.localId }
         return bonds.map {
             MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it.atom1, it.atom2))

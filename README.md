@@ -32,6 +32,20 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 - WasmJs (браузер)
 - `server` — Ktor (заготовка)
 
+## Сборка: JDK 21
+
+Сборка идёт на **Java 21** — это закреплено в репозитории (`gradle/gradle-daemon-jvm.properties`,
+`toolchainVersion=21`), поэтому `JAVA_HOME` роли не играет: демон Gradle поднимается на 21, даже если
+в оболочке стоит другая версия. Локально JDK ставится сам (по ссылкам foojay из того же файла), если 21
+на машине нет.
+
+Версия не свободна: Gradle 8.13 держит максимум Java 23, а Java 25 требует Gradle 9.1+, за ним Kotlin
+2.3.20+ и Compose Multiplatform 1.11+ (2.2.0 и 1.8.2 сейчас). Запуск под JDK 25 падает с
+`Unsupported class file major version 69` — это не про код, а про версию сборочной JVM. На байткод
+версия сборки не влияет: `jvmTarget`/`sourceCompatibility` у модулей — **JVM_11**.
+
+В IntelliJ версия задаётся отдельно: **Settings → Build Tools → Gradle → Gradle JVM**.
+
 ## Модули
 
 - **`shared`** — доменная модель: элементы, сущности, поведения, правила реакций. Общая для всех платформ.
