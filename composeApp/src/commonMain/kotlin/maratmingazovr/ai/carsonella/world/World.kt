@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock // с kotlinx-datetime 0.7 часы живут в stdlib (kotlin.time), а не в kotlinx.datetime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import maratmingazovr.ai.carsonella.Environment

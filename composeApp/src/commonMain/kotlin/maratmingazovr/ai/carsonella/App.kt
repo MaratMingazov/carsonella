@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview

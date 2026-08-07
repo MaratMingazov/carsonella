@@ -29,8 +29,10 @@ kotlin {
         }
     }
 
+    // iosX64 (симулятор на Intel-маках) нет: Compose Multiplatform с 1.11 под него не собирается —
+    // material3/foundation/ui-tooling-preview обрываются на 1.11.0-alpha01. Симулятор на Apple Silicon
+    // это iosSimulatorArm64.
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -51,11 +53,9 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
+                    // Serve sources to debug inside browser
+                    static(rootDirPath)
+                    static(projectDirPath)
                 }
             }
         }
@@ -65,22 +65,22 @@ kotlin {
     sourceSets {
         if (withAndroid) {
             androidMain.dependencies {
-                implementation(compose.preview)
+                implementation(libs.compose.uiToolingPreview)
                 implementation(libs.androidx.activity.compose)
             }
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.componentsResources)
+            implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(projects.shared)
 
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serializationJson)
         }
         commonTest.dependencies {
@@ -125,7 +125,7 @@ if (withAndroid) {
     }
 
     dependencies {
-        "debugImplementation"(compose.uiTooling)
+        "debugImplementation"(libs.compose.uiTooling)
     }
 }
 

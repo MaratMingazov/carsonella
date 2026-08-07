@@ -26,25 +26,40 @@ Kotlin Multiplatform + Compose Multiplatform приложение-симулят
 
 ## Таргеты
 
-- Android
-- iOS
+- iOS (только `iosArm64` + `iosSimulatorArm64`; `iosX64` — симулятор на Intel-маках — нет, Compose
+  Multiplatform с 1.11 под него не собирается)
 - JVM Desktop
 - WasmJs (браузер)
+- Android — по флагу `-PwithAndroid=true`, иначе AGP не применяется вовсе
 - `server` — Ktor (заготовка)
 
-## Сборка: JDK 21
+## Сборка: JDK 25
 
-Сборка идёт на **Java 21** — это закреплено в репозитории (`gradle/gradle-daemon-jvm.properties`,
-`toolchainVersion=21`), поэтому `JAVA_HOME` роли не играет: демон Gradle поднимается на 21, даже если
-в оболочке стоит другая версия. Локально JDK ставится сам (по ссылкам foojay из того же файла), если 21
-на машине нет.
+Сборка идёт на **Java 25**, и это закреплено в репозитории (`gradle/gradle-daemon-jvm.properties`,
+`toolchainVersion=25`), поэтому `JAVA_HOME` роли не играет: демон Gradle поднимается на 25, даже если
+в оболочке стоит другая версия — проверяется командой `./gradlew -v`, строка `Daemon JVM`. Нужного JDK
+на машине может и не быть: он скачается сам, по ссылкам foojay из того же файла.
 
-Версия не свободна: Gradle 8.13 держит максимум Java 23, а Java 25 требует Gradle 9.1+, за ним Kotlin
-2.3.20+ и Compose Multiplatform 1.11+ (2.2.0 и 1.8.2 сейчас). Запуск под JDK 25 падает с
-`Unsupported class file major version 69` — это не про код, а про версию сборочной JVM. На байткод
-версия сборки не влияет: `jvmTarget`/`sourceCompatibility` у модулей — **JVM_11**.
+Версии тулчейна связаны в цепочку, и порвать одно звено нельзя:
 
-В IntelliJ версия задаётся отдельно: **Settings → Build Tools → Gradle → Gradle JVM**.
+| звено | версия | чем зажата |
+| --- | --- | --- |
+| Java | 25 | требует Gradle ≥ 9.1 |
+| Gradle | 9.5.0 | KGP 2.4.x держит максимум 9.5.0 |
+| Kotlin | 2.4.10 | Gradle 9.x требует KGP ≥ 2.3.0, а 9.1+ — ≥ 2.3.20 |
+| Compose Multiplatform | 1.11.1 | под native/web требует Kotlin ≥ 2.3.20 |
+| AGP | 8.13.2 | AGP ≥ 9.0 несовместим с KMP-плагином (нужен `com.android.kotlin.multiplatform.library`) |
+
+На байткод версия сборочной JVM не влияет: `jvmTarget`/`sourceCompatibility` у модулей — **JVM_11**.
+Симптом несовпадения — `Unsupported class file major version 69` (69 = Java 25) или обрывок вида
+`* What went wrong: 25.0.3`; это про версию сборочной JVM, а не про код.
+
+Compose-зависимости объявлены **явными координатами** (`gradle/libs.versions.toml`), а не через DSL
+`compose.runtime`/`compose.material3`/…: в 1.11 весь тот DSL устарел. Единственное исключение —
+`compose.desktop.currentOs`, он выбирает артефакт под текущую ОС. NB: `material3` версионируется
+отдельно от остального Compose.
+
+В IntelliJ версия задаётся своим параметром: **Settings → Build Tools → Gradle → Gradle JVM**.
 
 ## Модули
 
