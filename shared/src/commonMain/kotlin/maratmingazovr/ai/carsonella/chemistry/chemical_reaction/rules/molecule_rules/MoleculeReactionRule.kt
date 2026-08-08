@@ -30,6 +30,7 @@ abstract class MoleculeReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
         val molecule = reagents.firstOrNull() as? Molecule ?: return null
+        if (!molecule.state().value.alive) return null
         return matchesMolecule(molecule, reagents.subList(1, reagents.size))
     }
 

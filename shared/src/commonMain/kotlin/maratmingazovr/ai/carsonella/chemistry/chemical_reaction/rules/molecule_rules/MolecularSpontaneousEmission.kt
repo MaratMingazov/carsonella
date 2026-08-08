@@ -46,7 +46,6 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         if (neighbors.isNotEmpty()) return null      // «сам с собой»
 
         val moleculeState = molecule.state().value
-        if (!moleculeState.alive) return null
         if (moleculeState.energy <= 0f) return null              // остывать нечего
         if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 

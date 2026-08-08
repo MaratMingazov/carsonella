@@ -34,7 +34,6 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // рвать некому: фотон приходит соседом
 
-        if (!molecule.state().value.alive) return null
         val threshold = molecule.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
 
         val moleculePosition = molecule.state().value.kinematics.position

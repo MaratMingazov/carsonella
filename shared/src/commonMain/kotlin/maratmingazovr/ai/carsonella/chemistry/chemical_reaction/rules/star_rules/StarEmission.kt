@@ -1,23 +1,22 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.star_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.randomDirection
-import kotlin.collections.List
 
 // Звезда либо генерирует внутри себя протон с электроном
 // Либо при большой концентрации  излучает элементы наружку в космос
 class StarEmission (
     private val entityGenerator: IEntityGenerator,
-) : AtomReactionRule() {
+) : StarReactionRule() {
     override val id = "StarEmission"
 
     /**
@@ -25,31 +24,25 @@ class StarEmission (
      * пусто → генерация/выброс, и тогда работаем со списком живых детей [entityReagents].
      */
     private data class Match(
-        val star: Entity,
+        val star: Star,
         val absorbReagents: List<Entity>,
         val entityReagents: List<Entity>,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.isEmpty()) return null
-
-        // Класс Star строится только для Element.Star, поэтому отдельная проверка элемента не нужна.
-        val first = reagents.first() as? Star ?: return null
-        if (!first.state().value.alive) return null
-
+    override fun matchesStar(star: Star, neighbors: List<Entity>): MatchedData? {
         // Поглощение: запрос вида [звезда + соседи снаружи] — втягиваем их сразу, без chance.
-        val external = reagents.drop(1).filter { it.state().value.alive && it.getEnvironment() !== first }
+        val external = neighbors.filter { it.state().value.alive && it.getEnvironment() !== star }
         if (external.isNotEmpty()) {
-            return Match(first, absorbReagents = external, entityReagents = listOf())
+            return Match(star, absorbReagents = external, entityReagents = listOf())
         }
 
         // Иначе запрос [звезда] — ветка генерации/выброса (редкое событие).
         if (!chance(0.012f, entityGenerator.random)) return null
 
-        val children = first
+        val children = star
             .getEnvChildren()
             .filter { reagent -> reagent.state().value.alive }
-        return Match(first, absorbReagents = listOf(), entityReagents = children)
+        return Match(star, absorbReagents = listOf(), entityReagents = children)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
@@ -59,7 +52,13 @@ class StarEmission (
         // alive-гард — на случай, если реагент уже потреблён другим запросом в этом же тике.
         if (absorbReagents.isNotEmpty()) {
             return ReactionOutcome(
-                updateState = absorbReagents.map { r -> StateUpdate(r) { if (r.state().value.alive) r.updateMyEnvironment(star) } },
+                updateState = absorbReagents.map { r ->
+                    StateUpdate(r) {
+                        if (r.state().value.alive) r.updateMyEnvironment(
+                            star
+                        )
+                    }
+                },
             )
         }
 
@@ -95,7 +94,8 @@ class StarEmission (
                     // чтобы звезда не засосала его обратно тем же тиком. Нормальный выброс (импульс) — позже.
                     val fromCenter = Vec2D(pos.x - center.x, pos.y - center.y)
                     // Ребёнок ровно в центре звезды — направления «наружу» нет, берём случайное.
-                    val outward = if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
+                    val outward =
+                        if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
                     val ejectDistance = star.radius + 20f
                     reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт

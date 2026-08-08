@@ -37,7 +37,6 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         if (neighbors.isEmpty()) return null   // ионизовать нечем: фотон приходит соседом
 
         val subjectState = molecule.state().value
-        if (!subjectState.alive) return null
         val threshold = molecule.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
         val subjectPosition = subjectState.kinematics.position

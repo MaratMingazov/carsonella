@@ -25,7 +25,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarNeutronAlphaReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarNeutronProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarProtonCaptureReaction
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarEmission
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.star_rules.StarEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarCarbonBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarOxygenBurning
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.StarPPChain

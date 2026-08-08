@@ -20,7 +20,6 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
 
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null   // «сам с собой»
-        if (!molecule.state().value.alive) return null
         if (molecule.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (molecule.dissociationEnergy == null) return null   // рвать нечего (нет связей / тип не в каталоге)
         return Match(molecule)

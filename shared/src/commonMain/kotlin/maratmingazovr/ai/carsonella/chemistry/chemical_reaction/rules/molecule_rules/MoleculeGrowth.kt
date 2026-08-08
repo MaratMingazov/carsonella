@@ -36,7 +36,6 @@ class MoleculeGrowth(
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // расти не с кем
 
-        if (!molecule.state().value.alive) return null
         // нужен свободный слот, чтобы было куда расти
         if (!molecule.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
