@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
@@ -57,7 +56,8 @@ class Molecule private constructor(
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
     EnvironmentAware by EnvironmentSupport(),
-    LogWritable  by LoggingSupport()
+    LogWritable  by LoggingSupport(),
+    ChangeNotifiable by ChangeSupport()
 {
 
     constructor(id: Long, atom1: Atom, atom2: Atom) : this(
@@ -102,8 +102,6 @@ class Molecule private constructor(
         electrons = electrons,
     )
 
-    private var changes = MutableStateFlow(0L)
-
     override var kinematics: Kinematics = kinematics
         set(value) { if (field != value) { field = value; markChanged() } }
     override var alive: Boolean = true
@@ -120,7 +118,6 @@ class Molecule private constructor(
     override val energyLevels: List<Float> get() = graph.energyLevels
     override val saveKey: String get() = graph.formula
 
-    override fun changes() = changes
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
     override fun describe(): String {
         val known = MoleculeRegistry.lookup(graph.canonical)
@@ -163,6 +160,7 @@ class Molecule private constructor(
         if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
     override fun destroy() {
+        if (!alive) return
         alive = false
         markChanged()
         notifyDeath()

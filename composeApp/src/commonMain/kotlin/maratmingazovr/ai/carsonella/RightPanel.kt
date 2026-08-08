@@ -188,7 +188,7 @@ private fun SceneCanvas(
     // .value обязателен: зависимость регистрирует ЧТЕНИЕ значения, а не создание State. Без него
     // поток собирается, но композиция об этом не узнаёт.
     entities.forEach { entity ->
-        androidx.compose.runtime.key(entity.id) { entity.changes().collectAsState().value }
+        androidx.compose.runtime.key(entity.id) { entity.changes.collectAsState().value }
     }
 
     val hoveredEntityId = hoverPos?.let { hitTest(entities, it) } // Находится ли под курсором какой то элемент?
@@ -480,7 +480,7 @@ private fun SelectedEntityPanel(
     modifier: Modifier = Modifier
 ) {
     val selectedEntity = entities.firstOrNull { it.id == selectedElementId } ?: return
-    val selectedElement by selectedEntity.changes().collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
+    val selectedElement by selectedEntity.changes.collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
 
     Column(
         modifier.fillMaxWidth()

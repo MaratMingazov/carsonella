@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -26,12 +25,9 @@ class SubAtom(
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
     EnvironmentAware by EnvironmentSupport(),
-    LogWritable  by LoggingSupport()
+    LogWritable  by LoggingSupport(),
+    ChangeNotifiable by ChangeSupport()
 {
-    private var changes = MutableStateFlow(0L)
-
-    override fun changes() = changes
-
     override var kinematics: Kinematics = Kinematics(position, direction, velocity)
         set(value) { if (field != value) { field = value; markChanged() } }
     override var alive: Boolean = true
@@ -123,6 +119,7 @@ class SubAtom(
     }
 
     override fun destroy() {
+        if (!alive) return
         alive = false
         markChanged()
         notifyDeath()

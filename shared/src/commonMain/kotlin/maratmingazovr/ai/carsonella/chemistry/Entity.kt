@@ -1,10 +1,10 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.behavior.ChangeNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
@@ -24,7 +24,8 @@ sealed interface Entity :
     ReactionRequester,
     IEnvironment, // каждая частица может являться средой для других частиц
     EnvironmentAware, // каждая частица сама находится в каком то среде
-    LogWritable
+    LogWritable,
+    ChangeNotifiable
 {
     val id: Long
     val mass: Float
@@ -36,7 +37,6 @@ sealed interface Entity :
     var kinematics: Kinematics
     val alive: Boolean
 
-    fun changes(): MutableStateFlow<Long> // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
     fun describe(): String // Человекочитаемое описание для карточки Info.
@@ -114,15 +114,6 @@ sealed interface Entity :
         }
         
         kinematics = kinematics.copy(position = position, direction = direction)
-    }
-
-    // Сказать UI, что сущность поменялась и нужно перерисовать
-    fun markChanged() {
-        changes().value = changes().value + 1
-    }
-
-    fun addVelocity(moreVelocity: Float) {
-        kinematics = kinematics.copy(velocity = kinematics.velocity + moreVelocity)
     }
 
     fun applyForce(force: Vec2D) {

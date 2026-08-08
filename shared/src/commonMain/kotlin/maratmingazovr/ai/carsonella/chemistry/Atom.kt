@@ -1,9 +1,10 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.behavior.ChangeNotifiable
+import maratmingazovr.ai.carsonella.chemistry.behavior.ChangeSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentSupport
@@ -30,7 +31,8 @@ class Atom(
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
     EnvironmentAware by EnvironmentSupport(),
-    LogWritable  by LoggingSupport()
+    LogWritable  by LoggingSupport(),
+    ChangeNotifiable by ChangeSupport()
 {
     init {
         // Инвариант энергии атома: energy — это ТОЛЬКО 0 (основное состояние) или ТОЧНО один из дискретных
@@ -42,10 +44,6 @@ class Atom(
             "Atom ${element.name}: недопустимая energy=$energy эВ (electrons=$electrons) — не 0 и не уровень из $levels"
         }
     }
-
-    private var changes = MutableStateFlow(0L)
-
-    override fun changes() = changes
 
     override var kinematics: Kinematics = Kinematics(position, direction, velocity)
         set(value) { if (field != value) { field = value; markChanged() } }
@@ -105,6 +103,7 @@ class Atom(
 
 
     override fun destroy() {
+        if (!alive) return
         alive = false
         markChanged()
         notifyDeath()
