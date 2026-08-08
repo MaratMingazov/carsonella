@@ -42,24 +42,24 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     /** [dissociationThreshold] не-null → ветка предиссоциации (распад); null → ветка излучения фотона. */
     private data class Match(val molecule: Molecule, val dissociationThreshold: Float?) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+    override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null      // «сам с собой»
 
-        val subjectState = subject.state().value
-        if (!subjectState.alive) return null
-        if (subjectState.energy <= 0f) return null              // остывать нечего
-        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
+        val moleculeState = molecule.state().value
+        if (!moleculeState.alive) return null
+        if (moleculeState.energy <= 0f) return null              // остывать нечего
+        if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
-        val threshold = subject.dissociationEnergy
+        val threshold = molecule.dissociationEnergy
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
-        if (threshold != null && subjectState.energy >= threshold) {
-            return Match(subject, threshold)
+        if (threshold != null && moleculeState.energy >= threshold) {
+            return Match(molecule, threshold)
         }
 
         // Ветка 2 — излучение: избыток ниже порога распада, сбрасываем фотоном. Постепенно (chance), как атом.
         if (!chance(0.02f, entityGenerator.random)) return null
-        return Match(subject, dissociationThreshold = null)
+        return Match(molecule, dissociationThreshold = null)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

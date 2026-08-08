@@ -33,29 +33,29 @@ class MoleculeGrowth(
         val partnerIsotope: Element,
     ) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+    override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // расти не с кем
 
-        if (!subject.state().value.alive) return null
+        if (!molecule.state().value.alive) return null
         // нужен свободный слот, чтобы было куда расти
-        if (!subject.hasFreeValence) return null
+        if (!molecule.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
-        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
+        if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val subjectPosition = subject.state().value.kinematics.position
-        val subjectRadius = subject.radius
+        val moleculePosition = molecule.state().value.kinematics.position
+        val moleculeRadius = molecule.radius
 
         val (second, distanceSquare) = neighbors
             .filter { canBond(it) }
-            .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(subjectPosition) }
+            .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(moleculePosition) }
             .minByOrNull { it.second }
             ?: return null
 
         val secondRadius = second.radius
-        if (distanceSquare >= subjectRadius * secondRadius * 2f) return null
+        if (distanceSquare >= moleculeRadius * secondRadius * 2f) return null
 
-        return chooseSites(subject, second)
+        return chooseSites(molecule, second)
     }
 
     /**

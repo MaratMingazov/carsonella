@@ -31,31 +31,31 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
     private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+    override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // рвать некому: фотон приходит соседом
 
-        if (!subject.state().value.alive) return null
-        val threshold = subject.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
+        if (!molecule.state().value.alive) return null
+        val threshold = molecule.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
 
-        val subjectPosition = subject.state().value.kinematics.position
-        val radius = subject.radius
-        val activationDistanceSquare = radius * radius
+        val moleculePosition = molecule.state().value.kinematics.position
+        val moleculeRadius = molecule.radius
+        val activationDistanceSquare = moleculeRadius * moleculeRadius
 
         val nearestPhoton = neighbors
             .asSequence()
             .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
-            .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
-            .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.position) }
+            .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
+            .map { it to moleculePosition.distanceSquareTo(it.state().value.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first
             ?: return null
 
-        val available = subject.state().value.energy + nearestPhoton.state().value.energy
+        val available = molecule.state().value.energy + nearestPhoton.state().value.energy
         if (available < threshold) return null   // фотона не хватает даже на слабейшую связь → пролетает мимо
 
-        return Match(subject, nearestPhoton)
+        return Match(molecule, nearestPhoton)
     }
 
     // Распад ЭНДОТЕРМИЧЕН — вес отрицательный (контракт weight = энергия реакции со знаком): разрыв связи

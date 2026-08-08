@@ -33,22 +33,22 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
 
     private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
 
-    override fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData? {
+    override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // ионизовать нечем: фотон приходит соседом
 
-        val subjectState = subject.state().value
+        val subjectState = molecule.state().value
         if (!subjectState.alive) return null
-        val threshold = subject.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
+        val threshold = molecule.energyLevels.lastOrNull() ?: return null // есть ли у молекулы ионизируемый атом?
 
         val subjectPosition = subjectState.kinematics.position
-        val radius = subject.radius
+        val radius = molecule.radius
         val activationDistanceSquare = radius * radius
 
         val nearestPhoton = neighbors
             .asSequence()
             .filter { it is SubAtom && it.element == Element.PHOTON }
             .filter { it.state().value.energy > 0f && it.state().value.alive }
-            .filter { it.getEnvironment() === subject.getEnvironment() }   // оба в одной среде
+            .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
             .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
@@ -58,7 +58,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val available = subjectState.energy + nearestPhoton.state().value.energy
         if (available < threshold) return null   // фотона не хватает на ионизацию → мимо (может сработать распад)
 
-        return Match(subject, nearestPhoton)
+        return Match(molecule, nearestPhoton)
     }
 
     // Детерминированный шаг: ионизация бьёт распад. weight = 0 > weight распада (−dissociationEnergy),

@@ -29,8 +29,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdat
 abstract class MoleculeReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
-        val subject = reagents.firstOrNull() as? Molecule ?: return null
-        return matchesMolecule(subject, reagents.subList(1, reagents.size))
+        val molecule = reagents.firstOrNull() as? Molecule ?: return null
+        return matchesMolecule(molecule, reagents.subList(1, reagents.size))
     }
 
     /**
@@ -42,7 +42,7 @@ abstract class MoleculeReactionRule : ReactionRule {
      * на каждый запрос, и копировать хвост на каждое из них незачем. Вью живёт ровно столько же, сколько
      * сам запрос, и никто его не мутирует.
      */
-    abstract fun matchesMolecule(subject: Molecule, neighbors: List<Entity>): MatchedData?
+    abstract fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData?
 
     /**
      * Разрыв связи [bond] — ОБЩИЙ исход для всех, кто рвёт связи (фотодиссоциация, распад в звезде,
