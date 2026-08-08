@@ -27,19 +27,17 @@ class AlphaDecay(
 ) : AtomReactionRule() {
     override val id = "AlphaDecay"
 
-    /** [parentElement] выяснен в matchesAtoms — produce не вычисляет заново. */
+    /** [parentElement] выяснен в matchesAtom — produce не вычисляет заново. */
     private data class Match(val parent: Entity, val parentElement: Element) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size != 1) return null
-        val first = reagents.first() as? Atom ?: return null
-        if (!first.state().value.alive) return null
-        val element = first.element
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isNotEmpty()) return null
+        val element = atom.element
         if (element.details.alphaDecayResult == null) return null
 
         if (!chance(0.02f, entityGenerator.random)) return null
 
-        return Match(first, element)
+        return Match(atom, element)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

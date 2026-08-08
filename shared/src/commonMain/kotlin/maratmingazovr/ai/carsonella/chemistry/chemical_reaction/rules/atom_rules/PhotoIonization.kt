@@ -37,21 +37,18 @@ class PhotoIonization (
     private data class Match(
         val atom: Entity,
         val photon: Entity,
-        val atomElement: Element,     // элементы реагентов, выясненные в matchesAtoms — produce не вычисляет заново
+        val atomElement: Element,     // элементы реагентов, выясненные в matchesAtom — produce не вычисляет заново
         val photonElement: Element,
         val level: Float?,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-
-        val first = reagents.first() as? Atom ?: return null
-        val firstElement = first.element
-        val levels = firstElement.energyLevels(first.state().value.electrons)
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomElement = atom.element
+        val levels = atomElement.energyLevels(atom.state().value.electrons)
         if (levels.isEmpty()) return null
-        if (!first.state().value.alive) return null
-        val others = reagents.drop(1)
-        val activationDistanceSquare = firstElement.details.radius * firstElement.details.radius
+        val others = neighbors
+        val activationDistanceSquare = atomElement.details.radius * atomElement.details.radius
 
         val (nearestPhoton, distance) = others
             .asSequence()
@@ -60,21 +57,21 @@ class PhotoIonization (
             }
             .filter { it.state().value.energy > 0 }
             .filter { it.state().value.alive }
-            .map { it to first.state().value.kinematics.position.distanceSquareTo(it.state().value.kinematics.position) }
+            .map { it to atom.state().value.kinematics.position.distanceSquareTo(it.state().value.kinematics.position) }
             .minByOrNull { it.second }
             ?: return null
 
         if (distance > activationDistanceSquare) return null
-        val expectedEnergy = first.state().value.energy + nearestPhoton.state().value.energy
+        val expectedEnergy = atom.state().value.energy + nearestPhoton.state().value.energy
 
         // Ионизация: энергии хватает достать электрон (с допуском по верхнему уровню)
         if (expectedEnergy >= levels.last() - ENERGY_EPSILON) {
-            return Match(first, nearestPhoton, firstElement, PHOTON, level = null)
+            return Match(atom, nearestPhoton, atomElement, PHOTON, level = null)
         }
 
         // Поглощение: энергия попадает в окрестность одного из уровней
         val matched = levels.firstOrNull { abs(it - expectedEnergy) < ENERGY_EPSILON } ?: return null
-        return Match(first, nearestPhoton, firstElement, PHOTON, level = matched)
+        return Match(atom, nearestPhoton, atomElement, PHOTON, level = matched)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

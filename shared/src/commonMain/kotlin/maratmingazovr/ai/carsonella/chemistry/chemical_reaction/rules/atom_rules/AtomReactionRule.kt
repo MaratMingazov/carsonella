@@ -9,10 +9,10 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 abstract class AtomReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
-        if (reagents.firstOrNull() !is Atom) return null
-        return matchesAtoms(reagents)
+        val atom = reagents.firstOrNull() as? Atom ?: return null
+        if (!atom.state().value.alive) return null
+        return matchesAtom(atom, reagents.subList(1, reagents.size))
     }
 
-    /** Как `matches`, но субъект гарантированно атом. */
-    abstract fun matchesAtoms(reagents: List<Entity>): MatchedData?
+    abstract fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData?
 }

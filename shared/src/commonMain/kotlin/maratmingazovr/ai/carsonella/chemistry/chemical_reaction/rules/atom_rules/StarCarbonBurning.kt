@@ -38,7 +38,7 @@ class StarCarbonBurning(
 
     override val id = "StarCarbonBurning"
 
-    /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtoms. */
+    /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtom. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -48,21 +48,18 @@ class StarCarbonBurning(
         val extras: List<Element>,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.kinematics.position
-        if (firstAtom.element != CARBON_12) return null
-        if (!firstAtom.state().value.alive) return null
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        if (atom.element != CARBON_12) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
+        val (secondAtom, distanceSquare) = neighbors
             .filter {
                 it is Atom && it.element == CARBON_12
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -78,7 +75,7 @@ class StarCarbonBurning(
             MAGNESIUM_23  to listOf(NEUTRON),
         ).random(entityGenerator.random)
 
-        return Match(firstAtom, secondAtom, CARBON_12, CARBON_12, result, extras)   // оба реагента — ¹²C по проверке/фильтру
+        return Match(atom, secondAtom, CARBON_12, CARBON_12, result, extras)   // оба реагента — ¹²C по проверке/фильтру
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

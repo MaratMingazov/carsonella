@@ -48,7 +48,7 @@ class StarPhotodisintegration(
         data class NeutronOut(override val parent: Element) : Channel() { override val ejected = NEUTRON } // (γ,n)
     }
 
-    /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtoms. */
+    /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtom. */
     private data class Match(
         val atom: Entity,
         val photon: Entity,
@@ -56,12 +56,9 @@ class StarPhotodisintegration(
         val channel: Channel,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-
-        val first = reagents.first() as? Atom ?: return null
-        if (!first.state().value.alive) return null
-        val element = first.element
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val element = atom.element
 
         // Доступные обратные каналы — реверс полей захвата (N — продукт какого-то захвата P→N).
         val candidates = buildList {
@@ -71,24 +68,23 @@ class StarPhotodisintegration(
         }
         if (candidates.isEmpty()) return null
 
-        val firstPosition = first.state().value.kinematics.position
-        val (nearestPhoton, distanceSquare) = reagents
-            .drop(1)
+        val atomPosition = atom.state().value.kinematics.position
+        val (nearestPhoton, distanceSquare) = neighbors
             .filter {
                 it is SubAtom && it.element == PHOTON
             }
             .filter { it.state().value.alive }
             .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (nearestPhoton.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (distanceSquare >= element.details.radius * PHOTON.details.radius * 2f) return null
         if (!chance(RATE, entityGenerator.random)) return null
 
-        return Match(first, nearestPhoton, element, candidates.random(entityGenerator.random))
+        return Match(atom, nearestPhoton, element, candidates.random(entityGenerator.random))
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

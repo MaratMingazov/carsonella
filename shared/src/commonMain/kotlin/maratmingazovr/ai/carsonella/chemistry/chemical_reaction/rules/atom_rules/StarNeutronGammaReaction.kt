@@ -40,7 +40,7 @@ class StarNeutronGammaReaction(
 ) : AtomReactionRule() {
     override val id = "StarNeutronGammaReaction"
 
-    /** [atom1Element]/[atom2Element] выяснены в matchesAtoms — produce не вычисляет заново. */
+    /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -48,29 +48,26 @@ class StarNeutronGammaReaction(
         val atom2Element: Element,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.kinematics.position
-        if (!firstAtom.state().value.alive) return null
-        val firstAtomElement = firstAtom.element
-        if (firstAtomElement.details.neutronGammaResult == null) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        val atomElement = atom.element
+        if (atomElement.details.neutronGammaResult == null) return null
 
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
+        val (secondAtom, distanceSquare) = neighbors
             .filter {
                 it is SubAtom && it.element == NEUTRON
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        if (distanceSquare >= firstAtomElement.details.radius * NEUTRON.details.radius * 2f) return null
+        if (distanceSquare >= atomElement.details.radius * NEUTRON.details.radius * 2f) return null
 
-        return Match(firstAtom, secondAtom, firstAtomElement, NEUTRON)   // второй реагент — нейтрон по фильтру
+        return Match(atom, secondAtom, atomElement, NEUTRON)   // второй реагент — нейтрон по фильтру
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

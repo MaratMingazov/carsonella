@@ -38,7 +38,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  * 1: ⁷Be⁴⁺ + p -> ⁸B⁵⁺ + γ        (захват протона на бериллий-7; ⁸B нестабилен)
  * 2: ⁸B⁵⁺ -> ⁸Be⁴⁺ + e⁺ + νₑ     (β⁺-распад бора-8; живёт в generic BetaPlusDecay)
  *
- * Внутри одного firstAtomElement может быть несколько кандидатов на secondElement — перебираются по порядку,
+ * Внутри одного atomElement может быть несколько кандидатов на secondElement — перебираются по порядку,
  * первый найденный поблизости побеждает. Для ⁷Be⁴⁺ приоритет — захват электрона (pp-II ~99.9%), затем
  * захват протона (pp-III ~0.1%).
  */
@@ -48,7 +48,7 @@ class StarPPChain(
 
     override val id = "StarPPChain"
 
-    /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtoms. */
+    /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtom. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -58,13 +58,11 @@ class StarPPChain(
         val extras: List<Element>,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.kinematics.position
-        if (!firstAtom.state().value.alive) return null
-        val firstAtomElement = firstAtom.element
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        val atomElement = atom.element
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         // В зависимости от первого реагента определяем какие варианты второго реагента возможны и что родится.
         // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaGammaReaction
@@ -72,31 +70,30 @@ class StarPPChain(
         // Для ⁷Be⁴⁺ возможны две ветки: + e⁻ → ⁷Li³⁺ (pp-II, доминирует) либо + p → ⁸B⁵⁺ (pp-III, редкая).
         // Водород здесь всегда ГОЛЫЙ (протон): у нейтрального H тот же Element, отличает их только заряд.
         val candidates: List<Triple<Element, Element, List<Element>>> = when {
-            firstAtom.isBareNucleus(HYDROGEN) -> listOf(Triple(HYDROGEN,  DEUTERIUM, emptyList()))
-            firstAtomElement == DEUTERIUM     -> listOf(Triple(HYDROGEN,  HELIUM_3,  emptyList()))
-            firstAtomElement == HELIUM_3      -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(HYDROGEN, HYDROGEN)))
-            firstAtomElement == BERYLLIUM_7   -> listOf(
+            atom.isBareNucleus(HYDROGEN) -> listOf(Triple(HYDROGEN,  DEUTERIUM, emptyList()))
+            atomElement == DEUTERIUM     -> listOf(Triple(HYDROGEN,  HELIUM_3,  emptyList()))
+            atomElement == HELIUM_3      -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(HYDROGEN, HYDROGEN)))
+            atomElement == BERYLLIUM_7   -> listOf(
                 Triple(ELECTRON,  LITHIUM_7, emptyList()),
                 Triple(HYDROGEN,  BORON_8,   emptyList()),
             )
-            firstAtomElement == LITHIUM_7     -> listOf(Triple(HYDROGEN,  HELIUM_4,  listOf(HELIUM_4)))
+            atomElement == LITHIUM_7     -> listOf(Triple(HYDROGEN,  HELIUM_4,  listOf(HELIUM_4)))
             else -> return null
         }
 
         // Перебираем кандидатов в порядке приоритета — первый найденный поблизости побеждает.
         for ((secondElement, result, extras) in candidates) {
-            val (secondAtom, distanceSquare) = reagents
-                .drop(1)
+            val (secondAtom, distanceSquare) = neighbors
                 .filter { isCandidate(it, secondElement) }
                 .filter { it.state().value.alive }
-                .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
+                .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
                 .minByOrNull { it.second }
                 ?: continue
 
             if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) continue
 
-            if (distanceSquare < firstAtomElement.details.radius * secondElement.details.radius * 2f) {
-                return Match(firstAtom, secondAtom, firstAtomElement, secondElement, result, extras)
+            if (distanceSquare < atomElement.details.radius * secondElement.details.radius * 2f) {
+                return Match(atom, secondAtom, atomElement, secondElement, result, extras)
             }
         }
         return null

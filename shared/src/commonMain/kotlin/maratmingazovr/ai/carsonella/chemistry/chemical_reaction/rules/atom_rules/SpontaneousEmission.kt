@@ -28,23 +28,21 @@ class SpontaneousEmission(
 ) : AtomReactionRule() {
     override val id = "Luminescence"
 
-    /** [entityElement] выяснен в matchesAtoms — produce не вычисляет заново. */
+    /** [entityElement] выяснен в matchesAtom — produce не вычисляет заново. */
     private data class Match(val entity: Entity, val entityElement: Element) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
-        if (reagents.size != 1) return null
-        val first = reagents.first() as? Atom ?: return null
-        if (!first.state().value.alive) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isNotEmpty()) return null
 
-        val firstElement = first.element
-        val levels = firstElement.energyLevels(first.state().value.electrons)
+        val atomElement = atom.element
+        val levels = atomElement.energyLevels(atom.state().value.electrons)
         if (levels.isEmpty()) return null
-        if (first.state().value.energy == 0f) return null
-        if (!levels.contains(first.state().value.energy)) { throw Exception("SpontaneousEmission")}
+        if (atom.state().value.energy == 0f) return null
+        if (!levels.contains(atom.state().value.energy)) { throw Exception("SpontaneousEmission")}
 
         if (!chance(0.02f, entityGenerator.random)) return null // в этом случае он с определенной вероятностью избавится от этой энергии
 
-        return Match(first, firstElement)
+        return Match(atom, atomElement)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

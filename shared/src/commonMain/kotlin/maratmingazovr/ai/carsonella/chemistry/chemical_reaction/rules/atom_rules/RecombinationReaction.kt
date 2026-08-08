@@ -20,7 +20,7 @@ class RecombinationReaction(
 ) : AtomReactionRule() {
     override val id = "Recombination"
 
-    /** [atom1Element]/[atom2Element] выяснены в matchesAtoms — produce не вычисляет заново. */
+    /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -28,33 +28,30 @@ class RecombinationReaction(
         val atom2Element: Element,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.kinematics.position
-        if (!firstAtom.state().value.alive) return null
-        val firstAtomElement = firstAtom.element
-        val firstElectrons = firstAtom.state().value.electrons
-        if (!canGainElectron(firstAtomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        val atomElement = atom.element
+        val firstElectrons = atom.state().value.electrons
+        if (!canGainElectron(atomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
         // уровни состояния-результата (на 1 электрон больше)
-        val recombinedLevels = firstAtomElement.energyLevels(firstElectrons + 1)
+        val recombinedLevels = atomElement.energyLevels(firstElectrons + 1)
         if (recombinedLevels.isEmpty()) return null
 
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
+        val (secondAtom, distanceSquare) = neighbors
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition)}
+            .map { it to  it.state().value.kinematics.position.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
         val secondAtomElement = secondAtom.element
 
-        return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
-            Match(firstAtom, secondAtom, firstAtomElement, secondAtomElement)
+        return if (distanceSquare < atomElement.details.radius * secondAtomElement.details.radius * 2f) {
+            Match(atom, secondAtom, atomElement, secondAtomElement)
         } else {
             null
         }

@@ -32,18 +32,16 @@ class StarThermalIonization(
 ) : AtomReactionRule() {
     override val id = "StarThermalIonization"
 
-    /** [element] выяснен в matchesAtoms — produce не вычисляет заново. */
+    /** [element] выяснен в matchesAtom — produce не вычисляет заново. */
     private data class Match(val atom: Entity, val element: Element) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size != 1) return null
-        val first = reagents.first() as? Atom ?: return null
-        if (!first.state().value.alive) return null
-        val element = first.element
-        if (first.state().value.electrons <= 0) return null
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isNotEmpty()) return null
+        val element = atom.element
+        if (atom.state().value.electrons <= 0) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
-        return Match(first, element)
+        return Match(atom, element)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

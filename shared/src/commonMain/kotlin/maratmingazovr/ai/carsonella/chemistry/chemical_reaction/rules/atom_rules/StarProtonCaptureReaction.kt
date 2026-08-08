@@ -57,7 +57,7 @@ class StarProtonCaptureReaction(
         data class Neutron(val product: Element) : Outcome()
     }
 
-    /** [outcome] — канал, выбранный roulette-wheel; элементы выяснены в matchesAtoms. */
+    /** [outcome] — канал, выбранный roulette-wheel; элементы выяснены в matchesAtom. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -66,35 +66,32 @@ class StarProtonCaptureReaction(
         val outcome: Outcome,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = firstAtom.state().value.kinematics.position
-        if (!firstAtom.state().value.alive) return null
-        val firstAtomElement = firstAtom.element
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        val atomElement = atom.element
 
-        val gammaResult = firstAtomElement.details.protonGammaResult
-        val alphaResult = firstAtomElement.details.protonAlphaResult
-        val neutronResult = firstAtomElement.details.protonNeutronResult
+        val gammaResult = atomElement.details.protonGammaResult
+        val alphaResult = atomElement.details.protonAlphaResult
+        val neutronResult = atomElement.details.protonNeutronResult
         if (gammaResult == null && alphaResult == null && neutronResult == null) return null
 
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
+        val (secondAtom, distanceSquare) = neighbors
             .filter { it.isBareNucleus(HYDROGEN) }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        if (distanceSquare >= firstAtomElement.details.radius * HYDROGEN.details.radius * 2f) return null
+        if (distanceSquare >= atomElement.details.radius * HYDROGEN.details.radius * 2f) return null
 
         // Reaction rate — bottleneck/slowdown для конкретных target-ядер.
-        if (!chance(captureRate(firstAtomElement), entityGenerator.random)) return null
+        if (!chance(captureRate(atomElement), entityGenerator.random)) return null
 
         // Branching — roulette wheel по доступным каналам.
-        val (gW, aW, nW) = branchingWeights(firstAtomElement)
+        val (gW, aW, nW) = branchingWeights(atomElement)
         val candidates = mutableListOf<Pair<Outcome, Float>>()
         if (gammaResult != null && gW > 0f) candidates += (Outcome.Gamma(gammaResult) as Outcome) to gW
         if (alphaResult != null && aW > 0f) candidates += (Outcome.Alpha(alphaResult) as Outcome) to aW
@@ -111,7 +108,7 @@ class StarProtonCaptureReaction(
         }
 
         // второй реагент — протон (голый H) по фильтру
-        return Match(firstAtom, secondAtom, firstAtomElement, HYDROGEN, picked)
+        return Match(atom, secondAtom, atomElement, HYDROGEN, picked)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

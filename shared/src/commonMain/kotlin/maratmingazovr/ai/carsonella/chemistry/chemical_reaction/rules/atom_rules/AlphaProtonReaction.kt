@@ -40,7 +40,7 @@ class AlphaProtonReaction(
 ) : AtomReactionRule() {
     override val id = "AlphaProtonReaction"
 
-    /** [targetElement]/[alphaElement] выяснены в matchesAtoms — produce не вычисляет заново. */
+    /** [targetElement]/[alphaElement] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
         val target: Entity,
         val alpha: Entity,
@@ -48,32 +48,28 @@ class AlphaProtonReaction(
         val alphaElement: Element,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
 
-        val first = reagents.first() as? Atom ?: return null
-        if (!first.state().value.alive) return null
-        if (first.getEnvironment().getEnvTemperature() != TemperatureMode.Space) return null
+        val atomElement = atom.element
+        if (atomElement.details.alphaProtonResult == null) return null
 
-        val firstElement = first.element
-        if (firstElement.details.alphaProtonResult == null) return null
-
-        val firstPosition = first.state().value.kinematics.position
-        val (alphaCandidate, distanceSquare) = reagents
-            .drop(1)
+        val atomPosition = atom.state().value.kinematics.position
+        val (alphaCandidate, distanceSquare) = neighbors
             .filter { it.state().value.alive }
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstPosition) }
+            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
         val alphaElement = alphaCandidate.element
-        val contactRadiusSquare = firstElement.details.radius * alphaElement.details.radius * 2f
+        val contactRadiusSquare = atomElement.details.radius * alphaElement.details.radius * 2f
         if (distanceSquare >= contactRadiusSquare) return null
 
-        return Match(first, alphaCandidate, firstElement, alphaElement)
+        return Match(atom, alphaCandidate, atomElement, alphaElement)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

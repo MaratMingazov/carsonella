@@ -19,7 +19,7 @@ class StarAlphaGammaReaction(
 ) : AtomReactionRule() {
     override val id = "AlphaReaction"
 
-    /** [atom1Element]/[atom2Element] выяснены в matchesAtoms — produce не вычисляет заново. */
+    /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
         val atom1: Entity,
         val atom2: Entity,
@@ -27,29 +27,26 @@ class StarAlphaGammaReaction(
         val atom2Element: Element,
     ) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>) : MatchedData? {
-        if (reagents.size < 2) return null
-        val firstAtom = reagents.first() as? Atom ?: return null
-        val firstAtomPosition = reagents.first().state().value.kinematics.position
-        if (!firstAtom.state().value.alive) return null
-        val firstAtomElement = firstAtom.element
-        if (firstAtomElement.details.alphaGammaResult == null) return null // значит элемент не участвует в альфа захвате
+    override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
+        val atomPosition = atom.state().value.kinematics.position
+        val atomElement = atom.element
+        if (atomElement.details.alphaGammaResult == null) return null // значит элемент не участвует в альфа захвате
 
-        val (secondAtom, distanceSquare) = reagents
-            .drop(1)
+        val (secondAtom, distanceSquare) = neighbors
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition)}
+            .map { it to  it.state().value.kinematics.position.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
-        if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
+        if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         val secondAtomElement = secondAtom.element
 
-        return if (distanceSquare < firstAtomElement.details.radius * secondAtomElement.details.radius * 2f) {
-            Match(firstAtom, secondAtom, firstAtomElement, secondAtomElement)
+        return if (distanceSquare < atomElement.details.radius * secondAtomElement.details.radius * 2f) {
+            Match(atom, secondAtom, atomElement, secondAtomElement)
         } else {
             null
         }
