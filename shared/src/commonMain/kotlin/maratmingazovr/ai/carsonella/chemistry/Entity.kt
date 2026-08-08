@@ -23,6 +23,7 @@ data class EntityState(
     val kinematics: Kinematics,
     val energy: Float,
     val electrons: Int,
+    val version: Long = 0L, // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
 ) {
 
 
@@ -35,7 +36,8 @@ data class EntityState(
         kinematics: Kinematics = this.kinematics,
         energy: Float = this.energy,
         electrons: Int = this.electrons,
-    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, electrons = electrons)
+        version: Long = this.version,
+    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, electrons = electrons, version = version)
 
 }
 
@@ -153,6 +155,11 @@ sealed interface Entity :
 
     fun setElectrons(electrons: Int) {
         state().value = state().value.copyWith(electrons = electrons)
+    }
+
+    // Сказать UI, что сущность поменялась и нужно перерисовать
+    fun markChanged() {
+        state().value = state().value.copyWith(version = state().value.version + 1)
     }
 
     fun addVelocity(moreVelocity: Float) {

@@ -214,7 +214,7 @@ class Molecule private constructor(
             "Связь $atom1–$atom2 в ${graph.formula} не усилить: у конца нет свободного слота"
         }
         graph = graph.strengthenBond(atom1, atom2)
-        nudgeAfterRebuild()
+        markChanged()
     } // Усиливаем связь bond: её кратность растёт на 1 (O–O → O=O, N=N → N≡N).
     fun closeRing(atom1: MoleculeAtom, atom2: MoleculeAtom) {
         val id1 = atom1.structure.localId
@@ -223,17 +223,13 @@ class Molecule private constructor(
             "Кольцо $id1–$id2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
         }
         graph = graph.closeRing(id1, id2)
-        nudgeAfterRebuild()
+        markChanged()
     } // Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан).
     fun openRing(bond: MoleculeBond) {
         graph = graph.removeRingBond(bond.atom1.structure.localId, bond.atom2.structure.localId)
-        nudgeAfterRebuild()
+        markChanged()
     } // Раскрытие кольца: рвём связь, лежащую в цикле → цикл разворачивается в цепь
 
-    private fun nudgeAfterRebuild() {
-        val kinematics = state.value.kinematics
-        state.value = state.value.copyWith(kinematics = kinematics.copy(position = kinematics.position + Position(1f, 0f)))
-    } // Сдвиг молекулы на пиксель после перестройки графа
 
     ////////////////////////////////
 
