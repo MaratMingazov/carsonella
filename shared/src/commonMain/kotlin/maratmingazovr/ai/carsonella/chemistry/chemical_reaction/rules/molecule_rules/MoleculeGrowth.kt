@@ -74,14 +74,14 @@ class MoleculeGrowth(
     override fun weight(match: MatchedData): Float {
         val (molecule, partnerEntity) = match as Match
         val partnerEntityIsotop = getIsotope(partnerEntity)
-        val moleculeAtomIsotope = molecule.firstFreeValenceAtom()!!.structure.isotope
+        val moleculeAtomIsotope = molecule.firstFreeValenceAtomIsotope!!
         return BondEnergy.of(moleculeAtomIsotope, partnerEntityIsotop, order = 1) ?: 0f
     }
 
     // Изотоп того атома партнёра, который войдёт в новую связь. Зовётся только после canBond,
     // поэтому частица и звезда сюда не доходят.
     private fun getIsotope(entity: Entity): Element = when (entity) {
-        is Molecule -> entity.firstFreeValenceAtom()!!.structure.isotope
+        is Molecule -> entity.firstFreeValenceAtomIsotope!!
         is Atom -> entity.element
         is SubAtom, is Star -> error("getIsotope: ${entity::class.simpleName} не может расти — canBond должен был отсеять")
     }
