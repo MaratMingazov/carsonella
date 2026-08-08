@@ -68,12 +68,12 @@ class StarPhotodisintegration(
         }
         if (candidates.isEmpty()) return null
 
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         val (nearestPhoton, distanceSquare) = neighbors
             .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
             .filter { it.state().value.alive }
             .filter { it.energy >= PHOTON_ENERGY_THRESHOLD }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -90,9 +90,9 @@ class StarPhotodisintegration(
         val parent = channel.parent
         val ejected = channel.ejected
 
-        val position = a.state().value.kinematics.position
-        val direction = a.state().value.kinematics.direction
-        val velocity = a.state().value.kinematics.velocity
+        val position = a.kinematics.position
+        val direction = a.kinematics.direction
+        val velocity = a.kinematics.velocity
         val radius = parent.details.radius
 
         // Перенос электронной оболочки на продукт (как в захватах): продукт-родитель легче (Z падает),

@@ -100,7 +100,7 @@ abstract class MoleculeReactionRule : ReactionRule {
         generator: IEntityGenerator,
         energyPerFragment: Float,
     ): List<() -> Entity> {
-        val moleculeState = molecule.state().value
+        val kinematics = molecule.kinematics
         val env = molecule.getEnvironment()
         return fragments.mapIndexed { i, frag ->
             // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
@@ -108,14 +108,14 @@ abstract class MoleculeReactionRule : ReactionRule {
             // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
             // Настоящие координаты у осколка уже есть (форма их несёт), но взять их вместо этой развозки
             // нельзя: осколки встали бы вплотную и слиплись бы обратно тем же тиком — см. док, шаг 4.
-            val pos = moleculeState.kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
+            val pos = kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
             val electrons = frag.atoms.sumOf { it.structure.isotope.details.p }  // нейтральный осколок (гомолитика)
             if (frag.atoms.size == 1) {
                 val isotope = frag.atoms.single().structure.isotope
-                val kineticVelocity = moleculeState.kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(isotope, pos, moleculeState.kinematics.direction, kineticVelocity, 0f, env, electrons) }
+                val kineticVelocity = kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
+                return@mapIndexed { generator.createEntity(isotope, pos, kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
-                return@mapIndexed { generator.createMolecule(frag, pos, moleculeState.kinematics.direction, moleculeState.kinematics.velocity, energyPerFragment, env, electrons) }
+                return@mapIndexed { generator.createMolecule(frag, pos, kinematics.direction, kinematics.velocity, energyPerFragment, env, electrons) }
             }
         }
     }

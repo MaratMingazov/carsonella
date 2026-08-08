@@ -102,11 +102,10 @@ class Molecule private constructor(
         electrons = electrons,
     )
 
-    private var state = MutableStateFlow(EntityState(
-            alive = true,
-            kinematics = kinematics,
-        ))
+    private var state = MutableStateFlow(EntityState(alive = true))
 
+    override var kinematics: Kinematics = kinematics
+        set(value) { if (field != value) { field = value; markChanged() } }
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
     override var electrons: Int = electrons
@@ -145,7 +144,7 @@ class Molecule private constructor(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.kinematics.position.distanceSquareTo(entity.state().value.kinematics.position) < 10000f }
+            .filter { entity -> kinematics.position.distanceSquareTo(entity.kinematics.position) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
@@ -197,7 +196,7 @@ class Molecule private constructor(
         graph.nodes.map { node ->
             MoleculeAtom(
                 structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId)),
-                kinematics = state.value.kinematics.copy(position = state.value.kinematics.position + graph.atomOffset(node.localId)),
+                kinematics = kinematics.copy(position = kinematics.position + graph.atomOffset(node.localId)),
             )
         }
     private fun createMoleculeBonds(graph: MoleculeGraph, bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
@@ -255,8 +254,8 @@ private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph
     return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
 }
 private fun mergedKinematics(entity1: Entity, entity2: Entity): Kinematics {
-    val k1 = entity1.state().value.kinematics
-    val k2 = entity2.state().value.kinematics
+    val k1 = entity1.kinematics
+    val k2 = entity2.kinematics
 
     val impulse = k1.direction * k1.velocity * entity1.mass + k2.direction * k2.velocity * entity2.mass
     val velocityVector = impulse.div(entity1.mass + entity2.mass)

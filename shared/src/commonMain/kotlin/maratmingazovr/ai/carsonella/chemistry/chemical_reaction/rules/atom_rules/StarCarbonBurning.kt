@@ -50,7 +50,7 @@ class StarCarbonBurning(
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         if (atom.element != CARBON_12) return null
         if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
@@ -59,7 +59,7 @@ class StarCarbonBurning(
                 it is Atom && it.element == CARBON_12
             }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -82,7 +82,7 @@ class StarCarbonBurning(
         val (atom1, atom2, atom1Element, atom2Element, result, extras) = match as Match
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.kinematics.position
+        val resultPosition = atom1.kinematics.position
         val resultRadius = result.details.radius
         // Перенос оболочки на продукт (2C2): два ядра сливаются, их электроны (в звезде 0) переходят
         // на продукт, но не больше его Z; лишние улетают свободными e⁻ (shake-off). Extras (α/p/n) — голые.

@@ -43,7 +43,7 @@ class StarAlphaNeutronReaction(
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         val atomElement = atom.element
         if (atomElement.details.alphaNeutronResult == null) return null
 
@@ -51,7 +51,7 @@ class StarAlphaNeutronReaction(
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.state().value.alive }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -69,7 +69,7 @@ class StarAlphaNeutronReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.kinematics.position
+        val resultPosition = atom1.kinematics.position
         val resultElement = atom1Element.details.alphaNeutronResult!!
         // Перенос электронной оболочки на продукт (2C2): (α,n) повышает Z → кламп no-op, shake-off не нужен.
         val resultElectrons = minOf(atom1.electrons, resultElement.details.p)

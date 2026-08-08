@@ -43,15 +43,12 @@ class Atom(
         }
     }
 
-    private var state = MutableStateFlow(
-        EntityState(
-            alive = true,
-            kinematics = Kinematics(position, direction, velocity),
-        )
-    )
+    private var state = MutableStateFlow(EntityState(alive = true))
 
     override fun state() = state
 
+    override var kinematics: Kinematics = Kinematics(position, direction, velocity)
+        set(value) { if (field != value) { field = value; markChanged() } }
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override var electrons: Int = electrons
@@ -60,7 +57,7 @@ class Atom(
     var energy: Float = energy
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = element.details.radius
-    override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceToSurface(point: Position): Float = kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(electrons)
 
@@ -88,7 +85,7 @@ class Atom(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> state.value.kinematics.position.distanceSquareTo(entity.state().value.kinematics.position) < 10000f }
+            .filter { entity -> kinematics.position.distanceSquareTo(entity.kinematics.position) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

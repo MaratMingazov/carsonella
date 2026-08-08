@@ -50,7 +50,7 @@ class SpontaneousEmission(
 
         // нужно вычислить сколько энергии должен отдать атом
         val entityEnergy = entity.energy
-        val entityPosition = entity.state().value.kinematics.position
+        val entityPosition = entity.kinematics.position
         val entityRadius = entityElement.details.radius
         val levels = entityElement.energyLevels(entity.electrons)
         val index = levels.indexOf(entityEnergy)

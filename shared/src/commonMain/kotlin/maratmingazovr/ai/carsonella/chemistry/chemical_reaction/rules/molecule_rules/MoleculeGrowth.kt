@@ -41,13 +41,13 @@ class MoleculeGrowth(
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val moleculePosition = molecule.state().value.kinematics.position
+        val moleculePosition = molecule.kinematics.position
         val moleculeRadius = molecule.radius
 
         val (second, distanceSquare) = neighbors
             .filter { canBond(it) }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(moleculePosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(moleculePosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -71,7 +71,7 @@ class MoleculeGrowth(
         val subjectSites = subject.freeValenceAtoms
         return when (partner) {
             is Atom -> {
-                val partnerPosition = partner.state().value.kinematics.position
+                val partnerPosition = partner.kinematics.position
                 val site = subjectSites.minByOrNull { it.kinematics.position.distanceSquareTo(partnerPosition) } ?: return null
                 Match(subject, partner, site, partnerAtom = null, partnerIsotope = partner.element)
             }
@@ -134,8 +134,8 @@ class MoleculeGrowth(
             },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
-            val p1 = molecule.state().value.kinematics.position
-            val p2 = partnerEntity.state().value.kinematics.position
+            val p1 = molecule.kinematics.position
+            val p2 = partnerEntity.kinematics.position
             val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
             val photonDirection = randomDirection(entityGenerator.random)
             val photonVelocity = MAX_VELOCITY

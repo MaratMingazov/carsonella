@@ -20,7 +20,6 @@ data class Kinematics(
 
 data class EntityState(
     val alive: Boolean,
-    val kinematics: Kinematics,
     val version: Long = 0L, // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
 ) {
 
@@ -31,9 +30,8 @@ data class EntityState(
      */
     fun copyWith(
         alive: Boolean = this.alive,
-        kinematics: Kinematics = this.kinematics,
         version: Long = this.version,
-    ): EntityState = copy(alive = alive, kinematics = kinematics, version = version)
+    ): EntityState = copy(alive = alive, version = version)
 
 }
 
@@ -54,6 +52,7 @@ sealed interface Entity :
     val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд.
     val saveKey: String // Ключ для сохранения
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
+    var kinematics: Kinematics
 
     fun state(): MutableStateFlow<EntityState>
     fun step() // элемент делает свой ход
@@ -89,31 +88,28 @@ sealed interface Entity :
     }
 
     fun applyNewPosition() {
-        val kinematics = state().value.kinematics
         val newPosition = Position(
             x = kinematics.position.x + kinematics.direction.x * kinematics.velocity,
             y = kinematics.position.y + kinematics.direction.y * kinematics.velocity
         )
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = newPosition))
+        kinematics = kinematics.copy(position = newPosition)
     }
 
     // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
     // спокойно осталась там, куда её положили, а не улетела по инерции.
     fun moveTo(position: Position) {
-        val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, velocity = 0f))
+        kinematics = kinematics.copy(position = position, velocity = 0f)
     }
 
     fun reduceVelocity() {
-        val kinematics = state().value.kinematics
         val newVelocity = if (kinematics.velocity < 0.1f) 0f else kinematics.velocity * 0.99f
-        state().value = state().value.copyWith(kinematics = kinematics.copy(velocity = newVelocity))
+        kinematics = kinematics.copy(velocity = newVelocity)
     }
 
     fun checkBorders(env: IEnvironment) {
 
-        var position = state().value.kinematics.position
-        var direction = state().value.kinematics.direction
+        var position = kinematics.position
+        var direction = kinematics.direction
         val center = env.getEnvCenter()
         val radius = env.getEnvRadius()
 
@@ -135,8 +131,7 @@ sealed interface Entity :
             direction = direction.copy(x = direction.x - 2 * dot * nx, y = direction.y - 2 * dot * ny)
         }
         
-        val kinematics = state().value.kinematics
-        state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, direction = direction))
+        kinematics = kinematics.copy(position = position, direction = direction)
     }
 
     // Сказать UI, что сущность поменялась и нужно перерисовать
@@ -145,21 +140,18 @@ sealed interface Entity :
     }
 
     fun addVelocity(moreVelocity: Float) {
-        val kinematics = state().value.kinematics
-        val newVelocity = kinematics.velocity + moreVelocity
-        state().value = state().value.copyWith(kinematics = kinematics.copy(velocity = newVelocity))
+        kinematics = kinematics.copy(velocity = kinematics.velocity + moreVelocity)
     }
 
     fun applyForce(force: Vec2D) {
 
         if (mass < 0.001f) return
         val a = force.div(mass)
-        val kinematics = state().value.kinematics
         val newVelocityVector = kinematics.direction.times(kinematics.velocity).plus(a)
         val newVelocity = newVelocityVector.length()
         val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else kinematics.direction
 
-        state().value = state().value.copyWith(kinematics = kinematics.copy(direction = newDirection, velocity = newVelocity))
+        kinematics = kinematics.copy(direction = newDirection, velocity = newVelocity)
     }
 
     /**
@@ -174,9 +166,9 @@ sealed interface Entity :
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
 
         elements.forEach { element ->
-            val elementPosition = element.state().value.kinematics.position
-            val rx = state().value.kinematics.position.x - elementPosition.x
-            val ry = state().value.kinematics.position.y - elementPosition.y
+            val elementPosition = element.kinematics.position
+            val rx = kinematics.position.x - elementPosition.x
+            val ry = kinematics.position.y - elementPosition.y
             val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
 
             val elementRadius = element.radius

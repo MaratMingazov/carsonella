@@ -30,7 +30,7 @@ class RecombinationReaction(
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         val atomElement = atom.element
         val firstElectrons = atom.electrons
         if (!canGainElectron(atomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
@@ -42,7 +42,7 @@ class RecombinationReaction(
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
             .filter { it.state().value.alive }
-            .map { it to  it.state().value.kinematics.position.distanceSquareTo(atomPosition)}
+            .map { it to  it.kinematics.position.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null
 
@@ -60,14 +60,14 @@ class RecombinationReaction(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
         val electrons = atom1.electrons
-        val resultPosition = atom1.state().value.kinematics.position
+        val resultPosition = atom1.kinematics.position
         val env = atom1.getEnvironment()
 
         // Ион ловит электрон: Element НЕ меняется — updateState(electrons+1, energy=0), вылетает фотон.
         // Голый протон здесь ничем не особен: это H с 0 электронов, и он становится H с одним.
         val resultElectrons = electrons + 1
         val photonEnergy = atom1Element.energyLevels(resultElectrons).last()
-        val direction = atom1.state().value.kinematics.direction
+        val direction = atom1.kinematics.direction
         val radius = atom1Element.details.radius
         return ReactionOutcome(
             consumed = listOf(atom2),

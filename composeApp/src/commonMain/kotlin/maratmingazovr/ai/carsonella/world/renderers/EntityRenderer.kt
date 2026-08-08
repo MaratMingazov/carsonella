@@ -82,8 +82,7 @@ class EntityRenderer(
         vibrationParams: VibrationParams,
         withValenceSlots: Boolean,
     ) {
-        val entityState = entity.state().value
-        val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
+        val position = entity.kinematics.position.toOffset()  + vibrationParams.positionOffset
         val bareProton = element == Element.HYDROGEN && entity.electrons == 0
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
@@ -106,7 +105,6 @@ class EntityRenderer(
         vibrationParams: VibrationParams,
         time: Float,
     ) {
-        val entityState = molecule.state().value
         val shape = molecule.shape // снимок: атомы и связи одной раскладки, а не два независимых зова
 
         // Добавляем дрожание
@@ -226,14 +224,13 @@ class EntityRenderer(
         entity: Star,
         time: Float,
     ) {
-        val entityState = entity.state().value
         // параметры вибрации/пульса — от общего time на частоте STAR_HZ
         val amp = 1f                                       // амплитуда в пикселях (энергии у звезды нет)
         val idSeed = (entity.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
         val ph = time * ANIM_TWO_PI * STAR_HZ
         val dx = amp * kotlin.math.cos(ph + idSeed)
         val dy = amp * kotlin.math.sin(ph + idSeed)
-        val position = entityState.kinematics.position.toOffset()  + Offset(dx, dy)
+        val position = entity.kinematics.position.toOffset()  + Offset(dx, dy)
 
         // пульсирующий радиус для границы
         val baseRadius = entity.radius + 5f   // базовый радиус круга

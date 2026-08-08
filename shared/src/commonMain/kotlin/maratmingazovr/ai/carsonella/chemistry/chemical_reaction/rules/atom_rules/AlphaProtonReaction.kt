@@ -55,13 +55,13 @@ class AlphaProtonReaction(
         val atomElement = atom.element
         if (atomElement.details.alphaProtonResult == null) return null
 
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         val (alphaCandidate, distanceSquare) = neighbors
             .filter { it.state().value.alive }
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -77,7 +77,7 @@ class AlphaProtonReaction(
         val resultElement = targetElement.details.alphaProtonResult!!
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(t, a)
-        val resultPosition = t.state().value.kinematics.position
+        val resultPosition = t.kinematics.position
         val resultRadius = resultElement.details.radius
         // Перенос оболочки (2C2): электроны target остаются на продукте (Z+1 → кламп no-op),
         // а электроны α освобождаются как свободные e⁻ (shake-off α — существующая модель).

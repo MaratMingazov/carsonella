@@ -63,7 +63,7 @@ class BondStrengthening(
      */
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, bond) = match as Match
-        val state = molecule.state().value
+        val kinematics = molecule.kinematics
         val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
@@ -78,7 +78,7 @@ class BondStrengthening(
                 // Фотон уносит прирост энергии связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик
                 // покидает радиус активации, иначе PhotoDissociation мог бы поймать его и распустить молекулу —
                 // тот же цикл образование↔распад, что и при росте/образовании связи.
-                entityGenerator.createEntity(Element.PHOTON, state.kinematics.position, randomDirection(entityGenerator.random),
+                entityGenerator.createEntity(Element.PHOTON, kinematics.position, randomDirection(entityGenerator.random),
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

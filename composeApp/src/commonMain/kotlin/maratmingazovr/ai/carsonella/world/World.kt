@@ -198,9 +198,9 @@ class World(
                 id = entity.id,
                 element = entity.saveKey,
                 alive = entityState.alive,
-                x = entityState.kinematics.position.x, y = entityState.kinematics.position.y,
-                dirX = entityState.kinematics.direction.x, dirY = entityState.kinematics.direction.y,
-                velocity = entityState.kinematics.velocity,
+                x = entity.kinematics.position.x, y = entity.kinematics.position.y,
+                dirX = entity.kinematics.direction.x, dirY = entity.kinematics.direction.y,
+                velocity = entity.kinematics.velocity,
                 electrons = entity.electrons,
                 parentId = parentId,
             )

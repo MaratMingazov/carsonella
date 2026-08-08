@@ -43,7 +43,7 @@ class AlphaDecay(
     override fun produce(match: MatchedData): ReactionOutcome {
         val (parent, parentElement) = match as Match
         val childElement = parentElement.details.alphaDecayResult!!
-        val parentPosition = parent.state().value.kinematics.position
+        val parentPosition = parent.kinematics.position
         val parentRadius = parentElement.details.radius
         val childElectrons = minOf(parent.electrons, childElement.details.p)
 
@@ -54,8 +54,8 @@ class AlphaDecay(
                     entityGenerator.createEntity(
                         childElement,
                         parentPosition,
-                        parent.state().value.kinematics.direction,
-                        parent.state().value.kinematics.velocity,
+                        parent.kinematics.direction,
+                        parent.kinematics.velocity,
                         energy = 0f,
                         environment = parent.getEnvironment(),
                         electrons = childElectrons,

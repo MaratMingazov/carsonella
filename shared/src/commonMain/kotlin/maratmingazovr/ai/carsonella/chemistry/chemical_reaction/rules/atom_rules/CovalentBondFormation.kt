@@ -36,14 +36,14 @@ class CovalentBondFormation(
         // Внутри звезды слишком горячо — молекулы не образуются.
         if (first.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val firstPosition = first.state().value.kinematics.position
+        val firstPosition = first.kinematics.position
         val firstRadius = first.radius
 
         val (second, distanceSquare) = reagents
             .drop(1)
             .mapNotNull { bondableAtom(it) }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to it.state().value.kinematics.position.distanceSquareTo(firstPosition) }
+            .map { it to it.kinematics.position.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -68,8 +68,8 @@ class CovalentBondFormation(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2) = match as Match
-        val p1 = atom1.state().value.kinematics.position
-        val p2 = atom2.state().value.kinematics.position
+        val p1 = atom1.kinematics.position
+        val p2 = atom2.kinematics.position
         val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
         val env = atom1.getEnvironment()
 

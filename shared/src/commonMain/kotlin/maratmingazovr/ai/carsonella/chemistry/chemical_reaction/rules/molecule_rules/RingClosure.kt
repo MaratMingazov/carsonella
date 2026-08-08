@@ -63,7 +63,7 @@ class RingClosure(
      */
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, cand) = match as Match
-        val state = molecule.state().value
+        val kinematics = molecule.kinematics
         val env = molecule.getEnvironment()
 
         // Нетто-энергия (энергия связи − напряжение кольца) уносится фотоном; напряжение остаётся запасённым
@@ -75,7 +75,7 @@ class RingClosure(
             spawn += {
                 // Фотон уносит нетто-энергию и УЛЕТАЕТ (скорость 40, как в BondStrengthening/SpontaneousEmission):
                 // за тик покидает радиус активации, иначе PhotoDissociation мог бы поймать его и раскрыть кольцо.
-                entityGenerator.createEntity(Element.PHOTON, state.kinematics.position, randomDirection(entityGenerator.random),
+                entityGenerator.createEntity(Element.PHOTON, kinematics.position, randomDirection(entityGenerator.random),
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

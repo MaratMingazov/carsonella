@@ -71,7 +71,7 @@ class StarEmission (
                 spawn = listOf {
                     entityGenerator.createEntity(
                         resultElement,
-                        star.state().value.kinematics.position,
+                        star.kinematics.position,
                         randomDirection(entityGenerator.random),
                         2f,
                         energy = 0f,
@@ -88,8 +88,8 @@ class StarEmission (
             val updateList = mutableListOf<StateUpdate>()
             if (reagent != null) {
                 updateList += StateUpdate(reagent) {
-                    val center = star.state().value.kinematics.position
-                    val pos = reagent.state().value.kinematics.position
+                    val center = star.kinematics.position
+                    val pos = reagent.kinematics.position
                     // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),
                     // чтобы звезда не засосала его обратно тем же тиком. Нормальный выброс (импульс) — позже.
                     val fromCenter = Vec2D(pos.x - center.x, pos.y - center.y)

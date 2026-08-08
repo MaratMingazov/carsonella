@@ -36,7 +36,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         val threshold = molecule.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
 
-        val moleculePosition = molecule.state().value.kinematics.position
+        val moleculePosition = molecule.kinematics.position
         val moleculeRadius = molecule.radius
         val activationDistanceSquare = moleculeRadius * moleculeRadius
 
@@ -45,7 +45,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
             .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
             .filter { it.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
-            .map { it to moleculePosition.distanceSquareTo(it.state().value.kinematics.position) }
+            .map { it to moleculePosition.distanceSquareTo(it.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
             .minByOrNull { it.second }
             ?.first

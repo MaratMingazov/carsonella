@@ -60,7 +60,7 @@ class StarPPChain(
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
-        val atomPosition = atom.state().value.kinematics.position
+        val atomPosition = atom.kinematics.position
         val atomElement = atom.element
         if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
@@ -86,7 +86,7 @@ class StarPPChain(
             val (secondAtom, distanceSquare) = neighbors
                 .filter { isCandidate(it, secondElement) }
                 .filter { it.state().value.alive }
-                .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
+                .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
                 .minByOrNull { it.second }
                 ?: continue
 
@@ -115,7 +115,7 @@ class StarPPChain(
         val resultElectrons = minOf(atom1.electrons, result.details.p)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
-        val resultPosition = atom1.state().value.kinematics.position
+        val resultPosition = atom1.kinematics.position
         val resultRadius = result.details.radius
         val spawnList = mutableListOf<() -> Entity>()
 

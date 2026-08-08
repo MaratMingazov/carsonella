@@ -45,7 +45,6 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null      // «сам с собой»
 
-        val moleculeState = molecule.state().value
         if (molecule.energy <= 0f) return null              // остывать нечего
         if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
@@ -63,7 +62,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, dissociationThreshold) = match as Match
-        val moleculeState = molecule.state().value
+        val kinematics = molecule.kinematics
 
         if (dissociationThreshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало
@@ -84,7 +83,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    moleculeState.kinematics.position.plus(Position(molecule.radius, 0f)),
+                    kinematics.position.plus(Position(molecule.radius, 0f)),
                     randomDirection(entityGenerator.random),
                     MAX_VELOCITY,
                     energy = photonEnergy,
