@@ -11,7 +11,7 @@ import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaProtonReaction
-import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.Annihilation
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.subatom_rules.Annihilation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaMinusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.BetaPlusDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.PhotoIonization

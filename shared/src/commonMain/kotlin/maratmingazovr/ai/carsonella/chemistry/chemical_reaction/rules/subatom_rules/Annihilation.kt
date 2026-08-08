@@ -1,4 +1,4 @@
-package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
+package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.subatom_rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
@@ -32,23 +32,20 @@ import maratmingazovr.ai.carsonella.randomDirection
  */
 class Annihilation(
     private val entityGenerator: IEntityGenerator,
-) : AtomReactionRule() {
+) : SubAtomReactionRule() {
     override val id = "Annihilation"
 
-    private data class Match(val positron: Entity, val electron: Entity) : MatchedData
+    private data class Match(val positron: SubAtom, val electron: Entity) : MatchedData
 
-    override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
-        if (reagents.size < 2) return null
+    override fun matchesSubAtom(subAtom: SubAtom, neighbors: List<Entity>): MatchedData? {
+        if (neighbors.isEmpty()) return null
 
-        val first = reagents.first() as? SubAtom ?: return null
-        if (!first.state().value.alive) return null
-        if (first.element != POSITRON) return null
+        if (subAtom.element != POSITRON) return null
 
-        val positronPosition = first.state().value.kinematics.position
+        val positronPosition = subAtom.state().value.kinematics.position
         val positronRadius = POSITRON.details.radius
 
-        val (nearestElectron, distanceSquare) = reagents
-            .drop(1)
+        val (nearestElectron, distanceSquare) = neighbors
             .filter {
                 it is SubAtom && it.element == ELECTRON
             }
@@ -59,7 +56,7 @@ class Annihilation(
 
         val electronRadius = ELECTRON.details.radius
         return if (distanceSquare < positronRadius * electronRadius * 2f) {
-            Match(first, nearestElectron)
+            Match(subAtom, nearestElectron)
         } else {
             null
         }
