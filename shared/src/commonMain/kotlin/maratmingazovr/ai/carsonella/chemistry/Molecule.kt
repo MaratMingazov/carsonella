@@ -60,19 +60,6 @@ class Molecule(
     LogWritable  by LoggingSupport()
 {
 
-    /**
-     * Структура молекулы. `var` с приватным сеттером: перестройка, которая НЕ меняет состав (усиление
-     * связи, замыкание кольца), происходит с той же сущностью — как атом при ионизации остаётся собой,
-     * меняя лишь electrons. Пересоздание нужно там, где сущностей было две, а стала одна (образование
-     * связи, рост): их не сшить мутацией.
-     *
-     * Сам граф остаётся иммутабельным: мутатор кладёт сюда НОВЫЙ граф. Поэтому всё, что из него
-     * выводится (mass, protons, atoms, …), обязано быть геттером, а не посчитанным при рождении val —
-     * иначе закешируется от старой структуры.
-     */
-    var graph: MoleculeGraph = graph
-        private set
-
     constructor(id: Long, atom1: Atom, atom2: Atom) : this(
         id = id,
         graph = MoleculeGraph(
@@ -95,7 +82,7 @@ class Molecule(
         electrons = molecule1.state().value.electrons + molecule2.state().value.electrons,
     )
 
-    /** Рост молекулы атомом: атом — вырожденная молекула из одного узла (§8), дальше то же слияние. */
+    /** Молекула растет путен добавления нового атома */
     constructor(id: Long, molecule: Molecule, atom: MoleculeAtom, partner: Atom) : this(
         id = id,
         graph = mergedGraph(
@@ -118,8 +105,8 @@ class Molecule(
 
     override fun state() = state
 
-    // Выводится из графа → геттер, а не val (см. graph). Не пересчёт: одно разыменование в кеш графа,
-    // где mass/protons посчитаны один раз при его рождении.
+    var graph: MoleculeGraph = graph
+        private set
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
     override val radius: Float = MOLECULE_RADIUS
@@ -128,8 +115,6 @@ class Molecule(
         val atoms = atoms
         return MoleculeShape(atoms, place(graph.bonds, atoms))
     }
-
-    /** Атомы, поставленные в мир: структура из графа, координаты из состояния. */
     private val atoms: List<MoleculeAtom> get() {
         val center = state().value.kinematics.position
         return graph.nodes.map { node ->
@@ -154,7 +139,7 @@ class Molecule(
         return candidates.map { MoleculeRingCandidate(byId.getValue(it.atom1), byId.getValue(it.atom2), it.ringSize) }
     }
 
-    /** Слабейшая связь — она рвётся первой при распаде. Поставленная в мир, как и [shape]. null — рвать нечего. */
+    /** Слабейшая связь — она рвётся первой при распаде. */
     val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> place(listOf(bond), atoms).single() }
 
     /**
