@@ -83,6 +83,18 @@ class Molecule(
         electrons = molecule1.state().value.electrons + molecule2.state().value.electrons,
     )
 
+    /** Молекула растет путен добавления нового атома */
+    constructor(id: Long, molecule: Molecule, atom: MoleculeAtom, newAtom: Atom) : this(
+        id = id,
+        graph = mergedGraph(
+            molecule.graph, atom.structure.localId,
+            MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), 0,
+        ),
+        kinematics = mergedKinematics(molecule, newAtom),
+        energy = molecule.state().value.energy + newAtom.state().value.energy,
+        electrons = molecule.state().value.electrons + newAtom.state().value.electrons,
+    )
+
     /**
      * Молекула из ФОРМЫ — так рождаются осколки распада ([split]). Топология восстанавливается из формы
      * полностью, а вот координаты атомов в ней задают только состав: где встанет сущность, говорит
@@ -95,18 +107,6 @@ class Molecule(
         kinematics = kinematics,
         energy = energy,
         electrons = electrons,
-    )
-
-    /** Молекула растет путен добавления нового атома */
-    constructor(id: Long, molecule: Molecule, atom: MoleculeAtom, partner: Atom) : this(
-        id = id,
-        graph = mergedGraph(
-            molecule.graph, atom.structure.localId,
-            MoleculeGraph(nodes = listOf(AtomNode(0, partner.element)), bonds = emptyList()), 0,
-        ),
-        kinematics = mergedKinematics(molecule, partner),
-        energy = molecule.state().value.energy + partner.state().value.energy,
-        electrons = molecule.state().value.electrons + partner.state().value.electrons,
     )
 
     private var state = MutableStateFlow(
@@ -126,8 +126,31 @@ class Molecule(
     override val radius: Float = MOLECULE_RADIUS
 
     val shape: MoleculeShape get() = placeShape(graph, ::ownKinematics)
-
     private val atoms: List<MoleculeAtom> get() = placeAtoms(graph, ::ownKinematics)
+
+    /**
+     * Граф ПАРАМЕТРОМ, а не `this.graph`: так же ставится в мир осколок, чей граф молекуле ещё не
+     * принадлежит (см. [split]). Свойство [atoms] здесь не подходит — оно всегда от `this.graph`, и
+     * форма осколка получила бы атомы целой молекулы с досплитовыми `freeValence`/`inRing`.
+     */
+    private fun placeShape(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): MoleculeShape {
+        val placed = placeAtoms(graph, kinematicsOf)
+        return MoleculeShape(placed, placeBonds(graph, graph.bonds, placed))
+    }
+    private fun placeAtoms(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): List<MoleculeAtom> =
+        graph.nodes.map { node ->
+            MoleculeAtom(
+                structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId)),
+                kinematics = kinematicsOf(node.localId),
+            )
+        }
+    private fun placeBonds(graph: MoleculeGraph, bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
+        val byId = atoms.associateBy { it.structure.localId }
+        return bonds.map {
+            MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it.atom1, it.atom2))
+        }
+    }
+
 
     /** Кинематика атома [localId] в ЭТОЙ молекуле: центр сущности плюс смещение из раскладки графа. */
     private fun ownKinematics(localId: Int): Kinematics {
@@ -171,15 +194,15 @@ class Molecule(
      *    подграфу. У концов разорванной связи свободная валентность выросла на 1, а связи разорванного
      *    цикла перестали быть кольцевыми — отфильтруй мы вместо этого готовые [MoleculeAtom] исходной
      *    молекулы по компонентам, значения были бы досплитовые, то есть тихо неверные;
-     *  - КООРДИНАТЫ берутся у исходных атомов по [MoleculeGraph.split], который номера узлов сохраняет
-     *    (ради этого он их и не перенумеровывает) — атом остаётся там, где был.
+     *  - КООРДИНАТЫ берутся из раскладки ЭТОЙ молекулы ([ownKinematics]) — атом остаётся там, где был.
+     *    Работает это потому, что номера узлов осколок наследует ([MoleculeGraph.split] их не
+     *    перенумеровывает) и что разрез — операция ЧИСТАЯ: `graph` тут ещё прежний, молекулу хоронит
+     *    правило и уже после. Станет `split` мутацией (идея «личность остаётся у наибольшего осколка»)
+     *    — координаты придётся снимать в снимок ДО разреза, иначе [ownKinematics] прочтёт новый граф.
      */
-    fun split(bond: MoleculeBond): List<MoleculeShape> {
-        val before = atoms.associate { it.structure.localId to it.kinematics } // снимок ДО разреза
-        return graph
-            .split(bond.atom1.structure.localId, bond.atom2.structure.localId)
-            .map { fragment -> placeShape(fragment, before::getValue) }
-    }
+    fun split(bond: MoleculeBond): List<MoleculeShape> = graph
+        .split(bond.atom1.structure.localId, bond.atom2.structure.localId)
+        .map { fragment -> placeShape(fragment, ::ownKinematics) }
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
@@ -294,37 +317,13 @@ class Molecule(
 
 }
 
-/**
- * Постановка графа в мир: структура — из [graph], координаты — из [kinematicsOf] по номеру узла.
- *
- * Граф параметром, а не `this.graph`: те же функции ставят в мир и осколок, чей граф молекуле ещё не
- * принадлежит (см. [Molecule.split]). Производные (`freeValence`, `inRing`, энергия связи) берутся у
- * ПЕРЕДАННОГО графа — иначе осколок унаследовал бы значения дораспадной молекулы.
- */
-private fun placeShape(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): MoleculeShape {
-    val atoms = placeAtoms(graph, kinematicsOf)
-    return MoleculeShape(atoms, placeBonds(graph, graph.bonds, atoms))
-}
 
-private fun placeAtoms(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): List<MoleculeAtom> =
-    graph.nodes.map { node ->
-        MoleculeAtom(
-            structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId)),
-            kinematics = kinematicsOf(node.localId),
-        )
-    }
 
-private fun placeBonds(graph: MoleculeGraph, bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
-    val byId = atoms.associateBy { it.structure.localId }
-    return bonds.map {
-        MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it.atom1, it.atom2))
-    }
-}
 
 /**
  * Топология из формы: [MoleculeAtom] даёт узел (`localId` + изотоп), [MoleculeBond] — ребро (пара
- * атомов + кратность). Обратная операция к [placeShape]; координаты при этом теряются — центр новой
- * сущности задаётся отдельно, см. конструктор [Molecule] из формы.
+ * атомов + кратность). Обратная операция к постановке в мир; координаты при этом теряются — центр
+ * новой сущности задаётся отдельно, см. конструктор [Molecule] из формы.
  */
 private fun MoleculeShape.toGraph(): MoleculeGraph = MoleculeGraph(
     nodes = atoms.map { AtomNode(it.structure.localId, it.structure.isotope) },
