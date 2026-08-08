@@ -100,8 +100,8 @@ class StarPhotodisintegration(
         // Перенос электронной оболочки на продукт (как в захватах): продукт-родитель легче (Z падает),
         // наследует электроны N с клампом по своему Z; лишние улетают свободными e⁻ (shake-off).
         // Вылетающая частица (α/p/n) — голая. В звезде N голое → всё нулевое.
-        val parentElectrons = minOf(a.state().value.electrons, parent.details.p)
-        val shakeOff = a.state().value.electrons - parentElectrons
+        val parentElectrons = minOf(a.electrons, parent.details.p)
+        val shakeOff = a.electrons - parentElectrons
         // Поглощённый фотон отдаёт энергию связи (порог); излишек — в кинетику продукта.
         val leftover = ph.state().value.energy - PHOTON_ENERGY_THRESHOLD
 

@@ -22,7 +22,6 @@ data class EntityState(
     val alive: Boolean,
     val kinematics: Kinematics,
     val energy: Float,
-    val electrons: Int,
     val version: Long = 0L, // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
 ) {
 
@@ -35,9 +34,8 @@ data class EntityState(
         alive: Boolean = this.alive,
         kinematics: Kinematics = this.kinematics,
         energy: Float = this.energy,
-        electrons: Int = this.electrons,
         version: Long = this.version,
-    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, electrons = electrons, version = version)
+    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, version = version)
 
 }
 
@@ -54,9 +52,10 @@ sealed interface Entity :
     val id: Long
     val mass: Float
     val protons: Int
-    val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд. Зависит от electrons
+    val electrons: Int
+    val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд.
     val saveKey: String // Ключ для сохранения
-    val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Тоже зависит от electrons.
+    val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
 
     fun state(): MutableStateFlow<EntityState>
     fun step() // элемент делает свой ход
@@ -153,10 +152,6 @@ sealed interface Entity :
         state().value = state().value.copyWith(energy = clamped)
     }
 
-    fun setElectrons(electrons: Int) {
-        state().value = state().value.copyWith(electrons = electrons)
-    }
-
     // Сказать UI, что сущность поменялась и нужно перерисовать
     fun markChanged() {
         state().value = state().value.copyWith(version = state().value.version + 1)
@@ -186,7 +181,7 @@ sealed interface Entity :
     fun calculateForce(elements: List<Entity>): Vec2D {
         var fx = 0f
         var fy = 0f
-        val myElectronsCount = state().value.electrons
+        val myElectronsCount = electrons
         val myProtonsCount = protons
         val myRadius = radius
         if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
@@ -204,7 +199,7 @@ sealed interface Entity :
 
             // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
             // Если электроны есть у обоих элементов, то будут отталкиваться
-            val elementElectronsCount = element.state().value.electrons
+            val elementElectronsCount = element.electrons
             val fAttraction = if (myElectronsCount > 0) { // отлично, у меня есть электроны. Проверим электроны соседа
                 if (elementElectronsCount > 0) { (myElectronsCount+elementElectronsCount) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
                 else { 0f } // у него электронов нет, я ничего не буду делать, пусть он сам притянется если нужно
@@ -647,7 +642,7 @@ fun canGainElectron(element: Element, electrons: Int): Boolean =
 // Нужен там, где раньше хватало сравнения элементов: у голого ядра и нейтрального атома Element один и
 // тот же, отличает их только заряд, и без этой проверки нейтральный H сойдёт в правилах за протон.
 fun Entity.isBareNucleus(of: Element): Boolean =
-    this is Atom && element == of && state().value.electrons == 0
+    this is Atom && element == of && electrons == 0
 
 data class Details(
     val type: ElementType,

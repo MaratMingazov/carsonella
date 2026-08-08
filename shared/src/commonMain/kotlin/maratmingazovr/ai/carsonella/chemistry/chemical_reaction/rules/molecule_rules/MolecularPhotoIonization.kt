@@ -66,7 +66,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, photon) = match as Match
         val threshold = molecule.energyLevels.last()           // matches гарантирует что лестница непуста
-        val electrons = molecule.state().value.electrons
+        val electrons = molecule.electrons
 
         // Избыток над порогом ионизации уносит вылетевший электрон (энергия молекулы → 0).
         val available = molecule.state().value.energy + photon.state().value.energy
@@ -83,7 +83,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         return ReactionOutcome(
             consumed = listOf(photon),
             updateState = listOf(StateUpdate(molecule) {
-                molecule.setElectrons(electrons - 1)
+                molecule.electrons = electrons - 1
                 molecule.setEnergy(0f)
             }),
             spawn = listOf {

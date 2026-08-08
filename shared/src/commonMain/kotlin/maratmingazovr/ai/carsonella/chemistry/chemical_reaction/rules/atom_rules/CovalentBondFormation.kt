@@ -61,8 +61,8 @@ class CovalentBondFormation(
         val atom = entity as? Atom ?: return null
         val state = atom.state().value
         if (!state.alive) return null
-        if (state.electrons != atom.element.details.p) return null   // только нейтральные (есть электроны для общей пары)
-        if (atom.element.valence(state.electrons) == 0) return null  // нет свободного слота (благородный/тяжёлый)
+        if (atom.electrons != atom.element.details.p) return null   // только нейтральные (есть электроны для общей пары)
+        if (atom.element.valence(atom.electrons) == 0) return null  // нет свободного слота (благородный/тяжёлый)
         return atom
     }
 

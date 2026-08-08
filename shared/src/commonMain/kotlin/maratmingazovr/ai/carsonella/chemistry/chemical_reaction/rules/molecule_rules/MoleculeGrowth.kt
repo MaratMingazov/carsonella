@@ -95,8 +95,8 @@ class MoleculeGrowth(
         // Проверка класса заменяет прежний тег ElementType: частица и звезда — не Atom, связей не образуют.
         return when (entity) {
             is Molecule -> entity.hasFreeValence
-            is Atom -> state.electrons == entity.element.details.p &&   // нейтральный — есть электроны для общей пары
-                entity.element.valence(state.electrons) > 0
+            is Atom -> entity.electrons == entity.element.details.p &&   // нейтральный — есть электроны для общей пары
+                entity.element.valence(entity.electrons) > 0
             is SubAtom, is Star -> false
         }
     }

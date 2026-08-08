@@ -76,7 +76,7 @@ class StarNeutronGammaReaction(
         val resultPosition = atom1.state().value.kinematics.position
         val resultElement = atom1Element.details.neutronGammaResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,γ) не меняет Z → кламп no-op, shake-off не нужен.
-        val resultElectrons = minOf(atom1.state().value.electrons, resultElement.details.p)
+        val resultElectrons = minOf(atom1.electrons, resultElement.details.p)
         val resultPhotonEnergy = 1000f
 
         return ReactionOutcome(

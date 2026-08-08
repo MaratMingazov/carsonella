@@ -198,7 +198,7 @@ class World(
                 dirX = entityState.kinematics.direction.x, dirY = entityState.kinematics.direction.y,
                 velocity = entityState.kinematics.velocity,
                 energy = entityState.energy,
-                electrons = entityState.electrons,
+                electrons = entity.electrons,
                 parentId = parentId,
             )
         }

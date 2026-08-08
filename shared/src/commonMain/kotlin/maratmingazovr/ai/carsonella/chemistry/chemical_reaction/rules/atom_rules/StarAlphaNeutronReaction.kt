@@ -72,7 +72,7 @@ class StarAlphaNeutronReaction(
         val resultPosition = atom1.state().value.kinematics.position
         val resultElement = atom1Element.details.alphaNeutronResult!!
         // Перенос электронной оболочки на продукт (2C2): (α,n) повышает Z → кламп no-op, shake-off не нужен.
-        val resultElectrons = minOf(atom1.state().value.electrons, resultElement.details.p)
+        val resultElectrons = minOf(atom1.electrons, resultElement.details.p)
 
         return ReactionOutcome(
             consumed = listOf(atom1, atom2),

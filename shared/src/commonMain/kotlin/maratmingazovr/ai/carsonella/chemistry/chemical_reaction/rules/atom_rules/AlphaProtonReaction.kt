@@ -81,8 +81,8 @@ class AlphaProtonReaction(
         val resultRadius = resultElement.details.radius
         // Перенос оболочки (2C2): электроны target остаются на продукте (Z+1 → кламп no-op),
         // а электроны α освобождаются как свободные e⁻ (shake-off α — существующая модель).
-        val targetElectrons = minOf(t.state().value.electrons, resultElement.details.p)
-        val freedAlphaElectrons = a.state().value.electrons
+        val targetElectrons = minOf(t.electrons, resultElement.details.p)
+        val freedAlphaElectrons = a.electrons
 
         val spawnList = mutableListOf<() -> Entity>()
         spawnList += {

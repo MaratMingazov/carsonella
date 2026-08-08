@@ -60,7 +60,7 @@ class StarAlphaGammaReaction(
         val resultElement = atom1Element.details.alphaGammaResult!!
         // Перенос электронной оболочки на продукт (2C2): наследует электроны родителя-ядра,
         // но не больше своего Z. (α,γ) повышает Z → кламп здесь no-op, shake-off не нужен.
-        val resultElectrons = minOf(atom1.state().value.electrons, resultElement.details.p)
+        val resultElectrons = minOf(atom1.electrons, resultElement.details.p)
         val resultPhotonEnergy = 1000f
 
 

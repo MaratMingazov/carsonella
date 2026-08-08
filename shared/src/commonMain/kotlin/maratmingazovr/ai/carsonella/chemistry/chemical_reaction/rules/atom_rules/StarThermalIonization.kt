@@ -33,12 +33,12 @@ class StarThermalIonization(
     override val id = "StarThermalIonization"
 
     /** [element] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val atom: Entity, val element: Element) : MatchedData
+    private data class Match(val atom: Atom, val element: Element) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null
         val element = atom.element
-        if (atom.state().value.electrons <= 0) return null
+        if (atom.electrons <= 0) return null
         if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         return Match(atom, element)
@@ -46,7 +46,7 @@ class StarThermalIonization(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom, element) = match as Match
-        val electrons = atom.state().value.electrons
+        val electrons = atom.electrons
         val position = atom.state().value.kinematics.position
         val radius = element.details.radius
         val env = atom.getEnvironment()
@@ -57,7 +57,7 @@ class StarThermalIonization(
         // основное состояние: у нового зарядового состояния другие уровни, старая энергия для него не
         // валидна (инвариант Atom; конструкторный require не ловит updateState-путь — чиним здесь).
         return ReactionOutcome(
-            updateState = listOf(StateUpdate(atom) { atom.setElectrons(electrons - 1); atom.setEnergy(0f) }),
+            updateState = listOf(StateUpdate(atom) { atom.electrons = electrons - 1; atom.setEnergy(0f) }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.ELECTRON,

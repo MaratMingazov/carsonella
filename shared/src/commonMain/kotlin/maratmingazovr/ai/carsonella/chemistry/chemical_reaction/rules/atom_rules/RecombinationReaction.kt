@@ -22,7 +22,7 @@ class RecombinationReaction(
 
     /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
-        val atom1: Entity,
+        val atom1: Atom,
         val atom2: Entity,
         val atom1Element: Element,
         val atom2Element: Element,
@@ -32,7 +32,7 @@ class RecombinationReaction(
         if (neighbors.isEmpty()) return null
         val atomPosition = atom.state().value.kinematics.position
         val atomElement = atom.element
-        val firstElectrons = atom.state().value.electrons
+        val firstElectrons = atom.electrons
         if (!canGainElectron(atomElement, firstElectrons)) return null // значит элемент не участвует в рекомбинации
         // уровни состояния-результата (на 1 электрон больше)
         val recombinedLevels = atomElement.energyLevels(firstElectrons + 1)
@@ -59,7 +59,7 @@ class RecombinationReaction(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2, atom1Element, atom2Element) = match as Match
-        val electrons = atom1.state().value.electrons
+        val electrons = atom1.electrons
         val resultPosition = atom1.state().value.kinematics.position
         val env = atom1.getEnvironment()
 
@@ -72,7 +72,7 @@ class RecombinationReaction(
         return ReactionOutcome(
             consumed = listOf(atom2),
             updateState = listOf(StateUpdate(atom1) {
-                atom1.setElectrons(resultElectrons)
+                atom1.electrons = resultElectrons
                 // Электрон сел сразу в основное состояние (фотон унёс энергию связи). Сбрасываем energy в 0:
                 // старая энергия иона для нового заряда не валидна (инвариант Atom на updateState-пути).
                 atom1.setEnergy(0f)

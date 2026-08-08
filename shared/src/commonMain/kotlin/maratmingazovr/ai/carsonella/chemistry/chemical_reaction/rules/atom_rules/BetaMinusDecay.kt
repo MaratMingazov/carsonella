@@ -51,7 +51,7 @@ class BetaMinusDecay(
         val parentRadius = parentElement.details.radius
         // Перенос оболочки на продукт (2C2): β⁻ повышает Z на 1 (n→p) → электроны помещаются, кламп no-op.
         // Вылетающий e⁻ — продукт распада ядра, а не shake-off оболочки.
-        val childElectrons = minOf(parent.state().value.electrons, childElement.details.p)
+        val childElectrons = minOf(parent.electrons, childElement.details.p)
 
         return ReactionOutcome(
             consumed = listOf(parent),

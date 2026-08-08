@@ -52,7 +52,7 @@ class BetaPlusDecay(
         // Перенос оболочки на продукт (2C2): β⁺ понижает Z на 1 (p→n) → если родитель почти нейтрален,
         // лишний электрон не помещается на продукт и улетает свободным e⁻ (shake-off). Вылетающий e⁺ —
         // продукт распада ядра.
-        val parentElectrons = parent.state().value.electrons
+        val parentElectrons = parent.electrons
         val childElectrons = minOf(parentElectrons, childElement.details.p)
         val shakeOff = parentElectrons - childElectrons
 

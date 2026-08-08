@@ -35,7 +35,7 @@ class SpontaneousEmission(
         if (neighbors.isNotEmpty()) return null
 
         val atomElement = atom.element
-        val levels = atomElement.energyLevels(atom.state().value.electrons)
+        val levels = atomElement.energyLevels(atom.electrons)
         if (levels.isEmpty()) return null
         if (atom.state().value.energy == 0f) return null
         if (!levels.contains(atom.state().value.energy)) { throw Exception("SpontaneousEmission")}
@@ -52,7 +52,7 @@ class SpontaneousEmission(
         val entityEnergy = entity.state().value.energy
         val entityPosition = entity.state().value.kinematics.position
         val entityRadius = entityElement.details.radius
-        val levels = entityElement.energyLevels(entity.state().value.electrons)
+        val levels = entityElement.energyLevels(entity.electrons)
         val index = levels.indexOf(entityEnergy)
         if (index < 0) throw Exception("SpontaneousEmission out of index")
 

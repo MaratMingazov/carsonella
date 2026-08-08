@@ -86,7 +86,7 @@ class StarOxygenBurning(
         val resultRadius = result.details.radius
         // Перенос оболочки на продукт (2C2): два ядра сливаются, их электроны (в звезде 0) переходят
         // на продукт, но не больше его Z; лишние улетают свободными e⁻ (shake-off). Extras (α/p/n) — голые.
-        val parentElectrons = atom1.state().value.electrons + atom2.state().value.electrons
+        val parentElectrons = atom1.electrons + atom2.electrons
         val resultElectrons = minOf(parentElectrons, result.details.p)
         val shakeOff = parentElectrons - resultElectrons
         val spawnList = mutableListOf<() -> Entity>()

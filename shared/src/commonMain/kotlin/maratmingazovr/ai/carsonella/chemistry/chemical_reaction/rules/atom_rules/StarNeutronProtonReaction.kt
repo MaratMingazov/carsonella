@@ -77,7 +77,7 @@ class StarNeutronProtonReaction(
         val resultElement = atom1Element.details.neutronProtonResult!!
         // Перенос электронной оболочки на продукт (2C2): (n,p) понижает Z на 1 → если родитель почти
         // нейтрален, лишний электрон не помещается на продукт и улетает свободным e⁻ (shake-off).
-        val parentElectrons = atom1.state().value.electrons
+        val parentElectrons = atom1.electrons
         val resultElectrons = minOf(parentElectrons, resultElement.details.p)
         val shakeOff = parentElectrons - resultElectrons
 

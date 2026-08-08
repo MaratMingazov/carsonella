@@ -112,7 +112,7 @@ class StarPPChain(
         // Перенос оболочки на продукт (2C2): наследует электроны первого реагента-ядра, не больше Z
         // продукта. В звезде ядра голые → 0. PP многоканальна (синтез + захват e⁻ в ядро), поэтому без
         // обобщённого shake-off; кламп лишь страхует от аниона в краевых случаях.
-        val resultElectrons = minOf(atom1.state().value.electrons, result.details.p)
+        val resultElectrons = minOf(atom1.electrons, result.details.p)
 
         val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
         val resultPosition = atom1.state().value.kinematics.position

@@ -119,7 +119,7 @@ class StarProtonCaptureReaction(
         // Перенос электронной оболочки на продукт (2C2): продукт наследует электроны target-ядра,
         // но не больше своего Z. (p,γ)/(p,n) повышают Z → кламп no-op; (p,α) понижает Z → лишние
         // электроны улетают свободными e⁻ (shake-off). Захваченный протон голый, испущенная α — голая.
-        val parentElectrons = a1.state().value.electrons
+        val parentElectrons = a1.electrons
 
         return when (outcome) {
             is Outcome.Gamma -> {

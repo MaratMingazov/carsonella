@@ -35,7 +35,7 @@ class PhotoIonization (
      * `null` означает ИОНИЗАЦИЮ: энергии хватило дотянуть до верхнего уровня и оторвать электрон.
      */
     private data class Match(
-        val atom: Entity,
+        val atom: Atom,
         val photon: Entity,
         val atomElement: Element,     // элементы реагентов, выясненные в matchesAtom — produce не вычисляет заново
         val photonElement: Element,
@@ -45,7 +45,7 @@ class PhotoIonization (
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
         val atomElement = atom.element
-        val levels = atomElement.energyLevels(atom.state().value.electrons)
+        val levels = atomElement.energyLevels(atom.electrons)
         if (levels.isEmpty()) return null
         val others = neighbors
         val activationDistanceSquare = atomElement.details.radius * atomElement.details.radius
@@ -82,7 +82,7 @@ class PhotoIonization (
          */
         val (atom, photon, entityElement, photonElement, level) = match as Match
         val entityEnergy = atom.state().value.energy
-        val electrons = atom.state().value.electrons
+        val electrons = atom.electrons
         val photonEnergy = photon.state().value.energy
 
         if (level != null) {
@@ -110,7 +110,7 @@ class PhotoIonization (
             return ReactionOutcome(
                 consumed = listOf(photon),
                 updateState = listOf(StateUpdate(atom) {
-                    atom.setElectrons(electrons - 1)
+                    atom.electrons = electrons - 1
                     atom.setEnergy(0f)
                 }),
                 spawn = listOf {

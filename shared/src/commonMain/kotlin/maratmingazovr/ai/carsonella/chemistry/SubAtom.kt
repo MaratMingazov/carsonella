@@ -33,7 +33,6 @@ class SubAtom(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,
-            electrons = electrons,
             )
     )
 
@@ -41,17 +40,18 @@ class SubAtom(
 
     override val mass: Float = if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
+    override val electrons: Int = electrons
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
-    override val displaySymbol: String get() = element.symbol(state().value.electrons)
-    override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+    override val displaySymbol: String get() = element.symbol(electrons)
+    override val energyLevels: List<Float> get() = element.energyLevels(electrons)
 
     override val saveKey: String = element.name
 
     override fun describe(): String {
         val state = state().value
         val base = """
-            |${element.label(state.electrons)}
+            |${element.label(electrons)}
             |Energy ${round(state.energy * 100) / 100}
         """.trimMargin()
         // Спектр осмыслен только у фотона (у него energy — это E=hv).

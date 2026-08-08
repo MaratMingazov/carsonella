@@ -45,7 +45,7 @@ class AlphaDecay(
         val childElement = parentElement.details.alphaDecayResult!!
         val parentPosition = parent.state().value.kinematics.position
         val parentRadius = parentElement.details.radius
-        val childElectrons = minOf(parent.state().value.electrons, childElement.details.p)
+        val childElectrons = minOf(parent.electrons, childElement.details.p)
 
         return ReactionOutcome(
             consumed = listOf(parent),

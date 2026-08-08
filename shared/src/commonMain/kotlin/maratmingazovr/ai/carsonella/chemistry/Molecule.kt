@@ -68,7 +68,7 @@ class Molecule private constructor(
         ),
         kinematics = mergedKinematics(atom1, atom2),
         energy = atom1.state().value.energy + atom2.state().value.energy,
-        electrons = atom1.state().value.electrons + atom2.state().value.electrons,
+        electrons = atom1.electrons + atom2.electrons,
     )
 
     constructor(id: Long, molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom) : this(
@@ -79,7 +79,7 @@ class Molecule private constructor(
         ),
         kinematics = mergedKinematics(molecule1, molecule2),
         energy = molecule1.state().value.energy + molecule2.state().value.energy,
-        electrons = molecule1.state().value.electrons + molecule2.state().value.electrons,
+        electrons = molecule1.electrons + molecule2.electrons,
     )
 
     /** Молекула растет путен добавления нового атома */
@@ -91,7 +91,7 @@ class Molecule private constructor(
         ),
         kinematics = mergedKinematics(molecule, newAtom),
         energy = molecule.state().value.energy + newAtom.state().value.energy,
-        electrons = molecule.state().value.electrons + newAtom.state().value.electrons,
+        electrons = molecule.electrons + newAtom.electrons,
     )
 
     constructor(id: Long, shape: MoleculeShape, kinematics: Kinematics, energy: Float, electrons: Int) : this(
@@ -106,13 +106,14 @@ class Molecule private constructor(
             alive = true,
             kinematics = kinematics,
             energy = energy,
-            electrons = electrons,
         ))
 
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
+    override var electrons: Int = electrons
+        set(value) { field = value; markChanged() }
     override val radius: Float = MOLECULE_RADIUS
-    override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
+    override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
     override val energyLevels: List<Float> get() = graph.energyLevels
     override val saveKey: String get() = graph.formula
 

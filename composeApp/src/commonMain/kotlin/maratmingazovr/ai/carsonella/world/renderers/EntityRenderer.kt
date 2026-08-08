@@ -84,14 +84,14 @@ class EntityRenderer(
     ) {
         val entityState = entity.state().value
         val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
-        val bareProton = element == Element.HYDROGEN && entityState.electrons == 0
+        val bareProton = element == Element.HYDROGEN && entity.electrons == 0
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
         val radius = if (bareProton) BARE_PROTON_RADIUS else element.details.radius
 
         with(drawScope) {
             if (withValenceSlots) {
-                drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
+                drawAtom(position, radius, fillColor, symbol, element.valence(entity.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
             } else {
                 drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
             }

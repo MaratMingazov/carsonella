@@ -30,7 +30,6 @@ class Star(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,
-            electrons = electrons,
         )
     )
     private var radiusCounter = element.details.radius
@@ -39,17 +38,20 @@ class Star(
 
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
+    // Символ и уровни звезды от заряда не зависят (не-атом), но соседи-атомы снаружи видят её в
+    // calculateForce — там оболочка и работает.
+    override val electrons: Int = electrons
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
-    override val displaySymbol: String get() = element.symbol(state().value.electrons)
-    override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+    override val displaySymbol: String get() = element.symbol(electrons)
+    override val energyLevels: List<Float> get() = element.energyLevels(electrons)
 
     override val saveKey: String = element.name
 
     override fun describe(): String {
         val state = state().value
         return """
-            |${element.label(state.electrons)}: ${id}
+            |${element.label(electrons)}: ${id}
             |Position (${state.kinematics.position.x.toInt()}, ${state.kinematics.position.y.toInt()})
             |Velocity ${round(state.kinematics.velocity * 100) / 100}
             |Energy ${round(state.energy * 100) / 100}

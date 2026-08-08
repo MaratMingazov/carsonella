@@ -48,7 +48,6 @@ class Atom(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
             energy = energy,
-            electrons = electrons,
         )
     )
 
@@ -56,20 +55,22 @@ class Atom(
 
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
+    override var electrons: Int = electrons
+        set(value) { field = value; markChanged() }
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
-    override val displaySymbol: String get() = element.symbol(state().value.electrons)
-    override val energyLevels: List<Float> get() = element.energyLevels(state().value.electrons)
+    override val displaySymbol: String get() = element.symbol(electrons)
+    override val energyLevels: List<Float> get() = element.energyLevels(electrons)
 
     override val saveKey: String = element.name
 
     override fun describe(): String {
         val s = state().value
         return """
-            |${element.label(s.electrons)}
+            |${element.label(electrons)}
             |Protons: ${element.details.p}
             |Neutrons: ${element.details.n}
-            |Electrons: ${s.electrons}
+            |Electrons: $electrons
             |Energy ${round(s.energy * 100) / 100} eV
         """.trimMargin()
     }
@@ -99,7 +100,7 @@ class Atom(
         if (element.details.betaMinusDecayResult != null) { requestReaction(listOf(this)) }
 
         // В недрах звезды (TemperatureMode.Star) атом тепловой ионизуется — зовёт себя, StarThermalIonization сорвёт электрон.
-        if (state.value.electrons > 0 && getEnvironment().getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
+        if (electrons > 0 && getEnvironment().getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
 
 
