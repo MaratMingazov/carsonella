@@ -168,7 +168,6 @@ class Molecule private constructor(
     val hasFreeValence: Boolean get() = graph.hasFreeValence
     val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty() // Есть ли пара атомов, между которыми можно замкнуть цикл. Дешёвая проверка: кандидаты кеширует граф.
     val dissociationEnergy: Float? get() = graph.weakestBondAndEnergy?.second // ПОРОГ ДИССОЦИАЦИИ (эВ) — энергия слабейшей связи
-    val firstFreeValenceAtomIsotope: Element? get() = graph.firstFreeValenceAtomNode?.isotope
 
     ///////////////////////////////////////////////////////////////
     // ФУНКЦИИ - ГРАФ + КИНЕМАТИКА. ДАННЫЕ ВЫЧИСЛЯЮТСЯ КАЖДЫЙ РАЗ //
@@ -182,10 +181,7 @@ class Molecule private constructor(
         val byId = atoms.associateBy { it.structure.localId }
         return candidates.map { MoleculeRingCandidate(byId.getValue(it.atom1), byId.getValue(it.atom2), it.ringSize) }
     } // Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило.
-    fun firstFreeValenceAtom(): MoleculeAtom? {
-        val node = graph.firstFreeValenceAtomNode ?: return null
-        return atoms.first { it.structure.localId == node.localId }
-    } // Первый атом со свободной валентностью. — null — молекула насыщена, расти/усиливать нечем.
+    val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { it.structure.freeValence > 0 }
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId).map { fragment -> createMoleculeShape(fragment) }
 
 

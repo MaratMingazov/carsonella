@@ -177,7 +177,6 @@ data class MoleculeGraph(
      */
     val energyLevels: List<Float> = listOfNotNull(nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull())
     val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 } // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).
-    val firstFreeValenceAtomNode: AtomNode? = nodes.filter { freeValence(it.localId) > 0 }.minByOrNull { it.localId }
     val strengthenableBonds: List<Bond> = bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 } // Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот
     val ringClosureCandidates: List<RingClosureCandidate> = run {
         val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
