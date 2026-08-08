@@ -29,7 +29,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class PhotoDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "PhotoDissociation"
 
-    private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
+    private data class Match(val molecule: Molecule, val photon: SubAtom) : MatchedData
 
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // рвать некому: фотон приходит соседом
@@ -42,8 +42,8 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         val nearestPhoton = neighbors
             .asSequence()
-            .filter { it is SubAtom && it.element == Element.PHOTON }
-            .filter { it.state().value.energy > 0f && it.state().value.alive }
+            .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
+            .filter { it.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
             .map { it to moleculePosition.distanceSquareTo(it.state().value.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
@@ -51,7 +51,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
             ?.first
             ?: return null
 
-        val available = molecule.state().value.energy + nearestPhoton.state().value.energy
+        val available = molecule.energy + nearestPhoton.energy
         if (available < threshold) return null   // фотона не хватает даже на слабейшую связь → пролетает мимо
 
         return Match(molecule, nearestPhoton)
@@ -73,7 +73,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         // Избыток (доступная − порог) не теряем (§6/§8, сохранение энергии) — он уходит продуктам.
         // Кольцо это или распад и куда именно кладётся энергия — забота breakBond.
-        val available = mol.state().value.energy + ph.state().value.energy
+        val available = mol.energy + ph.energy
         val outcome = breakBond(mol, bond, entityGenerator, energyToShare = available - threshold)
 
         return outcome.copy(consumed = outcome.consumed + ph)   // фотон ПОГЛОЩЁН в любом из случаев

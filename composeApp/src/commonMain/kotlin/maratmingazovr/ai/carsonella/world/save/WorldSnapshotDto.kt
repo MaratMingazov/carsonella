@@ -39,7 +39,11 @@ data class EntityDto(
     val dirX: Float,
     val dirY: Float,
     val velocity: Float,
-    val energy: Float,
+    // TODO энергия НЕ сохраняется. Она уехала из EntityState в сами сущности, и там она есть не у всех
+    //  (у звезды нет вовсе), а смысл у неё разный: E=hν у фотона, дискретный уровень у атома,
+    //  колебательная у молекулы. Чтобы писать её обратно, нужен либо when по классам, либо отдельный
+    //  мини-интерфейс «носитель энергии» — решаем позже. Пока при загрузке возбуждение теряется:
+    //  атомы и молекулы поднимаются холодными, фотон получает DEFAULT_PHOTON_ENERGY_EV (см. applySnapshot).
     val electrons: Int,
     val parentId: Long? = null,  // id родительской среды (Star); null = корневой Environment
 )

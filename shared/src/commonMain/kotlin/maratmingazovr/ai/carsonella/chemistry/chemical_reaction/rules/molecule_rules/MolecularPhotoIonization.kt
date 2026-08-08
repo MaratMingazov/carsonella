@@ -31,7 +31,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdat
 class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularPhotoIonization"
 
-    private data class Match(val molecule: Molecule, val photon: Entity) : MatchedData
+    private data class Match(val molecule: Molecule, val photon: SubAtom) : MatchedData
 
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // ионизовать нечем: фотон приходит соседом
@@ -45,8 +45,8 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
 
         val nearestPhoton = neighbors
             .asSequence()
-            .filter { it is SubAtom && it.element == Element.PHOTON }
-            .filter { it.state().value.energy > 0f && it.state().value.alive }
+            .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
+            .filter { it.energy > 0f && it.state().value.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
             .map { it to subjectPosition.distanceSquareTo(it.state().value.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
@@ -54,7 +54,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
             ?.first
             ?: return null
 
-        val available = subjectState.energy + nearestPhoton.state().value.energy
+        val available = molecule.energy + nearestPhoton.energy
         if (available < threshold) return null   // фотона не хватает на ионизацию → мимо (может сработать распад)
 
         return Match(molecule, nearestPhoton)
@@ -69,7 +69,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val electrons = molecule.electrons
 
         // Избыток над порогом ионизации уносит вылетевший электрон (энергия молекулы → 0).
-        val available = molecule.state().value.energy + photon.state().value.energy
+        val available = molecule.energy + photon.energy
         val freeEnergy = (available - threshold).coerceAtLeast(0f)
 
         val molPosition = molecule.state().value.kinematics.position
@@ -84,7 +84,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
             consumed = listOf(photon),
             updateState = listOf(StateUpdate(molecule) {
                 molecule.electrons = electrons - 1
-                molecule.setEnergy(0f)
+                molecule.energy = 0f
             }),
             spawn = listOf {
                 entityGenerator.createEntity(ELECTRON, electronPosition, molDirection, electronVelocity, 0f, env, electrons = 1)

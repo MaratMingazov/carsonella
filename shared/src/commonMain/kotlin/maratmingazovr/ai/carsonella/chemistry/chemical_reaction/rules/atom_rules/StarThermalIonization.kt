@@ -57,7 +57,7 @@ class StarThermalIonization(
         // основное состояние: у нового зарядового состояния другие уровни, старая энергия для него не
         // валидна (инвариант Atom; конструкторный require не ловит updateState-путь — чиним здесь).
         return ReactionOutcome(
-            updateState = listOf(StateUpdate(atom) { atom.electrons = electrons - 1; atom.setEnergy(0f) }),
+            updateState = listOf(StateUpdate(atom) { atom.electrons = electrons - 1; atom.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.ELECTRON,

@@ -517,7 +517,7 @@ private fun SelectedEntityPanel(
         if (selectedEntity is SubAtom && selectedEntity.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(
-                energyEv = selectedElement.energy,
+                energyEv = selectedEntity.energy,
                 onApply = { energy -> onSetEnergy(selectedEntity.id, energy) },
             )
         }

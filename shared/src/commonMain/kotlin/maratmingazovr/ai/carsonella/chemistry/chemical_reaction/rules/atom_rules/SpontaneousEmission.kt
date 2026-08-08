@@ -29,7 +29,7 @@ class SpontaneousEmission(
     override val id = "Luminescence"
 
     /** [entityElement] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val entity: Entity, val entityElement: Element) : MatchedData
+    private data class Match(val entity: Atom, val entityElement: Element) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null
@@ -37,8 +37,8 @@ class SpontaneousEmission(
         val atomElement = atom.element
         val levels = atomElement.energyLevels(atom.electrons)
         if (levels.isEmpty()) return null
-        if (atom.state().value.energy == 0f) return null
-        if (!levels.contains(atom.state().value.energy)) { throw Exception("SpontaneousEmission")}
+        if (atom.energy == 0f) return null
+        if (!levels.contains(atom.energy)) { throw Exception("SpontaneousEmission")}
 
         if (!chance(0.02f, entityGenerator.random)) return null // в этом случае он с определенной вероятностью избавится от этой энергии
 
@@ -49,7 +49,7 @@ class SpontaneousEmission(
         val (entity, entityElement) = match as Match
 
         // нужно вычислить сколько энергии должен отдать атом
-        val entityEnergy = entity.state().value.energy
+        val entityEnergy = entity.energy
         val entityPosition = entity.state().value.kinematics.position
         val entityRadius = entityElement.details.radius
         val levels = entityElement.energyLevels(entity.electrons)
@@ -65,9 +65,9 @@ class SpontaneousEmission(
         val photonPosition = entityPosition.addVelocity(photonDirection * photonOffset)
 
         return ReactionOutcome(
-            // setEnergy(targetEnergy) вместо addEnergy(-energyToExpose) — записываем точное значение
+            // Присваиваем точное значение уровня, а не вычитаем разность — записываем значение
             // уровня из таблицы, чтобы не накапливался float-дрейф и contains() не падал на следующем тике.
-            updateState = listOf(StateUpdate(entity) { entity.setEnergy(targetEnergy) }),
+            updateState = listOf(StateUpdate(entity) { entity.energy = targetEnergy }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,

@@ -36,7 +36,7 @@ class PhotoIonization (
      */
     private data class Match(
         val atom: Atom,
-        val photon: Entity,
+        val photon: SubAtom,
         val atomElement: Element,     // элементы реагентов, выясненные в matchesAtom — produce не вычисляет заново
         val photonElement: Element,
         val level: Float?,
@@ -52,17 +52,15 @@ class PhotoIonization (
 
         val (nearestPhoton, distance) = others
             .asSequence()
-            .filter {
-                it is SubAtom && it.element == PHOTON
-            }
-            .filter { it.state().value.energy > 0 }
+            .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
+            .filter { it.energy > 0 }
             .filter { it.state().value.alive }
             .map { it to atom.state().value.kinematics.position.distanceSquareTo(it.state().value.kinematics.position) }
             .minByOrNull { it.second }
             ?: return null
 
         if (distance > activationDistanceSquare) return null
-        val expectedEnergy = atom.state().value.energy + nearestPhoton.state().value.energy
+        val expectedEnergy = atom.energy + nearestPhoton.energy
 
         // Ионизация: энергии хватает достать электрон (с допуском по верхнему уровню)
         if (expectedEnergy >= levels.last() - ENERGY_EPSILON) {
@@ -81,16 +79,16 @@ class PhotoIonization (
          *  Если пройдем порог [ЭнергияИонизации], то электрон улетит из этого элемента
          */
         val (atom, photon, entityElement, photonElement, level) = match as Match
-        val entityEnergy = atom.state().value.energy
+        val entityEnergy = atom.energy
         val electrons = atom.electrons
-        val photonEnergy = photon.state().value.energy
+        val photonEnergy = photon.energy
 
         if (level != null) {
-            // Поглощение: «снапаем» энергию атома на точный уровень из таблицы через setEnergy.
-            // addEnergy(level - entityEnergy) дал бы a + (b - a), что в float не гарантирует b бит-в-бит.
+            // Поглощение: «снапаем» энергию атома на точный уровень из таблицы, присваивая его целиком.
+            // Прибавление разности (level - entityEnergy) дало бы a + (b - a), что в float не гарантирует b бит-в-бит.
             return ReactionOutcome(
                 consumed = listOf(photon),
-                updateState = listOf(StateUpdate(atom) { atom.setEnergy(level) }),)
+                updateState = listOf(StateUpdate(atom) { atom.energy = level }),)
         } else {
             val energyIonization = entityElement.energyLevels(electrons).last()
             // пройден энергетический порог. Электрон накопил достаточно энергии, чтобы улететь
@@ -111,7 +109,7 @@ class PhotoIonization (
                 consumed = listOf(photon),
                 updateState = listOf(StateUpdate(atom) {
                     atom.electrons = electrons - 1
-                    atom.setEnergy(0f)
+                    atom.energy = 0f
                 }),
                 spawn = listOf {
                     entityGenerator.createEntity(

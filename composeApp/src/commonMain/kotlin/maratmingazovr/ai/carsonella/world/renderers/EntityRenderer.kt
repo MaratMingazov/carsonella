@@ -64,11 +64,11 @@ class EntityRenderer(
         time: Float,
         highlight: Highlight = Highlight.NONE,
     ) {
-        val vibrationParams = VibrationParams(entity.id, entity.state().value.energy, time) // параметры вибрации
+        
         when (entity) {
-            is Molecule -> drawMolecule(drawScope, entity, highlight, vibrationParams, time)
-            is Atom -> drawElemental(drawScope, entity, entity.element, highlight, vibrationParams, withValenceSlots = true)
-            is SubAtom -> drawElemental(drawScope, entity, entity.element, highlight, vibrationParams, withValenceSlots = false)
+            is Molecule -> drawMolecule(drawScope, entity, highlight, VibrationParams(entity.id, entity.energy, time), time)
+            is Atom -> drawElemental(drawScope, entity, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = true)
+            is SubAtom -> drawElemental(drawScope, entity, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = false)
             is Star -> drawStar(drawScope, entity, time)
         }
     }
@@ -121,7 +121,7 @@ class EntityRenderer(
             }
 
             shape.atoms.forEach { atom ->
-                val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), entityState.energy, time) // параметры вибрации
+                val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), molecule.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(atom.structure.isotope)
                 val symbol = atom.structure.isotope.bareSymbol
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.structure.localId * 1.3f
@@ -228,7 +228,7 @@ class EntityRenderer(
     ) {
         val entityState = entity.state().value
         // параметры вибрации/пульса — от общего time на частоте STAR_HZ
-        val amp = 1f + entityState.energy                  // амплитуда в пикселях
+        val amp = 1f                                       // амплитуда в пикселях (энергии у звезды нет)
         val idSeed = (entity.id % 1000).toFloat()   // стаб. сдвиг фазы на объект
         val ph = time * ANIM_TWO_PI * STAR_HZ
         val dx = amp * kotlin.math.cos(ph + idSeed)

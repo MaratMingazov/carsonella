@@ -14,7 +14,7 @@ class Star(
     position: Position,
     direction: Vec2D,
     velocity: Float,
-    energy: Float,
+    // energy звезде не нужна: ей никто её не меняет, а пульс в drawStar от неё не зависит.
     electrons: Int,
     private val children: MutableList<Entity> = mutableListOf(),
 ):
@@ -29,7 +29,6 @@ class Star(
         EntityState(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
-            energy = energy,
         )
     )
     private var radiusCounter = element.details.radius
@@ -54,7 +53,6 @@ class Star(
             |${element.label(electrons)}: ${id}
             |Position (${state.kinematics.position.x.toInt()}, ${state.kinematics.position.y.toInt()})
             |Velocity ${round(state.kinematics.velocity * 100) / 100}
-            |Energy ${round(state.energy * 100) / 100}
         """.trimMargin()
     }
 

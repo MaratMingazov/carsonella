@@ -51,7 +51,7 @@ class StarPhotodisintegration(
     /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtom. */
     private data class Match(
         val atom: Entity,
-        val photon: Entity,
+        val photon: SubAtom,
         val atomElement: Element,
         val channel: Channel,
     ) : MatchedData
@@ -70,11 +70,9 @@ class StarPhotodisintegration(
 
         val atomPosition = atom.state().value.kinematics.position
         val (nearestPhoton, distanceSquare) = neighbors
-            .filter {
-                it is SubAtom && it.element == PHOTON
-            }
+            .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
             .filter { it.state().value.alive }
-            .filter { it.state().value.energy >= PHOTON_ENERGY_THRESHOLD }
+            .filter { it.energy >= PHOTON_ENERGY_THRESHOLD }
             .map { it to it.state().value.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
@@ -103,7 +101,7 @@ class StarPhotodisintegration(
         val parentElectrons = minOf(a.electrons, parent.details.p)
         val shakeOff = a.electrons - parentElectrons
         // Поглощённый фотон отдаёт энергию связи (порог); излишек — в кинетику продукта.
-        val leftover = ph.state().value.energy - PHOTON_ENERGY_THRESHOLD
+        val leftover = ph.energy - PHOTON_ENERGY_THRESHOLD
 
         val spawnList = mutableListOf<() -> Entity>()
         spawnList += {

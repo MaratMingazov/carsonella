@@ -13,6 +13,8 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
+import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.world.save.EntityDto
 import maratmingazovr.ai.carsonella.world.save.EnvironmentDto
 import maratmingazovr.ai.carsonella.world.save.WorldJson
@@ -116,10 +118,12 @@ class World(
         entities.find { it.id == entityId }?.run { applyForce(force) }
     }
 
-    // Игрок задаёт энергию выбранной частице из панели (например, энергию фотона).
-    // setEnergy клампит энергию ≥ 0. Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
+    // Игрок задаёт энергию выбранной частице из панели (энергию фотона). Сеттер клампит её ≥ 0.
+    // Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
     fun setEntityEnergy(entityId: Long, energy: Float) {
-        entities.find { it.id == entityId }?.setEnergy(energy)
+        // Редактор энергии в панели открыт только для фотона (см. SelectedEntityPanel), поэтому и здесь
+        // сужаем до частицы: у прочих классов энергию игрок не задаёт.
+        (entities.find { it.id == entityId } as? SubAtom)?.energy = energy
     }
 
     // Игрок форсит реакцию у выбранной молекулы из панели (усиление связи / замыкание кольца, механика
@@ -197,7 +201,6 @@ class World(
                 x = entityState.kinematics.position.x, y = entityState.kinematics.position.y,
                 dirX = entityState.kinematics.direction.x, dirY = entityState.kinematics.direction.y,
                 velocity = entityState.kinematics.velocity,
-                energy = entityState.energy,
                 electrons = entity.electrons,
                 parentId = parentId,
             )
@@ -285,7 +288,9 @@ class World(
                 position = Position(e.x, e.y),
                 direction = Vec2D(e.dirX, e.dirY),
                 velocity = e.velocity,
-                energy = e.energy,
+                // Энергия в слепок не попадает (см. EntityDto). Фотону нельзя дать 0: у него energy это E=hν,
+                // и wavelengthNmFromEnergyEv на нуле падает по require — поэтому дефолт из палитры.
+                energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f,
                 environment = environment,
                 electrons = e.electrons,
             )

@@ -89,7 +89,7 @@ class EntityGenerator(
         when (element.details.type) {
             SubAtom -> SubAtom(id, element, position, direction, velocity, energy, electrons)
             Atom -> Atom(id, element, position, direction, velocity, energy, electrons)
-            Star -> Star(id, element, position, direction, velocity, energy, electrons)
+            Star -> Star(id, element, position, direction, velocity, electrons)
         },
         environment,
     )

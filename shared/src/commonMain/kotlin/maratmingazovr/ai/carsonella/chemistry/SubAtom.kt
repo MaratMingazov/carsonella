@@ -32,7 +32,6 @@ class SubAtom(
         EntityState(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
-            energy = energy,
             )
     )
 
@@ -41,6 +40,10 @@ class SubAtom(
     override val mass: Float = if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override val electrons: Int = electrons
+    // У фотона это E=hν — главное его свойство; меняет её только игрок из панели (EnergyEditor).
+    // У прочих частиц 0 и не меняется.
+    var energy: Float = energy
+        set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(electrons)
@@ -52,10 +55,10 @@ class SubAtom(
         val state = state().value
         val base = """
             |${element.label(electrons)}
-            |Energy ${round(state.energy * 100) / 100}
+            |Energy ${round(energy * 100) / 100}
         """.trimMargin()
         // Спектр осмыслен только у фотона (у него energy — это E=hv).
-        return if (element == PHOTON) "$base\nСпектр: ${lightBandFromEnergyEv(state.energy).label}" else base
+        return if (element == PHOTON) "$base\nСпектр: ${lightBandFromEnergyEv(energy).label}" else base
     }
 
     override fun step() {

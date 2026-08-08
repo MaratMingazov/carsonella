@@ -31,6 +31,6 @@ class StarDissociation(private val entityGenerator: IEntityGenerator) : Molecule
 
         // Разрыв оплачивает тепловая ванна звезды — собственную энергию молекулы не тратим, она целиком
         // достаётся продуктам. Куда её положить и кольцо это или распад — забота breakBond.
-        return breakBond(mol, bond, entityGenerator, energyToShare = mol.state().value.energy)
+        return breakBond(mol, bond, entityGenerator, energyToShare = mol.energy)
     }
 }

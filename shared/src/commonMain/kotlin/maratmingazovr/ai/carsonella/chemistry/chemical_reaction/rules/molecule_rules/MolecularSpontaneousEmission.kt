@@ -46,13 +46,13 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         if (neighbors.isNotEmpty()) return null      // «сам с собой»
 
         val moleculeState = molecule.state().value
-        if (moleculeState.energy <= 0f) return null              // остывать нечего
+        if (molecule.energy <= 0f) return null              // остывать нечего
         if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null  // в звезде — StarDissociation
 
         val threshold = molecule.dissociationEnergy
 
         // Ветка 1 — предиссоциация: энергии хватает разорвать слабейшую связь → распад (срабатывает всегда).
-        if (threshold != null && moleculeState.energy >= threshold) {
+        if (threshold != null && molecule.energy >= threshold) {
             return Match(molecule, threshold)
         }
 
@@ -72,15 +72,15 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
                 molecule,
                 molecule.weakestBond!!,
                 entityGenerator,
-                energyToShare = moleculeState.energy - dissociationThreshold,
+                energyToShare = molecule.energy - dissociationThreshold,
             )
         }
 
         // Ветка 2: излучение — вся внутренняя энергия уходит одним фотоном, молекула → energy = 0.
-        val photonEnergy = moleculeState.energy
+        val photonEnergy = molecule.energy
         val env = molecule.getEnvironment()
         return ReactionOutcome(
-            updateState = listOf(StateUpdate(molecule) { molecule.setEnergy(0f) }),
+            updateState = listOf(StateUpdate(molecule) { molecule.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,

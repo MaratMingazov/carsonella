@@ -69,7 +69,7 @@ abstract class MoleculeReactionRule : ReactionRule {
             return ReactionOutcome(
                 updateState = listOf(StateUpdate(molecule) {
                     molecule.openRing(bond)
-                    molecule.setEnergy(energy)
+                    molecule.energy = energy
                 }),
             )
         }

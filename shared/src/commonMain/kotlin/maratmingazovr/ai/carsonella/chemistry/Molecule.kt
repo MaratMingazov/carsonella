@@ -67,7 +67,7 @@ class Molecule private constructor(
             bonds = listOf(Bond(0, 1, order = 1)),
         ),
         kinematics = mergedKinematics(atom1, atom2),
-        energy = atom1.state().value.energy + atom2.state().value.energy,
+        energy = atom1.energy + atom2.energy,
         electrons = atom1.electrons + atom2.electrons,
     )
 
@@ -78,7 +78,7 @@ class Molecule private constructor(
             molecule2.graph, atom2.structure.localId,
         ),
         kinematics = mergedKinematics(molecule1, molecule2),
-        energy = molecule1.state().value.energy + molecule2.state().value.energy,
+        energy = molecule1.energy + molecule2.energy,
         electrons = molecule1.electrons + molecule2.electrons,
     )
 
@@ -90,7 +90,7 @@ class Molecule private constructor(
             MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), 0,
         ),
         kinematics = mergedKinematics(molecule, newAtom),
-        energy = molecule.state().value.energy + newAtom.state().value.energy,
+        energy = molecule.energy + newAtom.energy,
         electrons = molecule.electrons + newAtom.electrons,
     )
 
@@ -105,13 +105,15 @@ class Molecule private constructor(
     private var state = MutableStateFlow(EntityState(
             alive = true,
             kinematics = kinematics,
-            energy = energy,
         ))
 
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
     override var electrons: Int = electrons
         set(value) { field = value; markChanged() }
+    // Внутренняя (колебательная) энергия — квазинепрерывная, в отличие от дискретных уровней атома.
+    var energy: Float = energy
+        set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = MOLECULE_RADIUS
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
     override val energyLevels: List<Float> get() = graph.energyLevels
@@ -127,7 +129,7 @@ class Molecule private constructor(
         if (known != null) lines += known.nameRu
         if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
         if (known != null && known.description.isNotEmpty()) lines += known.description
-        lines += "Energy ${round(state().value.energy * 100) / 100}"
+        lines += "Energy ${round(energy * 100) / 100}"
         dissociationEnergy?.let { energy ->
             lines += "Weakest bond ${round(energy * 100) / 100} eV"
         }
@@ -150,7 +152,7 @@ class Molecule private constructor(
         // Спонтанный сброс внутренней энергии (MolecularSpontaneousEmission) — АВТО.
         // Усиление связи и замыкание кольца этим зовом НЕ запускаются: они живут в отдельном списке
         // forcedRules резолвера и ждут клика игрока (World.requestMoleculeAction → см. ForcedReactionRule).
-        if (state.value.energy > 0f) {
+        if (energy > 0f) {
             requestReaction(listOf(this))
         }
 

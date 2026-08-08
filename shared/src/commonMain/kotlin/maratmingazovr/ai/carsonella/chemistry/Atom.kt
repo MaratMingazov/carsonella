@@ -47,7 +47,6 @@ class Atom(
         EntityState(
             alive = true,
             kinematics = Kinematics(position, direction, velocity),
-            energy = energy,
         )
     )
 
@@ -57,6 +56,9 @@ class Atom(
     override val protons: Int = element.details.p
     override var electrons: Int = electrons
         set(value) { field = value; markChanged() }
+    // Уровень возбуждения (эВ): либо 0, либо точное значение из energyLevels — инвариант проверяет init.
+    var energy: Float = energy
+        set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = state().value.kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(electrons)
@@ -71,7 +73,7 @@ class Atom(
             |Protons: ${element.details.p}
             |Neutrons: ${element.details.n}
             |Electrons: $electrons
-            |Energy ${round(s.energy * 100) / 100} eV
+            |Energy ${round(energy * 100) / 100} eV
         """.trimMargin()
     }
 
@@ -90,7 +92,7 @@ class Atom(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        if (state.value.energy > 0) { requestReaction(listOf(this)) }
+        if (energy > 0) { requestReaction(listOf(this)) }
 
 
         // β⁺-нестабильные изотопы (¹³N, ¹⁵O и т.п.) всегда зовут себя в резолвер — там их подхватит BetaPlusDecay.

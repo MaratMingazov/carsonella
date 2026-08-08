@@ -21,7 +21,6 @@ data class Kinematics(
 data class EntityState(
     val alive: Boolean,
     val kinematics: Kinematics,
-    val energy: Float,
     val version: Long = 0L, // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
 ) {
 
@@ -33,9 +32,8 @@ data class EntityState(
     fun copyWith(
         alive: Boolean = this.alive,
         kinematics: Kinematics = this.kinematics,
-        energy: Float = this.energy,
         version: Long = this.version,
-    ): EntityState = copy(alive = alive, kinematics = kinematics, energy = energy, version = version)
+    ): EntityState = copy(alive = alive, kinematics = kinematics, version = version)
 
 }
 
@@ -139,17 +137,6 @@ sealed interface Entity :
         
         val kinematics = state().value.kinematics
         state().value = state().value.copyWith(kinematics = kinematics.copy(position = position, direction = direction))
-    }
-
-    fun addEnergy(energy: Float) {
-        var updatedEnergy =  state().value.energy + energy
-        if (updatedEnergy < 0f) { updatedEnergy = 0f }
-        state().value = state().value.copyWith(energy = updatedEnergy)
-    }
-
-    fun setEnergy(energy: Float) {
-        val clamped = if (energy < 0f) 0f else energy
-        state().value = state().value.copyWith(energy = clamped)
     }
 
     // Сказать UI, что сущность поменялась и нужно перерисовать

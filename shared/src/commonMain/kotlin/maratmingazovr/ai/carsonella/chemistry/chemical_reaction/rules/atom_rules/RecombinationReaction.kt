@@ -75,7 +75,7 @@ class RecombinationReaction(
                 atom1.electrons = resultElectrons
                 // Электрон сел сразу в основное состояние (фотон унёс энергию связи). Сбрасываем energy в 0:
                 // старая энергия иона для нового заряда не валидна (инвариант Atom на updateState-пути).
-                atom1.setEnergy(0f)
+                atom1.energy = 0f
             }),
             spawn = listOf {
                 entityGenerator.createEntity(
