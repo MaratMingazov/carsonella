@@ -45,7 +45,7 @@ class RingClosure(
         if (selection !is ReactionSelection.CloseRing) return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
         val subject = reagents.first() as? Molecule ?: return null
-        if (!subject.state().value.alive) return null
+        if (!subject.alive) return null
         if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
         // Кандидат с максимальным выигрышем (энергия связи − напряжение): 5–6 бьют 7+.
         // null-выигрыш (энергия связи неизвестна) отсеиваем.

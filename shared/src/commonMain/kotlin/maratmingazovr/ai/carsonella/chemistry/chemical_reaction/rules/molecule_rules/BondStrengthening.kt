@@ -50,7 +50,7 @@ class BondStrengthening(
         val choice = selection as? ReactionSelection.StrengthenBond ?: return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
         val subject = reagents.first() as? Molecule ?: return null
-        if (!subject.state().value.alive) return null
+        if (!subject.alive) return null
         if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
         return Match(subject, choice.bond)
     }

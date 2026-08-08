@@ -59,8 +59,7 @@ class CovalentBondFormation(
     // Проверка класса заменяет прежний тег ElementType: частицы, звезда и молекулы — не Atom.
     private fun bondableAtom(entity: Entity): Atom? {
         val atom = entity as? Atom ?: return null
-        val state = atom.state().value
-        if (!state.alive) return null
+        if (!atom.alive) return null
         if (atom.electrons != atom.element.details.p) return null   // только нейтральные (есть электроны для общей пары)
         if (atom.element.valence(atom.electrons) == 0) return null  // нет свободного слота (благородный/тяжёлый)
         return atom

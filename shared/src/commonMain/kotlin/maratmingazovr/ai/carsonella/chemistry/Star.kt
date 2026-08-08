@@ -25,13 +25,15 @@ class Star(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
-    private var state = MutableStateFlow(EntityState(alive = true))
+    private var changes = MutableStateFlow(0L)
     private var radiusCounter = element.details.radius
 
-    override fun state() = state
+    override fun changes() = changes
 
     override var kinematics: Kinematics = Kinematics(position, direction, velocity)
         set(value) { if (field != value) { field = value; markChanged() } }
+    override var alive: Boolean = true
+        private set
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     // Символ и уровни звезды от заряда не зависят (не-атом), но соседи-атомы снаружи видят её в
@@ -73,7 +75,7 @@ class Star(
 
         // Поглощение: живые соседи снаружи звезды, коснувшиеся поверхности → StarEmission втянет их внутрь.
         neighbors
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .filter { it.getEnvironment() !== this }
             .filter { kinematics.position.distanceSquareTo(it.kinematics.position) < (radius + 10) * (radius + 10) }
             .takeIf { it.isNotEmpty() }
@@ -84,7 +86,8 @@ class Star(
     }
 
     override fun destroy() {
-        state.value = state.value.copy(alive = false)
+        alive = false
+        markChanged()
         notifyDeath()
     }
 

@@ -71,7 +71,7 @@ class StarPhotodisintegration(
         val atomPosition = atom.kinematics.position
         val (nearestPhoton, distanceSquare) = neighbors
             .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .filter { it.energy >= PHOTON_ENERGY_THRESHOLD }
             .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }

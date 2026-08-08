@@ -62,7 +62,7 @@ class StarNeutronAlphaReaction(
             .filter {
                 it is SubAtom && it.element == NEUTRON
             }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null

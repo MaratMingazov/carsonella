@@ -94,7 +94,7 @@ class World(
                 // если кто-то добавит сущность во время шага
                 val snapshot = entities.toList()
                 snapshot.forEach { entity ->
-                    if (entity.state().value.alive && entity.id != heldEntityId) entity.step()
+                    if (entity.alive && entity.id != heldEntityId) entity.step()
                 }
 
                 // Resolve phase — группируем запросы по ИНИЦИАТОРУ (первый реагент) и применяем ОДИН
@@ -186,18 +186,17 @@ class World(
      * если родитель сущности — звезда (она же среда), пишем её id; иначе (корневой Environment) — null.
      */
     fun toSnapshot(): WorldSnapshotDto {
-        val saved = entities.toList().filter {it.state().value.alive }
+        val saved = entities.toList().filter {it.alive }
         val savedIds = saved.mapTo(mutableSetOf()) { it.id }
 
         val entityDtos = saved.map { entity ->
-            val entityState = entity.state().value
             // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
             // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
             val parentId = (entity.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
             EntityDto(
                 id = entity.id,
                 element = entity.saveKey,
-                alive = entityState.alive,
+                alive = entity.alive,
                 x = entity.kinematics.position.x, y = entity.kinematics.position.y,
                 dirX = entity.kinematics.direction.x, dirY = entity.kinematics.direction.y,
                 velocity = entity.kinematics.velocity,

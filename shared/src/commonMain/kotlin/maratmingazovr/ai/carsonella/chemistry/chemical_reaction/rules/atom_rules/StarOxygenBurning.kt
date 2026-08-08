@@ -58,7 +58,7 @@ class StarOxygenBurning(
             .filter {
                 it is Atom && it.element == OXYGEN_16
             }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null

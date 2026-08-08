@@ -49,7 +49,7 @@ class Annihilation(
             .filter {
                 it is SubAtom && it.element == ELECTRON
             }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .map { it to it.kinematics.position.distanceSquareTo(positronPosition) }
             .minByOrNull { it.second }
             ?: return null

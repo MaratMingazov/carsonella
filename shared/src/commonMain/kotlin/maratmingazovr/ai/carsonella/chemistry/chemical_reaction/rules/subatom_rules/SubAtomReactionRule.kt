@@ -9,7 +9,7 @@ abstract class SubAtomReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
         val subAtom = reagents.firstOrNull() as? SubAtom ?: return null
-        if (!subAtom.state().value.alive) return null
+        if (!subAtom.alive) return null
         return matchesSubAtom(subAtom, reagents.subList(1, reagents.size))
     }
 

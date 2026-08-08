@@ -18,7 +18,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdat
  * только субъект — молекула.
  *
  * Порог = последний уровень [MoleculeGraph.energyLevels] (минимум атомного IP по графу, кэш на графе). В отличие от
- * атома, молекулярный ион НЕ требует нового графа: заряд живёт в [EntityState.electrons] как счётчик,
+ * атома, молекулярный ион НЕ требует нового графа: заряд живёт в [Entity.electrons] как счётчик,
  * а граф не меняется — поэтому здесь `updateState` (electrons−1), как и у атома.
  *
  * Рамки этого шага (детерминированно; вероятностное ветвление — отдельным правилом):
@@ -45,7 +45,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         val nearestPhoton = neighbors
             .asSequence()
             .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
-            .filter { it.energy > 0f && it.state().value.alive }
+            .filter { it.energy > 0f && it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
             .map { it to subjectPosition.distanceSquareTo(it.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }

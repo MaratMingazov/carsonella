@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.EntityState
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
@@ -180,7 +179,7 @@ private fun SceneCanvas(
     modifier: Modifier = Modifier
 ) {
 
-    // ПОДПИСКА. Ниже значения читаются прямо из сущностей (entity.state().value), но БЕЗ этого блока
+    // ПОДПИСКА. Ниже значения читаются прямо из сущностей (entity.kinematics, entity.alive), но БЕЗ этого блока
     // Compose не узнает об изменениях: сцена замрёт при живом мире — логи в консоли пойдут, картинка нет.
     // Строка «работает тем, что существует», результат никому не нужен — не удалять.
     // key(id) нужен потому, что collectAsState зовётся в цикле: слот подписки привязан к сущности, а не
@@ -189,7 +188,7 @@ private fun SceneCanvas(
     // .value обязателен: зависимость регистрирует ЧТЕНИЕ значения, а не создание State. Без него
     // поток собирается, но композиция об этом не узнаёт.
     entities.forEach { entity ->
-        androidx.compose.runtime.key(entity.id) { entity.state().collectAsState().value }
+        androidx.compose.runtime.key(entity.id) { entity.changes().collectAsState().value }
     }
 
     val hoveredEntityId = hoverPos?.let { hitTest(entities, it) } // Находится ли под курсором какой то элемент?
@@ -391,7 +390,7 @@ fun ConsolePanel(
  * иначе null. Один на всех: наведение, клик-выбор и захват при перетаскивании, поэтому подсветка
  * предсказывает, что именно выберется.
  *
- * Из чего сущность состоит, здесь не знают: [EntityState.distanceToSurface] отвечает одним числом и
+ * Из чего сущность состоит, здесь не знают: [Entity.distanceToSurface] отвечает одним числом и
  * за частицу, и за молекулу (у неё — по ближайшему атому). Числа сравнимы между разными по размеру
  * сущностями, поэтому «ближайший» получается честным: тот, ВНУТРЬ кого курсор попал (расстояние
  * отрицательное), выигрывает у того, рядом с кем он просто стоит.
@@ -481,7 +480,7 @@ private fun SelectedEntityPanel(
     modifier: Modifier = Modifier
 ) {
     val selectedEntity = entities.firstOrNull { it.id == selectedElementId } ?: return
-    val selectedElement by selectedEntity.state().collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
+    val selectedElement by selectedEntity.changes().collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
 
     Column(
         modifier.fillMaxWidth()

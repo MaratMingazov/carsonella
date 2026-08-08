@@ -18,25 +18,6 @@ data class Kinematics(
     val velocity: Float,
 )
 
-data class EntityState(
-    val alive: Boolean,
-    val version: Long = 0L, // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
-) {
-
-
-    /**
-     * Каждый раз создаём новый объект: StateFlow уведомляет подписчиков (Compose UI рисует частицы)
-     * только когда .value присваивается новый объект.
-     */
-    fun copyWith(
-        alive: Boolean = this.alive,
-        version: Long = this.version,
-    ): EntityState = copy(alive = alive, version = version)
-
-}
-
-
-
 sealed interface Entity :
     DeathNotifiable,
     NeighborsAware,
@@ -53,8 +34,9 @@ sealed interface Entity :
     val saveKey: String // Ключ для сохранения
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
     var kinematics: Kinematics
+    val alive: Boolean
 
-    fun state(): MutableStateFlow<EntityState>
+    fun changes(): MutableStateFlow<Long> // Монотонный счётчик изменений, сигнал к тому, что сущность нужно перерисовать
     fun step() // элемент делает свой ход
     fun destroy() // нужно, чтобы сообщить элементу, что он должен быть уничтожен
     fun describe(): String // Человекочитаемое описание для карточки Info.
@@ -136,7 +118,7 @@ sealed interface Entity :
 
     // Сказать UI, что сущность поменялась и нужно перерисовать
     fun markChanged() {
-        state().value = state().value.copyWith(version = state().value.version + 1)
+        changes().value = changes().value + 1
     }
 
     fun addVelocity(moreVelocity: Float) {

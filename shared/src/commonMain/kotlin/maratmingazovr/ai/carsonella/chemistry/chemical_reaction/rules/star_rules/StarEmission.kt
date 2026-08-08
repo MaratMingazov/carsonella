@@ -31,7 +31,7 @@ class StarEmission (
 
     override fun matchesStar(star: Star, neighbors: List<Entity>): MatchedData? {
         // Поглощение: запрос вида [звезда + соседи снаружи] — втягиваем их сразу, без chance.
-        val external = neighbors.filter { it.state().value.alive && it.getEnvironment() !== star }
+        val external = neighbors.filter { it.alive && it.getEnvironment() !== star }
         if (external.isNotEmpty()) {
             return Match(star, absorbReagents = external, entityReagents = listOf())
         }
@@ -41,7 +41,7 @@ class StarEmission (
 
         val children = star
             .getEnvChildren()
-            .filter { reagent -> reagent.state().value.alive }
+            .filter { reagent -> reagent.alive }
         return Match(star, absorbReagents = listOf(), entityReagents = children)
     }
 
@@ -54,7 +54,7 @@ class StarEmission (
             return ReactionOutcome(
                 updateState = absorbReagents.map { r ->
                     StateUpdate(r) {
-                        if (r.state().value.alive) r.updateMyEnvironment(
+                        if (r.alive) r.updateMyEnvironment(
                             star
                         )
                     }

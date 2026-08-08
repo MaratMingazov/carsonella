@@ -43,12 +43,14 @@ class Atom(
         }
     }
 
-    private var state = MutableStateFlow(EntityState(alive = true))
+    private var changes = MutableStateFlow(0L)
 
-    override fun state() = state
+    override fun changes() = changes
 
     override var kinematics: Kinematics = Kinematics(position, direction, velocity)
         set(value) { if (field != value) { field = value; markChanged() } }
+    override var alive: Boolean = true
+        private set
     override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override var electrons: Int = electrons
@@ -64,7 +66,6 @@ class Atom(
     override val saveKey: String = element.name
 
     override fun describe(): String {
-        val s = state().value
         return """
             |${element.label(electrons)}
             |Protons: ${element.details.p}
@@ -104,7 +105,8 @@ class Atom(
 
 
     override fun destroy() {
-        state.value = state.value.copy(alive = false)
+        alive = false
+        markChanged()
         notifyDeath()
     }
 

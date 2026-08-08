@@ -102,10 +102,12 @@ class Molecule private constructor(
         electrons = electrons,
     )
 
-    private var state = MutableStateFlow(EntityState(alive = true))
+    private var changes = MutableStateFlow(0L)
 
     override var kinematics: Kinematics = kinematics
         set(value) { if (field != value) { field = value; markChanged() } }
+    override var alive: Boolean = true
+        private set
     override val mass: Float get() = graph.mass
     override val protons: Int get() = graph.protons
     override var electrons: Int = electrons
@@ -118,7 +120,7 @@ class Molecule private constructor(
     override val energyLevels: List<Float> get() = graph.energyLevels
     override val saveKey: String get() = graph.formula
 
-    override fun state() = state
+    override fun changes() = changes
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
     override fun describe(): String {
         val known = MoleculeRegistry.lookup(graph.canonical)
@@ -161,7 +163,8 @@ class Molecule private constructor(
         if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
     }
     override fun destroy() {
-        state.value = state.value.copy(alive = false)
+        alive = false
+        markChanged()
         notifyDeath()
     }
 

@@ -54,7 +54,7 @@ class PhotoIonization (
             .asSequence()
             .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
             .filter { it.energy > 0 }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .map { it to atom.kinematics.position.distanceSquareTo(it.kinematics.position) }
             .minByOrNull { it.second }
             ?: return null

@@ -57,7 +57,7 @@ class AlphaProtonReaction(
 
         val atomPosition = atom.kinematics.position
         val (alphaCandidate, distanceSquare) = neighbors
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }

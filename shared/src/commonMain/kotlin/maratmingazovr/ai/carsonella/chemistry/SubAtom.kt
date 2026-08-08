@@ -28,12 +28,14 @@ class SubAtom(
     EnvironmentAware by EnvironmentSupport(),
     LogWritable  by LoggingSupport()
 {
-    private var state = MutableStateFlow(EntityState(alive = true))
+    private var changes = MutableStateFlow(0L)
 
-    override fun state() = state
+    override fun changes() = changes
 
     override var kinematics: Kinematics = Kinematics(position, direction, velocity)
         set(value) { if (field != value) { field = value; markChanged() } }
+    override var alive: Boolean = true
+        private set
     override val mass: Float = if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override val electrons: Int = electrons
@@ -49,7 +51,6 @@ class SubAtom(
     override val saveKey: String = element.name
 
     override fun describe(): String {
-        val state = state().value
         val base = """
             |${element.label(electrons)}
             |Energy ${round(energy * 100) / 100}
@@ -122,7 +123,8 @@ class SubAtom(
     }
 
     override fun destroy() {
-        state.value = state.value.copy(alive = false)
+        alive = false
+        markChanged()
         notifyDeath()
     }
 

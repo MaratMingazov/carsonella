@@ -41,7 +41,7 @@ class RecombinationReaction(
         val (secondAtom, distanceSquare) = neighbors
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
-            .filter { it.state().value.alive }
+            .filter { it.alive }
             .map { it to  it.kinematics.position.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null

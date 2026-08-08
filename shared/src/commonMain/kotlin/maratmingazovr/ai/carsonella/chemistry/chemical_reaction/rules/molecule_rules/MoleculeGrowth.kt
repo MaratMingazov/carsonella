@@ -90,8 +90,7 @@ class MoleculeGrowth(
     //  - молекула: hasFreeSlot();
     //  - атом: нейтральный лёгкий атом с valence > 0 (как в CovalentBondFormation).
     private fun canBond(entity: Entity): Boolean {
-        val state = entity.state().value
-        if (!state.alive) return false
+        if (!entity.alive) return false
         // Проверка класса заменяет прежний тег ElementType: частица и звезда — не Atom, связей не образуют.
         return when (entity) {
             is Molecule -> entity.hasFreeValence

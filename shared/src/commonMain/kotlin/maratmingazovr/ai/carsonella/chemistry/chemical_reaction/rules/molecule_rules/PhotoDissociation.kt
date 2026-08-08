@@ -43,7 +43,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
         val nearestPhoton = neighbors
             .asSequence()
             .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
-            .filter { it.energy > 0f && it.state().value.alive }
+            .filter { it.energy > 0f && it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
             .map { it to moleculePosition.distanceSquareTo(it.kinematics.position) }
             .filter { it.second <= activationDistanceSquare }
