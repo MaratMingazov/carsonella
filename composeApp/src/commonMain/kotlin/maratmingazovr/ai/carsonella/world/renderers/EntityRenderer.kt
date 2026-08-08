@@ -80,12 +80,13 @@ class EntityRenderer(
         val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
         val fillColor = ElementColors.fill(element)
         val symbol = element.bareSymbol
+        val radius = element.details.radius
 
         with(drawScope) {
             if (withValenceSlots) {
-                drawAtom(position, entity.radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
+                drawAtom(position, radius, fillColor, symbol, element.valence(entityState.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
             } else {
-                drawSubAtom(position, entity.radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
+                drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
             }
         }
     }
