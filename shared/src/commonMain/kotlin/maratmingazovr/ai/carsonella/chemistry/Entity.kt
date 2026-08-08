@@ -548,6 +548,13 @@ enum class Element() {
         if (details.type == ElementType.Atom) "${nameMap.getValue(this)} (${symbol(electrons)})"
         else details.label
 
+    /**
+     * Химический символ без масс-индекса и заряда: ²H→H, ¹²C→C, ³He→He. Изотопы схлопываются — этим
+     * отличается от [symbol], который заряд показывает, и от baseSymbolMap, который срезает только его.
+     * Нужен там, где важен ЭЛЕМЕНТ, а не изотоп: брутто-формула молекулы и подпись в кружке атома.
+     */
+    val bareSymbol: String get() = bareSymbolMap.getValue(this)
+
     // Энергетические уровни как функция от числа электронов (рефакторинг ионизации, 2C2b-4).
     // Зависят только от Z, не от N → одна лестница на элемент (atomEnergyLevelsByZ по details.p), общая
     // для всех изотопов и только для атомов. Голым/несуществующим состояниям — пустой список («нельзя ионизировать»).
@@ -588,6 +595,11 @@ enum class Element() {
             entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
         private val nameMap: Map<Element, String> =
             entries.filter { it.details.type == ElementType.Atom }.associateWith { it.details.label.substringBefore(" (") }
+
+        // Опора bareSymbol. Без фильтра по типу, в отличие от соседей: подпись нужна и частицам, и звёздам.
+        // Считается один раз — спрашивают на каждый атом каждый кадр (рендер) и на каждую формулу.
+        private val bareSymbolMap: Map<Element, String> =
+            entries.associateWith { element -> element.details.symbol.filter { it.isLetter() } }
     }
 
 }

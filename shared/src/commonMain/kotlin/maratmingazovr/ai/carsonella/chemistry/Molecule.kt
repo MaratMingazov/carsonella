@@ -128,14 +128,10 @@ class Molecule(
     val shape: MoleculeShape get() = placeShape(graph)
     private val atoms: List<MoleculeAtom> get() = placeAtoms(graph)
 
-    /**
-     * Граф ПАРАМЕТРОМ, а не `this.graph`: так же ставится в мир осколок, чей граф молекуле ещё не
-     * принадлежит (см. [split]). Свойство [atoms] здесь не подходит — оно всегда от `this.graph`, и
-     * форма осколка получила бы атомы целой молекулы с досплитовыми `freeValence`/`inRing`.
-     */
     private fun placeShape(graph: MoleculeGraph): MoleculeShape {
-        val placed = placeAtoms(graph)
-        return MoleculeShape(placed, placeBonds(graph, graph.bonds, placed))
+        val placedAtoms = placeAtoms(graph)
+        val placedBonds = placeBonds(graph, graph.bonds, placedAtoms)
+        return MoleculeShape(placedAtoms, placedBonds)
     }
     private fun placeAtoms(graph: MoleculeGraph): List<MoleculeAtom> =
         graph.nodes.map { node ->
@@ -147,7 +143,7 @@ class Molecule(
     private fun placeBonds(graph: MoleculeGraph, bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
         val byId = atoms.associateBy { it.structure.localId }
         return bonds.map {
-            MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it.atom1, it.atom2))
+            MoleculeBond(byId.getValue(it.atom1), byId.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it))
         }
     }
 
@@ -336,7 +332,7 @@ private fun MoleculeShape.toGraph(): MoleculeGraph = MoleculeGraph(
 private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int): MoleculeGraph {
     require(graph1.freeValence(node1) > 0) { "Узел $node1 в ${graph1.formula} насыщен: связь образовать нечем" }
     require(graph2.freeValence(node2) > 0) { "Узел $node2 в ${graph2.formula} насыщен: связь образовать нечем" }
-    return MoleculeGraph.merge(graph1, node1, graph2, node2, bondOrder = 1)
+    return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
 }
 
 /**

@@ -3,18 +3,6 @@ package maratmingazovr.ai.carsonella.chemistry.graph
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 
-/**
- * Ядро графовой модели молекулы..
- *
- * Молекула = граф: атомы — узлы [AtomNode], связи — рёбра [Bond].
- * Сущность держит СТРУКТУРУ, а не идентичность.
- * Так этанол (C–C–O) и диметиловый эфир (C–O–C) станут двумя разными графами с одной формулой
- *
- * Граф моделирует только ЯДЕРНЫЙ скелет + связи. Электроны (ионизация) — динамическое состояние
- * сущности (`state.electrons`), как у атома сегодня; в графе их нет. Поэтому узел — это лишь изотоп.
- *
- */
-
 /** Узел графа — атом конкретного изотопа. [isotope] несёт протоны/нейтроны/символ через [Element.details].
  * electrons -  количество электронов здесь хранить нельзя. Даже если мы у атома кислорода выбили 1 электрон
  *              и теперь соединили его с атомом углерода, то теперь нельзя сказать у какого кокретного атома в молекуле
@@ -55,6 +43,9 @@ data class Bond(
 data class RingClosureCandidate(val atom1: Int, val atom2: Int, val ringSize: Int)
 
 
+private const val CANONICAL_MAX_NODES = 9 // Потолок наивного перебора O(n!) в MoleculeGraph.canonical; выше канон = "" (до Моргана, Стадия 2).
+private const val RING_MIN_SIZE = 5 // Минимальный размер кольца, который MoleculeGraph.ringClosureCandidates вообще предлагает.
+
 data class MoleculeGraph(
     val nodes: List<AtomNode>,
     val bonds: List<Bond>,
@@ -69,107 +60,15 @@ data class MoleculeGraph(
             require(bond.atom1 in idSet && bond.atom2 in idSet) { "Связь $bond ссылается на несуществующий узел" }
             require(bond.order in 1..3) { "Кратность связи $bond вне диапазона 1..3 (см. комментарий к Bond)" }
         }
-        val unreachable = ids.toHashSet() - reachableFrom(nodes.first().localId) // Проверяем что все атомы связаны между собой
+        val unreachable = idSet - reachableFrom(nodes.first().localId) // Проверяем что все атомы связаны между собой
         require(unreachable.isEmpty()) {
             "Граф не связен: узлы $unreachable не соединены с ${nodes.first().localId} — это не одна молекула, а несколько"
         }
     }
 
-    val protons: Int = nodes.sumOf { it.isotope.details.p }
-    val mass: Float = nodes.sumOf { it.isotope.details.p + it.isotope.details.n }.toFloat() // Масса молекулы — сумма нуклонов (p + n) всех узлов.
     private val isotopeById: Map<Int, Element> = nodes.associate { it.localId to it.isotope }
-
-    /**
-     * localId всех узлов, достижимых из [start] по связям (BFS). Опора инварианта связности.
-     *
-     * [without] — связь, которую при обходе не видим: так проверяется, держится ли граф без неё. Нужен
-     * только для разового подсчёта [ringBonds] при рождении графа, в запросах не участвует.
-     */
-    private fun reachableFrom(start: Int, without: Bond? = null): Set<Int> {
-        val neighbours = HashMap<Int, MutableList<Int>>()
-        for (bond in bonds) {
-            if (bond == without) continue
-            neighbours.getOrPut(bond.atom1) { mutableListOf() }.add(bond.atom2)
-            neighbours.getOrPut(bond.atom2) { mutableListOf() }.add(bond.atom1)
-        }
-        val seen = hashSetOf(start)
-        val queue = ArrayDeque(listOf(start))
-        while (queue.isNotEmpty()) {
-            for (neighbour in neighbours[queue.removeFirst()].orEmpty()) {
-                if (seen.add(neighbour)) queue.add(neighbour)
-            }
-        }
-        return seen
-    }
-
-
-
-
-
-
-
-    /**
-     * Связи, лежащие в ЦИКЛЕ: разорви такую — граф останется связным, то есть молекула не распадётся, а
-     * кольцо раскроется в цепь. Все прочие связи — мосты, их разрыв даёт два осколка. Различать
-     * обязательно: раскрытие кольца это преобразование 1→1 (те же атомы, та же сущность), а распад —
-     * смерть молекулы и рождение осколков.
-     *
-     * Критерий — связность без ребра, а не пометка «это ребро замкнуло кольцо». Так оно описывает ФАКТ,
-     * а не историю: работает и в бицикле (связь, общая двум кольцам, кольцевая), и после раскрытия одного
-     * из колец — новый граф пересчитает набор сам.
-     *
-     * Считается один раз при рождении графа (как freeValenceById/energyByBond): по одному BFS на связь,
-     * молекулы у нас малые. Дальше это готовый набор, [isRingBond] только смотрит в него.
-     */
-    private val ringBonds: Set<Bond> = bonds.filterTo(HashSet()) { bond ->
-        bond.atom2 in reachableFrom(bond.atom1, without = bond)
-    }
-
-    /** Лежит ли связь [atom1]–[atom2] в цикле (её разрыв НЕ развалит молекулу). См. [ringBonds]. */
-    fun isRingBond(atom1: Int, atom2: Int): Boolean = ringBonds.any { sameBond(it, atom1, atom2) }
-
-    /**
-     * Энергия КАЖДОЙ связи (эВ), посчитанная один раз при рождении графа. Раньше эти же числа считались
-     * здесь ради одного минимума и выбрасывались, а спрашивают их часто: порог распада — каждый тик,
-     * отрисовка связи — каждый кадр, а [BondEnergy.of] это lookup с аллокацией ключа-Triple.
-     *
-     * Связи, чей тип не в каталоге [BondEnergy], в мапу не попадают (для CHNO не случается).
-     */
-    private val energyByBond: Map<Bond, Float> = bonds
-        .mapNotNull { bond -> BondEnergy.of(isotopeById.getValue(bond.atom1), isotopeById.getValue(bond.atom2), bond.order)?.let { energy -> bond to energy } }
-        .toMap()
-
-    /** Энергия связи [bond] (эВ) из кеша графа; null — тип связи не в каталоге [BondEnergy]. */
-    fun energyOf(bond: Bond): Float? = energyByBond[bond]
-
-    /**
-     * Слабейшая связь молекулы и её энергия — ПОРОГ ДИССОЦИАЦИИ.
-     * Слабейшая связь требует меньше всего энергии → рвётся первой.
-     *
-     * `null`, если связей нет ИЛИ тип связи не в каталоге (для CHNO не случается, но `Float?` честно это выражает).
-     *
-     * Нам это нужно, чтобы понять какая связь разорветс во время диссоциации.
-     * Но если молекула кольцо, тогда после разрыва молекула остается
-     */
-     val weakestBondAndEnergy: Pair<Bond, Float>? = energyByBond.entries
-        .minByOrNull { it.value }
-        ?.let { (bond, energy) -> bond to energy }
-
-    /**
-     * Энергетическая лестница молекулы список уровней, где ПОСЛЕДНИЙ = порог (первый потенциал ионизации, IP). Кэш на графе (иммутабелен).
-     *
-     * Пусто, если ни один атом не ионизируем (пустая атомная лестница — напр. Z>18) — как у атома
-     * с пустой лестницей. Для CHNO не случается.
-     */
-    val energyLevels: List<Float> = listOfNotNull(
-        nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull()
-    )
-
-    /**
-     * Свободные валентные слоты каждого узла: localId → сколько ещё связей узел может образовать/усилить.
-     * Кэшируется один раз при построении (граф иммутабелен): один проход по связям копит «занятые»
-     * слоты (сумма order у инцидентных рёбер), затем `валентность − занятые` на узел.
-     */
+    private val energyByBond: Map<Bond, Float> = bonds.mapNotNull { bond -> BondEnergy.of(isotopeById.getValue(bond.atom1), isotopeById.getValue(bond.atom2), bond.order)?.let { energy -> bond to energy } }.toMap() // Энергия КАЖДОЙ связи (эВ), посчитанная один раз при рождении графа.
+    private val ringBonds: Set<Bond> = bonds.filterTo(HashSet()) { bond -> bond.atom2 in reachableFrom(bond.atom1, without = bond) } // Связи, лежащие в ЦИКЛЕ: разорви такую — граф останется связным, то есть молекула не распадётся, а кольцо раскроется в цепь.
     private val freeValenceById: Map<Int, Int> = run {
         val used = HashMap<Int, Int>()
         for (bond in bonds) {
@@ -178,7 +77,8 @@ data class MoleculeGraph(
         }
         // Узел молекулы не хранит по-атомный заряд → трактуем атом нейтральным (electrons = details.p).
         nodes.associate { it.localId to (it.isotope.valence(it.isotope.details.p) - (used[it.localId] ?: 0)) }
-    }
+    } // Свободные валентные слоты каждого узла
+    private val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
 
     init {
         for (node in nodes) {
@@ -187,179 +87,21 @@ data class MoleculeGraph(
         }
     }
 
-    /**
-     * Узнаем есть ли еще валентные слоты у конкретного атома в молекуле (localId - номер узла)
-     * Если > 0 значит этот атом в молекуле еще может образовать новую валентную связь, либо усилить сузествующую связь
-     * Например, когда Углерод + Углерод -> C-C то теперь либо связь усилится С=С
-     * либо образуется еще связь H-C-C
-     */
-    fun freeValence(localId: Int): Int =
-        freeValenceById[localId] ?: error("Узла с localId=$localId нет в графе")
+    /////////////////////////////////////////////
+    // ПОЛЯ - ДОСТУПНЫЕ НАРУЖУ. ДАННЫЕ ИЗ КЭША //
 
-    /** Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать). */
-    val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 }
-
-    val firstFreeValenceAtomNode: AtomNode? = nodes.filter { freeValence(it.localId) > 0 }.minByOrNull { it.localId }
-
-    /**
-     * Слияние двух молекул в новую молекулу
-     */
-    fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
-        require(nodes.any { it.localId == thisNode }) { "Узла thisNode=$thisNode нет в этом графе" }
-        require(other.nodes.any { it.localId == otherNode }) { "Узла otherNode=$otherNode нет в other" }
-        val offset = nodes.maxOf { it.localId } + 1
-        val shiftedNodes = other.nodes.map { AtomNode(it.localId + offset, it.isotope) }
-        val shiftedBonds = other.bonds.map { Bond(it.atom1 + offset, it.atom2 + offset, it.order) }
-        val newBond = Bond(thisNode, otherNode + offset, bondOrder)
-        return MoleculeGraph(nodes = nodes + shiftedNodes, bonds = bonds + shiftedBonds + newBond)
-    }
-
-    /**
-     * Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот (усиление
-     * order→order+1 занимает по одному слоту у каждого атома). Так, O–O усиливаема (по слоту на каждом O),
-     * а звено цепи O–O–O — нет (средний атом насыщен). Пусто → усиливать нечего.
-     */
-    val strengthenableBonds: List<Bond> =
-        bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 }
-
-    /**
-     * Кандидаты на замыкание кольца: пары атомов, у которых у ОБОИХ свободный слот и которые соединены
-     *
-
-     */
-    val ringClosureCandidates: List<RingClosureCandidate> = run {
-        val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
-        if (freeAtoms.size < 2) return@run emptyList()
-        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
-        for (bond in bonds) {
-            adjacency.getValue(bond.atom1).add(bond.atom2)
-            adjacency.getValue(bond.atom2).add(bond.atom1)
-        }
-        val result = mutableListOf<RingClosureCandidate>()
-        for (start in freeAtoms) {
-            val dist = HashMap<Int, Int>().apply { put(start, 0) }   // кратчайшие расстояния от start (BFS)
-            val queue = ArrayDeque(listOf(start))
-            while (queue.isNotEmpty()) {
-                val cur = queue.removeFirst()
-                val d = dist.getValue(cur)
-                for (nb in adjacency.getValue(cur)) if (nb !in dist) { dist[nb] = d + 1; queue.add(nb) }
-            }
-            for (target in freeAtoms) {
-                if (target <= start) continue                       // каждую неупорядоченную пару один раз
-                val ringSize = (dist[target] ?: continue) + 1       // недостижим (связный граф — не случается) → пропуск
-                if (ringSize >= RING_MIN_SIZE) result.add(RingClosureCandidate(start, target, ringSize))
-            }
-        }
-        result
-    }
-
-    /**
-     * Усиление связи: вернуть копию графа, где кратность связи между узлами [atom1] и [atom2]
-     * увеличена на 1 (O–O → O=O, N=N → N≡N).
-     *
-     */
-    fun strengthenBond(atom1: Int, atom2: Int): MoleculeGraph {
-        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
-        val newBonds = bonds.map { if (sameBond(it, atom1, atom2)) Bond(it.atom1, it.atom2, it.order + 1) else it }
-        return MoleculeGraph(nodes = nodes, bonds = newBonds)
-    }
-
-    /**
-     * Замыкание кольца: добавить связь между двумя УЖЕ существующими узлами ОДНОГО графа
-     */
-    fun closeRing(atom1: Int, atom2: Int): MoleculeGraph {
-        require(nodes.any { it.localId == atom1 }) { "Узла atom1=$atom1 нет в графе" }
-        require(nodes.any { it.localId == atom2 }) { "Узла atom2=$atom2 нет в графе" }
-        require(atom1 != atom2) { "Кольцо из одного узла невозможно: atom1 == atom2 == $atom1" }
-        require(bonds.none { sameBond(it, atom1, atom2) }) { "Узлы $atom1–$atom2 уже связаны — это усиление, не кольцо" }
-        return MoleculeGraph(nodes = nodes, bonds = bonds + Bond(atom1, atom2, order = 1))
-    }
-
-    /**
-     * Разрыв КОЛЬЦЕВОЙ связи: убираем ребро [atom1]–[atom2], цикл раскрывается в цепь, граф остаётся
-     * ОДИН — в отличие от [split], который возвращает компоненты по отдельности. Нумерацию узлов
-     * сохраняют оба, и для раскрытия это принципиально: атомы те же, сущность та же, и снимки
-     * ([MoleculeAtom]/[MoleculeBond]) на руках у UI и правил не должны протухнуть.
-     *
-     * Связь обязана быть кольцевой ([isRingBond]); на мосте граф распался бы, и это поймает проверка
-     * связности в [init] — но звать тут надо не это, а [split].
-     */
-    fun removeRingBond(atom1: Int, atom2: Int): MoleculeGraph {
-        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
-        require(isRingBond(atom1, atom2)) { "Связь $atom1–$atom2 не в цикле: её разрыв развалит молекулу — это split" }
-        return MoleculeGraph(nodes = nodes, bonds = bonds.filterNot { sameBond(it, atom1, atom2) })
-    }
-
-    /**
-     * Разрыв связи.
-     * Убираем ребро [atom1]–[atom2] и возвращаем связные компоненты — каждую самостоятельным подграфом.
-     *
-     * Номера узлов осколок НАСЛЕДУЕТ: они не пересчитываются в 0-based, поэтому в подграфе законны дыры
-     * (H₂O рвём O–H → осколок с узлами 0 и 2). Так вызывающий может сопоставить, где атом был ДО разрыва,
-     * — без этого не унаследовать его координаты. Графу непрерывность и не нужна: [init] требует только
-     * уникальности и связности, а [merge] сдвигает чужие номера на `max + 1` и с дырами работает.
-     *
-     * Обычно (граф — дерево/цепь, любая связь — мост) даёт РОВНО две компоненты: H₂O рвём O–H → [·OH, H·].
-     * Краевой случай — КОЛЬЦО: если удаляемое ребро в цикле, граф остаётся связным → ОДНА компонента
-     * (это не распад, а раскрытие кольца); проверка связности ловит это естественно. Колец пока нет.
-     *
-     * split — чистая операция, энергетику НЕ проверяет: КАКУЮ связь рвать и хватает ли
-     * энергии, решает вызывающий (правило PhotoDissociation/StarDissociation). Осколок из одного узла
-     * выйдет одноузловым графом (атом = вырожденная молекула, §8) — вызывающий обернёт его в Elemental.
-     */
-    fun split(atom1: Int, atom2: Int): List<MoleculeGraph> {
-        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
-        val remaining = bonds.filterNot { sameBond(it, atom1, atom2) }
-
-        // Связные компоненты по оставшимся рёбрам (BFS). Порядок обхода — по списку nodes → детерминизм.
-        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
-        for (bond in remaining) {
-            adjacency.getValue(bond.atom1).add(bond.atom2)
-            adjacency.getValue(bond.atom2).add(bond.atom1)
-        }
-        val visited = HashSet<Int>()
-        val components = mutableListOf<List<Int>>()
-        for (node in nodes) {
-            if (!visited.add(node.localId)) continue
-            val component = mutableListOf(node.localId)
-            val queue = ArrayDeque(listOf(node.localId))
-            while (queue.isNotEmpty()) {
-                val id = queue.removeFirst()
-                for (neighbor in adjacency.getValue(id)) {
-                    if (visited.add(neighbor)) { component.add(neighbor); queue.add(neighbor) }
-                }
-            }
-            components.add(component)
-        }
-
-        // Каждую компоненту — в самостоятельный подграф, СОХРАНЯЯ номера узлов (порядок узлов — из nodes).
-        return components.map { componentIds ->
-            val idSet = componentIds.toHashSet()
-            MoleculeGraph(
-                nodes = nodes.filter { it.localId in idSet },
-                bonds = remaining.filter { it.atom1 in idSet && it.atom2 in idSet },
-            )
-        }
-    }
-
-    private fun sameBond(bond: Bond, a: Int, b: Int): Boolean =
-        (bond.atom1 == a && bond.atom2 == b) || (bond.atom1 == b && bond.atom2 == a)
-
-    /**
-     * Брутто-формула в системе Хилла: сначала C, затем H, затем остальные элементы по алфавиту;
-     * если углерода нет — все элементы по алфавиту. Счётчик 1 опускается. Примеры: H2O, CH4, C2H6O.
-     * Изотопы одного элемента схлопываются (²H считается как H).
-     */
+    val protons: Int = nodes.sumOf { it.isotope.details.p }
+    val mass: Float = nodes.sumOf { it.isotope.details.p + it.isotope.details.n }.toFloat() // Масса молекулы — сумма нуклонов (p + n) всех узлов.
     val formula: String = run {
         val counts = HashMap<String, Int>()
         for (node in nodes) {
-            val symbol = bareSymbol(node.isotope)
+            val symbol = node.isotope.bareSymbol
             counts[symbol] = (counts[symbol] ?: 0) + 1
         }
         val ordered = if ("C" in counts) {
             listOf("C") +
-                (if ("H" in counts) listOf("H") else emptyList()) +
-                counts.keys.filter { it != "C" && it != "H" }.sorted()
+                    (if ("H" in counts) listOf("H") else emptyList()) +
+                    counts.keys.filter { it != "C" && it != "H" }.sorted()
         } else {
             counts.keys.sorted()
         }
@@ -367,57 +109,11 @@ data class MoleculeGraph(
             val count = counts.getValue(symbol)
             if (count == 1) symbol else "$symbol$count"
         }
-    }
-
-    /**
-     * Формула с подстрочными индексами для показа: H2O → H₂O, C2H6O → C₂H₆O.
-     * ASCII-форма (formula) остаётся для идентичности/ключей; эта — только для UI.
-     */
+    } // Формула: H2O, CH4, C2H6O
     val formulaPretty: String = run {
         val subscripts = "₀₁₂₃₄₅₆₇₈₉"
         formula.map { c -> if (c in '0'..'9') subscripts[c - '0'] else c }.joinToString("")
-    }
-
-
-    private val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
-
-    /**
-     * Смещение атома [localId] относительно центра молекулы.
-     */
-    fun atomOffset(localId: Int): Position =
-        atomOffsets[localId] ?: error("Узла с localId=$localId нет в графе")
-
-
-
-    /**
-     * Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы
-     * при любой перенумерации узлов и РАЗНАЯ у разных молекул.
-     *
-     * Чем отличается от formula:
-     *  - formula — это СОСТАВ: сколько каких атомов («C2H6O»). Грубый отпечаток; связность теряется,
-     *    поэтому формула НЕ различает изомеры — у этанола и диметилового эфира она одна (C2H6O).
-     *  - canonical — это СТРУКТУРА: кто с кем соединён и какой кратностью. Различает изомеры:
-     *    этанол (C–C–O) и эфир (C–O–C) дают РАЗНЫЕ ключи. Аналогия: формула — «8 красных кубиков
-     *    Lego, 4 синих» (детали), канон — хеш точного чертежа сборки (та же горсть деталей, разная
-     *    форма → разный хеш).
-     *
-     * Зачем нужен: сравнить «это та же молекула?», ключ в Map/реестре, дедупликация, различение изомеров.
-     *
-     * Реализация — НАИВНАЯ (перебор, §5.1 дока): перебрать все перенумерации узлов, для каждой собрать
-     * сериализацию (изотопы в новом порядке + рёбра, перемапленные/нормализованные/отсортированные,
-     * с кратностью), взять лексикографически минимальную. Точно и просто, но O(n!) — годится только для
-     * малых молекул; для крупных позже заменим на Морган-подобный алгоритм (Стадия 2).
-     *
-     * Токен узла — полный изотоп ([Element.name]), поэтому канон РАЗЛИЧАЕТ изотопы (²H ≠ H, ¹³C ≠ ¹²C),
-     * в отличие от формулы, которая их схлопывает. Заряд молекулы в ключ не входит — это динамическое
-     * состояние сущности; канон описывает структуру (как изотоп атома не меняется от ионизации).
-     *
-     * Кэш на графе (`by lazy`, граф иммутабелен → канон инвариантен): считается ≤1 раз, при первом
-     * обращении, и только у молекул, кому реально понадобился (мимолётные осколки не платят). Крупные
-     * (> [CANONICAL_MAX_NODES]) и пустые графы → `""` = «нет канонической идентичности» (наивный перебор
-     * не тянет — до Моргана). `""` не совпадёт ни с одним реальным ключом → такие молекулы просто
-     * остаются анонимными (в реестре не находятся), а не роняют вызывающего исключением.
-     */
+    } // Формула: H2O → H₂O, C2H6O → C₂H₆O.
     val canonical: String by lazy {
         val n = nodes.size
         if (n > CANONICAL_MAX_NODES) return@lazy ""   // крупная (до Моргана) → без канона
@@ -464,36 +160,154 @@ data class MoleculeGraph(
         }
         recurse(0)
         best!!
+    } // Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы при любой перенумерации узлов и РАЗНАЯ у разных молекул.
+    /**
+     * Слабейшая связь молекулы и её энергия — ПОРОГ ДИССОЦИАЦИИ.
+     * Слабейшая связь требует меньше всего энергии → рвётся первой.
+     * `null`, если связей нет ИЛИ тип связи не в каталоге (для CHNO не случается, но `Float?` честно это выражает).
+     *
+     * Нам это нужно, чтобы понять какая связь разорветс во время диссоциации.
+     * Но если молекула кольцо, тогда после разрыва молекула остается
+     */
+    val weakestBondAndEnergy: Pair<Bond, Float>? = energyByBond.entries.minByOrNull { it.value }?.let { (bond, energy) -> bond to energy }
+    /**
+     * Энергетическая лестница молекулы список уровней, где ПОСЛЕДНИЙ = порог (первый потенциал ионизации, IP). Кэш на графе (иммутабелен).
+     * Пусто, если ни один атом не ионизируем (пустая атомная лестница — напр. Z>18) — как у атома
+     * с пустой лестницей. Для CHNO не случается.
+     */
+    val energyLevels: List<Float> = listOfNotNull(nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull())
+    val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 } // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).
+    val firstFreeValenceAtomNode: AtomNode? = nodes.filter { freeValence(it.localId) > 0 }.minByOrNull { it.localId }
+    val strengthenableBonds: List<Bond> = bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 } // Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот
+    val ringClosureCandidates: List<RingClosureCandidate> = run {
+        val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
+        if (freeAtoms.size < 2) return@run emptyList()
+        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
+        for (bond in bonds) {
+            adjacency.getValue(bond.atom1).add(bond.atom2)
+            adjacency.getValue(bond.atom2).add(bond.atom1)
+        }
+        val result = mutableListOf<RingClosureCandidate>()
+        for (start in freeAtoms) {
+            val dist = HashMap<Int, Int>().apply { put(start, 0) }   // кратчайшие расстояния от start (BFS)
+            val queue = ArrayDeque(listOf(start))
+            while (queue.isNotEmpty()) {
+                val cur = queue.removeFirst()
+                val d = dist.getValue(cur)
+                for (nb in adjacency.getValue(cur)) if (nb !in dist) { dist[nb] = d + 1; queue.add(nb) }
+            }
+            for (target in freeAtoms) {
+                if (target <= start) continue                       // каждую неупорядоченную пару один раз
+                val ringSize = (dist[target] ?: continue) + 1       // недостижим (связный граф — не случается) → пропуск
+                if (ringSize >= RING_MIN_SIZE) result.add(RingClosureCandidate(start, target, ringSize))
+            }
+        }
+        result
+    } // Кандидаты на замыкание кольца: пары атомов, у которых у ОБОИХ свободный слот и которые соединены
+
+    ////////////////////////////////////////////////
+    // ФУНКЦИИ - ДОСТУПНЫЕ НАРУЖУ. ДАННЫЕ ИЗ КЭША //
+
+    fun isRingBond(bond: Bond): Boolean = bond in ringBonds // Лежит ли связь в цикле (её разрыв НЕ развалит молекулу).
+    fun energyOf(bond: Bond): Float? = energyByBond[bond] // Энергия связи (эВ) из кеша графа; null — тип связи не в каталоге
+    fun freeValence(localId: Int): Int = freeValenceById[localId] ?: error("Узла с localId=$localId нет в графе") // Узнаем есть ли еще валентные слоты у конкретного атома в молекуле
+    fun atomOffset(localId: Int): Position = atomOffsets[localId] ?: error("Узла с localId=$localId нет в графе")
+
+    /////////////////////////////////////////////////////
+    // ФУНКЦИИ - ВЫЗЫВАЕМ ОДИН РАЗ ПРИ СОЗДАНИИ ГРАФА //
+
+    /**
+     * localId всех узлов, достижимых из [start] по связям (BFS). Опора инварианта связности.
+     * without — связь, которую при обходе не видим: так проверяется, держится ли граф без неё.
+     */
+    private fun reachableFrom(start: Int, without: Bond? = null): Set<Int> {
+        val neighbours = HashMap<Int, MutableList<Int>>()
+        for (bond in bonds) {
+            if (bond == without) continue
+            neighbours.getOrPut(bond.atom1) { mutableListOf() }.add(bond.atom2)
+            neighbours.getOrPut(bond.atom2) { mutableListOf() }.add(bond.atom1)
+        }
+        val seen = hashSetOf(start)
+        val queue = ArrayDeque(listOf(start))
+        while (queue.isNotEmpty()) {
+            for (neighbour in neighbours[queue.removeFirst()].orEmpty()) {
+                if (seen.add(neighbour)) queue.add(neighbour)
+            }
+        }
+        return seen
     }
 
-    companion object {
-        /**
-         * Симметричная форма [merge]: связь кратности [bondOrder] между узлом [node1] графа [graph1] и
-         * узлом [node2] графа [graph2]. Перенумерацию узлов второго графа делает instance-merge.
-         *
-         * Зачем дубль к методу: слияние симметрично («этот» и «другой» тут равноправны), а в делегирующем
-         * вызове конструктора [Molecule] выбирать, у кого из двух молекул звать метод, неестественно.
-         */
-        fun merge(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int, bondOrder: Int): MoleculeGraph =
-            graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = bondOrder)
-    }
+
+
+    ////////////////////////////////////
+    // ФУНКЦИИ - ПОРОЖДАЮТ НОВЫЙ ГРАФ //
+    fun strengthenBond(atom1: Int, atom2: Int): MoleculeGraph {
+        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
+        val newBonds = bonds.map { if (sameBond(it, atom1, atom2)) Bond(it.atom1, it.atom2, it.order + 1) else it }
+        return MoleculeGraph(nodes = nodes, bonds = newBonds)
+    } // Усиливаем связь на 1 (O–O → O=O, N=N → N≡N)
+    fun removeRingBond(atom1: Int, atom2: Int): MoleculeGraph {
+        val bond = bonds.firstOrNull { sameBond(it, atom1, atom2) } // проверяем есть ли такая связь вообще?
+        requireNotNull(bond) { "Связи $atom1–$atom2 нет в графе" }
+        require(isRingBond(bond)) { "Связь $atom1–$atom2 не в цикле: её разрыв развалит молекулу — это split" }
+        return MoleculeGraph(nodes = nodes, bonds = bonds - bond)
+    } // Разрыв КОЛЬЦЕВОЙ связи
+    fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
+        require(nodes.any { it.localId == thisNode }) { "Узла thisNode=$thisNode нет в этом графе" }
+        require(other.nodes.any { it.localId == otherNode }) { "Узла otherNode=$otherNode нет в other" }
+        val offset = nodes.maxOf { it.localId } + 1
+        val shiftedNodes = other.nodes.map { AtomNode(it.localId + offset, it.isotope) }
+        val shiftedBonds = other.bonds.map { Bond(it.atom1 + offset, it.atom2 + offset, it.order) }
+        val newBond = Bond(thisNode, otherNode + offset, bondOrder)
+        return MoleculeGraph(nodes = nodes + shiftedNodes, bonds = bonds + shiftedBonds + newBond)
+    } // Слияние двух молекул в новую молекулу
+    fun closeRing(atom1: Int, atom2: Int): MoleculeGraph {
+        require(nodes.any { it.localId == atom1 }) { "Узла atom1=$atom1 нет в графе" }
+        require(nodes.any { it.localId == atom2 }) { "Узла atom2=$atom2 нет в графе" }
+        require(atom1 != atom2) { "Кольцо из одного узла невозможно: atom1 == atom2 == $atom1" }
+        require(bonds.none { sameBond(it, atom1, atom2) }) { "Узлы $atom1–$atom2 уже связаны — это усиление, не кольцо" }
+        return MoleculeGraph(nodes = nodes, bonds = bonds + Bond(atom1, atom2, order = 1))
+    } // Замыкание кольца: добавить связь между двумя УЖЕ существующими узлами ОДНОГО графа
+    fun split(atom1: Int, atom2: Int): List<MoleculeGraph> {
+        require(bonds.any { sameBond(it, atom1, atom2) }) { "Связи $atom1–$atom2 нет в графе" }
+        val remaining = bonds.filterNot { sameBond(it, atom1, atom2) }
+
+        // Связные компоненты по оставшимся рёбрам (BFS). Порядок обхода — по списку nodes → детерминизм.
+        val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
+        for (bond in remaining) {
+            adjacency.getValue(bond.atom1).add(bond.atom2)
+            adjacency.getValue(bond.atom2).add(bond.atom1)
+        }
+        val visited = HashSet<Int>()
+        val components = mutableListOf<List<Int>>()
+        for (node in nodes) {
+            if (!visited.add(node.localId)) continue
+            val component = mutableListOf(node.localId)
+            val queue = ArrayDeque(listOf(node.localId))
+            while (queue.isNotEmpty()) {
+                val id = queue.removeFirst()
+                for (neighbor in adjacency.getValue(id)) {
+                    if (visited.add(neighbor)) { component.add(neighbor); queue.add(neighbor) }
+                }
+            }
+            components.add(component)
+        }
+
+        // Каждую компоненту — в самостоятельный подграф, СОХРАНЯЯ номера узлов (порядок узлов — из nodes).
+        return components.map { componentIds ->
+            val idSet = componentIds.toHashSet()
+            MoleculeGraph(
+                nodes = nodes.filter { it.localId in idSet },
+                bonds = remaining.filter { it.atom1 in idSet && it.atom2 in idSet },
+            )
+        }
+    } // Разрываем связь между двумя атомами молекулы
+
+
+    //////////////////////////////////////
+    // ВСПОМОГАТЕЛЬНЫЕ ПРИВАТНЫЕ МЕТОДЫ //
+    private fun sameBond(bond: Bond, a: Int, b: Int): Boolean = (bond.atom1 == a && bond.atom2 == b) || (bond.atom1 == b && bond.atom2 == a)
+
+    //////////////////////
+
 }
-
-/** Потолок наивного перебора O(n!) в MoleculeGraph.canonical; выше канон = "" (до Моргана, Стадия 2). */
-private const val CANONICAL_MAX_NODES = 9
-
-/**
- * Минимальный размер кольца, который MoleculeGraph.ringClosureCandidates вообще предлагает. Напряжённые
- * 3–4-кольца отсекаем полностью (иначе преждевременный циклопропан из голой тройки атомов); 5+ отдаём на
- * выбор энергетическому weight (см. RingClosure), где ringStrain делает 5–6 выгоднее 7+.
- */
-private const val RING_MIN_SIZE = 5
-
-/**
- * «Голый» символ элемента без масс-индекса и заряда: ²H→H, ¹²C→C, ³He→He.
- * Каталог elementDetails() кодирует букву элемента ASCII-символами, а масс-индекс/заряд —
- * надстрочными; оставив только ASCII-буквы, получаем химический символ. Переиспользуем каталог
- * как единственный источник правды — без отдельной таблицы Менделеева.
- */
-private fun bareSymbol(element: Element): String =
-    element.details.symbol.filter { it in 'A'..'Z' || it in 'a'..'z' }

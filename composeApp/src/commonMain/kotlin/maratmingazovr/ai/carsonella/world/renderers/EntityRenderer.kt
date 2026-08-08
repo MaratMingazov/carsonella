@@ -79,7 +79,7 @@ class EntityRenderer(
         val entityState = entity.state().value
         val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
         val fillColor = ElementColors.fill(element)
-        val symbol = element.details.symbol.filter { it.isLetter() }
+        val symbol = element.bareSymbol
 
         with(drawScope) {
             if (withValenceSlots) {
@@ -115,7 +115,7 @@ class EntityRenderer(
             shape.atoms.forEach { atom ->
                 val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), entityState.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(atom.structure.isotope)
-                val symbol = atom.structure.isotope.details.symbol.filter { it.isLetter() }
+                val symbol = atom.structure.isotope.bareSymbol
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.structure.localId * 1.3f
                 drawAtom(screenPos(atom, atomVibrationParams), atom.structure.radius, fill, symbol, atom.structure.freeValence, slotAngle, highlighted = highlight.entity)
             }
