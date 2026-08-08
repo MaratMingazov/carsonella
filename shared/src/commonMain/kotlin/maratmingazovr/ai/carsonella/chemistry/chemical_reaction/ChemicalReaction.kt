@@ -8,7 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaDecay
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.AlphaProtonReaction
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.Annihilation
@@ -51,7 +51,7 @@ interface IEntityGenerator {
     fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
 
     
-    fun createMolecule(graph: MoleculeGraph, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
+    fun createMolecule(shape: MoleculeShape, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
     fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity
     fun createMolecule(molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom, environment: IEnvironment,): Entity
     fun createMolecule(molecule: Molecule, atom: MoleculeAtom, partner: Atom, environment: IEnvironment,): Entity

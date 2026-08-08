@@ -180,6 +180,13 @@ data class MoleculeGraph(
         nodes.associate { it.localId to (it.isotope.valence(it.isotope.details.p) - (used[it.localId] ?: 0)) }
     }
 
+    init {
+        for (node in nodes) {
+            val free = freeValenceById.getValue(node.localId)
+            require(free >= 0) { "У узла ${node.localId} (${node.isotope.details.symbol}) занято на ${-free} связей больше валентности" }
+        }
+    }
+
     /**
      * Узнаем есть ли еще валентные слоты у конкретного атома в молекуле (localId - номер узла)
      * Если > 0 значит этот атом в молекуле еще может образовать новую валентную связь, либо усилить сузествующую связь
@@ -270,9 +277,9 @@ data class MoleculeGraph(
 
     /**
      * Разрыв КОЛЬЦЕВОЙ связи: убираем ребро [atom1]–[atom2], цикл раскрывается в цепь, граф остаётся
-     * ОДИН. Отличие от [split] не только в этом: здесь сохраняется нумерация узлов, тогда как split
-     * компактит localId в 0-based. Для раскрытия это принципиально — атомы те же, сущность та же, и
-     * снимки ([MoleculeAtom]/[MoleculeBond]) на руках у UI и правил не должны протухнуть.
+     * ОДИН — в отличие от [split], который возвращает компоненты по отдельности. Нумерацию узлов
+     * сохраняют оба, и для раскрытия это принципиально: атомы те же, сущность та же, и снимки
+     * ([MoleculeAtom]/[MoleculeBond]) на руках у UI и правил не должны протухнуть.
      *
      * Связь обязана быть кольцевой ([isRingBond]); на мосте граф распался бы, и это поймает проверка
      * связности в [init] — но звать тут надо не это, а [split].
@@ -285,9 +292,12 @@ data class MoleculeGraph(
 
     /**
      * Разрыв связи.
-     * Убираем ребро [atom1]–[atom2] и возвращаем связные компоненты — каждую самостоятельным подграфом
-     * с переиндексацией localId в 0-based (merge сдвигает номера в свободный диапазон — split компактит
-     * обратно). Топология компонент НЕ меняется, это лишь перенумерация меток (см. canonical).
+     * Убираем ребро [atom1]–[atom2] и возвращаем связные компоненты — каждую самостоятельным подграфом.
+     *
+     * Номера узлов осколок НАСЛЕДУЕТ: они не пересчитываются в 0-based, поэтому в подграфе законны дыры
+     * (H₂O рвём O–H → осколок с узлами 0 и 2). Так вызывающий может сопоставить, где атом был ДО разрыва,
+     * — без этого не унаследовать его координаты. Графу непрерывность и не нужна: [init] требует только
+     * уникальности и связности, а [merge] сдвигает чужие номера на `max + 1` и с дырами работает.
      *
      * Обычно (граф — дерево/цепь, любая связь — мост) даёт РОВНО две компоненты: H₂O рвём O–H → [·OH, H·].
      * Краевой случай — КОЛЬЦО: если удаляемое ребро в цикле, граф остаётся связным → ОДНА компонента
@@ -322,17 +332,12 @@ data class MoleculeGraph(
             components.add(component)
         }
 
-        // Каждую компоненту — в самостоятельный подграф с переиндексацией 0-based (порядок узлов — из nodes).
+        // Каждую компоненту — в самостоятельный подграф, СОХРАНЯЯ номера узлов (порядок узлов — из nodes).
         return components.map { componentIds ->
             val idSet = componentIds.toHashSet()
-            val subNodes = nodes.filter { it.localId in idSet }
-            val remap = HashMap<Int, Int>()
-            subNodes.forEachIndexed { i, n -> remap[n.localId] = i }
             MoleculeGraph(
-                nodes = subNodes.mapIndexed { i, n -> AtomNode(i, n.isotope) },
-                bonds = remaining
-                    .filter { it.atom1 in idSet && it.atom2 in idSet }
-                    .map { Bond(remap.getValue(it.atom1), remap.getValue(it.atom2), it.order) },
+                nodes = nodes.filter { it.localId in idSet },
+                bonds = remaining.filter { it.atom1 in idSet && it.atom2 in idSet },
             )
         }
     }

@@ -14,7 +14,7 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
 import kotlin.random.Random
 
 class EntityGenerator(
@@ -31,10 +31,10 @@ class EntityGenerator(
     ): Entity = createEntityWithId(idGen.nextId(), element, position, direction, velocity, energy, environment, electrons)
 
     override fun createMolecule(
-        graph: MoleculeGraph, position: Position, direction: Vec2D,
+        shape: MoleculeShape, position: Position, direction: Vec2D,
         velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
     ): Entity = register(
-        Molecule(idGen.nextId(), graph, Kinematics(position, direction, velocity), energy, electrons),
+        Molecule(idGen.nextId(), shape, Kinematics(position, direction, velocity), energy, electrons),
         environment,
     )
 

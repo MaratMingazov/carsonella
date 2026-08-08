@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
  *
  * Зеркало образования связи (CovalentBondFormation/MoleculeGrowth ИЗЛУЧАЮТ фотон энергии связи) — здесь
  * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([Molecule.weakestBond]), порог = её энергия
- * ([Molecule.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([MoleculeGraph.split]),
+ * ([Molecule.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([Molecule.split]),
  * а не из хардкода: осколок из одного узла → атом, из ≥2 узлов → молекула. Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
  * до атомов.
  *

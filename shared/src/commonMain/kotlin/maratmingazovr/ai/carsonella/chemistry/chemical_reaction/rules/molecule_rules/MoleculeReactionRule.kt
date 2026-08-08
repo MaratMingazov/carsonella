@@ -4,12 +4,12 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
 
 /**
  * Базовый класс для молекулярных правил (рост 3b, граф-диссоциация, …): субъект реакции — первый
@@ -72,7 +72,7 @@ abstract class MoleculeReactionRule : ReactionRule {
                 }),
             )
         }
-        val fragments = molecule.graph.split(bond.atom1.structure.localId, bond.atom2.structure.localId)
+        val fragments = molecule.split(bond)
         return ReactionOutcome(
             consumed = listOf(molecule),
             spawn = spawnFragments(fragments, molecule, generator, energy / fragments.size),
@@ -80,7 +80,7 @@ abstract class MoleculeReactionRule : ReactionRule {
     }
 
     /**
-     * Спавн осколков распада ([MoleculeGraph.split]) — общий для PhotoDissociation/StarDissociation
+     * Спавн осколков распада ([Molecule.split]) — общий для PhotoDissociation/StarDissociation
      * (одна графовая хирургия → один способ «выложить» осколки). Осколки разводятся по оси X от [molecule],
      * наследуют её направление, нейтральны (гомолитика: electrons = протоны осколка).
      *
@@ -94,7 +94,7 @@ abstract class MoleculeReactionRule : ReactionRule {
      *    возбуждение осколка-атома (редкость) не моделируем — весь избыток идёт в движение.
      */
     private fun spawnFragments(
-        fragments: List<MoleculeGraph>,
+        fragments: List<MoleculeShape>,
         molecule: Entity,
         generator: IEntityGenerator,
         energyPerFragment: Float,
@@ -105,10 +105,12 @@ abstract class MoleculeReactionRule : ReactionRule {
             // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
             // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
             // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
+            // Настоящие координаты у осколка уже есть (форма их несёт), но взять их вместо этой развозки
+            // нельзя: осколки встали бы вплотную и слиплись бы обратно тем же тиком — см. док, шаг 4.
             val pos = moleculeState.kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
-            val electrons = frag.protons               // нейтральный осколок (гомолитика)
-            if (frag.nodes.size == 1) {
-                val isotope = frag.nodes.single().isotope
+            val electrons = frag.atoms.sumOf { it.structure.isotope.details.p }  // нейтральный осколок (гомолитика)
+            if (frag.atoms.size == 1) {
+                val isotope = frag.atoms.single().structure.isotope
                 val kineticVelocity = moleculeState.kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
                 return@mapIndexed { generator.createEntity(isotope, pos, moleculeState.kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
