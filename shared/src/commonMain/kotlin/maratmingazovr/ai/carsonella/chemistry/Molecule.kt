@@ -125,23 +125,23 @@ class Molecule(
     override val protons: Int get() = graph.protons
     override val radius: Float = MOLECULE_RADIUS
 
-    val shape: MoleculeShape get() = placeShape(graph, ::ownKinematics)
-    private val atoms: List<MoleculeAtom> get() = placeAtoms(graph, ::ownKinematics)
+    val shape: MoleculeShape get() = placeShape(graph)
+    private val atoms: List<MoleculeAtom> get() = placeAtoms(graph)
 
     /**
      * Граф ПАРАМЕТРОМ, а не `this.graph`: так же ставится в мир осколок, чей граф молекуле ещё не
      * принадлежит (см. [split]). Свойство [atoms] здесь не подходит — оно всегда от `this.graph`, и
      * форма осколка получила бы атомы целой молекулы с досплитовыми `freeValence`/`inRing`.
      */
-    private fun placeShape(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): MoleculeShape {
-        val placed = placeAtoms(graph, kinematicsOf)
+    private fun placeShape(graph: MoleculeGraph): MoleculeShape {
+        val placed = placeAtoms(graph)
         return MoleculeShape(placed, placeBonds(graph, graph.bonds, placed))
     }
-    private fun placeAtoms(graph: MoleculeGraph, kinematicsOf: (Int) -> Kinematics): List<MoleculeAtom> =
+    private fun placeAtoms(graph: MoleculeGraph): List<MoleculeAtom> =
         graph.nodes.map { node ->
             MoleculeAtom(
                 structure = MoleculeAtomStructure(localId = node.localId, isotope = node.isotope, freeValence = graph.freeValence(node.localId)),
-                kinematics = kinematicsOf(node.localId),
+                kinematics = ownKinematics(node.localId),
             )
         }
     private fun placeBonds(graph: MoleculeGraph, bonds: List<Bond>, atoms: List<MoleculeAtom>): List<MoleculeBond> {
@@ -202,7 +202,7 @@ class Molecule(
      */
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph
         .split(bond.atom1.structure.localId, bond.atom2.structure.localId)
-        .map { fragment -> placeShape(fragment, ::ownKinematics) }
+        .map { fragment -> placeShape(fragment) }
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.structure.radius } // Молекула не кружок: берём ближайший АТОМ.
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - state().value.electrons)
