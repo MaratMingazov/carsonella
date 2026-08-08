@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
-import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 
@@ -9,11 +9,10 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRu
 abstract class AtomReactionRule : ReactionRule {
 
     final override fun matches(reagents: List<Entity>): MatchedData? {
-        val subject = reagents.firstOrNull() ?: return null
-        if (subject is Molecule) return null
+        if (reagents.firstOrNull() !is Atom) return null
         return matchesAtoms(reagents)
     }
 
-    /** Как `matches`, но субъект гарантированно не молекула. */
+    /** Как `matches`, но субъект гарантированно атом. */
     abstract fun matchesAtoms(reagents: List<Entity>): MatchedData?
 }

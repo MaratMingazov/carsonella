@@ -24,9 +24,6 @@ import maratmingazovr.ai.carsonella.randomDirection
  * пока не останется голое ядро. Это приводит дропнутые в звезду нейтральные атомы к
  * «звёздному» голому виду, на котором работают правила синтеза.
  *
- * Водород — особый случай: голый H это частица Proton (SubAtom), а не «H с 0 электронов»
- * (тот же приём consume + spawn, что и в [PhotoIonization]).
- *
  * Триггерится одно-реагентным запросом listOf(this), который атом шлёт из Atom.step(),
  * когда находится в Star-температуре и ещё имеет электроны.
  */
@@ -57,40 +54,8 @@ class StarThermalIonization(
         val env = atom.getEnvironment()
         val electronPosition = position.plus(Position(radius, 0f))
 
-        // Водород: после срыва единственного электрона остаётся голый протон (частица Proton).
-        if (element == Element.HYDROGEN) {
-            return ReactionOutcome(
-                consumed = listOf(atom),
-                // Лямбда на КАЖДЫЙ продукт: мир собирает описание из их результатов, а из одной
-                // лямбды с двумя createEntity наружу вернулась бы только вторая сущность.
-                spawn = listOf(
-                    {
-                        entityGenerator.createEntity(
-                            Element.Proton,
-                            position,
-                            atom.state().value.kinematics.direction,
-                            atom.state().value.kinematics.velocity,
-                            0f,
-                            env,
-                            electrons = 0
-                        )
-                    },
-                    {
-                        entityGenerator.createEntity(
-                            Element.ELECTRON,
-                            electronPosition,
-                            randomDirection(entityGenerator.random),
-                            10f,
-                            0f,
-                            env,
-                            electrons = 1
-                        )
-                    },
-                ),
-            )
-        }
-
-        // Прочие атомы: тот же Element, на 1 электрон меньше; вылетает свободный e⁻. energy сбрасываем в
+        // Атом теряет электрон: тот же Element, на 1 электрон меньше; вылетает свободный e⁻. Водород
+        // ничем не особен — H с одним электроном становится H с нулём, то есть протоном. energy сбрасываем в
         // основное состояние: у нового зарядового состояния другие уровни, старая энергия для него не
         // валидна (инвариант Atom; конструкторный require не ловит updateState-путь — чиним здесь).
         return ReactionOutcome(

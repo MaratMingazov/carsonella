@@ -8,7 +8,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -44,7 +44,7 @@ class StarPhotodisintegration(
         abstract val parent: Element
         abstract val ejected: Element
         data class Alpha(override val parent: Element) : Channel() { override val ejected = HELIUM_4 } // (γ,α)
-        data class ProtonOut(override val parent: Element) : Channel() { override val ejected = Proton } // (γ,p)
+        data class ProtonOut(override val parent: Element) : Channel() { override val ejected = HYDROGEN } // (γ,p)
         data class NeutronOut(override val parent: Element) : Channel() { override val ejected = NEUTRON } // (γ,n)
     }
 

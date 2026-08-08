@@ -9,7 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOSPHORUS_31
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.SILICON_28
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_31
 import maratmingazovr.ai.carsonella.chemistry.Element.SULFUR_32
@@ -73,7 +73,7 @@ class StarOxygenBurning(
         // Случайно выбираем один из четырёх каналов горения кислорода.
         val (result, extras) = listOf(
             SILICON_28    to listOf(HELIUM_4),
-            PHOSPHORUS_31 to listOf(Proton),
+            PHOSPHORUS_31 to listOf(HYDROGEN),
             SULFUR_31     to listOf(NEUTRON),
             SULFUR_32     to emptyList(),
         ).random(entityGenerator.random)

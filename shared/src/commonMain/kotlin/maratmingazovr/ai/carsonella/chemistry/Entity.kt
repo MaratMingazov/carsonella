@@ -239,7 +239,7 @@ enum class ElementType { SubAtom, Atom, Star }
 
 enum class Element() {
     // --- субатомные частицы ---
-    PHOTON, ELECTRON, Proton, NEUTRON, POSITRON,
+    PHOTON, ELECTRON, NEUTRON, POSITRON,
 
     // --- атомы ---
     HYDROGEN,
@@ -641,7 +641,13 @@ private fun stripCharge(symbol: String): String =
 // Может ли частица принять ещё электрон (рекомбинация): протон → H, либо атом с электронами меньше Z.
 // Анионов в модели нет — потолок electrons == p (нейтраль). Опора рефакторинга ионизации (2C).
 fun canGainElectron(element: Element, electrons: Int): Boolean =
-    element == Element.Proton || (element.details.type == ElementType.Atom && electrons < element.details.p)
+    element.details.type == ElementType.Atom && electrons < element.details.p
+
+// Голое ядро [of] — атом, потерявший ВСЕ электроны (H без электрона = протон, ⁴He без двух = α-частица).
+// Нужен там, где раньше хватало сравнения элементов: у голого ядра и нейтрального атома Element один и
+// тот же, отличает их только заряд, и без этой проверки нейтральный H сойдёт в правилах за протон.
+fun Entity.isBareNucleus(of: Element): Boolean =
+    this is Atom && element == of && state().value.electrons == 0
 
 data class Details(
     val type: ElementType,
@@ -687,16 +693,3 @@ data class Details(
 )
 
 
-/**
- * Элемент сущности, если он у неё есть. ВРЕМЕННАЯ опора для двух правил, где субъектом бывает и атом,
- * и голый протон (StarPPChain, RecombinationReaction): протон лежит в SubAtom, хотя физически это ядро.
- *
- * Когда протон станет атомом, а частицы потеряют element, компилятор приведёт сюда сам — when по
- * запечатанной иерархии перестанет быть исчерпывающим.
- */
-fun Entity.elementOrNull(): Element? = when (this) {
-    is Atom -> element
-    is SubAtom -> element
-    is Star -> element
-    is Molecule -> null
-}

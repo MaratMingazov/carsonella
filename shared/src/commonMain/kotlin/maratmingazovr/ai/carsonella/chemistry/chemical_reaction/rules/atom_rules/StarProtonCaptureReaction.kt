@@ -14,10 +14,10 @@ import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17
 import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.SubAtom
+import maratmingazovr.ai.carsonella.chemistry.isBareNucleus
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -80,9 +80,7 @@ class StarProtonCaptureReaction(
 
         val (secondAtom, distanceSquare) = reagents
             .drop(1)
-            .filter {
-                it is SubAtom && it.element == Proton
-            }
+            .filter { it.isBareNucleus(HYDROGEN) }
             .filter { it.state().value.alive }
             .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
             .minByOrNull { it.second }
@@ -90,7 +88,7 @@ class StarProtonCaptureReaction(
 
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
         if (secondAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
-        if (distanceSquare >= firstAtomElement.details.radius * Proton.details.radius * 2f) return null
+        if (distanceSquare >= firstAtomElement.details.radius * HYDROGEN.details.radius * 2f) return null
 
         // Reaction rate — bottleneck/slowdown для конкретных target-ядер.
         if (!chance(captureRate(firstAtomElement), entityGenerator.random)) return null
@@ -112,8 +110,8 @@ class StarProtonCaptureReaction(
             if (roll < cumulative) { picked = out; break }
         }
 
-        // второй реагент — протон по фильтру
-        return Match(firstAtom, secondAtom, firstAtomElement, Proton, picked)
+        // второй реагент — протон (голый H) по фильтру
+        return Match(firstAtom, secondAtom, firstAtomElement, HYDROGEN, picked)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

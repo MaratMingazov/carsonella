@@ -24,6 +24,12 @@ internal const val VIB_HZ = 1f        // вибрация частиц: 1 цик
 internal const val STAR_HZ = 0.2f     // пульс звезды: 1 цикл/5с (как прежний phase2, 2π за 5с)
 internal const val SLOT_HZ = 1f / 15f  // вращение свободных слотов: 1 оборот/15с — медленно, плавно, без скачка
 
+// Голый водород (H без электрона) — это протон, и рисуется он как протон, а не как атом: мелкий тёплый
+// кружок с «p». В модели отдельного протона нет, поэтому его вид живёт здесь литералами.
+private const val BARE_PROTON_RADIUS = 15f
+private const val BARE_PROTON_SYMBOL = "p"
+private val BARE_PROTON_FILL = Color(0xFFFAD0A0)
+
 
 data class VibrationParams(
     val id: Long, // чтобы у каждого элемента было свое колебание
@@ -78,9 +84,10 @@ class EntityRenderer(
     ) {
         val entityState = entity.state().value
         val position = entityState.kinematics.position.toOffset()  + vibrationParams.positionOffset
-        val fillColor = ElementColors.fill(element)
-        val symbol = element.bareSymbol
-        val radius = element.details.radius
+        val bareProton = element == Element.HYDROGEN && entityState.electrons == 0
+        val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
+        val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
+        val radius = if (bareProton) BARE_PROTON_RADIUS else element.details.radius
 
         with(drawScope) {
             if (withValenceSlots) {

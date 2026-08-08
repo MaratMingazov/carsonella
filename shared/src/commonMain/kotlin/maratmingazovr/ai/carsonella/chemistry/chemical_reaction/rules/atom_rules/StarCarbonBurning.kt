@@ -12,7 +12,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Element.NEON_20
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -73,7 +73,7 @@ class StarCarbonBurning(
         // Случайно выбираем один из четырёх каналов горения углерода.
         val (result, extras) = listOf(
             NEON_20       to listOf(HELIUM_4),
-            SODIUM_23     to listOf(Proton),
+            SODIUM_23     to listOf(HYDROGEN),
             MAGNESIUM_24  to emptyList(),
             MAGNESIUM_23  to listOf(NEUTRON),
         ).random(entityGenerator.random)

@@ -1,11 +1,8 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -111,41 +108,8 @@ class PhotoIonization (
             val electronPosition = entityPosition.addVelocity(electronDirection * electronOffset)
             val env = atom.getEnvironment()
 
-            // Протий — особый случай: ион водорода это частица Proton (SubAtom), а не «H с 0 электронов».
-            // Сменить Element/класс через updateState нельзя (element неизменяем), поэтому здесь consume + spawn.
-            if (entityElement == HYDROGEN) {
-                val ionPosition = entityPosition.plus(Position(-1f * entityRadius, 0f))
-                return ReactionOutcome(
-                    consumed = listOf(photon, atom),
-                    // Лямбда на КАЖДЫЙ продукт: мир собирает описание из их результатов, а из одной
-                    // лямбды с двумя createEntity наружу вернулась бы только вторая сущность.
-                    spawn = listOf(
-                        {
-                            entityGenerator.createEntity(
-                                Proton,
-                                ionPosition,
-                                entityDirection,
-                                entityVelocity,
-                                0f,
-                                env,
-                                electrons = 0
-                            )
-                        },
-                        {
-                            entityGenerator.createEntity(
-                                ELECTRON,
-                                electronPosition,
-                                electronDirection,
-                                electronVelocity,
-                                0f,
-                                env,
-                                electrons = 1
-                            )
-                        },
-                    ),)
-            }
-
             // Element НЕ меняется — тот же атом теряет электрон: updateState(electrons−1, energy=0), вылетает e⁻.
+            // Водород здесь ничем не особен: H с одним электроном становится H с нулём, то есть протоном.
             return ReactionOutcome(
                 consumed = listOf(photon),
                 updateState = listOf(StateUpdate(atom) {

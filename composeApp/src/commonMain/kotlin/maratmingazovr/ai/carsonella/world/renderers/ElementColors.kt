@@ -27,14 +27,13 @@ object ElementColors {
     )
     private val FILL_DEFAULT = Color(0xFFD5D5D5)  // молекула-фолбэк / неизвестный элемент — мягкий серый
 
-    // Сплошная заливка кружка (плоский стиль). Субатомы — по типу частицы (иначе позитрон/протон
-    // с p=1 случайно получили бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
+    // Сплошная заливка кружка (плоский стиль). Субатомы — по типу частицы (иначе позитрон с p=1
+    // случайно получил бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
     fun fill(element: Element): Color = when (element) {
         Element.PHOTON -> Color(0xFFFFE9A8) // тёплый бледно-жёлтый (свет)
         Element.ELECTRON -> Color(0xFFAFD3F2) // голубой (−)
         Element.POSITRON -> Color(0xFFF6B8C4) // розовый (+)
         Element.NEUTRON -> Color(0xFFD3D9DD) // нейтральный серый
-        Element.Proton -> Color(0xFFFAD0A0) // тёплый (голое положительное ядро)
         else -> fillByZ[element.details.p] ?: FILL_DEFAULT
     }
 }

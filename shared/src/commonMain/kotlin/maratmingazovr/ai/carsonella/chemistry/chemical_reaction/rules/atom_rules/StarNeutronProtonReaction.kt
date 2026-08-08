@@ -5,7 +5,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -100,7 +100,7 @@ class StarNeutronProtonReaction(
             // Протон-отдача вылетает по направлению движения СМ — отдельный degree of
             // freedom импульса между продуктами в проекте не моделируется (см. StarPPChain).
             entityGenerator.createEntity(
-                Proton,
+                HYDROGEN,
                 Position(
                     resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
                     resultPosition.y + 1.5f * direction.y * resultElement.details.radius,

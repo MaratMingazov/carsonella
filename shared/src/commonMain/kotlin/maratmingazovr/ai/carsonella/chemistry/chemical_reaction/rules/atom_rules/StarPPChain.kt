@@ -10,9 +10,11 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3
 import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7
+import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
-import maratmingazovr.ai.carsonella.chemistry.elementOrNull
+import maratmingazovr.ai.carsonella.chemistry.Atom
+import maratmingazovr.ai.carsonella.chemistry.SubAtom
+import maratmingazovr.ai.carsonella.chemistry.isBareNucleus
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -58,26 +60,26 @@ class StarPPChain(
 
     override fun matchesAtoms(reagents: List<Entity>): MatchedData? {
         if (reagents.size < 2) return null
-        val firstAtom = reagents.first()
+        val firstAtom = reagents.first() as? Atom ?: return null
         val firstAtomPosition = firstAtom.state().value.kinematics.position
         if (!firstAtom.state().value.alive) return null
-        // Субъект цепочки — и протон (p+p→D), и атом (D+p→³He), поэтому элемент через elementOrNull.
-        val firstAtomElement = firstAtom.elementOrNull() ?: return null
+        val firstAtomElement = firstAtom.element
         if (firstAtom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         // В зависимости от первого реагента определяем какие варианты второго реагента возможны и что родится.
         // Шаг ³He+⁴He → ⁷Be (pp-II стартовый) сюда не входит — он живёт в StarAlphaGammaReaction
         // через alphaGammaResult на ³He²⁺.
         // Для ⁷Be⁴⁺ возможны две ветки: + e⁻ → ⁷Li³⁺ (pp-II, доминирует) либо + p → ⁸B⁵⁺ (pp-III, редкая).
-        val candidates: List<Triple<Element, Element, List<Element>>> = when (firstAtomElement) {
-            Proton      -> listOf(Triple(Proton,    DEUTERIUM, emptyList()))
-            DEUTERIUM   -> listOf(Triple(Proton,    HELIUM_3,  emptyList()))
-            HELIUM_3    -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(Proton, Proton)))
-            BERYLLIUM_7 -> listOf(
-                Triple(ELECTRON, LITHIUM_7, emptyList()),
-                Triple(Proton,   BORON_8,   emptyList()),
+        // Водород здесь всегда ГОЛЫЙ (протон): у нейтрального H тот же Element, отличает их только заряд.
+        val candidates: List<Triple<Element, Element, List<Element>>> = when {
+            firstAtom.isBareNucleus(HYDROGEN) -> listOf(Triple(HYDROGEN,  DEUTERIUM, emptyList()))
+            firstAtomElement == DEUTERIUM     -> listOf(Triple(HYDROGEN,  HELIUM_3,  emptyList()))
+            firstAtomElement == HELIUM_3      -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(HYDROGEN, HYDROGEN)))
+            firstAtomElement == BERYLLIUM_7   -> listOf(
+                Triple(ELECTRON,  LITHIUM_7, emptyList()),
+                Triple(HYDROGEN,  BORON_8,   emptyList()),
             )
-            LITHIUM_7   -> listOf(Triple(Proton,    HELIUM_4,  listOf(HELIUM_4)))
+            firstAtomElement == LITHIUM_7     -> listOf(Triple(HYDROGEN,  HELIUM_4,  listOf(HELIUM_4)))
             else -> return null
         }
 
@@ -85,9 +87,7 @@ class StarPPChain(
         for ((secondElement, result, extras) in candidates) {
             val (secondAtom, distanceSquare) = reagents
                 .drop(1)
-                .filter {
-                    it.elementOrNull() == secondElement
-                }
+                .filter { isCandidate(it, secondElement) }
                 .filter { it.state().value.alive }
                 .map { it to it.state().value.kinematics.position.distanceSquareTo(firstAtomPosition) }
                 .minByOrNull { it.second }
@@ -100,6 +100,14 @@ class StarPPChain(
             }
         }
         return null
+    }
+
+    // Годится ли сосед на роль второго реагента. Водород — только голый (протон): нейтральный атом H
+    // несёт тот же Element, но в pp-цепочке не участвует.
+    private fun isCandidate(entity: Entity, element: Element): Boolean = when {
+        element == HYDROGEN -> entity.isBareNucleus(HYDROGEN)
+        element == ELECTRON -> entity is SubAtom && entity.element == ELECTRON
+        else -> entity is Atom && entity.element == element
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

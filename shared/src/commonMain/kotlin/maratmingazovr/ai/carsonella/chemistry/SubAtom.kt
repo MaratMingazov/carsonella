@@ -8,7 +8,6 @@ import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
-import maratmingazovr.ai.carsonella.chemistry.Element.Proton
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
 
@@ -66,7 +65,6 @@ class SubAtom(
         when (element) {
             PHOTON -> initPhoton(environment)
             ELECTRON -> initElectron(environment, neighbors)
-            Proton -> initProton(environment, neighbors)
             POSITRON -> initPositron(environment, neighbors)
             NEUTRON -> initNeutron(environment)
             else -> throw NotImplementedError()
@@ -98,18 +96,6 @@ class SubAtom(
         applyForce(calculateForce(neighbors)) // электроны должны отталкиваться друг от друга
         applyNewPosition()
         checkBorders(environment)
-    }
-
-    private fun initProton(environment: IEnvironment, neighbors: List<Entity>) {
-        reduceVelocity()
-        applyForce(calculateForce(neighbors))
-        applyNewPosition()
-        checkBorders(environment)
-
-        neighbors
-            .filter { entity -> state.value.kinematics.position.distanceSquareTo(entity.state().value.kinematics.position) < 5000f }
-            .takeIf { it.isNotEmpty() }
-            ?.let {requestReaction(listOf(this) + it) }
     }
 
     // Нейтрон электрически нейтрален → не реагирует на кулоновские силы (нет applyForce).

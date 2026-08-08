@@ -19,7 +19,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdat
  *
  * Порог = последний уровень [MoleculeGraph.energyLevels] (минимум атомного IP по графу, кэш на графе). В отличие от
  * атома, молекулярный ион НЕ требует нового графа: заряд живёт в [EntityState.electrons] как счётчик,
- * а граф не меняется — поэтому здесь `updateState` (electrons−1), а не consume+spawn (как у H → Proton).
+ * а граф не меняется — поэтому здесь `updateState` (electrons−1), как и у атома.
  *
  * Рамки этого шага (детерминированно; вероятностное ветвление — отдельным правилом):
  *  - weight = 0, поэтому при `E ≥ IP` ионизация уверенно бьёт распад ([PhotoDissociation], weight < 0)
