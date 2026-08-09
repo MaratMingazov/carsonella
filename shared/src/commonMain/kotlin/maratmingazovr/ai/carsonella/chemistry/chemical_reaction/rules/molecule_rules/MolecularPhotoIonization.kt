@@ -59,9 +59,6 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
         return Match(molecule, nearestPhoton)
     }
 
-    // Детерминированный шаг: ионизация бьёт распад. weight = 0 > weight распада (−dissociationEnergy),
-    // поэтому при E ≥ IP resolve() выбирает ионизацию; при D ≤ E < IP (порог IP не достигнут — matches
-    // вернул false) в игре остаётся только распад. Вероятностный branch заменит это позже.
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, photon) = match as Match
         val threshold = molecule.energyLevels.last()           // matches гарантирует что лестница непуста

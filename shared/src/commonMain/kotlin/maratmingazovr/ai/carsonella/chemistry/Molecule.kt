@@ -287,6 +287,11 @@ class Molecule private constructor(
     val shape: MoleculeShape get() = createMoleculeShape(graph)
     val atoms: List<MoleculeAtom> get() = createMoleculeAtoms(graph)
     val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> createMoleculeBonds(graph, listOf(bond)).single() } // Слабейшая связь — она рвётся первой при распаде.
+    fun weakestBondAt(atom: MoleculeAtom): Pair<MoleculeBond, Float>? = graph.bonds
+        .filter { it.atom1 == atom.localId || it.atom2 == atom.localId }
+        .mapNotNull { bond -> graph.energyOf(bond)?.let { energy -> bond to energy } }
+        .minByOrNull { (_, energy) -> energy }
+        ?.let { (bond, energy) -> createMoleculeBonds(graph, listOf(bond)).single() to energy }
     val strengthenableBonds: List<MoleculeBond> get() = createMoleculeBonds(graph, graph.strengthenableBonds) // Связи, которые можно усилить (кратность +1).
     val ringClosureCandidates: List<MoleculeRingCandidate> get() =
         graph.ringClosureCandidates.map { MoleculeRingCandidate(it.atom1, it.atom2, it.ringSize) }

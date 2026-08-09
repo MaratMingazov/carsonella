@@ -4,18 +4,14 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 
 /**
- * Фотодиссоциация: фотон достаточной энергии рвёт молекулу по слабейшей связи.
- *
- * Зеркало образования связи (CovalentBondFormation/MoleculeGrowth ИЗЛУЧАЮТ фотон энергии связи) — здесь
- * фотон ПОГЛОЩАЕТСЯ на разрыв: рвём слабейшую связь ([Molecule.weakestBond]), порог = её энергия
- * ([Molecule.dissociationEnergy], кэш на графе). Продукты — ИЗ ТОПОЛОГИИ ([Molecule.split]),
- * а не из хардкода: осколок из одного узла → атом, из ≥2 узлов → молекула. Горячий осколок-молекула может распасться дальше на следующих тиках — рекурсивно
- * до атомов.
+ * Фотодиссоциация: фотон достаточной энергии рвёт молекулу по связи ТОГО АТОМА, в который попал.
  *
  * Рамки этого шага:
  *  - Только РАСПАД. Фотон ниже порога пролетает мимо (возбуждение/поглощение и молекулярная ионизация —
@@ -29,47 +25,45 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOu
 class PhotoDissociation(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "PhotoDissociation"
 
-    private data class Match(val molecule: Molecule, val photon: SubAtom) : MatchedData
+    private data class Match(
+        val molecule: Molecule,
+        val photon: SubAtom,
+        val bond: MoleculeBond,   // Какую связь рвём — выбрано здесь; produce и weight не пересчитывают.
+        val bondEnergy: Float,    // Порог разрыва (эВ): энергия ЭТОЙ связи, а не слабейшей в молекуле.
+    ) : MatchedData
 
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // рвать некому: фотон приходит соседом
+        if (molecule.dissociationEnergy == null) return null   // ни одной связи из каталога — рвать нечего
 
-        val threshold = molecule.dissociationEnergy ?: return null // проверяем есть ли у молекулы связь, которую можно порвать?
-
-        val moleculePosition = molecule.kinematics.position
-        val moleculeRadius = molecule.radius
-        val activationDistanceSquare = moleculeRadius * moleculeRadius
-
-        val nearestPhoton = neighbors
-            .asSequence()
-            .filterIsInstance<SubAtom>().filter { it.element == Element.PHOTON }
-            .filter { it.energy > 0f && it.alive }
+        val photons = neighbors
+            .filterIsInstance<SubAtom>()
+            .filter { it.element == Element.PHOTON && it.energy > 0f && it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
-            .map { it to moleculePosition.distanceSquareTo(it.kinematics.position) }
-            .filter { it.second <= activationDistanceSquare }
-            .minByOrNull { it.second }
+        if (photons.isEmpty()) return null
+
+        return molecule.atoms
+            .flatMap { atom -> candidates(molecule, atom, photons) }
+            .minByOrNull { (_, distanceSquare) -> distanceSquare }
             ?.first
-            ?: return null
-
-        val available = molecule.energy + nearestPhoton.energy
-        if (available < threshold) return null   // фотона не хватает даже на слабейшую связь → пролетает мимо
-
-        return Match(molecule, nearestPhoton)
     }
 
-    // Распад ЭНДОТЕРМИЧЕН — вес отрицательный (контракт weight = энергия реакции со знаком): разрыв связи
-    // «стоит» dissociationEnergy. Так распад проигрывает любой ассоциации (рост/усиление, «+») и побеждает
-    // только когда строить нечего (напр. насыщенная O=O + фотон — единственный совпавший вариант).
-    override fun weight(match: MatchedData): Float {
-        val (mol, _) = match as Match
-        val threshold = mol.dissociationEnergy ?: return 0f
-        return -threshold
+    // Фотоны, попавшие в этот атом и осилившие его слабейшую связь, с квадратом расстояния до него.
+    private fun candidates(molecule: Molecule, atom: MoleculeAtom, photons: List<SubAtom>): List<Pair<Match, Float>> {
+        val (bond, bondEnergy) = molecule.weakestBondAt(atom) ?: return emptyList()
+        val activationDistanceSquare = atom.radius * atom.radius
+        return photons.mapNotNull { photon ->
+            val distanceSquare = atom.kinematics.position.distanceSquareTo(photon.kinematics.position)
+            if (distanceSquare > activationDistanceSquare) return@mapNotNull null      // фотон пролетает мимо атома
+            if (molecule.energy + photon.energy < bondEnergy) return@mapNotNull null   // не хватает даже на эту связь
+            Match(molecule, photon, bond, bondEnergy) to distanceSquare
+        }
     }
+
+    override fun weight(match: MatchedData): Float = -(match as Match).bondEnergy
 
     override fun produce(match: MatchedData): ReactionOutcome {
-        val (mol, ph) = match as Match
-        val bond = mol.weakestBond!!          // matches гарантирует что не null
-        val threshold = bond.energy!!         // связь из каталога — иначе weakestBond её не выбрал бы
+        val (mol, ph, bond, threshold) = match as Match
 
         // Избыток (доступная − порог) не теряем (§6/§8, сохранение энергии) — он уходит продуктам.
         // Кольцо это или распад и куда именно кладётся энергия — забота breakBond.
