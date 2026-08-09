@@ -115,7 +115,7 @@ class EntityRenderer(
             shape.bonds.forEach { bond ->
                 // Связь под курсором показываем на кратность выше — пунктирной линией (клик усилит её).
                 val potentialOrder = if (bond == highlight.bond) bond.order + 1 else bond.order
-                drawBond(screenPos(bond.atom1), screenPos(bond.atom2), bond.order, potentialOrder)
+                drawBond(screenPos(molecule.atom(bond.localId1)), screenPos(molecule.atom(bond.localId2)), bond.order, potentialOrder)
             }
 
             shape.atoms.forEach { atom ->

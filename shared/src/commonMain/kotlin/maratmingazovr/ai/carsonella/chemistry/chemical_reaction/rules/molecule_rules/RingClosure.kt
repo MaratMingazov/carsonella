@@ -50,7 +50,7 @@ class RingClosure(
         // Кандидат с максимальным выигрышем (энергия связи − напряжение): 5–6 бьют 7+.
         // null-выигрыш (энергия связи неизвестна) отсеиваем.
         val best = subject.ringClosureCandidates
-            .mapNotNull { cand -> closureWeight(cand)?.let { cand to it } }
+            .mapNotNull { cand -> closureWeight(subject, cand)?.let { cand to it } }
             .maxByOrNull { it.second }
             ?: return null
         return Match(subject, best.first)
@@ -68,7 +68,7 @@ class RingClosure(
 
         // Нетто-энергия (энергия связи − напряжение кольца) уносится фотоном; напряжение остаётся запасённым
         // в геометрии кольца, которую мы явно не моделируем (потому фотон несёт нетто, а не полную энергию связи).
-        val released = closureWeight(cand) ?: 0f
+        val released = closureWeight(molecule, cand) ?: 0f
 
         val spawn = mutableListOf<() -> Entity>()
         if (released > 0f) {
@@ -82,15 +82,15 @@ class RingClosure(
 
         return ReactionOutcome(
             spawn = spawn,
-            updateState = listOf(StateUpdate(molecule) { molecule.closeRing(cand.atom1, cand.atom2) }),
+            updateState = listOf(StateUpdate(molecule) { molecule.closeRing(cand.localId1, cand.localId2) }),
         )
     }
 
     // weight замыкания: энергия образуемой связи (BondEnergy, order=1) − напряжение кольца.
     // null, если энергия связи неизвестна (не CHNO) — тогда кандидат пропускается.
     // Связи ещё нет, поэтому её энергии нет и в кеше графа — идём в каталог (в отличие от MoleculeBond.energy).
-    private fun closureWeight(cand: MoleculeRingCandidate): Float? {
-        val bondE = BondEnergy.of(cand.atom1.isotope, cand.atom2.isotope, 1) ?: return null
+    private fun closureWeight(molecule: Molecule, cand: MoleculeRingCandidate): Float? {
+        val bondE = BondEnergy.of(molecule.atom(cand.localId1).isotope, molecule.atom(cand.localId2).isotope, 1) ?: return null
         return bondE - ringStrain(cand.ringSize)
     }
 }

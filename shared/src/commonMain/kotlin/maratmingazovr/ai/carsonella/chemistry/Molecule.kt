@@ -21,8 +21,8 @@ class MoleculeAtom(
 }
 
 data class MoleculeBond(
-    val atom1: MoleculeAtom,
-    val atom2: MoleculeAtom,
+    val localId1: Int,
+    val localId2: Int,
     val order: Int,
     val energy: Float?, // Энергия связи (эВ) — сколько нужно, чтобы её разорвать. null — тип связи не в каталоге
     val inRing: Boolean, // Лежит в цикле: разрыв раскроет кольцо, а не развалит молекулу на осколки
@@ -34,8 +34,8 @@ data class MoleculeShape(
 )
 
 data class MoleculeRingCandidate(
-    val atom1: MoleculeAtom,
-    val atom2: MoleculeAtom,
+    val localId1: Int,
+    val localId2: Int,
     val ringSize: Int, // Сколько атомов окажется в цикле, если пару связать. Считается по графу (длина пути)
 )
 
@@ -193,11 +193,12 @@ class Molecule private constructor(
     val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> createMoleculeBonds(graph, listOf(bond)).single() } // Слабейшая связь — она рвётся первой при распаде.
     val strengthenableBonds: List<MoleculeBond> get() = createMoleculeBonds(graph, graph.strengthenableBonds) // Связи, которые можно усилить (кратность +1).
     val ringClosureCandidates: List<MoleculeRingCandidate> get() =
-        graph.ringClosureCandidates.map { MoleculeRingCandidate(atomsById.getValue(it.atom1), atomsById.getValue(it.atom2), it.ringSize) }
+        graph.ringClosureCandidates.map { MoleculeRingCandidate(it.atom1, it.atom2, it.ringSize) }
     // Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило.
+    fun atom(localId: Int): MoleculeAtom = atomsById.getValue(localId) // Атом по номеру узла: им адресуют концы MoleculeBond и MoleculeRingCandidate.
     fun freeValence(atom: MoleculeAtom): Int = graph.freeValence(atom.localId) // Сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле. Живёт на графе, а не на атоме: меняется при усилении связи и замыкании кольца, хранимое поле протухло бы.
     val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { freeValence(it) > 0 }
-    fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.atom1.localId, bond.atom2.localId).map { fragment -> createMoleculeShape(fragment) }
+    fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.localId1, bond.localId2).map { fragment -> createMoleculeShape(fragment) }
 
 
     private fun createMoleculeShape(graph: MoleculeGraph): MoleculeShape =
@@ -206,7 +207,7 @@ class Molecule private constructor(
         graph.nodes.map { node -> atomsById.getValue(node.localId) }
     private fun createMoleculeBonds(graph: MoleculeGraph, bonds: List<Bond>): List<MoleculeBond> =
         bonds.map {
-            MoleculeBond(atomsById.getValue(it.atom1), atomsById.getValue(it.atom2), it.order, graph.energyOf(it), graph.isRingBond(it))
+            MoleculeBond(it.atom1, it.atom2, it.order, graph.energyOf(it), graph.isRingBond(it))
         }
     private fun relayoutAtoms() {
         for (atom in atomsById.values) {
@@ -218,27 +219,25 @@ class Molecule private constructor(
     ////////////////////////////////
     // ФУНКЦИИ - ОБНОВЛЕНИЕ ГРАФА //
     fun strengthenBond(bond: MoleculeBond) {
-        val atom1 = bond.atom1.localId
-        val atom2 = bond.atom2.localId
-        require(graph.freeValence(atom1) > 0 && graph.freeValence(atom2) > 0) {
-            "Связь $atom1–$atom2 в ${graph.formula} не усилить: у конца нет свободного слота"
+        val id1 = bond.localId1
+        val id2 = bond.localId2
+        require(graph.freeValence(id1) > 0 && graph.freeValence(id2) > 0) {
+            "Связь $id1–$id2 в ${graph.formula} не усилить: у конца нет свободного слота"
         }
-        graph = graph.strengthenBond(atom1, atom2)
+        graph = graph.strengthenBond(id1, id2)
         relayoutAtoms()
         markChanged()
     } // Усиливаем связь bond: её кратность растёт на 1 (O–O → O=O, N=N → N≡N).
-    fun closeRing(atom1: MoleculeAtom, atom2: MoleculeAtom) {
-        val id1 = atom1.localId
-        val id2 = atom2.localId
-        require(graph.freeValence(id1) > 0 && graph.freeValence(id2) > 0) {
-            "Кольцо $id1–$id2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
+    fun closeRing(localId1: Int, localId2: Int) {
+        require(graph.freeValence(localId1) > 0 && graph.freeValence(localId2) > 0) {
+            "Кольцо $localId1–$localId2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
         }
-        graph = graph.closeRing(id1, id2)
+        graph = graph.closeRing(localId1, localId2)
         relayoutAtoms()
         markChanged()
     } // Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан).
     fun openRing(bond: MoleculeBond) {
-        graph = graph.removeRingBond(bond.atom1.localId, bond.atom2.localId)
+        graph = graph.removeRingBond(bond.localId1, bond.localId2)
         relayoutAtoms()
         markChanged()
     } // Раскрытие кольца: рвём связь, лежащую в цикле → цикл разворачивается в цепь
@@ -257,7 +256,7 @@ class Molecule private constructor(
 
 private fun MoleculeShape.toGraph(): MoleculeGraph = MoleculeGraph(
     nodes = atoms.map { AtomNode(it.localId, it.isotope) },
-    bonds = bonds.map { Bond(it.atom1.localId, it.atom2.localId, it.order) },
+    bonds = bonds.map { Bond(it.localId1, it.localId2, it.order) },
 )
 private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int): MoleculeGraph {
     require(graph1.freeValence(node1) > 0) { "Узел $node1 в ${graph1.formula} насыщен: связь образовать нечем" }
