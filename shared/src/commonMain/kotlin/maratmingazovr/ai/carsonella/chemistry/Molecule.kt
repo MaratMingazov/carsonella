@@ -200,6 +200,10 @@ class Molecule private constructor(
     val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { freeValence(it) > 0 }
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.localId1, bond.localId2).map { fragment -> createMoleculeShape(fragment) }
 
+    override fun forcePoints(): List<ForcePoint> = atoms.map { atom ->
+        val neutral = atom.isotope.details.p
+        ForcePoint(atom.kinematics.position, atom.radius, electrons = neutral, protons = neutral)
+    } // Молекула участвует в силах  каждым атомом
 
     private fun createMoleculeShape(graph: MoleculeGraph): MoleculeShape =
         MoleculeShape(createMoleculeAtoms(graph), createMoleculeBonds(graph, graph.bonds))

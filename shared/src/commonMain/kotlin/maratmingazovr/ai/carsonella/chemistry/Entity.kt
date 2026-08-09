@@ -18,6 +18,13 @@ data class Kinematics(
     val velocity: Float,
 )
 
+data class ForcePoint(
+    val position: Position,
+    val radius: Float,
+    val electrons: Int,
+    val protons: Int,
+)
+
 sealed interface Entity :
     DeathNotifiable,
     NeighborsAware,
@@ -127,59 +134,67 @@ sealed interface Entity :
         kinematics = kinematics.copy(direction = newDirection, velocity = newVelocity)
     }
 
-    /**
-     * Здесь мы вычисляем с какой силой два элемента притягиваются друг к другу
-     */
+
+    fun forcePoints(): List<ForcePoint> = listOf(ForcePoint(kinematics.position, radius, electrons, protons))
+    
     fun calculateForce(elements: List<Entity>): Vec2D {
+        val others = elements.flatMap { it.forcePoints() }
+        return forcePoints().fold(Vec2D(0f, 0f)) { sum, point -> sum + forceOn(point, others) }
+    }
+
+    // Сила на одну точку от списка чужих точек.
+    fun forceOn(point: ForcePoint, others: List<ForcePoint>): Vec2D {
         var fx = 0f
         var fy = 0f
-        val myElectronsCount = electrons
-        val myProtonsCount = protons
-        val myRadius = radius
-        if (myElectronsCount == 0 && myProtonsCount == 0) {return Vec2D(0f, 0f)}
-
-        elements.forEach { element ->
-            val elementPosition = element.kinematics.position
-            val rx = kinematics.position.x - elementPosition.x
-            val ry = kinematics.position.y - elementPosition.y
-            val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
-
-            val elementRadius = element.radius
-            val maxRadius2 = (myRadius + elementRadius) * (myRadius + elementRadius) * 1.7
-            // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
-            if (distance2 > maxRadius2) return@forEach // вне радиуса действия
-
-            // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
-            // Если электроны есть у обоих элементов, то будут отталкиваться
-            val elementElectronsCount = element.electrons
-            val fAttraction = if (myElectronsCount > 0) { // отлично, у меня есть электроны. Проверим электроны соседа
-                if (elementElectronsCount > 0) { (myElectronsCount+elementElectronsCount) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
-                else { 0f } // у него электронов нет, я ничего не буду делать, пусть он сам притянется если нужно
-            } else { // у меня электронов нет. Проверим, есть ли у него электроны
-                if (elementElectronsCount > 0) { -2 * elementElectronsCount / (distance2 + 10f) } // у него есть электроны, значит я притянусь к нему
-                else { 0f } // у него тоже нет электроноа, никакой силы нет
-            }
-
-            //val gravityForce = -1 * myMass * elementMass / (distance2 + 10f)
-            val gravityForce = 0
-
-            // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
-            val elementProtonsCount = element.protons
-            val fRepulsion =if (myProtonsCount == 0 || elementProtonsCount == 0) {
-                0f // если протоны есть только у одного из нас, то отталкивания не будет
-            } else {
-                if (distance2 < (myRadius + elementRadius) * (myRadius + elementRadius)) {
-                    (myProtonsCount + elementProtonsCount + 1)/(distance2 + 50f)
-                }
-                else 0f // протоны есть у обоих, но мы слишком далеко друг от друга
-            }
-
-            val fScalar = fAttraction + fRepulsion + gravityForce
-            fx += rx * fScalar
-            fy += ry * fScalar
+        others.forEach { other ->
+            val force = forceBetween(point, other)
+            fx += force.x
+            fy += force.y
         }
         return Vec2D(fx, fy)
     }
+
+    private fun forceBetween(
+        entity1: ForcePoint,
+        entity2: ForcePoint,
+    ):  Vec2D {
+        if (entity1.electrons == 0 && entity1.protons == 0) return Vec2D(0f, 0f) // нечем ни притягиваться, ни отталкиваться
+        val rx = entity1.position.x - entity2.position.x
+        val ry = entity1.position.y - entity2.position.y
+        val distance2 = rx*rx + ry*ry // это квадрат расстояния между частицами
+
+
+        val maxRadius2 = (entity1.radius + entity2.radius) * (entity1.radius + entity2.radius) * 1.7
+        // Если элементы находятся дальше этого расстояния, то они не влияют друг на друга
+        if (distance2 > maxRadius2) return  Vec2D(0f, 0f)// вне радиуса действия
+
+        // Если электроны есть только у одного элемента, то эти элементы будут притягиваться
+        // Если электроны есть у обоих элементов, то будут отталкиваться
+        val fAttraction = if (entity1.electrons > 0) { // отлично, у меня есть электроны. Проверим электроны соседа
+            if (entity2.electrons > 0) { (entity1.electrons + entity2.electrons) / (distance2 + 10f) }   // у него тоже есть электроны, тогда я буду от него отталкиваться
+            else { 0f } // у него электронов нет, я ничего не буду делать, пусть он сам притянется если нужно
+        } else { // у меня электронов нет. Проверим, есть ли у него электроны
+            if (entity2.electrons > 0) { -2 * entity2.electrons / (distance2 + 10f) } // у него есть электроны, значит я притянусь к нему
+            else { 0f } // у него тоже нет электроноа, никакой силы нет
+        }
+
+        //val gravityForce = -1 * myMass * elementMass / (distance2 + 10f)
+        val gravityForce = 0
+
+        // Но если элементы подлетят слишком близко друг к другу, то протоны начнут отталкивать друг друга.
+        val fRepulsion =if (entity1.protons == 0 || entity2.protons == 0) {
+            0f // если протоны есть только у одного из нас, то отталкивания не будет
+        } else {
+            if (distance2 < (entity1.radius + entity2.radius) * (entity1.radius + entity2.radius)) {
+                (entity1.protons + entity2.protons + 1)/(distance2 + 50f)
+            }
+            else 0f // протоны есть у обоих, но мы слишком далеко друг от друга
+        }
+
+        val fScalar = fAttraction + fRepulsion + gravityForce
+        return Vec2D(rx * fScalar, ry * fScalar)
+    }
+
 }
 
 enum class ElementType { SubAtom, Atom, Star }
