@@ -94,10 +94,10 @@ class Molecule private constructor(
         electrons = molecule.electrons + newAtom.electrons,
     )
 
-    constructor(id: Long, shape: MoleculeShape, kinematics: Kinematics, energy: Float, electrons: Int) : this(
+    constructor(id: Long, shape: MoleculeShape, energy: Float, electrons: Int) : this(
         id = id,
         graph = shape.toGraph(),
-        atoms = placedAtoms(shape, kinematics),
+        atoms = shape.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) },
         energy = energy,
         electrons = electrons,
     )
@@ -446,21 +446,6 @@ private fun grownAtoms(molecule: Molecule, newAtom: Atom, offset: Int): List<Mol
     return molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, merged.copy(position = it.kinematics.position)) } +
             MoleculeAtom(offset, newAtom.element, merged.copy(position = newAtom.kinematics.position))
 }
-// Осколок распада: форма у него уже правильная (атомы стоят там, где стояли в родителе) — переносим её
-// целиком так, чтобы центр оказался в заданной точке. Точку задаёт правило: осколки надо развести, иначе
-// они слипнутся обратно тем же тиком (см. spawnFragments).
-private fun placedAtoms(shape: MoleculeShape, kinematics: Kinematics): List<MoleculeAtom> {
-    // Центр считаем по массе — тем же способом, что и геттер Molecule.kinematics, иначе осколок сядет
-    // не в ту точку, которую попросили: центроид и центр масс у разноатомной молекулы не совпадают.
-    val totalMass = shape.atoms.sumOf { it.mass.toDouble() }.toFloat()
-    val cx = shape.atoms.sumOf { (it.kinematics.position.x * it.mass).toDouble() }.toFloat() / totalMass
-    val cy = shape.atoms.sumOf { (it.kinematics.position.y * it.mass).toDouble() }.toFloat() / totalMass
-    return shape.atoms.map { atom ->
-        val offset = Position(atom.kinematics.position.x - cx, atom.kinematics.position.y - cy)
-        MoleculeAtom(atom.localId, atom.isotope, kinematics.copy(position = kinematics.position + offset))
-    }
-}
-
 private fun mergedKinematics(entity1: Movable, entity2: Movable): Kinematics {
     val k1 = entity1.kinematics
     val k2 = entity2.kinematics

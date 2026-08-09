@@ -50,8 +50,7 @@ interface IEntityGenerator {
     /** Атом, частица или звезда — по элементу. Какой класс строить, решает генератор. */
     fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
 
-    
-    fun createMolecule(shape: MoleculeShape, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
+    fun createMolecule(shape: MoleculeShape, energy: Float, environment: IEnvironment, electrons: Int): Entity
     fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity
     fun createMolecule(molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom, environment: IEnvironment,): Entity
     fun createMolecule(molecule: Molecule, atom: MoleculeAtom, partner: Atom, environment: IEnvironment,): Entity

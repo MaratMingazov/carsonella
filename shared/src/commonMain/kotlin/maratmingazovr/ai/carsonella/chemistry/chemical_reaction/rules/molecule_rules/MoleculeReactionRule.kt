@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
@@ -80,42 +79,23 @@ abstract class MoleculeReactionRule : ReactionRule {
         )
     }
 
-    /**
-     * Спавн осколков распада ([Molecule.split]) — общий для PhotoDissociation/StarDissociation
-     * (одна графовая хирургия → один способ «выложить» осколки). Осколки разводятся по оси X от [molecule],
-     * наследуют её направление, нейтральны (гомолитика: electrons = протоны осколка).
-     *
-     * КЛЮЧЕВОЕ — куда кладём [energyPerFragment] (долю энергии на осколок) зависит от типа осколка:
-     *  - Молекула — во ВНУТРЕННЮЮ (колебательную) энергию: осколок «горячее» и легче
-     *    распадётся дальше (каскад). У молекулы энергия квазинепрерывна — произвольное значение допустимо.
-     *  - Атом — в КИНЕТИКУ (velocity), а energy = 0. Внутренняя энергия атома
-     *    КВАНТОВАНА (только дискретные уровни, инвариант проверяет SpontaneousEmission), и избыток распада
-     *    (обычно << первого уровня возбуждения) в неё не влезает. Положили бы в energy — атом получил бы
-     *    «не-уровень» и уронил бы ассерт SpontaneousEmission на следующем тике. Резонансное электронное
-     *    возбуждение осколка-атома (редкость) не моделируем — весь избыток идёт в движение.
-     */
+
     private fun spawnFragments(
         fragments: List<MoleculeShape>,
         molecule: Molecule,
         generator: IEntityGenerator,
         energyPerFragment: Float,
     ): List<() -> Entity> {
-        val kinematics = molecule.kinematics
         val env = molecule.getEnvironment()
-        return fragments.mapIndexed { i, frag ->
-            // Разводим осколки по оси X. Шаг между соседями обязан ПРЕВЫШАТЬ дистанцию повторной связи
-            // CovalentBondFormation (√2·r ≈ 28 при r = 20), иначе атомы-осколки тут же связываются обратно.
-            // Дальше их держит порознь взаимное отталкивание (оба нейтральны, см. calculateForce).
-            // Настоящие координаты у осколка уже есть (форма их несёт), но взять их вместо этой развозки
-            // нельзя: осколки встали бы вплотную и слиплись бы обратно тем же тиком — см. док, шаг 4.
-            val pos = kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
+        return fragments.map { frag ->
             val electrons = frag.atoms.sumOf { it.isotope.details.p }  // нейтральный осколок (гомолитика)
             if (frag.atoms.size == 1) {
-                val isotope = frag.atoms.single().isotope
+                val atom = frag.atoms.single()
+                val kinematics = atom.kinematics
                 val kineticVelocity = kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@mapIndexed { generator.createEntity(isotope, pos, kinematics.direction, kineticVelocity, 0f, env, electrons) }
+                return@map { generator.createEntity(atom.isotope, kinematics.position, kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
-                return@mapIndexed { generator.createMolecule(frag, pos, kinematics.direction, kinematics.velocity, energyPerFragment, env, electrons) }
+                return@map { generator.createMolecule(frag, energyPerFragment, env, electrons) }
             }
         }
     }
@@ -124,7 +104,3 @@ abstract class MoleculeReactionRule : ReactionRule {
 // Перевод избытка энергии распада (эВ) в кинетику осколка-атома. Та же шкала, что у вылетающего электрона
 // в PhotoIonization (0.2 * freeEnergy) — консистентный игровой коэффициент, не физическое v=√(2E/m).
 private const val KINETIC_VELOCITY_PER_EV = 0.2f
-
-// Множитель разведения осколков: шаг между соседями = radius * этот множитель. Обязан давать шаг больше
-// дистанции повторной связи CovalentBondFormation (√2·r): при r = 20 порог ≈ 28, а 2.5·20 = 50 — с запасом.
-private const val FRAGMENT_SEPARATION = 2.5f
