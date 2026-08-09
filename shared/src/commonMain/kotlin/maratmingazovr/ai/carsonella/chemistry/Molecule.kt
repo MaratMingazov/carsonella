@@ -114,20 +114,8 @@ class Molecule private constructor(
 
     override val kinematics: Kinematics
         get() {
-            var totalMass = 0f
-            var x = 0f; var y = 0f; var vx = 0f; var vy = 0f
-            for (atom in atomsById.values) {
-                val k = atom.kinematics
-                val m = atom.mass
-                totalMass += m
-                x += k.position.x * m; y += k.position.y * m
-                vx += k.direction.x * k.velocity * m; vy += k.direction.y * k.velocity * m
-            }
-            val velocityVector = Vec2D(vx / totalMass, vy / totalMass)
-            val velocity = velocityVector.length()
-            // У покоящейся молекулы направления нет — берём у первого атома: там лежит то же, что раньше в поле.
-            val direction = if (velocity > 1e-6f) velocityVector.div(velocity) else atomsById.values.first().kinematics.direction
-            return Kinematics(Position(x / totalMass, y / totalMass), direction, velocity)
+            val first = atomsById.getValue(atomsById.keys.min())   // наименьший localId — не зависит от порядка обхода map
+            return Kinematics(first.kinematics.position, Vec2D(0f, 0f), 0f)
         }
 
     // ДВИЖЕНИЕ. Пятёрка Movable разложена по атомам: сеттера кинематики у молекулы нет, потому что
