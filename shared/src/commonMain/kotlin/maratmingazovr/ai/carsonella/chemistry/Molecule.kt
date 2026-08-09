@@ -414,46 +414,19 @@ private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph
     require(graph2.freeValence(node2) > 0) { "Узел $node2 в ${graph2.formula} насыщен: связь образовать нечем" }
     return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
 }
-/**
- * Атомы новорождённой молекулы. ПОЗИЦИИ берём у источников — они уже стоят в мире, и раскладка графа
- * для этого не нужна: если связь вышла короче или длиннее положенной, её растянут пружины (см.
- * applyInternalForces). А вот СКОРОСТЬ всем ставим общую, посчитанную по сохранению импульса: оставь
- * атомам их собственные, и налетевшие друг на друга получили бы встречные скорости — молекула
- * забилась бы на пружинах вместо того, чтобы полететь дальше вместе.
- */
-private fun bondedAtoms(atom1: Atom, atom2: Atom): List<MoleculeAtom> {
-    val merged = mergedKinematics(atom1, atom2)
-    return listOf(
-        MoleculeAtom(0, atom1.element, merged.copy(position = atom1.kinematics.position)),
-        MoleculeAtom(1, atom2.element, merged.copy(position = atom2.kinematics.position)),
-    )
-}
+
+private fun bondedAtoms(atom1: Atom, atom2: Atom): List<MoleculeAtom> = listOf(
+    MoleculeAtom(0, atom1.element, atom1.kinematics),
+    MoleculeAtom(1, atom2.element, atom2.kinematics),
+)
 // Слияние двух молекул: узлы второй переезжают на mergeOffset вверх — ровно так же, как их двигает merge.
-private fun mergedAtoms(molecule1: Molecule, molecule2: Molecule, offset: Int): List<MoleculeAtom> {
-    val merged = mergedKinematics(molecule1, molecule2)
-    return molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, merged.copy(position = it.kinematics.position)) } +
-            molecule2.atoms.map { MoleculeAtom(it.localId + offset, it.isotope, merged.copy(position = it.kinematics.position)) }
-}
+private fun mergedAtoms(molecule1: Molecule, molecule2: Molecule, offset: Int): List<MoleculeAtom> =
+    molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } +
+            molecule2.atoms.map { MoleculeAtom(it.localId + offset, it.isotope, it.kinematics) }
 // Рост: у новичка единственный узел 0, значит после сдвига он становится offset.
-private fun grownAtoms(molecule: Molecule, newAtom: Atom, offset: Int): List<MoleculeAtom> {
-    val merged = mergedKinematics(molecule, newAtom)
-    return molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, merged.copy(position = it.kinematics.position)) } +
-            MoleculeAtom(offset, newAtom.element, merged.copy(position = newAtom.kinematics.position))
-}
-private fun mergedKinematics(entity1: Movable, entity2: Movable): Kinematics {
-    val k1 = entity1.kinematics
-    val k2 = entity2.kinematics
-
-    val impulse = k1.direction * k1.velocity * entity1.mass + k2.direction * k2.velocity * entity2.mass
-    val velocityVector = impulse.div(entity1.mass + entity2.mass)
-    val velocity = velocityVector.length()
-
-    return Kinematics(
-        position = Position((k1.position.x + k2.position.x) / 2f, (k1.position.y + k2.position.y) / 2f),
-        direction = if (velocity > 1e-6f) velocityVector.div(velocity) else Vec2D(1f, 0f),
-        velocity = velocity.coerceAtMost(MAX_VELOCITY),
-    )
-}
+private fun grownAtoms(molecule: Molecule, newAtom: Atom, offset: Int): List<MoleculeAtom> =
+    molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } +
+            MoleculeAtom(offset, newAtom.element, newAtom.kinematics)
 internal const val MOLECULE_RADIUS = 20f
 
 // Жёсткость связи-пружины: во сколько превращается пиксель отклонения от длины покоя. Держать НИЗКОЙ —
