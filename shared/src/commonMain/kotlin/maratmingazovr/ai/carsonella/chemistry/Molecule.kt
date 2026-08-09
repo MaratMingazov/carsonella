@@ -274,6 +274,7 @@ class Molecule private constructor(
     // ФУНКЦИИ - ГРАФ + КИНЕМАТИКА. ДАННЫЕ ВЫЧИСЛЯЮТСЯ КАЖДЫЙ РАЗ //
     val shape: MoleculeShape get() = createMoleculeShape(graph)
     val atoms: List<MoleculeAtom> get() = createMoleculeAtoms(graph)
+    val bonds: List<MoleculeBond> get() = createMoleculeBonds(graph, graph.bonds) // Все связи, поставленные в мир. У живой молекулы их всегда ≥ 1: атомов ≥ 2 и граф связен.
     val weakestBond: MoleculeBond? get() = graph.weakestBondAndEnergy?.let { (bond, _) -> createMoleculeBonds(graph, listOf(bond)).single() } // Слабейшая связь — она рвётся первой при распаде.
     fun weakestBondAt(atom: MoleculeAtom): Pair<MoleculeBond, Float>? = graph.bonds
         .filter { it.atom1 == atom.localId || it.atom2 == atom.localId }

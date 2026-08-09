@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
@@ -11,31 +10,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
-import maratmingazovr.ai.carsonella.randomDirection
 
-/**
- * Спонтанный сброс внутренней энергии молекулы — зеркало атомного
- * [maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission].
- * Закрывает асимметрию: у атома путь «остыть» был (спуск по уровням + фотон), у молекулы — нет, и
- * энергия осколка после распада застревала навсегда. Две ветки по величине энергии:
- *
- *  1. ПРЕДИССОЦИАЦИЯ (`energy ≥` порог слабейшей связи): молекула распадается САМА — своя внутренняя
- *     энергия оплачивает разрыв (зеркало [PhotoDissociation], но БЕЗ фотона). Физически честно:
- *     молекула с колебательной энергией выше энергии связи разваливается (unimolecular dissociation).
- *     Порог «тратится» на разрыв, избыток делится по осколкам через [spawnFragments].
- *
- *  2. ИЗЛУЧЕНИЕ (`0 < energy <` порог): избыток уходит ОДНИМ фотоном, молекула → в основное состояние
- *     (`energy = 0`). УПРОЩЕНИЕ: реально молекула сбрасывала бы энергию серией ИК-квантов (колебательная
- *     релаксация) или в столкновениях; «один фотон» честно сохраняет энергию, но завышает его «цвет»
- *     (нет колебательной лестницы, куда спускаться — см. [MoleculeGraph.energyLevels]). Стохастично
- *     (`chance`, как у атома): остывание плавное, и остаётся «окно каскада» — горячий осколок ещё может
- *     успеть распустить/ионизовать соседа, прежде чем остынет.
- *
- * Гейт по среде: в звезде распадом рулит [StarDissociation] (каждый тик, безусловно) — там не вмешиваемся.
- * weight = 0: созидание (рост/усиление/кольцо — положительный weight) выигрывает, а сброс энергии
- * срабатывает, когда строить нечего. Фотон вылетает со скоростью 40 в случайном направлении (как в
- * атомном SpontaneousEmission) — за тик покидает радиус активации, чтобы не переионизовать сам источник.
- */
+// Спонтанный сброс внутренней энергии молекулы
 class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator) : MoleculeReactionRule() {
     override val id = "MolecularSpontaneousEmission"
 
@@ -62,7 +38,6 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, dissociationThreshold) = match as Match
-        val kinematics = molecule.kinematics
 
         if (dissociationThreshold != null) {
             // Ветка 1: предиссоциация — своя энергия платит за разрыв слабейшей связи (зеркало
@@ -78,13 +53,17 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         // Ветка 2: излучение — вся внутренняя энергия уходит одним фотоном, молекула → energy = 0.
         val photonEnergy = molecule.energy
         val env = molecule.getEnvironment()
+        val bond = molecule.bonds.random(entityGenerator.random)
+        val p1 = molecule.atom(bond.localId1).kinematics.position
+        val p2 = molecule.atom(bond.localId2).kinematics.position
+
         return ReactionOutcome(
             updateState = listOf(StateUpdate(molecule) { molecule.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    kinematics.position.plus(Position(molecule.radius, 0f)),
-                    randomDirection(entityGenerator.random),
+                    bondMidpoint(p1, p2),
+                    acrossBond(p1, p2, entityGenerator.random),
                     MAX_VELOCITY,
                     energy = photonEnergy,
                     environment = env,
