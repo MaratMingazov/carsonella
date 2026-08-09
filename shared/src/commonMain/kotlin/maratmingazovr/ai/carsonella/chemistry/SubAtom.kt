@@ -40,7 +40,7 @@ class SubAtom private constructor(
     // У прочих частиц 0 и не меняется.
     var energy: Float = energy
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
-    override val radius: Float = element.details.radius
+    val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override fun distanceSquareTo(point: Position): Float = kinematics.position.distanceSquareTo(point)
     override fun forcePoints(): List<ForcePoint> = listOf(ForcePoint(kinematics.position, radius, electrons, protons))

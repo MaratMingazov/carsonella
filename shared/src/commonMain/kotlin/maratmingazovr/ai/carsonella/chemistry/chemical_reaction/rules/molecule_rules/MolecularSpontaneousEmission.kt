@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
@@ -53,17 +54,24 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         // Ветка 2: излучение — вся внутренняя энергия уходит одним фотоном, молекула → energy = 0.
         val photonEnergy = molecule.energy
         val env = molecule.getEnvironment()
+        // Излучает СЛУЧАЙНАЯ связь: внутренняя энергия у нас живёт в пружинах связей, на связи фотон
+        // и рождается (см. bondPhoton).
         val bond = molecule.bonds.random(entityGenerator.random)
-        val p1 = molecule.atom(bond.localId1).kinematics.position
-        val p2 = molecule.atom(bond.localId2).kinematics.position
+        val atom1 = molecule.atom(bond.localId1)
+        val atom2 = molecule.atom(bond.localId2)
+        val photon = bondPhoton(
+            atom1.kinematics.position, atom1.radius,
+            atom2.kinematics.position, atom2.radius,
+            entityGenerator.random,
+        )
 
         return ReactionOutcome(
             updateState = listOf(StateUpdate(molecule) { molecule.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createEntity(
                     Element.PHOTON,
-                    bondMidpoint(p1, p2),
-                    acrossBond(p1, p2, entityGenerator.random),
+                    photon.position,
+                    photon.direction,
                     MAX_VELOCITY,
                     energy = photonEnergy,
                     environment = env,

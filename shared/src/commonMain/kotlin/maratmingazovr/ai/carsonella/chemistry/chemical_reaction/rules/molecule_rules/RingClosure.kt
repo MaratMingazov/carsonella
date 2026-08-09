@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
@@ -44,12 +45,18 @@ class RingClosure(
 
         val spawn = mutableListOf<() -> Entity>()
         if (released > 0f) {
-            val p1 = molecule.atom(cand.localId1).kinematics.position
-            val p2 = molecule.atom(cand.localId2).kinematics.position
-            val photonPosition = bondMidpoint(p1, p2)
-            val photonDirection = acrossBond(p1, p2, entityGenerator.random)
+            // Энергию высвободила новая связь — на ней фотон и рождается (см. bondPhoton). Отступ тут
+            // особенно к месту: замыкание решается по длине пути в графе, а не по близости концов, так что
+            // связываемые атомы могут стоять и вплотную.
+            val atom1 = molecule.atom(cand.localId1)
+            val atom2 = molecule.atom(cand.localId2)
+            val photon = bondPhoton(
+                atom1.kinematics.position, atom1.radius,
+                atom2.kinematics.position, atom2.radius,
+                entityGenerator.random,
+            )
             spawn += {
-                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
+                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

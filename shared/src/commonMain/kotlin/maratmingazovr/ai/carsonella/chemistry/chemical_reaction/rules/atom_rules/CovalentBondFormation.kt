@@ -1,18 +1,16 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.MOLECULE_RADIUS
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
-import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * Образование ковалентной связи (§6, Шаг 3a): два близких нейтральных лёгких атома со свободными
@@ -67,9 +65,6 @@ class CovalentBondFormation(
 
     override fun produce(match: MatchedData): ReactionOutcome {
         val (atom1, atom2) = match as Match
-        val p1 = atom1.kinematics.position
-        val p2 = atom2.kinematics.position
-        val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
         val env = atom1.getEnvironment()
 
         // Образование связи ЭКЗОТЕРМИЧНО: высвобождаем энергию связи фотоном (радиационная ассоциация, §6/§8).
@@ -79,12 +74,16 @@ class CovalentBondFormation(
             { entityGenerator.createMolecule(atom1, atom2, env) },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
+            // Фотон рождается на новой связи (см. bondPhoton): её концы — эти два атома. Отступ там
+            // обязателен — связь возникает на d < 42 при радиусе 30, то есть середина связи лежит внутри
+            // обоих атомов, и фотон своей же энергией тут же разорвал бы её обратно.
+            val photon = bondPhoton(
+                atom1.kinematics.position, atom1.radius,
+                atom2.kinematics.position, atom2.radius,
+                entityGenerator.random,
+            )
             spawn += {
-                val photonVelocity = MAX_VELOCITY
-                val photonDirection = randomDirection(entityGenerator.random)
-                val offset = MOLECULE_RADIUS + Element.PHOTON.details.radius // нужно выйти за радиус атома
-                val photonPosition = midpoint.addVelocity(photonDirection * offset)
-                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection, photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
+                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction, MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

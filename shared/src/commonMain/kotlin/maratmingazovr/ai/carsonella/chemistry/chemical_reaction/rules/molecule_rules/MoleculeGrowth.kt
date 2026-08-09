@@ -11,10 +11,10 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
-import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * Рост молекулы: молекула со свободным валентным слотом притягивает ближайшего соседа,
@@ -108,19 +108,20 @@ class MoleculeGrowth(
             },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
-            // Считаем от САЙТОВ связи, а не от центров: у молекулы центра нет, а место рождения фотона
-            // у связывающихся атомов и осмысленнее.
-            val p1 = molAtom.kinematics.position
-            val p2 = partnerAtom?.kinematics?.position ?: (partnerEntity as Atom).kinematics.position
-            val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
-            val photonDirection = randomDirection(entityGenerator.random)
-            val photonVelocity = MAX_VELOCITY
-            val offset = molecule.radius + Element.PHOTON.details.radius // нужно выйти за радиус молекулы
-            val photonPosition = midpoint.addVelocity(photonDirection * offset)
+            // Фотон рождается на НОВОЙ связи — между сайтом молекулы и концом связи у партнёра (см.
+            // bondPhoton). Отступ там обязателен: связь возникает на d < 42 при радиусе атома 30, так что
+            // без него фотон стартовал бы внутри собственных атомов — и своей же энергией разорвал бы связь.
+            val partnerPoint = partnerAtom?.kinematics?.position ?: (partnerEntity as Atom).kinematics.position
+            val partnerRadius = partnerAtom?.radius ?: (partnerEntity as Atom).radius
+            val photon = bondPhoton(
+                molAtom.kinematics.position, molAtom.radius,
+                partnerPoint, partnerRadius,
+                entityGenerator.random,
+            )
             spawn += {
                 // Фотон уносит энергию связи и УЛЕТАЕТ
-                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
-                    photonVelocity, energy = bondEnergy, environment = env, electrons = 0)
+                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
+                    MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
             }
         }
 

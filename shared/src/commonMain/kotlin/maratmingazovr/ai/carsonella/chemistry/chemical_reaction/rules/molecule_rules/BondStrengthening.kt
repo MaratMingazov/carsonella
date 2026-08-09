@@ -9,11 +9,11 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ForcedReactionRule
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
-import maratmingazovr.ai.carsonella.randomDirection
 
 /**
  * Усиление связи: связь между двумя НЕнасыщенными атомами усиливается 1→2→3
@@ -53,14 +53,15 @@ class BondStrengthening(
 
         val spawn = mutableListOf<() -> Entity>()
         if (released != null && released > 0f) {
-            // Энергию высвободила СВЯЗЬ — фотон и рождается на ней. Центра у молекулы нет, да он бы и не был тем местом, где эта энергия появилась.
-            val p1 = atom1.kinematics.position
-            val p2 = atom2.kinematics.position
-            val photonPosition = bondMidpoint(p1, p2)
-            val photonDirection = acrossBond(p1, p2, entityGenerator.random)
+            // Энергию высвободила СВЯЗЬ — на ней фотон и рождается (см. bondPhoton).
+            val photon = bondPhoton(
+                atom1.kinematics.position, atom1.radius,
+                atom2.kinematics.position, atom2.radius,
+                entityGenerator.random,
+            )
             spawn += {
                 // Фотон уносит прирост энергии связи и УЛЕТАЕТ
-                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
+                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

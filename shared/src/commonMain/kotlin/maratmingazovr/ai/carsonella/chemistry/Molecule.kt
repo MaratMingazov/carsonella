@@ -66,7 +66,7 @@ class Molecule private constructor(
             nodes = listOf(AtomNode(0, atom1.element), AtomNode(1, atom2.element)),
             bonds = listOf(Bond(0, 1, order = 1)),
         ),
-        atoms = bondedAtoms(atom1, atom2),
+        atoms = listOf(MoleculeAtom(0, atom1.element, atom1.kinematics), MoleculeAtom(1, atom2.element, atom2.kinematics),),
         energy = atom1.energy + atom2.energy,
         electrons = atom1.electrons + atom2.electrons,
     )
@@ -77,7 +77,7 @@ class Molecule private constructor(
             molecule1.graph, atom1.localId,
             molecule2.graph, atom2.localId,
         ),
-        atoms = mergedAtoms(molecule1, molecule2, molecule1.graph.mergeOffset()),
+        atoms = molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } + molecule2.atoms.map { MoleculeAtom(it.localId + molecule1.graph.mergeOffset(), it.isotope, it.kinematics) },
         energy = molecule1.energy + molecule2.energy,
         electrons = molecule1.electrons + molecule2.electrons,
     )
@@ -89,10 +89,11 @@ class Molecule private constructor(
             molecule.graph, atom.localId,
             MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), 0,
         ),
-        atoms = grownAtoms(molecule, newAtom, molecule.graph.mergeOffset()),
+        atoms = molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } + MoleculeAtom(molecule.graph.mergeOffset(), newAtom.element, newAtom.kinematics),
         energy = molecule.energy + newAtom.energy,
         electrons = molecule.electrons + newAtom.electrons,
     )
+
 
     constructor(id: Long, shape: MoleculeShape, energy: Float, electrons: Int) : this(
         id = id,
@@ -193,7 +194,6 @@ class Molecule private constructor(
     // Внутренняя (колебательная) энергия — квазинепрерывная, в отличие от дискретных уровней атома.
     var energy: Float = energy
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
-    override val radius: Float = MOLECULE_RADIUS
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
     override val energyLevels: List<Float> get() = graph.energyLevels
     override val saveKey: String get() = graph.formula
@@ -403,19 +403,6 @@ private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph
     return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
 }
 
-private fun bondedAtoms(atom1: Atom, atom2: Atom): List<MoleculeAtom> = listOf(
-    MoleculeAtom(0, atom1.element, atom1.kinematics),
-    MoleculeAtom(1, atom2.element, atom2.kinematics),
-)
-// Слияние двух молекул: узлы второй переезжают на mergeOffset вверх — ровно так же, как их двигает merge.
-private fun mergedAtoms(molecule1: Molecule, molecule2: Molecule, offset: Int): List<MoleculeAtom> =
-    molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } +
-            molecule2.atoms.map { MoleculeAtom(it.localId + offset, it.isotope, it.kinematics) }
-// Рост: у новичка единственный узел 0, значит после сдвига он становится offset.
-private fun grownAtoms(molecule: Molecule, newAtom: Atom, offset: Int): List<MoleculeAtom> =
-    molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } +
-            MoleculeAtom(offset, newAtom.element, newAtom.kinematics)
-internal const val MOLECULE_RADIUS = 20f
 
 // Жёсткость связи-пружины: во сколько превращается пиксель отклонения от длины покоя. Держать НИЗКОЙ —
 // шаг интегрирования у нас один тик, и на большой жёсткости лёгкий водород (масса 1) улетит за один ход.

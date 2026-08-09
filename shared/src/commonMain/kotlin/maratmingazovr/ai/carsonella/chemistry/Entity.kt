@@ -63,12 +63,6 @@ sealed interface Entity :
      */
     fun distanceSquareTo(point: Position): Float
 
-    /**
-     * ВРЕМЕННЫЙ член: он не применим в молекуле
-     * MOLECULE_RADIUS там просто затычка. - поэтому скоро удалим из интерфейса
-     */
-    val radius: Float
-
     // только те частицы, которые сами могут служить средой, будут переопределять эти методы
     override fun getEnvCenter(): Position = throw Exception("Not Supported")
     override fun getEnvRadius(): Float = throw Exception("Not Supported")
