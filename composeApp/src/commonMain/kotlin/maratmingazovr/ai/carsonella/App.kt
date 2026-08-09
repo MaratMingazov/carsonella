@@ -72,6 +72,7 @@ fun App() {
 
 fun Position.toOffset(): Offset = Offset(x, y)
 fun Offset.toPosition(): Position = Position(x, y)
+fun Offset.toVec2D(): Vec2D = Vec2D(x, y) // сдвиг курсора (positionChange) — это вектор, не точка
 
 
 

@@ -40,6 +40,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
@@ -238,7 +239,7 @@ private fun SceneCanvas(
                         // потащили: на первом смещении «поднимаем» частицу, дальше она следует за курсором
                         if (candidateId != null && change.pressed && change.positionChanged()) {
                             if (!holding) { world.pickUpEntity(candidateId); holding = true }
-                            world.moveEntityTo(candidateId, Position(change.position.x, change.position.y))
+                            world.moveEntityBy(candidateId, change.positionChange().toVec2D())
                             change.consume()
                         }
 

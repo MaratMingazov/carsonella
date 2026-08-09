@@ -12,7 +12,7 @@ interface Movable {
     val mass: Float // нужна здесь ради applyForce: a = F/m
 
     fun applyNewPosition()
-    fun moveTo(position: Position) // Прямое перемещение (игрок «берёт и кладёт»): скорость обнуляется, чтобы не улетело по инерции
+    fun moveBy(delta: Vec2D)
     fun reduceVelocity()
     fun checkBorders(env: IEnvironment)
     fun applyForce(force: Vec2D)
@@ -46,8 +46,8 @@ class PointMovement(
         update(kinematics.copy(position = newPosition))
     }
 
-    override fun moveTo(position: Position) {
-        update(kinematics.copy(position = position, velocity = 0f))
+    override fun moveBy(delta: Vec2D) {
+        update(kinematics.copy(position = kinematics.position.addVelocity(delta), velocity = 0f))
     }
 
     override fun reduceVelocity() {

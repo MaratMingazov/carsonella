@@ -112,14 +112,6 @@ class Molecule private constructor(
         }
     }
 
-    /**
-     * Кинематика МОЛЕКУЛЫ — ПРОИЗВОДНАЯ, поля под ней нет: источник истины — атомы. Читаем — собираем
-     * состояние центра масс; пишем — раздаём каждому атому РАЗНИЦУ, то есть внешнее воздействие приходит
-     * на молекулу как на целое, а взаимное движение атомов запись переживает.
-     *
-     * Писателей осталось двое, и оба снаружи: перетаскивание мышью (moveTo) и стрелки
-     * (World.applyForceToEntity). Своя физика молекулы сюда не пишет — она двигает атомы напрямую.
-     */
     override val kinematics: Kinematics
         get() {
             var totalMass = 0f
@@ -152,16 +144,13 @@ class Molecule private constructor(
         }
         markChanged()
     }
-    override fun moveTo(position: Position) {
-        val center = kinematics.position
-        val dx = position.x - center.x
-        val dy = position.y - center.y
+    override fun moveBy(delta: Vec2D) {
         for (atom in atomsById.values) {
             val k = atom.kinematics
-            atom.kinematics = k.copy(position = Position(k.position.x + dx, k.position.y + dy), velocity = 0f)
+            atom.kinematics = k.copy(position = k.position.addVelocity(delta), velocity = 0f)
         }
         markChanged()
-    } // Игрок «берёт и кладёт»: центр масс садится в точку, атомы едут за ним, скорость гасится
+    } // Игрок «берёт и кладёт»: все атомы едут одним сдвигом (форма цела), скорость гасится
     override fun reduceVelocity() {
         if (atomsById.values.none { it.kinematics.velocity > 0f }) return
         for (atom in atomsById.values) {

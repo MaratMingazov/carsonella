@@ -120,26 +120,21 @@ class World(
     }
 
     // Игрок задаёт энергию выбранной частице из панели (энергию фотона). Сеттер клампит её ≥ 0.
-    // Прямая мутация из UI — как и applyForceToEntity/moveEntityTo.
     fun setEntityEnergy(entityId: Long, energy: Float) {
         // Редактор энергии в панели открыт только для фотона (см. SelectedEntityPanel), поэтому и здесь
         // сужаем до частицы: у прочих классов энергию игрок не задаёт.
         (entities.find { it.id == entityId } as? SubAtom)?.energy = energy
     }
 
-    // Игрок форсит реакцию у выбранной молекулы из панели (усиление связи / замыкание кольца, механика
-    // «лего»): кладём forced-запрос напрямую в очередь — resolve выполнит именно это правило, минуя
-    // weight-конкуренцию (см. ReactionSelection). Тот же диспетчер, что у тика (Compose Main) → без гонки,
-    // как setEntityEnergy/moveEntityTo. Реагент — сама молекула (self-request).
+    // Игрок форсит реакцию у выбранной молекулы из панели (усиление связи / замыкание кольца, механика «лего»)
     fun requestMoleculeAction(entityId: Long, selection: ReactionSelection) {
         val entity = entities.find { it.id == entityId } ?: return
         _pendingRequests.add(ReactionRequest(listOf(entity), selection))
     }
 
-    // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
-    // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
-    fun moveEntityTo(entityId: Long, position: Position) {
-        (entities.find { it.id == entityId } as? Movable)?.moveTo(position)
+    // Игрок перетаскивает частицу мышью: сдвигаем её на столько, на сколько сдвинулся курсор.
+    fun moveEntityBy(entityId: Long, delta: Vec2D) {
+        (entities.find { it.id == entityId } as? Movable)?.moveBy(delta)
     }
 
     // Игрок удаляет выбранную частицу с канвы (клавиша Delete). Убиваем через тот же destroy(),

@@ -101,9 +101,8 @@ class StarEmission (
                     val outward =
                         if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
                     val ejectDistance = star.radius + 20f
-                    movement.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
-                    // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
-                    // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
+                    val ejectPoint = Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance)
+                    movement.moveBy(Vec2D(ejectPoint.x - pos.x, ejectPoint.y - pos.y))
                     val mass = movement.mass
                     movement.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
