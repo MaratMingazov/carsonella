@@ -43,7 +43,7 @@ class CovalentBondFormation(
             .drop(1)
             .mapNotNull { bondableAtom(it) }
             .filter { it.getEnvironment() === first.getEnvironment() }   // оба в одной среде
-            .map { it to it.kinematics.position.distanceSquareTo(firstPosition) }
+            .map { it to it.distanceSquareTo(firstPosition) }
             .minByOrNull { it.second }
             ?: return null
 

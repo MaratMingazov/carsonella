@@ -1,5 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry
 
+import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
@@ -50,6 +51,7 @@ class Molecule private constructor(
     electrons: Int,
 ):
     Entity,
+    Movable,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -118,7 +120,7 @@ class Molecule private constructor(
      * Писателей осталось двое, и оба снаружи: перетаскивание мышью (moveTo) и стрелки
      * (World.applyForceToEntity). Своя физика молекулы сюда не пишет — она двигает атомы напрямую.
      */
-    override var kinematics: Kinematics
+    override val kinematics: Kinematics
         get() {
             var totalMass = 0f
             var x = 0f; var y = 0f; var vx = 0f; var vy = 0f
@@ -135,26 +137,77 @@ class Molecule private constructor(
             val direction = if (velocity > 1e-6f) velocityVector.div(velocity) else atomsById.values.first().kinematics.direction
             return Kinematics(Position(x / totalMass, y / totalMass), direction, velocity)
         }
-        set(value) {
-            val current = kinematics
-            if (current == value) return
-            val dx = value.position.x - current.position.x
-            val dy = value.position.y - current.position.y
-            val dvx = value.direction.x * value.velocity - current.direction.x * current.velocity
-            val dvy = value.direction.y * value.velocity - current.direction.y * current.velocity
-            for (atom in atomsById.values) {
-                val k = atom.kinematics
-                val vx = k.direction.x * k.velocity + dvx
-                val vy = k.direction.y * k.velocity + dvy
-                val velocity = Vec2D(vx, vy).length()
-                atom.kinematics = Kinematics(
-                    position = Position(k.position.x + dx, k.position.y + dy),
-                    direction = if (velocity > 1e-6f) Vec2D(vx / velocity, vy / velocity) else value.direction,
-                    velocity = velocity,
-                )
-            }
-            markChanged()
+
+    // ДВИЖЕНИЕ. Пятёрка Movable разложена по атомам: сеттера кинематики у молекулы нет, потому что
+    // «поставить молекуле скорость» мимо её атомов — бессмыслица. Внешнее воздействие приходит на тело
+    // целиком и раздаётся всем поровну; собственное движение атомов (пружины) оно не трогает.
+    override fun applyNewPosition() {
+        if (atomsById.values.none { it.kinematics.velocity > 0f }) return
+        for (atom in atomsById.values) {
+            val k = atom.kinematics
+            atom.kinematics = k.copy(position = Position(
+                k.position.x + k.direction.x * k.velocity,
+                k.position.y + k.direction.y * k.velocity,
+            ))
         }
+        markChanged()
+    }
+    override fun moveTo(position: Position) {
+        val center = kinematics.position
+        val dx = position.x - center.x
+        val dy = position.y - center.y
+        for (atom in atomsById.values) {
+            val k = atom.kinematics
+            atom.kinematics = k.copy(position = Position(k.position.x + dx, k.position.y + dy), velocity = 0f)
+        }
+        markChanged()
+    } // Игрок «берёт и кладёт»: центр масс садится в точку, атомы едут за ним, скорость гасится
+    override fun reduceVelocity() {
+        if (atomsById.values.none { it.kinematics.velocity > 0f }) return
+        for (atom in atomsById.values) {
+            val k = atom.kinematics
+            atom.kinematics = k.copy(velocity = if (k.velocity < 0.1f) 0f else k.velocity * 0.99f)
+        }
+        markChanged()
+    }
+    override fun checkBorders(env: IEnvironment) {
+        val center = kinematics.position
+        val envCenter = env.getEnvCenter()
+        val envRadius = env.getEnvRadius()
+        val dx = center.x - envCenter.x
+        val dy = center.y - envCenter.y
+        if (dx * dx + dy * dy <= envRadius * envRadius) return // центр внутри — ничего не делаем
+        val dist = sqrt(dx * dx + dy * dy)
+        val nx = dx / dist
+        val ny = dy / dist
+        // Центр возвращаем на кромку, атомы едут за ним тем же сдвигом; направления отражаем от нормали.
+        val shiftX = envCenter.x + nx * envRadius - center.x
+        val shiftY = envCenter.y + ny * envRadius - center.y
+        for (atom in atomsById.values) {
+            val k = atom.kinematics
+            val dot = k.direction.x * nx + k.direction.y * ny
+            atom.kinematics = k.copy(
+                position = Position(k.position.x + shiftX, k.position.y + shiftY),
+                direction = Vec2D(k.direction.x - 2 * dot * nx, k.direction.y - 2 * dot * ny),
+            )
+        }
+        markChanged()
+    }
+    override fun applyForce(force: Vec2D) {
+        if (mass < 0.001f) return
+        val a = force.div(mass) // сила приложена к телу целиком → ускорение у всех атомов одинаковое
+        for (atom in atomsById.values) {
+            val k = atom.kinematics
+            val velocityVector = k.direction.times(k.velocity).plus(a)
+            val velocity = velocityVector.length()
+            atom.kinematics = k.copy(
+                direction = if (velocity > 1e-6f) velocityVector.div(velocity) else k.direction,
+                velocity = velocity,
+            )
+        }
+        markChanged()
+    }
+
     override var alive: Boolean = true
         private set
     override val mass: Float get() = graph.mass
@@ -170,6 +223,7 @@ class Molecule private constructor(
     override val saveKey: String get() = graph.formula
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
+    override fun distanceSquareTo(point: Position): Float = atomsById.values.minOf { it.kinematics.position.distanceSquareTo(point) } // Своей позиции у молекулы нет — отвечает ближайший атом.
     override fun describe(): String {
         val known = MoleculeRegistry.lookup(graph.canonical)
         val lines = mutableListOf(
@@ -202,7 +256,7 @@ class Molecule private constructor(
         if (moved) markChanged() // успокоилась — перестаём будить рендер
 
         neighbors
-            .filter { entity -> kinematics.position.distanceSquareTo(entity.kinematics.position) < 10000f }
+            .filter { entity -> atomsById.values.any { atom -> entity.distanceSquareTo(atom.kinematics.position) < 10000f } }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
@@ -407,7 +461,7 @@ private fun placedAtoms(shape: MoleculeShape, kinematics: Kinematics): List<Mole
     }
 }
 
-private fun mergedKinematics(entity1: Entity, entity2: Entity): Kinematics {
+private fun mergedKinematics(entity1: Movable, entity2: Movable): Kinematics {
     val k1 = entity1.kinematics
     val k2 = entity2.kinematics
 

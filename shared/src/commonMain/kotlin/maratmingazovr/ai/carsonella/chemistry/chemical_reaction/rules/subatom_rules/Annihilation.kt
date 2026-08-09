@@ -35,7 +35,7 @@ class Annihilation(
 ) : SubAtomReactionRule() {
     override val id = "Annihilation"
 
-    private data class Match(val positron: SubAtom, val electron: Entity) : MatchedData
+    private data class Match(val positron: SubAtom, val electron: SubAtom) : MatchedData
 
     override fun matchesSubAtom(subAtom: SubAtom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null
@@ -46,11 +46,10 @@ class Annihilation(
         val positronRadius = POSITRON.details.radius
 
         val (nearestElectron, distanceSquare) = neighbors
-            .filter {
-                it is SubAtom && it.element == ELECTRON
-            }
+            .filterIsInstance<SubAtom>()
+            .filter { it.element == ELECTRON }
             .filter { it.alive }
-            .map { it to it.kinematics.position.distanceSquareTo(positronPosition) }
+            .map { it to it.distanceSquareTo(positronPosition) }
             .minByOrNull { it.second }
             ?: return null
 

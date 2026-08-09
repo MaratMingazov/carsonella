@@ -47,7 +47,7 @@ class MoleculeGrowth(
         val (second, distanceSquare) = neighbors
             .filter { canBond(it) }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
-            .map { it to it.kinematics.position.distanceSquareTo(moleculePosition) }
+            .map { it to it.distanceSquareTo(moleculePosition) }
             .minByOrNull { it.second }
             ?: return null
 
@@ -133,8 +133,10 @@ class MoleculeGrowth(
             },
         )
         if (bondEnergy != null && bondEnergy > 0f) {
-            val p1 = molecule.kinematics.position
-            val p2 = partnerEntity.kinematics.position
+            // Считаем от САЙТОВ связи, а не от центров: у молекулы центра нет, а место рождения фотона
+            // у связывающихся атомов и осмысленнее.
+            val p1 = molAtom.kinematics.position
+            val p2 = partnerAtom?.kinematics?.position ?: (partnerEntity as Atom).kinematics.position
             val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f) // временно, удалим, когда у молекулы не будет своего радиуса
             val photonDirection = randomDirection(entityGenerator.random)
             val photonVelocity = MAX_VELOCITY

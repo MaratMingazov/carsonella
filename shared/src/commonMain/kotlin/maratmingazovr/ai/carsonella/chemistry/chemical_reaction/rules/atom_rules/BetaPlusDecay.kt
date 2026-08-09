@@ -32,7 +32,7 @@ class BetaPlusDecay(
     override val id = "BetaPlusDecay"
 
     /** [parentElement] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val parent: Entity, val parentElement: Element) : MatchedData
+    private data class Match(val parent: Atom, val parentElement: Element) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null

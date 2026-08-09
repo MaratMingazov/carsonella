@@ -9,6 +9,8 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.DeathNotifiable
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
+import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
+import maratmingazovr.ai.carsonella.chemistry.behavior.PointMovement
 import maratmingazovr.ai.carsonella.chemistry.behavior.LoggingSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
@@ -17,16 +19,15 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
 import kotlin.math.round
 
-class Atom(
+class Atom private constructor(
     override val id: Long,
     val element: Element,
-    position: Position,
-    direction: Vec2D,
-    velocity: Float,
     energy: Float,
     electrons: Int,
+    private val movement: PointMovement,
 ):
     Entity,
+    Movable by movement,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -34,18 +35,19 @@ class Atom(
     LogWritable  by LoggingSupport(),
     ChangeNotifiable by ChangeSupport()
 {
+    constructor(id: Long, element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) :
+            this(id, element, energy, electrons, PointMovement(position, direction, velocity, (element.details.p + element.details.n).toFloat()))
+
     init {
+        movement.setOnChange(::markChanged) // делегат сам до markChanged не дотянется: в клаузе делегирования this ещё нет
         val levels = element.energyLevels(electrons)
         require(energy == 0f || energy in levels) {
             "Atom ${element.name}: недопустимая energy=$energy эВ (electrons=$electrons) — не 0 и не уровень из $levels"
         }
     }
 
-    override var kinematics: Kinematics = Kinematics(position, direction, velocity)
-        set(value) { if (field != value) { field = value; markChanged() } }
     override var alive: Boolean = true
         private set
-    override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     override var electrons: Int = electrons
         set(value) { field = value; markChanged() }
@@ -53,6 +55,8 @@ class Atom(
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceSquareTo(point: Position): Float = kinematics.position.distanceSquareTo(point)
+    override fun forcePoints(): List<ForcePoint> = listOf(ForcePoint(kinematics.position, radius, electrons, protons))
     override val displaySymbol: String get() = element.symbol(electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(electrons)
     override val saveKey: String = element.name
@@ -78,7 +82,7 @@ class Atom(
         checkBorders(environment)
 
         neighbors
-            .filter { entity -> kinematics.position.distanceSquareTo(entity.kinematics.position) < 10000f }
+            .filter { entity -> entity.distanceSquareTo(kinematics.position) < 10000f }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

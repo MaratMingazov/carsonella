@@ -50,7 +50,7 @@ class StarPhotodisintegration(
 
     /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtom. */
     private data class Match(
-        val atom: Entity,
+        val atom: Atom,
         val photon: SubAtom,
         val atomElement: Element,
         val channel: Channel,
@@ -73,7 +73,7 @@ class StarPhotodisintegration(
             .filterIsInstance<SubAtom>().filter { it.element == PHOTON }
             .filter { it.alive }
             .filter { it.energy >= PHOTON_ENERGY_THRESHOLD }
-            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 

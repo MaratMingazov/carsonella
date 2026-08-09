@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -67,8 +68,8 @@ class EntityRenderer(
         
         when (entity) {
             is Molecule -> drawMolecule(drawScope, entity, highlight, VibrationParams(entity.id, entity.energy, time), time)
-            is Atom -> drawElemental(drawScope, entity, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = true)
-            is SubAtom -> drawElemental(drawScope, entity, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = false)
+            is Atom -> drawElemental(drawScope, entity, entity.kinematics.position, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = true)
+            is SubAtom -> drawElemental(drawScope, entity, entity.kinematics.position, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = false)
             is Star -> drawStar(drawScope, entity, time)
         }
     }
@@ -77,12 +78,13 @@ class EntityRenderer(
     private fun drawElemental(
         drawScope: DrawScope,
         entity: Entity,
+        center: Position, // позицию передаёт вызывающий: у Entity её нет, а зовут отсюда только атом и частицу
         element: Element,
         highlight: Highlight,
         vibrationParams: VibrationParams,
         withValenceSlots: Boolean,
     ) {
-        val position = entity.kinematics.position.toOffset()  + vibrationParams.positionOffset
+        val position = center.toOffset()  + vibrationParams.positionOffset
         val bareProton = element == Element.HYDROGEN && entity.electrons == 0
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol

@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.chance
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Star
+import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
@@ -88,8 +89,11 @@ class StarEmission (
             val updateList = mutableListOf<StateUpdate>()
             if (reagent != null) {
                 updateList += StateUpdate(reagent) {
+                    // Ребёнок звезды — атом, частица или молекула; все они Movable, но список у нас
+                    // из Entity, поэтому движение достаём отдельно.
+                    val movement = reagent as Movable
                     val center = star.kinematics.position
-                    val pos = reagent.kinematics.position
+                    val pos = movement.kinematics.position
                     // Упрощённый выброс: телепортируем ребёнка за кольцо поглощения (radius + 10),
                     // чтобы звезда не засосала его обратно тем же тиком. Нормальный выброс (импульс) — позже.
                     val fromCenter = Vec2D(pos.x - center.x, pos.y - center.y)
@@ -97,11 +101,11 @@ class StarEmission (
                     val outward =
                         if (fromCenter.length() < 1e-6f) randomDirection(entityGenerator.random) else fromCenter.normalized()
                     val ejectDistance = star.radius + 20f
-                    reagent.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
+                    movement.moveTo(Position(center.x + outward.x * ejectDistance, center.y + outward.y * ejectDistance))
                     // Небольшая скорость наружу: moveTo обнулил скорость, поэтому applyForce задаёт
                     // чистое направление (наружу) и величину. Сила ∝ массе → одинаковая прибавка скорости.
-                    val mass = reagent.mass
-                    reagent.applyForce(outward.times(mass * 2f))
+                    val mass = movement.mass
+                    movement.applyForce(outward.times(mass * 2f))
                     reagent.updateMyEnvironment(star.getEnvironment())
                 }
             }

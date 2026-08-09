@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.world.save.EntityDto
@@ -115,7 +116,7 @@ class World(
     }
 
     fun applyForceToEntity(entityId: Long, force: Vec2D) {
-        entities.find { it.id == entityId }?.run { applyForce(force) }
+        (entities.find { it.id == entityId } as? Movable)?.applyForce(force)
     }
 
     // Игрок задаёт энергию выбранной частице из панели (энергию фотона). Сеттер клампит её ≥ 0.
@@ -138,7 +139,7 @@ class World(
     // Игрок перетаскивает частицу мышью: ставим её в указанную точку.
     // Так можно вручную свести e⁻ к иону → на следующем тике сработает рекомбинация.
     fun moveEntityTo(entityId: Long, position: Position) {
-        entities.find { it.id == entityId }?.moveTo(position)
+        (entities.find { it.id == entityId } as? Movable)?.moveTo(position)
     }
 
     // Игрок удаляет выбранную частицу с канвы (клавиша Delete). Убиваем через тот же destroy(),
@@ -193,13 +194,16 @@ class World(
             // Родитель-сущность (Star) реализует и Entity, и IEnvironment. Корневой Environment — не Entity.
             // Если родитель не попал в слепок (напр. это модуль) — считаем сущность лежащей в корне (null).
             val parentId = (entity.getEnvironment() as? Entity)?.id?.takeIf { it in savedIds }
+            // Кинематика в слепок идёт только у того, кто ею владеет. Молекула сюда и так попадает
+            // невосстановимой (пишется формула, а не граф), так что нули её не портят.
+            val kinematics = (entity as? Movable)?.kinematics
             EntityDto(
                 id = entity.id,
                 element = entity.saveKey,
                 alive = entity.alive,
-                x = entity.kinematics.position.x, y = entity.kinematics.position.y,
-                dirX = entity.kinematics.direction.x, dirY = entity.kinematics.direction.y,
-                velocity = entity.kinematics.velocity,
+                x = kinematics?.position?.x ?: 0f, y = kinematics?.position?.y ?: 0f,
+                dirX = kinematics?.direction?.x ?: 0f, dirY = kinematics?.direction?.y ?: 0f,
+                velocity = kinematics?.velocity ?: 0f,
                 electrons = entity.electrons,
                 parentId = parentId,
             )

@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7
 import maratmingazovr.ai.carsonella.chemistry.Element.BORON_8
@@ -50,7 +51,7 @@ class StarPPChain(
 
     /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtom. */
     private data class Match(
-        val atom1: Entity,
+        val atom1: Atom,
         val atom2: Entity,
         val atom1Element: Element,
         val atom2Element: Element,
@@ -86,7 +87,7 @@ class StarPPChain(
             val (secondAtom, distanceSquare) = neighbors
                 .filter { isCandidate(it, secondElement) }
                 .filter { it.alive }
-                .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+                .map { it to it.distanceSquareTo(atomPosition) }
                 .minByOrNull { it.second }
                 ?: continue
 
@@ -114,7 +115,9 @@ class StarPPChain(
         // обобщённого shake-off; кламп лишь страхует от аниона в краевых случаях.
         val resultElectrons = minOf(atom1.electrons, result.details.p)
 
-        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2)
+        // atom2 здесь широкий: у pp-цепочки второй реагент бывает и атомом, и частицей (isCandidate),
+        // но и то и другое движется — каст безопасен.
+        val (direction, velocity) = calculateNewEntityDirectionAndVelocity(atom1, atom2 as Movable)
         val resultPosition = atom1.kinematics.position
         val resultRadius = result.details.radius
         val spawnList = mutableListOf<() -> Entity>()

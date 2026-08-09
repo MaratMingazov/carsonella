@@ -42,8 +42,8 @@ class AlphaProtonReaction(
 
     /** [targetElement]/[alphaElement] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
-        val target: Entity,
-        val alpha: Entity,
+        val target: Atom,
+        val alpha: Atom,
         val targetElement: Element,
         val alphaElement: Element,
     ) : MatchedData
@@ -61,7 +61,7 @@ class AlphaProtonReaction(
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.getEnvironment().getEnvTemperature() == TemperatureMode.Space }
-            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 

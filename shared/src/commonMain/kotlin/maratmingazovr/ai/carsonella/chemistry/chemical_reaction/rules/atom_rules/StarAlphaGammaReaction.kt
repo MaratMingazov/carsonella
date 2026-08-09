@@ -21,8 +21,8 @@ class StarAlphaGammaReaction(
 
     /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
-        val atom1: Entity,
-        val atom2: Entity,
+        val atom1: Atom,
+        val atom2: Atom,
         val atom1Element: Element,
         val atom2Element: Element,
     ) : MatchedData
@@ -37,7 +37,7 @@ class StarAlphaGammaReaction(
             .filterIsInstance<Atom>()
             .filter { it.element == HELIUM_4 }
             .filter { it.alive }
-            .map { it to  it.kinematics.position.distanceSquareTo(atomPosition)}
+            .map { it to  it.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null
 

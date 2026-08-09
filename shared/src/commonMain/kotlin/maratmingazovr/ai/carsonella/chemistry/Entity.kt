@@ -10,7 +10,6 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.EnvironmentAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.LogWritable
 import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsAware
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
-import kotlin.math.sqrt
 
 data class Kinematics(
     val position: Position,
@@ -41,7 +40,6 @@ sealed interface Entity :
     val displaySymbol: String // Как сущность подписана на экране: символ/формула плюс заряд.
     val saveKey: String // Ключ для сохранения
     val energyLevels: List<Float> // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации.
-    var kinematics: Kinematics
     val alive: Boolean
 
     fun step() // элемент делает свой ход
@@ -55,6 +53,15 @@ sealed interface Entity :
      * `> 0` — снаружи.
      */
     fun distanceToSurface(point: Position): Float
+
+    /**
+     * Квадрат расстояния от [point] до сущности — «далеко ли ты отсюда». Спрашивают фильтры соседей
+     * в каждом step: до кого имеет смысл проситься в реакцию.
+     *
+     * Именно ВОПРОС, а не поле `position`: у молекулы своей позиции нет, есть позиции её атомов, и она
+     * отвечает по ближайшему. Квадрат — чтобы не считать корень на каждого соседа каждый тик.
+     */
+    fun distanceSquareTo(point: Position): Float
 
     /**
      * ВРЕМЕННЫЙ член: он не применим в молекуле
@@ -76,66 +83,8 @@ sealed interface Entity :
         newEnvironment.addEnvChild(this)
     }
 
-    fun applyNewPosition() {
-        val newPosition = Position(
-            x = kinematics.position.x + kinematics.direction.x * kinematics.velocity,
-            y = kinematics.position.y + kinematics.direction.y * kinematics.velocity
-        )
-        kinematics = kinematics.copy(position = newPosition)
-    }
-
-    // Прямое перемещение частицы (игрок «берёт и кладёт»). Скорость обнуляем, чтобы частица
-    // спокойно осталась там, куда её положили, а не улетела по инерции.
-    fun moveTo(position: Position) {
-        kinematics = kinematics.copy(position = position, velocity = 0f)
-    }
-
-    fun reduceVelocity() {
-        val newVelocity = if (kinematics.velocity < 0.1f) 0f else kinematics.velocity * 0.99f
-        kinematics = kinematics.copy(velocity = newVelocity)
-    }
-
-    fun checkBorders(env: IEnvironment) {
-
-        var position = kinematics.position
-        var direction = kinematics.direction
-        val center = env.getEnvCenter()
-        val radius = env.getEnvRadius()
-
-        // Вектор от центра круга к объекту
-        val dx = position.x - center.x
-        val dy = position.y - center.y
-
-
-        if (dx * dx + dy * dy > radius * radius) {
-            // Расстояние от центра
-            val dist = sqrt(dx * dx + dy * dy)
-            // Если снаружи — нормализуем вектор и перемещаем на границу круга
-            val nx = dx / dist
-            val ny = dy / dist
-            position =  Position(x = center.x + nx * radius, y = center.y + ny * radius)
-
-            // Отразить направление относительно нормали
-            val dot = direction.x * nx + direction.y * ny
-            direction = direction.copy(x = direction.x - 2 * dot * nx, y = direction.y - 2 * dot * ny)
-        }
-        
-        kinematics = kinematics.copy(position = position, direction = direction)
-    }
-
-    fun applyForce(force: Vec2D) {
-
-        if (mass < 0.001f) return
-        val a = force.div(mass)
-        val newVelocityVector = kinematics.direction.times(kinematics.velocity).plus(a)
-        val newVelocity = newVelocityVector.length()
-        val newDirection = if (newVelocity > 0) newVelocityVector.div(newVelocity) else kinematics.direction
-
-        kinematics = kinematics.copy(direction = newDirection, velocity = newVelocity)
-    }
-
-
-    fun forcePoints(): List<ForcePoint> = listOf(ForcePoint(kinematics.position, radius, electrons, protons))
+    // Точки, которыми сущность участвует в расчёте сил: у точечной одна, у молекулы по одной на атом.
+    fun forcePoints(): List<ForcePoint>
     
     fun calculateForce(elements: List<Entity>): Vec2D {
         val others = elements.flatMap { it.forcePoints() }

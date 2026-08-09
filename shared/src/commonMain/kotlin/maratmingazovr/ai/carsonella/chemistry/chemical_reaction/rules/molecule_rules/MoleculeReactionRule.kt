@@ -96,7 +96,7 @@ abstract class MoleculeReactionRule : ReactionRule {
      */
     private fun spawnFragments(
         fragments: List<MoleculeShape>,
-        molecule: Entity,
+        molecule: Molecule,
         generator: IEntityGenerator,
         energyPerFragment: Float,
     ): List<() -> Entity> {

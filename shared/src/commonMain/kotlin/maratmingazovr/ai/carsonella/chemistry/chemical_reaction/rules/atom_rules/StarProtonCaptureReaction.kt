@@ -59,8 +59,8 @@ class StarProtonCaptureReaction(
 
     /** [outcome] — канал, выбранный roulette-wheel; элементы выяснены в matchesAtom. */
     private data class Match(
-        val atom1: Entity,
-        val atom2: Entity,
+        val atom1: Atom,
+        val atom2: Atom,
         val atom1Element: Element,
         val atom2Element: Element,
         val outcome: Outcome,
@@ -77,9 +77,10 @@ class StarProtonCaptureReaction(
         if (gammaResult == null && alphaResult == null && neutronResult == null) return null
 
         val (secondAtom, distanceSquare) = neighbors
+            .filterIsInstance<Atom>()
             .filter { it.isBareNucleus(HYDROGEN) }
             .filter { it.alive }
-            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 

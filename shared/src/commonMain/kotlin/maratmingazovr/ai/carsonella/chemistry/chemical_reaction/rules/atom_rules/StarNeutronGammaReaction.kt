@@ -42,8 +42,8 @@ class StarNeutronGammaReaction(
 
     /** [atom1Element]/[atom2Element] выяснены в matchesAtom — produce не вычисляет заново. */
     private data class Match(
-        val atom1: Entity,
-        val atom2: Entity,
+        val atom1: Atom,
+        val atom2: SubAtom,
         val atom1Element: Element,
         val atom2Element: Element,
     ) : MatchedData
@@ -55,11 +55,10 @@ class StarNeutronGammaReaction(
         if (atomElement.details.neutronGammaResult == null) return null
 
         val (secondAtom, distanceSquare) = neighbors
-            .filter {
-                it is SubAtom && it.element == NEUTRON
-            }
+            .filterIsInstance<SubAtom>()
+            .filter { it.element == NEUTRON }
             .filter { it.alive }
-            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 

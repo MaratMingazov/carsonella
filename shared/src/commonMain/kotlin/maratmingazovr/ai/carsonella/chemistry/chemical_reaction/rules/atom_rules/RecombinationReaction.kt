@@ -42,7 +42,7 @@ class RecombinationReaction(
             .filterIsInstance<SubAtom>()
             .filter { it.element == ELECTRON }
             .filter { it.alive }
-            .map { it to  it.kinematics.position.distanceSquareTo(atomPosition)}
+            .map { it to  it.distanceSquareTo(atomPosition)}
             .minByOrNull { it.second }
             ?: return null
 

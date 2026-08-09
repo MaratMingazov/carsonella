@@ -40,8 +40,8 @@ class StarOxygenBurning(
 
     /** [result]/[extras] — выбранный канал реакции; элементы выяснены в matchesAtom. */
     private data class Match(
-        val atom1: Entity,
-        val atom2: Entity,
+        val atom1: Atom,
+        val atom2: Atom,
         val atom1Element: Element,
         val atom2Element: Element,
         val result: Element,
@@ -55,11 +55,10 @@ class StarOxygenBurning(
         if (atom.getEnvironment().getEnvTemperature() != TemperatureMode.Star) return null
 
         val (secondAtom, distanceSquare) = neighbors
-            .filter {
-                it is Atom && it.element == OXYGEN_16
-            }
+            .filterIsInstance<Atom>()
+            .filter { it.element == OXYGEN_16 }
             .filter { it.alive }
-            .map { it to it.kinematics.position.distanceSquareTo(atomPosition) }
+            .map { it to it.distanceSquareTo(atomPosition) }
             .minByOrNull { it.second }
             ?: return null
 

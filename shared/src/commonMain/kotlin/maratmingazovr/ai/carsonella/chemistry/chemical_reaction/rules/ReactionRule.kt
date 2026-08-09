@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
+import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 
 /**
@@ -44,7 +45,9 @@ interface ReactionRule {
      * Вычисляем направление движения и скорость новой частицы после столкновения двух частиц.
      * Учитываем скорости направления и массу этих частиц
      */
-    fun calculateNewEntityDirectionAndVelocity(entity1: Entity, entity2: Entity,) : Pair<Vec2D, Float> {
+    // Movable, а не Entity: нужны направление, скорость и масса — то есть ровно движение. Молекулы сюда
+    // не приходят, но и запрещать их незачем: центр масс она посчитает по атомам сама.
+    fun calculateNewEntityDirectionAndVelocity(entity1: Movable, entity2: Movable,) : Pair<Vec2D, Float> {
         val electronMass = entity1.mass
         val protonMass = entity2.mass
         val sumMass = electronMass + protonMass

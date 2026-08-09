@@ -7,17 +7,16 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import kotlin.math.round
 
 
-class Star(
+class Star private constructor(
     override val id: Long,
     val element: Element,
-    position: Position,
-    direction: Vec2D,
-    velocity: Float,
     // energy звезде не нужна: ей никто её не меняет, а пульс в drawStar от неё не зависит.
     electrons: Int,
+    private val movement: PointMovement,
     private val children: MutableList<Entity> = mutableListOf(),
 ):
     Entity,
+    Movable by movement,
     DeathNotifiable by OnDeathSupport(),
     NeighborsAware by NeighborsSupport(),
     ReactionRequester by ReactionRequestSupport(),
@@ -27,17 +26,21 @@ class Star(
 {
     private var radiusCounter = element.details.radius
 
-    override var kinematics: Kinematics = Kinematics(position, direction, velocity)
-        set(value) { if (field != value) { field = value; markChanged() } }
+    constructor(id: Long, element: Element, position: Position, direction: Vec2D, velocity: Float, electrons: Int) :
+            this(id, element, electrons, PointMovement(position, direction, velocity, (element.details.p + element.details.n).toFloat()))
+
+    init { movement.setOnChange(::markChanged) } // делегат сам до markChanged не дотянется: в клаузе делегирования this ещё нет
+
     override var alive: Boolean = true
         private set
-    override val mass: Float = (element.details.p + element.details.n).toFloat()
     override val protons: Int = element.details.p
     // Символ и уровни звезды от заряда не зависят (не-атом), но соседи-атомы снаружи видят её в
     // calculateForce — там оболочка и работает.
     override val electrons: Int = electrons
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
+    override fun distanceSquareTo(point: Position): Float = kinematics.position.distanceSquareTo(point)
+    override fun forcePoints(): List<ForcePoint> = listOf(ForcePoint(kinematics.position, radius, electrons, protons))
     override val displaySymbol: String get() = element.symbol(electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(electrons)
 
@@ -74,7 +77,7 @@ class Star(
         neighbors
             .filter { it.alive }
             .filter { it.getEnvironment() !== this }
-            .filter { kinematics.position.distanceSquareTo(it.kinematics.position) < (radius + 10) * (radius + 10) }
+            .filter { it.distanceSquareTo(kinematics.position) < (radius + 10) * (radius + 10) }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
