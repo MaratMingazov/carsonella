@@ -36,11 +36,10 @@ class MoleculeGrowth(
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // расти не с кем
 
-        if (!molecule.hasFreeValence) return null
-        // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
-        if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
+        if (!molecule.hasFreeValence) return null // у молекулы нет свободных слотов для роста
+        if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
 
-        val freeValenceAtoms = molecule.freeValenceAtoms
+        val freeValenceAtoms = molecule.freeValenceAtoms // вычисляем один раз тут, а не каждый раз внутри метода
         return neighbors
             .filter { it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
@@ -50,41 +49,35 @@ class MoleculeGrowth(
     }
 
 
-    private fun candidates(molecule: Molecule, sites: List<MoleculeAtom>, partner: Entity): List<Pair<Match, Float>> =
+    // у нашей молекулы внутри атомы. Мы перебираем каждый атом и возвращаем те атомы которые могут образовать связь с другим атомом и расстояние
+    private fun candidates(molecule: Molecule, freeValenceAtoms: List<MoleculeAtom>, partner: Entity): List<Pair<Match, Float>> =
         when (partner) {
-            is Atom -> if (!bondable(partner)) emptyList() else sites.mapNotNull { site ->
-                reachable(site, partner.kinematics.position, partner.radius)?.let { distanceSquare ->
-                    Match(molecule, partner, site, partnerAtom = null, partnerIsotope = partner.element) to distanceSquare
-                }
+            is Atom ->
+                if (!bondable(partner)) emptyList() // у атома нет валентности, связи не будет
+                else freeValenceAtoms.mapNotNull { freeValenceAtom ->
+                    reachable(freeValenceAtom, partner.kinematics.position, partner.radius)?.let { distanceSquare -> // достаточно ли два атома близки для образовани связи
+                        Match(molecule, partner, freeValenceAtom, partnerAtom = null, partnerIsotope = partner.element) to distanceSquare
+                    }
             }
             is Molecule -> {
-                val partnerSites = partner.freeValenceAtoms
-                sites.flatMap { site ->
-                    partnerSites.mapNotNull { partnerSite ->
-                        reachable(site, partnerSite.kinematics.position, partnerSite.radius)?.let { distanceSquare ->
-                            Match(molecule, partner, site, partnerSite, partnerSite.isotope) to distanceSquare
+                val partnerFreeValenceAtoms = partner.freeValenceAtoms
+                freeValenceAtoms.flatMap { freeValenceAtom ->
+                    partnerFreeValenceAtoms.mapNotNull { partnerFreeValenceAtom ->
+                        reachable(freeValenceAtom, partnerFreeValenceAtom.kinematics.position, partnerFreeValenceAtom.radius)?.let { distanceSquare -> // достаточно ли два атома близки для образовани связи
+                            Match(molecule, partner, freeValenceAtom, partnerFreeValenceAtom, partnerFreeValenceAtom.isotope) to distanceSquare
                         }
                     }
                 }
             }
             is SubAtom, is Star -> emptyList()   // связей не образуют; ветка ради исчерпывающего when
         }
-
- 
-    private fun reachable(site: MoleculeAtom, point: Position, radius: Float): Float? {
-        val distanceSquare = site.kinematics.position.distanceSquareTo(point)
-        return if (distanceSquare < site.radius * radius * 2f) distanceSquare else null
-    }
-
-    // Атом способен дать молекуле новую связь: нейтральный лёгкий атом с valence > 0 (как в
-    // CovalentBondFormation). Живость проверена раньше, на всех соседях сразу.
+    private fun reachable(moleculeAtom: MoleculeAtom, partnerPosition: Position, partnerRadius: Float): Float? {
+        val distanceSquare = moleculeAtom.kinematics.position.distanceSquareTo(partnerPosition)
+        return if (distanceSquare < moleculeAtom.radius * partnerRadius * 2f) distanceSquare else null
+    } // достаточно ли два атома близки для образования связи
     private fun bondable(atom: Atom): Boolean =
-        atom.electrons == atom.element.details.p &&   // нейтральный — есть электроны для общей пары
-            atom.element.valence(atom.electrons) > 0
+        atom.electrons == atom.element.details.p && atom.element.valence(atom.electrons) > 0 // Атом способен дать молекуле новую связь
 
-    // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
-    // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),
-    // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Данные из Match.
     override fun weight(match: MatchedData): Float {
         val data = match as Match
         return BondEnergy.of(data.moleculeAtom.isotope, data.partnerIsotope, order = 1) ?: 0f
@@ -105,7 +98,7 @@ class MoleculeGrowth(
         // Развилка по САЙТУ, а не по классу партнёра: partnerAtom != null ⇔ партнёр молекула, и smart cast
         // даёт обе типизации разом — без `!!` и без каста.
         val partnerAtom = data.partnerAtom
-        val spawn = mutableListOf<() -> Entity>(
+        val spawn = mutableListOf(
             {
                 when {
                     partnerAtom != null && partnerEntity is Molecule -> entityGenerator.createMolecule(molecule, molAtom, partnerEntity, partnerAtom, env)
