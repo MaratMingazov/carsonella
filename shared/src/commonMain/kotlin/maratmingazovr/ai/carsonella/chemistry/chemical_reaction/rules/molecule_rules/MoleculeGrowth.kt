@@ -36,69 +36,51 @@ class MoleculeGrowth(
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isEmpty()) return null   // расти не с кем
 
-        // нужен свободный слот, чтобы было куда расти
         if (!molecule.hasFreeValence) return null
         // Внутри звезды слишком горячо — молекулы не растут (как и не образуются).
         if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null
 
-        val moleculePosition = molecule.kinematics.position
-        val moleculeRadius = molecule.radius
-
-        val (second, distanceSquare) = neighbors
-            .filter { canBond(it) }
+        val freeValenceAtoms = molecule.freeValenceAtoms
+        return neighbors
+            .filter { it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
-            .map { it to it.distanceSquareTo(moleculePosition) }
-            .minByOrNull { it.second }
-            ?: return null
-
-        val secondRadius = second.radius
-        if (distanceSquare >= moleculeRadius * secondRadius * 2f) return null
-
-        return chooseSites(molecule, second)
+            .flatMap { partner -> candidates(molecule, freeValenceAtoms, partner) }
+            .minByOrNull { (_, distanceSquare) -> distanceSquare }
+            ?.first
     }
 
-    /**
-     * Где именно возникнет связь: пара ближайших друг к другу атомов со свободным слотом. Молекула
-     * подставляет партнёру ту сторону, которой к нему повёрнута, — а не свой самый старый атом.
-     *
-     * Партнёр-атом сайта не выбирает, он сам себе конец связи. Партнёр-молекула перебирается парами:
-     * атомов у наших молекул единицы, так что полный перебор дешевле любой хитрости.
-     *
-     * null возможен только если свободных слотов не нашлось, чего [canBond] и `hasFreeValence` не должны
-     * пропустить. Возвращаем его вместо `!!`: снаружи это просто «реакция не состоялась».
-     */
-    private fun chooseSites(subject: Molecule, partner: Entity): Match? {
-        val subjectSites = subject.freeValenceAtoms
-        return when (partner) {
-            is Atom -> {
-                val partnerPosition = partner.kinematics.position
-                val site = subjectSites.minByOrNull { it.kinematics.position.distanceSquareTo(partnerPosition) } ?: return null
-                Match(subject, partner, site, partnerAtom = null, partnerIsotope = partner.element)
+
+    private fun candidates(molecule: Molecule, sites: List<MoleculeAtom>, partner: Entity): List<Pair<Match, Float>> =
+        when (partner) {
+            is Atom -> if (!bondable(partner)) emptyList() else sites.mapNotNull { site ->
+                reachable(site, partner.kinematics.position, partner.radius)?.let { distanceSquare ->
+                    Match(molecule, partner, site, partnerAtom = null, partnerIsotope = partner.element) to distanceSquare
+                }
             }
             is Molecule -> {
-                val pair = subjectSites
-                    .flatMap { site -> partner.freeValenceAtoms.map { site to it } }
-                    .minByOrNull { (site, partnerSite) -> site.kinematics.position.distanceSquareTo(partnerSite.kinematics.position) }
-                    ?: return null
-                Match(subject, partner, pair.first, pair.second, pair.second.isotope)
+                val partnerSites = partner.freeValenceAtoms
+                sites.flatMap { site ->
+                    partnerSites.mapNotNull { partnerSite ->
+                        reachable(site, partnerSite.kinematics.position, partnerSite.radius)?.let { distanceSquare ->
+                            Match(molecule, partner, site, partnerSite, partnerSite.isotope) to distanceSquare
+                        }
+                    }
+                }
             }
-            is SubAtom, is Star -> null   // canBond уже отсеял; ветка ради исчерпывающего when
+            is SubAtom, is Star -> emptyList()   // связей не образуют; ветка ради исчерпывающего when
         }
+
+ 
+    private fun reachable(site: MoleculeAtom, point: Position, radius: Float): Float? {
+        val distanceSquare = site.kinematics.position.distanceSquareTo(point)
+        return if (distanceSquare < site.radius * radius * 2f) distanceSquare else null
     }
 
-    // Партнёр способен дать молекуле новую связь: живой, со свободным слотом.
-    //  - молекула: hasFreeSlot();
-    //  - атом: нейтральный лёгкий атом с valence > 0 (как в CovalentBondFormation).
-    private fun canBond(entity: Entity): Boolean {
-        if (!entity.alive) return false
-        // Проверка класса заменяет прежний тег ElementType: частица и звезда — не Atom, связей не образуют.
-        return when (entity) {
-            is Molecule -> entity.hasFreeValence
-            is Atom -> entity.electrons == entity.element.details.p &&   // нейтральный — есть электроны для общей пары
-                entity.element.valence(entity.electrons) > 0
-            is SubAtom, is Star -> false
-        }
-    }
+    // Атом способен дать молекуле новую связь: нейтральный лёгкий атом с valence > 0 (как в
+    // CovalentBondFormation). Живость проверена раньше, на всех соседях сразу.
+    private fun bondable(atom: Atom): Boolean =
+        atom.electrons == atom.element.details.p &&   // нейтральный — есть электроны для общей пары
+            atom.element.valence(atom.electrons) > 0
 
     // Энергия связи, которую даст рост (новая связь order=1) — экзотермично, «+» (контракт weight = энергия
     // реакции со знаком). Так рост честно конкурирует с усилением: у углерода рост выгоднее (C–H 4.28),
@@ -128,7 +110,7 @@ class MoleculeGrowth(
                 when {
                     partnerAtom != null && partnerEntity is Molecule -> entityGenerator.createMolecule(molecule, molAtom, partnerEntity, partnerAtom, env)
                     partnerEntity is Atom -> entityGenerator.createMolecule(molecule, molAtom, partnerEntity, env)
-                    else -> error("produce: ${partnerEntity::class.simpleName} не может расти — canBond должен был отсеять")
+                    else -> error("produce: ${partnerEntity::class.simpleName} не может расти — candidates должен был отсеять")
                 }
             },
         )
