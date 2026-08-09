@@ -111,12 +111,11 @@ class Molecule private constructor(
             }
             markChanged()
         }
-    // Атомы молекулы, ключ — localId узла графа: по нему ходят и граф, и правила реакций. Карта
-    // неизменна, изменяемы сами атомы: состав узлов у ЭТОЙ молекулы не поменяется — усиление связи
-    // и кольцо номера сохраняют, а слияние и распад рождают новую Molecule.
-    private val atomsById: Map<Int, MoleculeAtom> =
-        graph.nodes.associate { node -> node.localId to MoleculeAtom(node.localId, node.isotope, kinematics) }
-    init { relayoutAtoms() } // атомы родились в центре — рассаживаем их по раскладке графа
+    // Раскладка графа нужна ровно один раз — при рождении. Дальше атом сам себе хозяин: правка графа
+    // его не пересаживает, геометрию будут держать силы между атомами молекулы (отдельный метод, позже).
+    private val atomsById: Map<Int, MoleculeAtom> = graph.nodes.associate { node ->
+        node.localId to MoleculeAtom(node.localId, node.isotope, kinematics.copy(position = kinematics.position + graph.atomOffset(node.localId)))
+    }
     override var alive: Boolean = true
         private set
     override val mass: Float get() = graph.mass
@@ -161,12 +160,9 @@ class Molecule private constructor(
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 
-        // Спонтанный сброс внутренней энергии (MolecularSpontaneousEmission) — АВТО.
-        // Усиление связи и замыкание кольца этим зовом НЕ запускаются: они живут в отдельном списке
-        // forcedRules резолвера и ждут клика игрока (World.requestMoleculeAction → см. ForcedReactionRule).
         if (energy > 0f) {
             requestReaction(listOf(this))
-        }
+        } // Спонтанный сброс внутренней энергии
 
         // В звезде (TemperatureMode.Star) молекула термически распадается — зовёт себя, StarDissociation
         // рвёт слабейшую связь (зеркало StarThermalIonization у атома). Зов безусловный: даже насыщенная
@@ -213,11 +209,6 @@ class Molecule private constructor(
         bonds.map {
             MoleculeBond(it.atom1, it.atom2, it.order, graph.energyOf(it), graph.isRingBond(it))
         }
-    private fun relayoutAtoms() {
-        for (atom in atomsById.values) {
-            atom.kinematics = kinematics.copy(position = kinematics.position + graph.atomOffset(atom.localId))
-        }
-    }
 
 
     ////////////////////////////////
@@ -229,7 +220,6 @@ class Molecule private constructor(
             "Связь $id1–$id2 в ${graph.formula} не усилить: у конца нет свободного слота"
         }
         graph = graph.strengthenBond(id1, id2)
-        relayoutAtoms()
         markChanged()
     } // Усиливаем связь bond: её кратность растёт на 1 (O–O → O=O, N=N → N≡N).
     fun closeRing(localId1: Int, localId2: Int) {
@@ -237,12 +227,10 @@ class Molecule private constructor(
             "Кольцо $localId1–$localId2 в ${graph.formula} не замкнуть: у конца нет свободного слота"
         }
         graph = graph.closeRing(localId1, localId2)
-        relayoutAtoms()
         markChanged()
     } // Замыкание кольца: связываем два НЕСОСЕДНИХ атома молекулы → цикл (C–C–C–C–C → циклопентан).
     fun openRing(bond: MoleculeBond) {
         graph = graph.removeRingBond(bond.localId1, bond.localId2)
-        relayoutAtoms()
         markChanged()
     } // Раскрытие кольца: рвём связь, лежащую в цикле → цикл разворачивается в цепь
 

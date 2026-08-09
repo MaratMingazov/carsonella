@@ -16,20 +16,15 @@ class Grid2D<T : Entity>(
     private val grid = HashMap<GridBox, MutableSet<T>>()
     private val mutex = Mutex()
 
-    suspend fun put(entity: T) = mutex.withLock {
-        // определяем в какую ячейку должен попасть наш объект
-        val entityGridBox = gridBoxOf(entity.kinematics.position)
-
-        // получим список объектов в этой ячейке и добавим туда наш объект
-        val bucket = grid.getOrPut(entityGridBox) { mutableSetOf() }
-        bucket += entity
+    suspend fun put(entity: T, position: Position) = mutex.withLock {
+        putUnlocked(entity, position)
     }
 
     /**
      * Удаляет объект из ячейки и при необходимости убирает пустую ячейку.
      */
-    suspend fun remove(entity: T) = mutex.withLock {
-        val entityGridBox = gridBoxOf(entity.kinematics.position)
+    suspend fun remove(entity: T, position: Position) = mutex.withLock {
+        val entityGridBox = gridBoxOf(position)
         grid[entityGridBox]?.remove(entity)
         if (grid[entityGridBox]?.isEmpty() == true) grid.remove(entityGridBox)
     }
@@ -37,16 +32,27 @@ class Grid2D<T : Entity>(
     /**
      * Перемещает объект из старой ячейки в новую, только если он вышел за её пределы.
      */
-    suspend fun move(entity: T, oldPosition: Position) = mutex.withLock {
+    suspend fun move(entity: T, oldPosition: Position, newPosition: Position) = mutex.withLock {
         val entityGridBoxOld = gridBoxOf(oldPosition)
-        val entityGridBoxNew = gridBoxOf(entity.kinematics.position)
+        val entityGridBoxNew = gridBoxOf(newPosition)
 
         if (entityGridBoxOld == entityGridBoxNew) return@withLock
 
         grid[entityGridBoxOld]?.remove(entity)
         if (grid[entityGridBoxOld]?.isEmpty() == true) grid.remove(entityGridBoxOld)
 
-        put(entity)
+        putUnlocked(entity, newPosition)
+    }
+
+    // Без блокировки: зовётся из put и move, которые mutex уже держат. Mutex не реентрантный,
+    // и move, зовущий put напрямую, встал бы на себе самом намертво.
+    private fun putUnlocked(entity: T, position: Position) {
+        // определяем в какую ячейку должен попасть наш объект
+        val entityGridBox = gridBoxOf(position)
+
+        // получим список объектов в этой ячейке и добавим туда наш объект
+        val bucket = grid.getOrPut(entityGridBox) { mutableSetOf() }
+        bucket += entity
     }
 
     /**
@@ -54,8 +60,8 @@ class Grid2D<T : Entity>(
      * Сначала переводит радиус из пикселей в радиус в ячейках (rGridBox).
      * Берёт все объекты из ячеек в этом диапазоне.
      */
-    suspend fun findEntitiesAround(entity: T, r: Float): List<T> = mutex.withLock {
-        val entityGridBox = gridBoxOf(entity.kinematics.position)
+    suspend fun findEntitiesAround(position: Position, r: Float): List<T> = mutex.withLock {
+        val entityGridBox = gridBoxOf(position)
         val rGridBox = ceil(r / gridBoxSize).toInt().coerceAtLeast(1)
         buildList {
             for (gridBoxAround in gridBoxesAround(entityGridBox, rGridBox)) {
