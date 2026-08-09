@@ -13,27 +13,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedDat
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionOutcome
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.StateUpdate
 import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
-import maratmingazovr.ai.carsonella.randomDirection
 
-/**
- * Замыкание кольца (Стадия 2): два ненасыщенных атома ОДНОЙ молекулы связываются → цикл (циклопентан,
- * бензол-скелет, дальше листы/каркасы). Брат [BondStrengthening]: внутримолекулярная реакция «сам с собой»
- * (`reagents.size == 1`), produce = мутация молекулы на месте + фотон.
- *
- * ТОЛЬКО ПО КЛИКУ игрока ([ForcedReactionRule]), как и усиление связи: сама собой цепь не сворачивается.
- * Спонтанная циклизация — ассоциация через активационный барьер (концы цепи должны сойтись под нужным
- * углом), а барьеров модель не знает; без них энергетика замыкала бы даже напряжённые кольца, едва цепь
- * дорастёт до трёх атомов (C–C 3.59 эВ против напряжения 1.17 у трёхчленного).
- *
- * Кандидатов даёт [Molecule.ringClosureCandidates] (пары со свободными слотами, путь ≥ 4 → кольцо ≥ 5).
- * КАКУЮ пару замкнуть, правило пока решает само — по `энергия новой связи − ringStrain` (байеровское
- * напряжение), то есть 6 выгоднее 5, а 5 выгоднее 7+. Когда появится клик по двум атомам, выбор приедет
- * параметром в [ReactionSelection.CloseRing] — как связь у усиления, и тогда же станет ненужным пол
- * размера кольца в графе (он стоит там ровно от спонтанного схлопывания).
- *
- * Геометрию НЕ моделируем: замыкание решается по длине пути в графе, а не по «сближению концов в
- * пространстве» (конформации/гибкость цепи — отдельный тяжёлый слой; см. docs/molecule-graph.md).
- */
+// Замыкание кольца: два ненасыщенных атома ОДНОЙ молекулы связываются → цикл (циклопентан, бензол-скелет, дальше листы/каркасы).
 class RingClosure(
     private val entityGenerator: IEntityGenerator,
 ) : ForcedReactionRule {
@@ -56,26 +37,19 @@ class RingClosure(
         return Match(subject, best.first)
     }
 
-    /**
-     * Молекула реакцию ПЕРЕЖИВАЕТ: атомов не прибавилось, добавилась связь — это та же сущность, поэтому
-     * исход мутирует её через [StateUpdate], как и усиление связи ([BondStrengthening]). Заодно сохраняется
-     * id, а с ним и выделение молекулы у игрока.
-     */
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, cand) = match as Match
-        val kinematics = molecule.kinematics
         val env = molecule.getEnvironment()
-
-        // Нетто-энергия (энергия связи − напряжение кольца) уносится фотоном; напряжение остаётся запасённым
-        // в геометрии кольца, которую мы явно не моделируем (потому фотон несёт нетто, а не полную энергию связи).
         val released = closureWeight(molecule, cand) ?: 0f
 
         val spawn = mutableListOf<() -> Entity>()
         if (released > 0f) {
+            val p1 = molecule.atom(cand.localId1).kinematics.position
+            val p2 = molecule.atom(cand.localId2).kinematics.position
+            val photonPosition = bondMidpoint(p1, p2)
+            val photonDirection = acrossBond(p1, p2, entityGenerator.random)
             spawn += {
-                // Фотон уносит нетто-энергию и УЛЕТАЕТ (скорость 40, как в BondStrengthening/SpontaneousEmission):
-                // за тик покидает радиус активации, иначе PhotoDissociation мог бы поймать его и раскрыть кольцо.
-                entityGenerator.createEntity(Element.PHOTON, kinematics.position, randomDirection(entityGenerator.random),
+                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }

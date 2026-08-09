@@ -1,8 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -55,12 +53,11 @@ class BondStrengthening(
 
         val spawn = mutableListOf<() -> Entity>()
         if (released != null && released > 0f) {
-            // Энергию высвободила СВЯЗЬ — фотон и рождается на ней, посередине между концами. Центра у
-            // молекулы нет, да он бы и не был тем местом, где эта энергия появилась.
+            // Энергию высвободила СВЯЗЬ — фотон и рождается на ней. Центра у молекулы нет, да он бы и не был тем местом, где эта энергия появилась.
             val p1 = atom1.kinematics.position
             val p2 = atom2.kinematics.position
-            val photonPosition = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
-            val photonDirection = acrossBond(p1, p2)
+            val photonPosition = bondMidpoint(p1, p2)
+            val photonDirection = acrossBond(p1, p2, entityGenerator.random)
             spawn += {
                 // Фотон уносит прирост энергии связи и УЛЕТАЕТ
                 entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
@@ -72,19 +69,5 @@ class BondStrengthening(
             spawn = spawn,
             updateState = listOf(StateUpdate(molecule) { molecule.strengthenBond(bond) }),
         )
-    }
-
-    /**
-     * Куда улетает фотон, рождённый в середине связи: ПОПЕРЁК неё, в случайную из двух сторон. Вдоль связи
-     * он нырнул бы в один из её концов и мог быть поглощён обратно (PhotoDissociation ловит фотоны по
-     * радиусу атома), а поперёк каждый шаг уводит его от обоих концов сразу.
-     *
-     * Совпавшие атомы — у связи нет направления, отдаём любое.
-     */
-    private fun acrossBond(p1: Position, p2: Position): Vec2D {
-        val axis = Vec2D(p2.x - p1.x, p2.y - p1.y)
-        if (axis.length() < 1e-6f) return randomDirection(entityGenerator.random)
-        val unit = axis.normalized()
-        return if (entityGenerator.random.nextBoolean()) Vec2D(-unit.y, unit.x) else Vec2D(unit.y, -unit.x)
     }
 }
