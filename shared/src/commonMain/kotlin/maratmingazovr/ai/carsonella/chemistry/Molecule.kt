@@ -150,10 +150,11 @@ class Molecule private constructor(
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
-        applyForce(calculateForce(neighbors))
-        applyNewPosition()
-        reduceVelocity()
-        checkBorders(environment)
+        // ВРЕМЕННО: молекула неподвижна.
+//        applyForce(calculateForce(neighbors))
+//        applyNewPosition()
+//        reduceVelocity()
+//        checkBorders(environment)
 
         neighbors
             .filter { entity -> kinematics.position.distanceSquareTo(entity.kinematics.position) < 10000f }
