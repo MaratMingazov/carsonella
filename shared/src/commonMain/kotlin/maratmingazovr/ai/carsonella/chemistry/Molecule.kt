@@ -159,28 +159,27 @@ class Molecule private constructor(
         }
         markChanged()
     }
+
     override fun checkBorders(env: IEnvironment) {
-        val center = kinematics.position
         val envCenter = env.getEnvCenter()
         val envRadius = env.getEnvRadius()
-        val dx = center.x - envCenter.x
-        val dy = center.y - envCenter.y
-        if (dx * dx + dy * dy <= envRadius * envRadius) return // центр внутри — ничего не делаем
-        val dist = sqrt(dx * dx + dy * dy)
-        val nx = dx / dist
-        val ny = dy / dist
-        // Центр возвращаем на кромку, атомы едут за ним тем же сдвигом; направления отражаем от нормали.
-        val shiftX = envCenter.x + nx * envRadius - center.x
-        val shiftY = envCenter.y + ny * envRadius - center.y
+        var corrected = false
         for (atom in atomsById.values) {
             val k = atom.kinematics
+            val dx = k.position.x - envCenter.x
+            val dy = k.position.y - envCenter.y
+            if (dx * dx + dy * dy <= envRadius * envRadius) continue // этот атом внутри
+            val dist = sqrt(dx * dx + dy * dy)
+            val nx = dx / dist
+            val ny = dy / dist
             val dot = k.direction.x * nx + k.direction.y * ny
             atom.kinematics = k.copy(
-                position = Position(k.position.x + shiftX, k.position.y + shiftY),
+                position = Position(envCenter.x + nx * envRadius, envCenter.y + ny * envRadius),
                 direction = Vec2D(k.direction.x - 2 * dot * nx, k.direction.y - 2 * dot * ny),
             )
+            corrected = true
         }
-        markChanged()
+        if (corrected) markChanged()
     }
     override fun applyForce(force: Vec2D) {
         if (mass < 0.001f) return
