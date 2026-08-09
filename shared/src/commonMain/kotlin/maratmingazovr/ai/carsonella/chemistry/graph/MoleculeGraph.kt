@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
-import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chemistry.Element
 
 /** Узел графа — атом конкретного изотопа. [isotope] несёт протоны/нейтроны/символ через [Element.details].
@@ -78,7 +77,6 @@ data class MoleculeGraph(
         // Узел молекулы не хранит по-атомный заряд → трактуем атом нейтральным (electrons = details.p).
         nodes.associate { it.localId to (it.isotope.valence(it.isotope.details.p) - (used[it.localId] ?: 0)) }
     } // Свободные валентные слоты каждого узла
-    private val atomOffsets: Map<Int, Position> by lazy { MoleculeGeometry.compute(this) }
 
     init {
         for (node in nodes) {
@@ -210,7 +208,6 @@ data class MoleculeGraph(
     fun isRingBond(bond: Bond): Boolean = bond in ringBonds // Лежит ли связь в цикле (её разрыв НЕ развалит молекулу).
     fun energyOf(bond: Bond): Float? = energyByBond[bond] // Энергия связи (эВ) из кеша графа; null — тип связи не в каталоге
     fun freeValence(localId: Int): Int = freeValenceById[localId] ?: error("Узла с localId=$localId нет в графе") // Узнаем есть ли еще валентные слоты у конкретного атома в молекуле
-    fun atomOffset(localId: Int): Position = atomOffsets[localId] ?: error("Узла с localId=$localId нет в графе")
 
     /////////////////////////////////////////////////////
     // ФУНКЦИИ - ВЫЗЫВАЕМ ОДИН РАЗ ПРИ СОЗДАНИИ ГРАФА //
@@ -251,10 +248,16 @@ data class MoleculeGraph(
         require(isRingBond(bond)) { "Связь $atom1–$atom2 не в цикле: её разрыв развалит молекулу — это split" }
         return MoleculeGraph(nodes = nodes, bonds = bonds - bond)
     } // Разрыв КОЛЬЦЕВОЙ связи
+    /**
+     * На столько [merge] сдвинет номера узлов другого графа. Наружу — потому что тот, кто строит
+     * молекулу по слитому графу, должен знать, в какой узел переехал какой атом. Правило одно на двоих.
+     */
+    fun mergeOffset(): Int = nodes.maxOf { it.localId } + 1
+
     fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
         require(nodes.any { it.localId == thisNode }) { "Узла thisNode=$thisNode нет в этом графе" }
         require(other.nodes.any { it.localId == otherNode }) { "Узла otherNode=$otherNode нет в other" }
-        val offset = nodes.maxOf { it.localId } + 1
+        val offset = mergeOffset()
         val shiftedNodes = other.nodes.map { AtomNode(it.localId + offset, it.isotope) }
         val shiftedBonds = other.bonds.map { Bond(it.atom1 + offset, it.atom2 + offset, it.order) }
         val newBond = Bond(thisNode, otherNode + offset, bondOrder)

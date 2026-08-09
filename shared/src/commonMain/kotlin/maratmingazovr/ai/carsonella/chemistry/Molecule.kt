@@ -20,6 +20,7 @@ class MoleculeAtom(
     var kinematics: Kinematics,
 ) {
     val radius: Float = isotope.details.radius
+    val mass: Float = (isotope.details.p + isotope.details.n).toFloat() // нуклоны, как у Atom.mass
 }
 
 data class MoleculeBond(
@@ -44,7 +45,7 @@ data class MoleculeRingCandidate(
 class Molecule private constructor(
     override val id: Long,
     private var graph: MoleculeGraph,
-    kinematics: Kinematics,
+    atoms: List<MoleculeAtom>, // уже расставленные: позиции приходят от источников, раскладка графа не нужна
     energy: Float,
     electrons: Int,
 ):
@@ -63,7 +64,7 @@ class Molecule private constructor(
             nodes = listOf(AtomNode(0, atom1.element), AtomNode(1, atom2.element)),
             bonds = listOf(Bond(0, 1, order = 1)),
         ),
-        kinematics = mergedKinematics(atom1, atom2),
+        atoms = bondedAtoms(atom1, atom2),
         energy = atom1.energy + atom2.energy,
         electrons = atom1.electrons + atom2.electrons,
     )
@@ -74,7 +75,7 @@ class Molecule private constructor(
             molecule1.graph, atom1.localId,
             molecule2.graph, atom2.localId,
         ),
-        kinematics = mergedKinematics(molecule1, molecule2),
+        atoms = mergedAtoms(molecule1, molecule2, molecule1.graph.mergeOffset()),
         energy = molecule1.energy + molecule2.energy,
         electrons = molecule1.electrons + molecule2.electrons,
     )
@@ -86,7 +87,7 @@ class Molecule private constructor(
             molecule.graph, atom.localId,
             MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), 0,
         ),
-        kinematics = mergedKinematics(molecule, newAtom),
+        atoms = grownAtoms(molecule, newAtom, molecule.graph.mergeOffset()),
         energy = molecule.energy + newAtom.energy,
         electrons = molecule.electrons + newAtom.electrons,
     )
@@ -94,30 +95,66 @@ class Molecule private constructor(
     constructor(id: Long, shape: MoleculeShape, kinematics: Kinematics, energy: Float, electrons: Int) : this(
         id = id,
         graph = shape.toGraph(),
-        kinematics = kinematics,
+        atoms = placedAtoms(shape, kinematics),
         energy = energy,
         electrons = electrons,
     )
 
-    // Кинематика МОЛЕКУЛЫ — это кинематика её центра. Атомы пока едут за центром жёстко: сеттер
-    // сдвигает каждый на ту же дельту. Собственное движение атомов (колебания на связях) появится
-    // здесь же, когда заведём силы связей, — тогда центр станет ведомым, а не ведущим.
-    override var kinematics: Kinematics = kinematics
-        set(value) {
-            if (field == value) return
-            val dx = value.position.x - field.position.x
-            val dy = value.position.y - field.position.y
-            field = value
+    private val atomsById: Map<Int, MoleculeAtom> = atoms.associateBy { it.localId }
+
+    init {
+        // Страховка на перенумерацию: merge сдвигает номера узлов второго графа, и промахнуться тут
+        // легко, а промах вылез бы далеко от места ошибки — на первом же getValue в рендере.
+        require(atomsById.keys == graph.nodes.mapTo(HashSet()) { it.localId }) {
+            "Атомы и узлы графа разошлись: атомы ${atomsById.keys.sorted()}, узлы ${graph.nodes.map { it.localId }.sorted()}"
+        }
+    }
+
+    /**
+     * Кинематика МОЛЕКУЛЫ — ПРОИЗВОДНАЯ, поля под ней нет: источник истины — атомы. Читаем — собираем
+     * состояние центра масс; пишем — раздаём каждому атому РАЗНИЦУ, то есть внешнее воздействие приходит
+     * на молекулу как на целое, а взаимное движение атомов запись переживает.
+     *
+     * Писателей осталось двое, и оба снаружи: перетаскивание мышью (moveTo) и стрелки
+     * (World.applyForceToEntity). Своя физика молекулы сюда не пишет — она двигает атомы напрямую.
+     */
+    override var kinematics: Kinematics
+        get() {
+            var totalMass = 0f
+            var x = 0f; var y = 0f; var vx = 0f; var vy = 0f
             for (atom in atomsById.values) {
-                atom.kinematics = value.copy(position = Position(atom.kinematics.position.x + dx, atom.kinematics.position.y + dy))
+                val k = atom.kinematics
+                val m = atom.mass
+                totalMass += m
+                x += k.position.x * m; y += k.position.y * m
+                vx += k.direction.x * k.velocity * m; vy += k.direction.y * k.velocity * m
+            }
+            val velocityVector = Vec2D(vx / totalMass, vy / totalMass)
+            val velocity = velocityVector.length()
+            // У покоящейся молекулы направления нет — берём у первого атома: там лежит то же, что раньше в поле.
+            val direction = if (velocity > 1e-6f) velocityVector.div(velocity) else atomsById.values.first().kinematics.direction
+            return Kinematics(Position(x / totalMass, y / totalMass), direction, velocity)
+        }
+        set(value) {
+            val current = kinematics
+            if (current == value) return
+            val dx = value.position.x - current.position.x
+            val dy = value.position.y - current.position.y
+            val dvx = value.direction.x * value.velocity - current.direction.x * current.velocity
+            val dvy = value.direction.y * value.velocity - current.direction.y * current.velocity
+            for (atom in atomsById.values) {
+                val k = atom.kinematics
+                val vx = k.direction.x * k.velocity + dvx
+                val vy = k.direction.y * k.velocity + dvy
+                val velocity = Vec2D(vx, vy).length()
+                atom.kinematics = Kinematics(
+                    position = Position(k.position.x + dx, k.position.y + dy),
+                    direction = if (velocity > 1e-6f) Vec2D(vx / velocity, vy / velocity) else value.direction,
+                    velocity = velocity,
+                )
             }
             markChanged()
         }
-    // Раскладка графа нужна ровно один раз — при рождении. Дальше атом сам себе хозяин: правка графа
-    // его не пересаживает, геометрию будут держать силы между атомами молекулы (отдельный метод, позже).
-    private val atomsById: Map<Int, MoleculeAtom> = graph.nodes.associate { node ->
-        node.localId to MoleculeAtom(node.localId, node.isotope, kinematics.copy(position = kinematics.position + graph.atomOffset(node.localId)))
-    }
     override var alive: Boolean = true
         private set
     override val mass: Float get() = graph.mass
@@ -251,7 +288,6 @@ class Molecule private constructor(
         ?.order
 
     private fun MoleculeAtom.applyForce(force: Vec2D) {
-        val mass = (isotope.details.p + isotope.details.n).toFloat()
         if (mass < 0.001f) return
         val velocityVector = kinematics.direction.times(kinematics.velocity).plus(force.div(mass))
         val velocity = velocityVector.length().coerceAtMost(MAX_VELOCITY)
@@ -330,6 +366,47 @@ private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph
     require(graph2.freeValence(node2) > 0) { "Узел $node2 в ${graph2.formula} насыщен: связь образовать нечем" }
     return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
 }
+/**
+ * Атомы новорождённой молекулы. ПОЗИЦИИ берём у источников — они уже стоят в мире, и раскладка графа
+ * для этого не нужна: если связь вышла короче или длиннее положенной, её растянут пружины (см.
+ * applyInternalForces). А вот СКОРОСТЬ всем ставим общую, посчитанную по сохранению импульса: оставь
+ * атомам их собственные, и налетевшие друг на друга получили бы встречные скорости — молекула
+ * забилась бы на пружинах вместо того, чтобы полететь дальше вместе.
+ */
+private fun bondedAtoms(atom1: Atom, atom2: Atom): List<MoleculeAtom> {
+    val merged = mergedKinematics(atom1, atom2)
+    return listOf(
+        MoleculeAtom(0, atom1.element, merged.copy(position = atom1.kinematics.position)),
+        MoleculeAtom(1, atom2.element, merged.copy(position = atom2.kinematics.position)),
+    )
+}
+// Слияние двух молекул: узлы второй переезжают на mergeOffset вверх — ровно так же, как их двигает merge.
+private fun mergedAtoms(molecule1: Molecule, molecule2: Molecule, offset: Int): List<MoleculeAtom> {
+    val merged = mergedKinematics(molecule1, molecule2)
+    return molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, merged.copy(position = it.kinematics.position)) } +
+            molecule2.atoms.map { MoleculeAtom(it.localId + offset, it.isotope, merged.copy(position = it.kinematics.position)) }
+}
+// Рост: у новичка единственный узел 0, значит после сдвига он становится offset.
+private fun grownAtoms(molecule: Molecule, newAtom: Atom, offset: Int): List<MoleculeAtom> {
+    val merged = mergedKinematics(molecule, newAtom)
+    return molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, merged.copy(position = it.kinematics.position)) } +
+            MoleculeAtom(offset, newAtom.element, merged.copy(position = newAtom.kinematics.position))
+}
+// Осколок распада: форма у него уже правильная (атомы стоят там, где стояли в родителе) — переносим её
+// целиком так, чтобы центр оказался в заданной точке. Точку задаёт правило: осколки надо развести, иначе
+// они слипнутся обратно тем же тиком (см. spawnFragments).
+private fun placedAtoms(shape: MoleculeShape, kinematics: Kinematics): List<MoleculeAtom> {
+    // Центр считаем по массе — тем же способом, что и геттер Molecule.kinematics, иначе осколок сядет
+    // не в ту точку, которую попросили: центроид и центр масс у разноатомной молекулы не совпадают.
+    val totalMass = shape.atoms.sumOf { it.mass.toDouble() }.toFloat()
+    val cx = shape.atoms.sumOf { (it.kinematics.position.x * it.mass).toDouble() }.toFloat() / totalMass
+    val cy = shape.atoms.sumOf { (it.kinematics.position.y * it.mass).toDouble() }.toFloat() / totalMass
+    return shape.atoms.map { atom ->
+        val offset = Position(atom.kinematics.position.x - cx, atom.kinematics.position.y - cy)
+        MoleculeAtom(atom.localId, atom.isotope, kinematics.copy(position = kinematics.position + offset))
+    }
+}
+
 private fun mergedKinematics(entity1: Entity, entity2: Entity): Kinematics {
     val k1 = entity1.kinematics
     val k2 = entity2.kinematics
