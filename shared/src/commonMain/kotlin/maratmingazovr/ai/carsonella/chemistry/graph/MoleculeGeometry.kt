@@ -85,7 +85,8 @@ internal object MoleculeGeometry {
     private fun Bond.other(localId: Int): Int = if (localId == atom1) atom2 else atom1
 
 
-    private fun bondLengthPx(a: Element, b: Element, order: Int): Float {
+    /** Длина покоя связи. Наружу — потому что по ней же тянут пружины связей в Molecule. */
+    fun bondLengthPx(a: Element, b: Element, order: Int): Float {
         // по идее чем больше кратность связи order, тем короче должно быть, позже сделаем
         return a.details.radius + b.details.radius + BOND_PX
     }
