@@ -171,6 +171,7 @@ class Molecule private constructor(
         }
         if (corrected) markChanged()
     }
+
     override fun applyForce(force: Vec2D) {
         if (mass < 0.001f) return
         val a = force.div(mass) // сила приложена к телу целиком → ускорение у всех атомов одинаковое
@@ -218,7 +219,10 @@ class Molecule private constructor(
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
-        applyForce(calculateForce(neighbors))
+        if (neighbors.isNotEmpty()) {
+            val others = neighbors.flatMap { it.forcePoints() }
+            for (atom in atomsById.values) atom.applyForce(forceOn(atom.forcePoint(), others))
+        }
         applyInternalForces()
         reduceVelocity()
 
@@ -271,10 +275,12 @@ class Molecule private constructor(
     val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { freeValence(it) > 0 }
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.localId1, bond.localId2).map { fragment -> createMoleculeShape(fragment) }
 
-    override fun forcePoints(): List<ForcePoint> = atoms.map { atom ->
-        val neutral = atom.isotope.details.p
-        ForcePoint(atom.kinematics.position, atom.radius, electrons = neutral, protons = neutral)
-    } // Молекула участвует в силах  каждым атомом
+    override fun forcePoints(): List<ForcePoint> = atoms.map { it.forcePoint() } // Молекула участвует в силах  каждым атомом
+
+    private fun MoleculeAtom.forcePoint(): ForcePoint {
+        val neutral = isotope.details.p
+        return ForcePoint(kinematics.position, radius, electrons = neutral, protons = neutral)
+    }
 
     private fun applyInternalForces() {
         val all = atoms
