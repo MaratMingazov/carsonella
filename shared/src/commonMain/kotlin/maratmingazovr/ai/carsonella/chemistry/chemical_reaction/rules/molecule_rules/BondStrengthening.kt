@@ -1,6 +1,8 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
+import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -16,18 +18,10 @@ import maratmingazovr.ai.carsonella.chemistry.graph.BondEnergy
 import maratmingazovr.ai.carsonella.randomDirection
 
 /**
- * Усиление связи (§6, Шаг 3c): связь между двумя НЕнасыщенными атомами усиливается 1→2→3
+ * Усиление связи: связь между двумя НЕнасыщенными атомами усиливается 1→2→3
  * (O–O → O=O, N–N → N=N → N≡N). Так рождаются кратные связи.
  *
- * ТОЛЬКО ПО КЛИКУ игрока ([ForcedReactionRule]): какую связь усилить, выбирает он — кликом по самой
- * связи выбранной молекулы, и его выбор приезжает в [ReactionSelection.StrengthenBond]. В эмёрджентном
- * списке правил этого правила НЕТ, само оно не срабатывает.
- *
- * Почему не эмёрджентно: спонтанное усиление — это ассоциация без активационного барьера, а барьеров
- * модель пока не знает (см. docs/molecule-graph.md). Цена решения: O₂ и N₂ сами собой не собираются —
- * `CovalentBondFormation` даёт только одинарную O–O, двойную делает игрок. Вернуть эмёрджентность =
- * реализовать ещё и [maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.ReactionRule]
- * (выбор связи там должен идти по максимальному выигрышу энергии, а не по первой подходящей).
+ * ТОЛЬКО ПО КЛИКУ игрока: какую связь усилить, выбирает он — кликом по самой связи выбранной молекулы
  */
 class BondStrengthening(
     private val entityGenerator: IEntityGenerator,
@@ -36,16 +30,7 @@ class BondStrengthening(
 
     private data class Match(val molecule: Molecule, val bond: MoleculeBond) : MatchedData
 
-    /**
-     * Связь берём прямо из выбора игрока. Снимок не устаревает, но уже НЕ потому, что граф неизменен —
-     * усиление правит его на месте ([Molecule.strengthenBond]). Держится это на двух вещах: за тик
-     * молекула получает ровно одно усиление (запросы сгруппированы по инициатору, resolve применяет один
-     * исход), а `localId` концов усиление не двигает — меняется только кратность ребра. Умерла между
-     * кликом и resolve → отсекает `alive`.
-     *
-     * Единственное, что в снимке всё же может разойтись с графом — `bond.order`, и по нему `produce`
-     * считает энергию фотона. Пока усиление за тик одно, разойтись негде.
-     */
+    // Связь берём из выбора игрока.
     override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
         val choice = selection as? ReactionSelection.StrengthenBond ?: return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
@@ -55,30 +40,30 @@ class BondStrengthening(
         return Match(subject, choice.bond)
     }
 
-    /**
-     * Молекула реакцию ПЕРЕЖИВАЕТ: состав не изменился, изменилась только кратность связи, поэтому это та
-     * же сущность — исход мутирует её через [StateUpdate], как ионизация мутирует атом, а не рождает новый.
-     * Отсюда же бонус: id сохраняется, и выделение молекулы у игрока не слетает — усиливать можно кликами
-     * подряд (O–O → O=O → O≡O).
-     */
+    // Молекула реакцию ПЕРЕЖИВАЕТ: состав не изменился, изменилась только кратность связи:  (O–O → O=O → O≡O),
     override fun produce(match: MatchedData): ReactionOutcome {
         val (molecule, bond) = match as Match
-        val kinematics = molecule.kinematics
+        val atom1 = molecule.atom(bond.localId1)
+        val atom2 = molecule.atom(bond.localId2)
         val env = molecule.getEnvironment()
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
         // E(k) связь несёт в себе (кеш графа), за E(k+1) идём в каталог — связи такой кратности ещё нет.
-        val hi = BondEnergy.of(molecule.atom(bond.localId1).isotope, molecule.atom(bond.localId2).isotope, bond.order + 1)
+        val hi = BondEnergy.of(atom1.isotope, atom2.isotope, bond.order + 1)
         val lo = bond.energy
         val released = if (hi != null && lo != null) hi - lo else null
 
         val spawn = mutableListOf<() -> Entity>()
         if (released != null && released > 0f) {
+            // Энергию высвободила СВЯЗЬ — фотон и рождается на ней, посередине между концами. Центра у
+            // молекулы нет, да он бы и не был тем местом, где эта энергия появилась.
+            val p1 = atom1.kinematics.position
+            val p2 = atom2.kinematics.position
+            val photonPosition = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
+            val photonDirection = acrossBond(p1, p2)
             spawn += {
-                // Фотон уносит прирост энергии связи и УЛЕТАЕТ (скорость 40, как в SpontaneousEmission): за тик
-                // покидает радиус активации, иначе PhotoDissociation мог бы поймать его и распустить молекулу —
-                // тот же цикл образование↔распад, что и при росте/образовании связи.
-                entityGenerator.createEntity(Element.PHOTON, kinematics.position, randomDirection(entityGenerator.random),
+                // Фотон уносит прирост энергии связи и УЛЕТАЕТ
+                entityGenerator.createEntity(Element.PHOTON, photonPosition, photonDirection,
                     MAX_VELOCITY, energy = released, environment = env, electrons = 0)
             }
         }
@@ -87,5 +72,19 @@ class BondStrengthening(
             spawn = spawn,
             updateState = listOf(StateUpdate(molecule) { molecule.strengthenBond(bond) }),
         )
+    }
+
+    /**
+     * Куда улетает фотон, рождённый в середине связи: ПОПЕРЁК неё, в случайную из двух сторон. Вдоль связи
+     * он нырнул бы в один из её концов и мог быть поглощён обратно (PhotoDissociation ловит фотоны по
+     * радиусу атома), а поперёк каждый шаг уводит его от обоих концов сразу.
+     *
+     * Совпавшие атомы — у связи нет направления, отдаём любое.
+     */
+    private fun acrossBond(p1: Position, p2: Position): Vec2D {
+        val axis = Vec2D(p2.x - p1.x, p2.y - p1.y)
+        if (axis.length() < 1e-6f) return randomDirection(entityGenerator.random)
+        val unit = axis.normalized()
+        return if (entityGenerator.random.nextBoolean()) Vec2D(-unit.y, unit.x) else Vec2D(unit.y, -unit.x)
     }
 }
