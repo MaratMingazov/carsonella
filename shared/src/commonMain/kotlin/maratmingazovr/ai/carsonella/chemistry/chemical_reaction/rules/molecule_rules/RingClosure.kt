@@ -90,7 +90,7 @@ class RingClosure(
     // null, если энергия связи неизвестна (не CHNO) — тогда кандидат пропускается.
     // Связи ещё нет, поэтому её энергии нет и в кеше графа — идём в каталог (в отличие от MoleculeBond.energy).
     private fun closureWeight(cand: MoleculeRingCandidate): Float? {
-        val bondE = BondEnergy.of(cand.atom1.structure.isotope, cand.atom2.structure.isotope, 1) ?: return null
+        val bondE = BondEnergy.of(cand.atom1.isotope, cand.atom2.isotope, 1) ?: return null
         return bondE - ringStrain(cand.ringSize)
     }
 }

@@ -35,10 +35,6 @@ class Atom(
     ChangeNotifiable by ChangeSupport()
 {
     init {
-        // Инвариант энергии атома: energy — это ТОЛЬКО 0 (основное состояние) или ТОЧНО один из дискретных
-        // уровней возбуждения energyLevels(electrons). Проверяем при создании (fail-fast): «не-уровень»
-        // должен ронять здесь и сразу, а не позже в SpontaneousEmission во время какой-то реакции.
-        // Пусто (голый ион/Z>18) → допустим только 0. Заряд меняет лестницу, поэтому берём по electrons.
         val levels = element.energyLevels(electrons)
         require(energy == 0f || energy in levels) {
             "Atom ${element.name}: недопустимая energy=$energy эВ (electrons=$electrons) — не 0 и не уровень из $levels"
@@ -53,14 +49,12 @@ class Atom(
     override val protons: Int = element.details.p
     override var electrons: Int = electrons
         set(value) { field = value; markChanged() }
-    // Уровень возбуждения (эВ): либо 0, либо точное значение из energyLevels — инвариант проверяет init.
     var energy: Float = energy
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val radius: Float = element.details.radius
     override fun distanceToSurface(point: Position): Float = kinematics.position.distanceTo(point) - radius // Кружок: расстояние до поверхности — это расстояние до центра минус радиус.
     override val displaySymbol: String get() = element.symbol(electrons)
     override val energyLevels: List<Float> get() = element.energyLevels(electrons)
-
     override val saveKey: String = element.name
 
     override fun describe(): String {

@@ -20,10 +20,6 @@ sealed interface ReactionSelection {
 
     sealed interface Forced : ReactionSelection
 
-    /**
-     * Усилить кратность КОНКРЕТНОЙ связи (клик по связи выбранной молекулы). [bond] адресует связь
-     * номерами своих узлов — координаты внутри лишь снимок на момент клика, реакция их не читает.
-     */
     data class StrengthenBond(val bond: MoleculeBond) : Forced
 
     /**

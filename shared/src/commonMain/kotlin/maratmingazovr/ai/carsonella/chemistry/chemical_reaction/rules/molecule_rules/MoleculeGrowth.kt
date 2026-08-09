@@ -80,7 +80,7 @@ class MoleculeGrowth(
                     .flatMap { site -> partner.freeValenceAtoms.map { site to it } }
                     .minByOrNull { (site, partnerSite) -> site.kinematics.position.distanceSquareTo(partnerSite.kinematics.position) }
                     ?: return null
-                Match(subject, partner, pair.first, pair.second, pair.second.structure.isotope)
+                Match(subject, partner, pair.first, pair.second, pair.second.isotope)
             }
             is SubAtom, is Star -> null   // canBond уже отсеял; ветка ради исчерпывающего when
         }
@@ -105,7 +105,7 @@ class MoleculeGrowth(
     // у кислорода — усиление (O=O выигрыш 3.65 > рост O–O 1.51). Данные из Match.
     override fun weight(match: MatchedData): Float {
         val data = match as Match
-        return BondEnergy.of(data.moleculeAtom.structure.isotope, data.partnerIsotope, order = 1) ?: 0f
+        return BondEnergy.of(data.moleculeAtom.isotope, data.partnerIsotope, order = 1) ?: 0f
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {
@@ -116,7 +116,7 @@ class MoleculeGrowth(
         val env = molecule.getEnvironment()
 
         // Образование связи ЭКЗОТЕРМИЧНО: энергию новой связи высвобождаем фотоном (как в CovalentBondFormation).
-        val bondEnergy = BondEnergy.of(molAtom.structure.isotope, data.partnerIsotope, order = 1)
+        val bondEnergy = BondEnergy.of(molAtom.isotope, data.partnerIsotope, order = 1)
 
         // Само слияние — дело конструкторов Molecule: граф, кинематику, энергию и электроны (сохранение, §8)
         // считают они. Правилу остаётся выбрать перегрузку по типу партнёра: молекула или атом.

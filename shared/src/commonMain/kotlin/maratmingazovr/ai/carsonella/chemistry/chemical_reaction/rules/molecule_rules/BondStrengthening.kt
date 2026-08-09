@@ -68,7 +68,7 @@ class BondStrengthening(
 
         // Усиление ЭКЗОТЕРМИЧНО: высвобождаем прирост энергии связи E(k+1)−E(k) фотоном (как при образовании).
         // E(k) связь несёт в себе (кеш графа), за E(k+1) идём в каталог — связи такой кратности ещё нет.
-        val hi = BondEnergy.of(bond.atom1.structure.isotope, bond.atom2.structure.isotope, bond.order + 1)
+        val hi = BondEnergy.of(bond.atom1.isotope, bond.atom2.isotope, bond.order + 1)
         val lo = bond.energy
         val released = if (hi != null && lo != null) hi - lo else null
 

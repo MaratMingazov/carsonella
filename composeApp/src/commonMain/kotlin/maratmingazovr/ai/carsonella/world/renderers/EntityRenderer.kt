@@ -119,11 +119,11 @@ class EntityRenderer(
             }
 
             shape.atoms.forEach { atom ->
-                val atomVibrationParams = VibrationParams(atom.structure.localId.toLong(), molecule.energy, time) // параметры вибрации
-                val fill = ElementColors.fill(atom.structure.isotope)
-                val symbol = atom.structure.isotope.bareSymbol
-                val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.structure.localId * 1.3f
-                drawAtom(screenPos(atom, atomVibrationParams), atom.structure.radius, fill, symbol, atom.structure.freeValence, slotAngle, highlighted = highlight.entity)
+                val atomVibrationParams = VibrationParams(atom.localId.toLong(), molecule.energy, time) // параметры вибрации
+                val fill = ElementColors.fill(atom.isotope)
+                val symbol = atom.isotope.bareSymbol
+                val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
+                drawAtom(screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, molecule.freeValence(atom), slotAngle, highlighted = highlight.entity)
             }
         }
     }

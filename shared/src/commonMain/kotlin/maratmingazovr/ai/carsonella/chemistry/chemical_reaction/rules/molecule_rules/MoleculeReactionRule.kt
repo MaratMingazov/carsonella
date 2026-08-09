@@ -109,9 +109,9 @@ abstract class MoleculeReactionRule : ReactionRule {
             // Настоящие координаты у осколка уже есть (форма их несёт), но взять их вместо этой развозки
             // нельзя: осколки встали бы вплотную и слиплись бы обратно тем же тиком — см. док, шаг 4.
             val pos = kinematics.position.plus(Position((i - (fragments.size - 1) / 2f) * molecule.radius * FRAGMENT_SEPARATION, 0f))
-            val electrons = frag.atoms.sumOf { it.structure.isotope.details.p }  // нейтральный осколок (гомолитика)
+            val electrons = frag.atoms.sumOf { it.isotope.details.p }  // нейтральный осколок (гомолитика)
             if (frag.atoms.size == 1) {
-                val isotope = frag.atoms.single().structure.isotope
+                val isotope = frag.atoms.single().isotope
                 val kineticVelocity = kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
                 return@mapIndexed { generator.createEntity(isotope, pos, kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
