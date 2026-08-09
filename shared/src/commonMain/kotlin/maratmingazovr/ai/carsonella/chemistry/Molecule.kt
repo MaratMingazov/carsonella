@@ -140,11 +140,12 @@ class Molecule private constructor(
         }
         markChanged()
     } // Игрок «берёт и кладёт»: все атомы едут одним сдвигом (форма цела), скорость гасится
+
     override fun reduceVelocity() {
         if (atomsById.values.none { it.kinematics.velocity > 0f }) return
         for (atom in atomsById.values) {
             val k = atom.kinematics
-            atom.kinematics = k.copy(velocity = if (k.velocity < 0.1f) 0f else k.velocity * 0.99f)
+            atom.kinematics = k.copy(velocity = if (k.velocity < INTERNAL_VELOCITY_EPS) 0f else k.velocity * 0.99f)
         }
         markChanged()
     }
@@ -191,8 +192,7 @@ class Molecule private constructor(
     override val protons: Int get() = graph.protons
     override var electrons: Int = electrons
         set(value) { field = value; markChanged() }
-    // Внутренняя (колебательная) энергия — квазинепрерывная, в отличие от дискретных уровней атома.
-    var energy: Float = energy
+    var energy: Float = energy // Внутренняя (колебательная) энергия — квазинепрерывная, в отличие от дискретных уровней атома.
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
     override val energyLevels: List<Float> get() = graph.energyLevels
@@ -218,18 +218,14 @@ class Molecule private constructor(
         val neighbors = getNeighbors()
         val environment = getEnvironment()
 
-        // ВРЕМЕННО: молекула неподвижна КАК ЦЕЛОЕ — внешние силы и границу ещё не переписали на атомы.
-//        applyForce(calculateForce(neighbors))
-//        applyNewPosition()
-//        reduceVelocity()
-//        checkBorders(environment)
-
-        // Но внутри она уже живая: пружины связей растаскивают атомы на длину покоя, несвязанные
-        // расталкиваются. Импульс от этих сил нулевой, так что с места молекула не двинется.
+        applyForce(calculateForce(neighbors))
         applyInternalForces()
+        reduceVelocity()
+
         var moved = false
-        for (atom in atomsById.values) if (atom.dampAndMove()) moved = true
+        for (atom in atomsById.values) if (atom.move()) moved = true
         if (moved) markChanged() // успокоилась — перестаём будить рендер
+        checkBorders(environment)
 
         neighbors
             .filter { entity -> atomsById.values.any { atom -> entity.distanceSquareTo(atom.kinematics.position) < 10000f } }
@@ -240,10 +236,7 @@ class Molecule private constructor(
             requestReaction(listOf(this))
         } // Спонтанный сброс внутренней энергии
 
-        // В звезде (TemperatureMode.Star) молекула термически распадается — зовёт себя, StarDissociation
-        // рвёт слабейшую связь (зеркало StarThermalIonization у атома). Зов безусловный: даже насыщенная
-        // молекула (у неё strengthenableBonds пусто) обязана распасться в звезде.
-        if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) }
+        if (environment.getEnvTemperature() == TemperatureMode.Star) { requestReaction(listOf(this)) } // В звезде (TemperatureMode.Star) молекула термически распадается
     }
     override fun destroy() {
         if (!alive) return
@@ -283,17 +276,6 @@ class Molecule private constructor(
         ForcePoint(atom.kinematics.position, atom.radius, electrons = neutral, protons = neutral)
     } // Молекула участвует в силах  каждым атомом
 
-    /**
-     * Силы между атомами ОДНОЙ молекулы — то, что держит её форму теперь, когда атом двигается сам.
-     *
-     * Связь ведёт себя как пружина с длиной покоя из [MoleculeGeometry] — той же, по которой атомы
-     * расставляются при рождении, поэтому только что родившаяся молекула стоит на месте, а не дёргается.
-     * Несвязанные атомы одной молекулы друг друга ОТТАЛКИВАЮТ, но не притягивают: без этого цепочку
-     * ничто не держит от складывания, а угловых связей мы не моделируем.
-     *
-     * Силы парные и противоположные, поэтому суммарный импульс нулевой: от собственных пружин молекула
-     * с места не сдвинется.
-     */
     private fun applyInternalForces() {
         val all = atoms
         for (i in all.indices) {
@@ -311,9 +293,13 @@ class Molecule private constructor(
                 val stretch = distance - restLength
                 if (order == null && stretch >= 0f) continue // несвязанные только расталкиваются
 
-                val magnitude = BOND_STIFFNESS * stretch
                 val ux = dx / distance
                 val uy = dy / distance
+                // Скорость расхождения пары (вдоль их оси) и демпфер по ней: c = PAIR_DAMPING · m_прив.
+                val relative = b.kinematics.direction * b.kinematics.velocity - a.kinematics.direction * a.kinematics.velocity
+                val separationSpeed = relative.x * ux + relative.y * uy
+                val reducedMass = a.mass * b.mass / (a.mass + b.mass)
+                val magnitude = BOND_STIFFNESS * stretch + PAIR_DAMPING * reducedMass * separationSpeed
                 a.applyForce(Vec2D(ux * magnitude, uy * magnitude))   // растянуто → тянет к соседу
                 b.applyForce(Vec2D(-ux * magnitude, -uy * magnitude)) // сжато → знак меняется, расталкивает
             }
@@ -332,20 +318,17 @@ class Molecule private constructor(
             velocity = velocity,
         )
     }
-    // Затухание и шаг одним движением: внутреннее движение должно затихать, иначе молекула
-    // будет звенеть на пружинах бесконечно.
-    // Возвращает, сдвинулся ли атом на самом деле: по этому молекула решает, будить ли рендер. Без порога
-    // она не замолчит никогда — на успокоившейся молекуле остаточная сила даёт скорость порядка 1e-5.
-    private fun MoleculeAtom.dampAndMove(): Boolean {
-        val velocity = if (kinematics.velocity < INTERNAL_VELOCITY_EPS) 0f else kinematics.velocity * INTERNAL_DAMPING
+
+    private fun MoleculeAtom.move(): Boolean {
+        val velocity = kinematics.velocity
+        if (velocity == 0f) return false
         kinematics = kinematics.copy(
             position = Position(
                 kinematics.position.x + kinematics.direction.x * velocity,
                 kinematics.position.y + kinematics.direction.y * velocity,
             ),
-            velocity = velocity,
         )
-        return velocity > 0f
+        return true
     }
 
     private fun createMoleculeShape(graph: MoleculeGraph): MoleculeShape =
@@ -404,10 +387,6 @@ private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph
 }
 
 
-// Жёсткость связи-пружины: во сколько превращается пиксель отклонения от длины покоя. Держать НИЗКОЙ —
-// шаг интегрирования у нас один тик, и на большой жёсткости лёгкий водород (масса 1) улетит за один ход.
-private const val BOND_STIFFNESS = 0.02f
-// Затухание внутреннего движения. Заметно сильнее общего reduceVelocity (0.99): там гасится полёт молекулы
-// по миру, а здесь — звон пружин, и звенеть он должен недолго.
-private const val INTERNAL_DAMPING = 0.9f
+private const val BOND_STIFFNESS = 0.05f // Жёсткость связи-пружины
+private const val PAIR_DAMPING = 0.3f // Демпфер пружины Держать < 1: на 1 и выше демпфер перелетает через ноль и сам раскачивает пару.
 private const val INTERNAL_VELOCITY_EPS = 0.01f // ниже этого скорость атома считаем нулевой, иначе молекула никогда не «успокоится»

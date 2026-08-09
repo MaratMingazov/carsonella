@@ -39,6 +39,7 @@ data class Position(val x: Float, val y: Float) {
  */
 data class Vec2D(val x: Float, val y: Float) {
     operator fun plus(v: Vec2D) = Vec2D(x + v.x, y + v.y)
+    operator fun minus(v: Vec2D) = Vec2D(x - v.x, y - v.y)
     operator fun times(k: Float) = Vec2D(x * k, y * k)
     fun div(k: Float) : Vec2D {
         require(k != 0f) { "Division by zero" }
