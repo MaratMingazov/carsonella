@@ -42,7 +42,9 @@ data class Bond(
 data class RingClosureCandidate(val atom1: Int, val atom2: Int, val ringSize: Int)
 
 
-private const val CANONICAL_MAX_NODES = 9 // Потолок наивного перебора O(n!) в MoleculeGraph.canonical; выше канон = "" (до Моргана, Стадия 2).
+private const val CANONICAL_MAX_NODES = 9 // Потолок наивного перебора O(n!) в MoleculeGraph.canonical; считается по ТЯЖЁЛЫМ атомам (водороды свёрнуты), выше канон = "" (до Моргана, Стадия 2).
+
+private fun Element.isHydrogen() = details.p == 1 // HYDROGEN и DEUTERIUM: одновалентны, значит в молекуле всегда концевые
 private const val RING_MIN_SIZE = 5 // Минимальный размер кольца, который MoleculeGraph.ringClosureCandidates вообще предлагает.
 
 data class MoleculeGraph(
@@ -113,14 +115,37 @@ data class MoleculeGraph(
         formula.map { c -> if (c in '0'..'9') subscripts[c - '0'] else c }.joinToString("")
     } // Формула: H2O → H₂O, C2H6O → C₂H₆O.
     val canonical: String by lazy {
-        val n = nodes.size
+        // Канонизируется СКЕЛЕТ: водороды свёрнуты в токен своего тяжёлого атома. Водород одновалентен, то
+        // есть всегда концевой, — топология от этого не теряется, а перебор O(n!) идёт по тяжёлым атомам:
+        // у бутена C₄H₈ их 4 вместо 12. Изотоп водорода в токене сохраняется, иначе D₂O сошла бы за H₂O.
+        val hydrogensOf = HashMap<Int, MutableList<String>>()   // localId тяжёлого → изотопы его водородов
+        val folded = HashSet<Int>()                             // localId свёрнутых водородов
+        for (node in nodes) {
+            if (!node.isotope.isHydrogen()) continue
+            val bond = bonds.singleOrNull { it.atom1 == node.localId || it.atom2 == node.localId } ?: continue
+            if (bond.order != 1) continue
+            val hostId = if (bond.atom1 == node.localId) bond.atom2 else bond.atom1
+            if (isotopeById.getValue(hostId).isHydrogen()) continue   // H–H (сам водород): сворачивать некуда
+            folded += node.localId
+            hydrogensOf.getOrPut(hostId) { mutableListOf() } += node.isotope.name
+        }
+        val skeleton = nodes.filter { it.localId !in folded }
+
+        val n = skeleton.size
         if (n > CANONICAL_MAX_NODES) return@lazy ""   // крупная (до Моргана) → без канона
 
-        val tokens = nodes.map { it.isotope.name }                 // токен узла = полный изотоп
+        // Токен узла = изотоп + свёрнутые водороды. Отсортированы: порядок обхода узлов не должен влиять.
+        val tokens = skeleton.map { node ->
+            val hydrogens = hydrogensOf[node.localId]?.sorted()?.joinToString(",")
+            if (hydrogens == null) node.isotope.name else "${node.isotope.name}($hydrogens)"
+        }
         val localIdToIndex = HashMap<Int, Int>()                   // localId -> позиция 0..n-1
-        nodes.forEachIndexed { i, node -> localIdToIndex[node.localId] = i }
-        // рёбра в терминах исходных индексов (0..n-1) — для быстрого перемаппинга на каждой перестановке
-        val edges = bonds.map { Triple(localIdToIndex.getValue(it.atom1), localIdToIndex.getValue(it.atom2), it.order) }
+        skeleton.forEachIndexed { i, node -> localIdToIndex[node.localId] = i }
+        // Рёбра в терминах индексов скелета — для быстрого перемаппинга на каждой перестановке. Связи к
+        // свёрнутым водородам сюда не попадают: они уже учтены в токенах.
+        val edges = bonds
+            .filter { it.atom1 in localIdToIndex && it.atom2 in localIdToIndex }
+            .map { Triple(localIdToIndex.getValue(it.atom1), localIdToIndex.getValue(it.atom2), it.order) }
 
         val perm = IntArray(n)        // perm[newIndex] = исходный индекс узла
         val newPos = IntArray(n)      // newPos[origIndex] = newIndex (обратное к perm)
