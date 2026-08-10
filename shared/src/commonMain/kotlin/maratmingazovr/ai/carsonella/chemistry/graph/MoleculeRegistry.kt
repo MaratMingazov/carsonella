@@ -73,6 +73,14 @@ object MoleculeRegistry {
             listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4), bond(1, 5))) to KnownMolecule("Ethylene", "Этилен", "H₂C=CH₂"),        // H₂C=CH₂
         mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6), h(7)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7))) to KnownMolecule("Ethane", "Этан", "CH₃–CH₃"), //  CH₃–CH₃
 
+        // Бутаны C₄H₁₀ — изомеры по СКЕЛЕТУ: цепочка против ветвления, кратностей связи тут нет вообще.
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)),
+            listOf(bond(0, 1), bond(1, 2), bond(2, 3),
+                bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(1, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13))) to KnownMolecule("Butane", "Бутан", "CH₃–CH₂–CH₂–CH₃"),
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)),
+            listOf(bond(0, 1), bond(0, 2), bond(0, 3),
+                bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7), bond(2, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13))) to KnownMolecule("Isobutane", "Изобутан", "(CH₃)₃CH"),
+
         // Бутены C₄H₈
         mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
             listOf(bond(0, 1, 2), bond(1, 2), bond(2, 3),
