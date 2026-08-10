@@ -118,11 +118,11 @@ class MoleculeGrowth(
                 partnerPoint, partnerRadius,
                 entityGenerator.random,
             )
-            spawn += {
-                // Фотон уносит энергию связи и УЛЕТАЕТ
-                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
-                    MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
-            }
+//            spawn += {
+//                // Фотон уносит энергию связи и УЛЕТАЕТ
+//                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
+//                    MAX_VELOCITY, energy = bondEnergy, environment = env, electrons = 0)
+//            }
         }
 
         return ReactionOutcome(

@@ -59,11 +59,11 @@ class BondStrengthening(
                 atom2.kinematics.position, atom2.radius,
                 entityGenerator.random,
             )
-            spawn += {
-                // Фотон уносит прирост энергии связи и УЛЕТАЕТ
-                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
-                    MAX_VELOCITY, energy = released, environment = env, electrons = 0)
-            }
+//            spawn += {
+//                // Фотон уносит прирост энергии связи и УЛЕТАЕТ
+//                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
+//                    MAX_VELOCITY, energy = released, environment = env, electrons = 0)
+//            }
         }
 
         return ReactionOutcome(
