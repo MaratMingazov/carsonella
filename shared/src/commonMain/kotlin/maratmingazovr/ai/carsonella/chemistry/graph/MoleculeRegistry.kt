@@ -73,14 +73,16 @@ object MoleculeRegistry {
             listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4), bond(1, 5))) to KnownMolecule("Ethylene", "Этилен", "H₂C=CH₂"),        // H₂C=CH₂
         mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6), h(7)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7))) to KnownMolecule("Ethane", "Этан", "CH₃–CH₃"), //  CH₃–CH₃
 
-        // Бутены C₄H₈ — изомеры по ПОЛОЖЕНИЮ двойной связи, и канон их различает (топология разная).
-        // Цис/транс у бутена-2 не различаем: это геометрия, а граф её не знает — одна запись на оба.
+        // Бутены C₄H₈
         mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
             listOf(bond(0, 1, 2), bond(1, 2), bond(2, 3),
                 bond(0, 4), bond(0, 5), bond(1, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("1-Butene", "Бутен-1", "H₂C=CH–CH₂–CH₃"),
         mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
             listOf(bond(0, 1), bond(1, 2, 2), bond(2, 3),
                 bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("2-Butene", "Бутен-2", "CH₃–CH=CH–CH₃"),
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
+            listOf(bond(0, 1, 2), bond(1, 2), bond(1, 3),
+                bond(0, 4), bond(0, 5), bond(2, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("Isobutylene", "Изобутилен", "H₂C=C(CH₃)₂"),
 
         // --- кислородсодержащая органика ---
         mol(listOf(c(0), o(1), h(2), h(3)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3))) to KnownMolecule("Formaldehyde", "Формальдегид", "H₂C=O"), // H₂C=O
