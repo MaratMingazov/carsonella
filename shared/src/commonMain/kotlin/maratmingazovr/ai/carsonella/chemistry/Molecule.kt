@@ -22,6 +22,8 @@ class MoleculeAtom(
 ) {
     val radius: Float = isotope.details.radius
     val mass: Float = (isotope.details.p + isotope.details.n).toFloat() // нуклоны, как у Atom.mass
+
+    fun forcePoint(): ForcePoint { return ForcePoint(kinematics.position, radius, electrons = isotope.details.p, protons = isotope.details.p) }
 }
 
 data class MoleculeBond(
@@ -66,17 +68,14 @@ class Molecule private constructor(
             nodes = listOf(AtomNode(0, atom1.element), AtomNode(1, atom2.element)),
             bonds = listOf(Bond(0, 1, order = 1)),
         ),
-        atoms = listOf(MoleculeAtom(0, atom1.element, atom1.kinematics), MoleculeAtom(1, atom2.element, atom2.kinematics),),
+        atoms = listOf(MoleculeAtom(0, atom1.element, atom1.kinematics), MoleculeAtom(1, atom2.element, atom2.kinematics)),
         energy = atom1.energy + atom2.energy,
         electrons = atom1.electrons + atom2.electrons,
     )
 
     constructor(id: Long, molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom) : this(
         id = id,
-        graph = mergedGraph(
-            molecule1.graph, atom1.localId,
-            molecule2.graph, atom2.localId,
-        ),
+        graph = molecule1.graph.merge(molecule2.graph, thisNode = atom1.localId, otherNode = atom2.localId, bondOrder = 1),
         atoms = molecule1.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } + molecule2.atoms.map { MoleculeAtom(it.localId + molecule1.graph.mergeOffset(), it.isotope, it.kinematics) },
         energy = molecule1.energy + molecule2.energy,
         electrons = molecule1.electrons + molecule2.electrons,
@@ -85,10 +84,7 @@ class Molecule private constructor(
     /** Молекула растет путен добавления нового атома */
     constructor(id: Long, molecule: Molecule, atom: MoleculeAtom, newAtom: Atom) : this(
         id = id,
-        graph = mergedGraph(
-            molecule.graph, atom.localId,
-            MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), 0,
-        ),
+        graph = molecule.graph.merge( MoleculeGraph(nodes = listOf(AtomNode(0, newAtom.element)), bonds = emptyList()), thisNode = atom.localId, otherNode = 0, bondOrder = 1),
         atoms = molecule.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) } + MoleculeAtom(molecule.graph.mergeOffset(), newAtom.element, newAtom.kinematics),
         energy = molecule.energy + newAtom.energy,
         electrons = molecule.electrons + newAtom.electrons,
@@ -97,7 +93,10 @@ class Molecule private constructor(
 
     constructor(id: Long, shape: MoleculeShape, energy: Float, electrons: Int) : this(
         id = id,
-        graph = shape.toGraph(),
+        graph = MoleculeGraph(
+            nodes = shape.atoms.map { AtomNode(it.localId, it.isotope) },
+            bonds = shape.bonds.map { Bond(it.localId1, it.localId2, it.order) },
+        ),
         atoms = shape.atoms.map { MoleculeAtom(it.localId, it.isotope, it.kinematics) },
         energy = energy,
         electrons = electrons,
@@ -248,6 +247,7 @@ class Molecule private constructor(
         markChanged()
         notifyDeath()
     }
+    override fun forcePoints(): List<ForcePoint> = atoms.map { it.forcePoint() } // Молекула участвует в силах  каждым атомом
 
     ////////////////////////////////////////////////////////////
     // ФУНКЦИИ - ТОЛЬКО НА ОСНОВНЕ ГРАФА. ДАННЫЕ ЗАКЭШИРОВАНЫ //
@@ -267,20 +267,13 @@ class Molecule private constructor(
         .minByOrNull { (_, energy) -> energy }
         ?.let { (bond, energy) -> createMoleculeBonds(graph, listOf(bond)).single() to energy }
     val strengthenableBonds: List<MoleculeBond> get() = createMoleculeBonds(graph, graph.strengthenableBonds) // Связи, которые можно усилить (кратность +1).
-    val ringClosureCandidates: List<MoleculeRingCandidate> get() =
-        graph.ringClosureCandidates.map { MoleculeRingCandidate(it.atom1, it.atom2, it.ringSize) }
-    // Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило.
+    val ringClosureCandidates: List<MoleculeRingCandidate> get() = graph.ringClosureCandidates.map { MoleculeRingCandidate(it.atom1, it.atom2, it.ringSize) } // Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило.
     fun atom(localId: Int): MoleculeAtom = atomsById.getValue(localId) // Атом по номеру узла: им адресуют концы MoleculeBond и MoleculeRingCandidate.
     fun freeValence(atom: MoleculeAtom): Int = graph.freeValence(atom.localId) // Сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле. Живёт на графе, а не на атоме: меняется при усилении связи и замыкании кольца, хранимое поле протухло бы.
     val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { freeValence(it) > 0 }
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.localId1, bond.localId2).map { fragment -> createMoleculeShape(fragment) }
 
-    override fun forcePoints(): List<ForcePoint> = atoms.map { it.forcePoint() } // Молекула участвует в силах  каждым атомом
 
-    private fun MoleculeAtom.forcePoint(): ForcePoint {
-        val neutral = isotope.details.p
-        return ForcePoint(kinematics.position, radius, electrons = neutral, protons = neutral)
-    }
 
     private fun applyInternalForces() {
         val all = atoms
@@ -314,7 +307,6 @@ class Molecule private constructor(
     private fun bondOrderBetween(localId1: Int, localId2: Int): Int? = graph.bonds
         .firstOrNull { (it.atom1 == localId1 && it.atom2 == localId2) || (it.atom1 == localId2 && it.atom2 == localId1) }
         ?.order
-
     private fun MoleculeAtom.applyForce(force: Vec2D) {
         if (mass < 0.001f) return
         val velocityVector = kinematics.direction.times(kinematics.velocity).plus(force.div(mass))
@@ -324,7 +316,6 @@ class Molecule private constructor(
             velocity = velocity,
         )
     }
-
     private fun MoleculeAtom.move(): Boolean {
         val velocity = kinematics.velocity
         if (velocity == 0f) return false
@@ -337,14 +328,9 @@ class Molecule private constructor(
         return true
     }
 
-    private fun createMoleculeShape(graph: MoleculeGraph): MoleculeShape =
-        MoleculeShape(createMoleculeAtoms(graph), createMoleculeBonds(graph, graph.bonds))
-    private fun createMoleculeAtoms(graph: MoleculeGraph): List<MoleculeAtom> =
-        graph.nodes.map { node -> atomsById.getValue(node.localId) }
-    private fun createMoleculeBonds(graph: MoleculeGraph, bonds: List<Bond>): List<MoleculeBond> =
-        bonds.map {
-            MoleculeBond(it.atom1, it.atom2, it.order, graph.energyOf(it), graph.isRingBond(it))
-        }
+    private fun createMoleculeShape(graph: MoleculeGraph): MoleculeShape = MoleculeShape(createMoleculeAtoms(graph), createMoleculeBonds(graph, graph.bonds))
+    private fun createMoleculeAtoms(graph: MoleculeGraph): List<MoleculeAtom> = graph.nodes.map { node -> atomsById.getValue(node.localId) }
+    private fun createMoleculeBonds(graph: MoleculeGraph, bonds: List<Bond>): List<MoleculeBond> = bonds.map { MoleculeBond(it.atom1, it.atom2, it.order, graph.energyOf(it), graph.isRingBond(it)) }
 
 
     ////////////////////////////////
@@ -378,21 +364,6 @@ class Molecule private constructor(
 
 }
 
-
-
-
-
-private fun MoleculeShape.toGraph(): MoleculeGraph = MoleculeGraph(
-    nodes = atoms.map { AtomNode(it.localId, it.isotope) },
-    bonds = bonds.map { Bond(it.localId1, it.localId2, it.order) },
-)
-private fun mergedGraph(graph1: MoleculeGraph, node1: Int, graph2: MoleculeGraph, node2: Int): MoleculeGraph {
-    require(graph1.freeValence(node1) > 0) { "Узел $node1 в ${graph1.formula} насыщен: связь образовать нечем" }
-    require(graph2.freeValence(node2) > 0) { "Узел $node2 в ${graph2.formula} насыщен: связь образовать нечем" }
-    return graph1.merge(graph2, thisNode = node1, otherNode = node2, bondOrder = 1)
-}
-
-
 private const val BOND_STIFFNESS = 0.05f // Жёсткость связи-пружины
-private const val PAIR_DAMPING = 0.3f // Демпфер пружины Держать < 1: на 1 и выше демпфер перелетает через ноль и сам раскачивает пару.
+private const val PAIR_DAMPING = 0.2f // Демпфер пружины Держать < 1: на 1 и выше демпфер перелетает через ноль и сам раскачивает пару.
 private const val INTERNAL_VELOCITY_EPS = 0.01f // ниже этого скорость атома считаем нулевой, иначе молекула никогда не «успокоится»

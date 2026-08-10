@@ -257,6 +257,8 @@ data class MoleculeGraph(
     fun merge(other: MoleculeGraph, thisNode: Int, otherNode: Int, bondOrder: Int): MoleculeGraph {
         require(nodes.any { it.localId == thisNode }) { "Узла thisNode=$thisNode нет в этом графе" }
         require(other.nodes.any { it.localId == otherNode }) { "Узла otherNode=$otherNode нет в other" }
+        require(this.freeValence(thisNode) > 0) { "Узел $thisNode в ${this.formula} насыщен: связь образовать нечем" }
+        require(other.freeValence(otherNode) > 0) { "Узел $otherNode в ${other.formula} насыщен: связь образовать нечем" }
         val offset = mergeOffset()
         val shiftedNodes = other.nodes.map { AtomNode(it.localId + offset, it.isotope) }
         val shiftedBonds = other.bonds.map { Bond(it.atom1 + offset, it.atom2 + offset, it.order) }
