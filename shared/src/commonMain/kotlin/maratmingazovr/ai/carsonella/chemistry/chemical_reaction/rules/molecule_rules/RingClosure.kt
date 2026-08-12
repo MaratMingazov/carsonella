@@ -26,16 +26,16 @@ class RingClosure(
     override fun matches(reagents: List<Entity>, selection: ReactionSelection.Forced): MatchedData? {
         if (selection !is ReactionSelection.CloseRing) return null   // чужой выбор — не наш
         if (reagents.size != 1) return null   // форс приходит self-запросом (World.requestMoleculeAction)
-        val subject = reagents.first() as? Molecule ?: return null
-        if (!subject.alive) return null
-        if (subject.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
+        val molecule = reagents.first() as? Molecule ?: return null
+        if (!molecule.alive) return null
+        if (molecule.getEnvironment().getEnvTemperature() == TemperatureMode.Star) return null   // в звезде молекул нет
         // Кандидат с максимальным выигрышем (энергия связи − напряжение): 5–6 бьют 7+.
         // null-выигрыш (энергия связи неизвестна) отсеиваем.
-        val best = subject.ringClosureCandidates
-            .mapNotNull { cand -> closureWeight(subject, cand)?.let { cand to it } }
+        val candidate = molecule.ringClosureCandidates
+            .mapNotNull { cand -> closureWeight(molecule, cand)?.let { cand to it } }
             .maxByOrNull { it.second }
             ?: return null
-        return Match(subject, best.first)
+        return Match(molecule, candidate.first)
     }
 
     override fun produce(match: MatchedData): ReactionOutcome {

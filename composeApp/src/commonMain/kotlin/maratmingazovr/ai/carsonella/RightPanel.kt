@@ -387,28 +387,24 @@ fun ConsolePanel(
 
 
 /**
- * Кто из [entities] находится под точкой [at] — id ближайшей сущности, если курсор в неё попал,
+ * Кто из entities находится под точкой cursor — id ближайшей сущности, если курсор в неё попал,
  * иначе null. Один на всех: наведение, клик-выбор и захват при перетаскивании, поэтому подсветка
  * предсказывает, что именно выберется.
  *
- * Из чего сущность состоит, здесь не знают: [Entity.distanceToSurface] отвечает одним числом и
- * за частицу, и за молекулу (у неё — по ближайшему атому). Числа сравнимы между разными по размеру
- * сущностями, поэтому «ближайший» получается честным: тот, ВНУТРЬ кого курсор попал (расстояние
- * отрицательное), выигрывает у того, рядом с кем он просто стоит.
  *
- * [slop] — кайма вокруг силуэта, запас на промах: без неё в электрон (r = 15) почти не попасть.
+ * slop — кайма вокруг силуэта, запас на промах: без неё в электрон (r = 15) почти не попасть.
  * Строгое `<` оставляет победу первому в списке при ничьей.
  */
 private fun hitTest(
     entities: List<Entity>,
-    at: Offset,
+    cursorPosition: Offset,
     slop: Float = 20f
 ): Long? {
-    val point = at.toPosition()
+    val myPosition = cursorPosition.toPosition()
     var bestId: Long? = null
     var bestDistance = Float.MAX_VALUE
     for (entity in entities) {
-        val distance = entity.distanceToSurface(point)
+        val distance = entity.distanceToSurface(myPosition)
         if (distance <= slop && distance < bestDistance) {
             bestDistance = distance
             bestId = entity.id
