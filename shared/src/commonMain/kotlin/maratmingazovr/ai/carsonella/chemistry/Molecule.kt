@@ -358,6 +358,6 @@ class Molecule private constructor(
 
 }
 
-private const val BOND_STIFFNESS = 0.05f // Жёсткость связи-пружины
+private const val BOND_STIFFNESS = 0.05f // Жёсткость связи-пружины. Насколько быстро расходятся атомы
 private const val PAIR_DAMPING = 0.2f // Демпфер пружины Держать < 1: на 1 и выше демпфер перелетает через ноль и сам раскачивает пару.
 private const val INTERNAL_VELOCITY_EPS = 0.01f // ниже этого скорость атома считаем нулевой, иначе молекула никогда не «успокоится»
