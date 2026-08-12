@@ -31,6 +31,8 @@ private const val BARE_PROTON_RADIUS = 15f
 private const val BARE_PROTON_SYMBOL = "p"
 private val BARE_PROTON_FILL = Color(0xFFFAD0A0)
 
+private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы
+
 
 data class VibrationParams(
     val id: Long, // чтобы у каждого элемента было свое колебание
@@ -51,6 +53,8 @@ data class VibrationParams(
 data class Highlight(
     val entity: Boolean = false,       // значит пользователь навел мышкой на элемент и нужно его подсветить
     val bond: MoleculeBond? = null,   // пользователь навел мышкой на конкретную связь молекулы,
+    val selectedAtoms: Set<Int> = emptySet(), // атомы молекулы (localId), выбранные игроком: ими он адресует реакцию
+    val hoveredAtom: Int? = null,             // атом молекулы под курсором — предсказывает, что выберется по клику
 ) {
     companion object { val NONE = Highlight() }
 }
@@ -125,7 +129,12 @@ class EntityRenderer(
                 val fill = ElementColors.fill(atom.isotope)
                 val symbol = atom.isotope.bareSymbol
                 val slotAngle = vibrationParams.slotAngle + vibrationParams.idSeed + atom.localId * 1.3f
-                drawAtom(screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, molecule.freeValence(atom), slotAngle, highlighted = highlight.entity)
+                drawAtom(
+                    screenPos(atom, atomVibrationParams), atom.radius, fill, symbol, molecule.freeValence(atom), slotAngle,
+                    highlighted = highlight.entity,
+                    selected = atom.localId in highlight.selectedAtoms,
+                    hovered = atom.localId == highlight.hoveredAtom,
+                )
             }
         }
     }
@@ -170,6 +179,8 @@ class EntityRenderer(
         freeSlots: Int, // валентность атома, сколько электронов на внешем слое
         slotAngle: Float, //
         highlighted: Boolean, // наведён/выбран → штриховая оконтовка
+        selected: Boolean = false, // атом молекулы выбран игроком → зелёное кольцо снаружи
+        hovered: Boolean = false,  // атом молекулы под курсором → то же кольцо, но тонкое
     ) {
         val outlineWidth =  2.5f // ширина обводки атома
         drawCircle(color = fill, center = center, radius = radius) // сам круг
@@ -194,6 +205,17 @@ class EntityRenderer(
                 drawCircle(color = Color.White, center = p, radius = slotR)   // белый кружок слота
                 drawCircle(color = Color.Black, center = p, radius = slotR, style = Stroke(outlineWidth)) // обводка
             }
+        }
+
+        // Кольцо ВОКРУГ атома: подсветка молекулы штрихует все её атомы, а это — метка выбранного.
+        // Радиус берём за слотами (их маркеры сидят на кромке), рисуем последним — поверх всего.
+        if (selected || hovered) {
+            drawCircle(
+                color = ACTION_COLOR,
+                center = center,
+                radius = radius + 6f,
+                style = Stroke(width = if (selected) 3f else 1.5f),
+            )
         }
     }
 

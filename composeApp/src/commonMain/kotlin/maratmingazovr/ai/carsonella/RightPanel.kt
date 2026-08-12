@@ -77,6 +77,11 @@ fun RightPanel(
     // Для обработки клавиш клавиатуры
     // 1) локально храним зажатые клавиши
     var keys by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(setOf<Key>()) }
+
+    // Вторая ступень выбора: атомы (localId) ВНУТРИ выбранной молекулы. Состояние локальное — за ним ходят только сцена и Info-карточка, обе живут здесь.
+    var selectedAtoms by remember { mutableStateOf(emptyList<Int>()) }
+    LaunchedEffect(selectedId) { selectedAtoms = emptyList() }   // сменили частицу — выбор атомов не переносим
+
     // --- фокус для приёма клавиатуры ---
     val focusRequester = remember { FocusRequester() }
     val onSelectUpToDate = rememberUpdatedState(onSelect) // чтобы замыкание не устаревало
@@ -120,6 +125,8 @@ fun RightPanel(
                     onHover = { pos -> onHover(pos); focusRequester.requestFocus() },
                     selectedId = selectedId,
                     onSelect = { onSelect(it); focusRequester.requestFocus() },
+                    selectedAtoms = selectedAtoms,
+                    onSelectAtoms = { selectedAtoms = it },
                     modifier = Modifier.matchParentSize()
                 )
 //                TemperatureBadge(world.updateTemperatureGame())
@@ -177,6 +184,8 @@ private fun SceneCanvas(
     onHover: (Offset?) -> Unit,
     selectedId: Long?, // какой элемент сейчас выбран?
     onSelect: (Long?) -> Unit,
+    selectedAtoms: List<Int>, // какие атомы выбранной молекулы выбраны (localId)
+    onSelectAtoms: (List<Int>) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -194,7 +203,10 @@ private fun SceneCanvas(
 
     val hoveredEntityId = hoverPos?.let { hitTest(entities, it) } // Находится ли под курсором какой то элемент?
     val selectedEntity = selectedId?.let { id -> entities.firstOrNull { it.id == id } } // Какой элемент сейчас выбран.
+    val selectedMolecule = selectedEntity as? Molecule
+    val selectedAtomsLive = liveAtoms(selectedMolecule, selectedAtoms) // выбор без протухших localId
     val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedEntity, it) } // на какую связь молекулы навел курсор
+    val hoveredAtom = hoverPos?.let { atomAt(selectedMolecule, it) } // на какой атом выбранной молекулы навел курсор
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
     // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
@@ -202,6 +214,8 @@ private fun SceneCanvas(
     val onHoverLatest = rememberUpdatedState(onHover)
     val onSelectLatest = rememberUpdatedState(onSelect)
     val selectedLatest = rememberUpdatedState(selectedEntity)
+    val selectedAtomsLatest = rememberUpdatedState(selectedAtomsLive)
+    val onSelectAtomsLatest = rememberUpdatedState(onSelectAtoms)
 
     // Тусклые звёзды фона: позиции нормированы (0..1), генерируем один раз сидированным RNG.
     val stars = remember {
@@ -245,9 +259,14 @@ private fun SceneCanvas(
 
                         // отпустили
                         if (change.changedToUp()) {
+                            val atom = atomAt(selectedLatest.value as? Molecule, change.position)
                             val bond = strengthenableBondAt(selectedLatest.value, change.position)
                             if (holding) {
                                 world.dropHeldEntity()            // положили — снова взаимодействует
+                            } else if (atom != null) {
+                                // Клик по атому ВЫБРАННОЙ молекулы = вторая ступень выбора; по тому же атому — снятие.
+                                val current = selectedAtomsLatest.value
+                                onSelectAtomsLatest.value(if (atom in current) current - atom else listOf(atom))
                             } else if (bond != null) {
                                 // Клик по связи ВЫБРАННОЙ молекулы = усилить именно её (механика «лего»).
                                 world.requestMoleculeAction(
@@ -302,12 +321,14 @@ private fun SceneCanvas(
             .forEach { entity ->
                 val id = entity.id
                 val isHoveredOrSelectedEntity = id == hoveredEntityId || id == selectedId
-                val hoveredBond = if (id == selectedId) hoveredBond else null
+                val isSelected = id == selectedId   // выбор атомов и связи — только у выбранной молекулы
                 renderer.render(
                     this, entity, time,
                     Highlight(
                         entity = isHoveredOrSelectedEntity,
-                        bond = hoveredBond,
+                        bond = if (isSelected) hoveredBond else null,
+                        selectedAtoms = if (isSelected) selectedAtomsLive.toSet() else emptySet(),
+                        hoveredAtom = if (isSelected) hoveredAtom else null,
                     ),
                 )
             }
@@ -413,6 +434,38 @@ private fun hitTest(
     return bestId
 }
 
+
+/**
+ * Какой атом молекулы под точкой — его localId, иначе null. Спрашиваем только у ВЫБРАННОЙ молекулы:
+ * атом — вторая ступень выбора, до неё игрок выбирает саму молекулу.
+ *
+ * slop меньше, чем в hitTest: внутри молекулы атомы стоят вплотную, широкая кайма склеивала бы соседей.
+ */
+private fun atomAt(
+    molecule: Molecule?,
+    at: Offset,
+    slop: Float = 6f,
+): Int? {
+    val mol = molecule ?: return null
+    val point = at.toPosition()
+    var best: Int? = null
+    var bestDistance = Float.MAX_VALUE
+    for (atom in mol.atoms) {
+        val distance = point.distanceTo(atom.kinematics.position) - atom.radius
+        if (distance <= slop && distance < bestDistance) {
+            bestDistance = distance
+            best = atom.localId
+        }
+    }
+    return best
+}
+
+// Выбор атомов без протухших localId: замыкание кольца номера сохраняет, а слияние/распад — нет.
+private fun liveAtoms(molecule: Molecule?, localIds: List<Int>): List<Int> {
+    if (molecule == null || localIds.isEmpty()) return emptyList()
+    val alive = molecule.atoms.mapTo(HashSet()) { it.localId }
+    return localIds.filter { it in alive }
+}
 
 /**
  * Тут мы определяем навели ли мы курсов на молекулярную связь молекулы
