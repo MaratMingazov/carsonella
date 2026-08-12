@@ -39,6 +39,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
+import androidx.compose.ui.input.pointer.isCtrlPressed
+import androidx.compose.ui.input.pointer.isMetaPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
@@ -134,6 +136,7 @@ fun RightPanel(
                 // Info-оверлей: карточка в углу канвы при выборе частицы (клик по пустому месту снимает выбор)
                 SelectedEntityPanel(
                     selectedElementId = selectedId,
+                    selectedAtoms = selectedAtoms,
                     entities = entities,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
@@ -264,9 +267,10 @@ private fun SceneCanvas(
                             if (holding) {
                                 world.dropHeldEntity()            // положили — снова взаимодействует
                             } else if (atom != null) {
-                                // Клик по атому ВЫБРАННОЙ молекулы = вторая ступень выбора; по тому же атому — снятие.
-                                val current = selectedAtomsLatest.value
-                                onSelectAtomsLatest.value(if (atom in current) current - atom else listOf(atom))
+                                // Клик по атому ВЫБРАННОЙ молекулы = вторая ступень выбора. Модификатор читаем
+                                // у события, а не из набора keys: тот собирается по фокусу и может отставать.
+                                val additive = e.keyboardModifiers.isCtrlPressed || e.keyboardModifiers.isMetaPressed
+                                onSelectAtomsLatest.value(withAtom(selectedAtomsLatest.value, atom, additive))
                             } else if (bond != null) {
                                 // Клик по связи ВЫБРАННОЙ молекулы = усилить именно её (механика «лего»).
                                 world.requestMoleculeAction(
@@ -460,6 +464,21 @@ private fun atomAt(
     return best
 }
 
+/**
+ * Выбор атомов после клика по localId. Клик по уже выбранному атому снимает его.
+ * additive (Ctrl/Cmd) — набрать пару, иначе выбор заменяется целиком.
+ *
+ * Больше MAX_SELECTED_ATOMS не набрать: реакция адресуется парой, поэтому третий атом вытесняет
+ * самый старый — так игроку не приходится снимать выбор руками.
+ */
+private fun withAtom(current: List<Int>, localId: Int, additive: Boolean): List<Int> = when {
+    localId in current -> current - localId
+    !additive -> listOf(localId)
+    else -> (current + localId).takeLast(MAX_SELECTED_ATOMS)
+}
+
+private const val MAX_SELECTED_ATOMS = 2
+
 // Выбор атомов без протухших localId: замыкание кольца номера сохраняет, а слияние/распад — нет.
 private fun liveAtoms(molecule: Molecule?, localIds: List<Int>): List<Int> {
     if (molecule == null || localIds.isEmpty()) return emptyList()
@@ -526,6 +545,7 @@ private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = 
 @Composable
 private fun SelectedEntityPanel(
     selectedElementId: Long?,
+    selectedAtoms: List<Int>, // выбранные атомы молекулы (localId): ими игрок адресует реакцию
     entities: List<Entity>,
     onSetEnergy: (Long, Float) -> Unit,
     onMoleculeAction: (Long, ReactionSelection) -> Unit,
@@ -551,6 +571,20 @@ private fun SelectedEntityPanel(
             Text("Levels, eV:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
             Text(
                 levels.joinToString(", ") { (round(it * 100) / 100).toString() },
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        // Выбранные атомы молекулы: символ с номером узла и сколько связей атом ещё может образовать.
+        val atoms = liveAtoms(selectedEntity as? Molecule, selectedAtoms)
+        if (selectedEntity is Molecule && atoms.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text("Atoms:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+            Text(
+                atoms.joinToString(", ") { localId ->
+                    val atom = selectedEntity.atom(localId)
+                    "${atom.isotope.bareSymbol}$localId (${selectedEntity.freeValence(atom)} free)"
+                },
                 style = MaterialTheme.typography.bodySmall,
             )
         }
