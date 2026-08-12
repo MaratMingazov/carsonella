@@ -211,6 +211,7 @@ private fun SceneCanvas(
     val selectedAtomsLive = liveAtoms(selectedMolecule, selectedAtoms) // выбор без протухших localId
     val hoveredBond = hoverPos?.let { strengthenableBondAt(selectedEntity, it) } // на какую связь молекулы навел курсор
     val hoveredAtom = hoverPos?.let { atomAt(selectedMolecule, it) } // на какой атом выбранной молекулы навел курсор
+    val ringPreview = closableRing(selectedMolecule, selectedAtomsLive) // пара, на которой замкнётся кольцо
 
     // pointerInput ниже с ключом Unit (чтобы жест перетаскивания не прерывался каждый кадр),
     // поэтому замыкание должно читать «свежие» значения через rememberUpdatedState.
@@ -334,6 +335,7 @@ private fun SceneCanvas(
                         bond = if (isSelected) hoveredBond else null,
                         selectedAtoms = if (isSelected) selectedAtomsLive.toSet() else emptySet(),
                         hoveredAtom = if (isSelected) hoveredAtom else null,
+                        ringPreview = if (isSelected) ringPreview else null,
                     ),
                 )
             }
@@ -480,6 +482,14 @@ private fun withAtom(current: List<Int>, localId: Int, additive: Boolean): List<
 
 private const val MAX_SELECTED_ATOMS = 2
 
+// Пара выбранных атомов, на которой можно замкнуть кольцо, иначе null. Один вопрос на двоих: им живут и
+// превью на молекуле, и кнопка в панели, поэтому кнопка не может предложить то, чего сцена не показала.
+private fun closableRing(molecule: Molecule?, atoms: List<Int>): Pair<Int, Int>? {
+    if (molecule == null || atoms.size != 2) return null
+    val (localId1, localId2) = atoms
+    return if (molecule.canCloseRing(localId1, localId2)) localId1 to localId2 else null
+}
+
 // Выбор атомов без протухших localId: замыкание кольца номера сохраняет, а слияние/распад — нет.
 private fun liveAtoms(molecule: Molecule?, localIds: List<Int>): List<Int> {
     if (molecule == null || localIds.isEmpty()) return emptyList()
@@ -595,13 +605,13 @@ private fun SelectedEntityPanel(
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
         // Кольцо адресует ПАРА выбранных атомов, поэтому кнопка ждёт, пока игрок наберёт годную пару.
         if (selectedEntity is Molecule && selectedEntity.canCloseRing) {
-            val pair = atoms.takeIf { it.size == 2 }?.takeIf { selectedEntity.canCloseRing(it[0], it[1]) }
+            val ring = closableRing(selectedEntity, atoms)
             Spacer(Modifier.height(8.dp))
             PanelButton(
                 text = "Close ring",
-                enabled = pair != null,
+                enabled = ring != null,
                 onClick = {
-                    pair?.let { (localId1, localId2) ->
+                    ring?.let { (localId1, localId2) ->
                         onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing(localId1, localId2))
                         onSelectAtoms(emptyList())   // пару отработали — выбор снимаем
                     }

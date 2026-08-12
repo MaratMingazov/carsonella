@@ -55,6 +55,7 @@ data class Highlight(
     val bond: MoleculeBond? = null,   // пользователь навел мышкой на конкретную связь молекулы,
     val selectedAtoms: Set<Int> = emptySet(), // атомы молекулы (localId), выбранные игроком: ими он адресует реакцию
     val hoveredAtom: Int? = null,             // атом молекулы под курсором — предсказывает, что выберется по клику
+    val ringPreview: Pair<Int, Int>? = null,  // пара атомов, между которыми замкнётся кольцо: рисуем будущую связь
 ) {
     companion object { val NONE = Highlight() }
 }
@@ -124,6 +125,11 @@ class EntityRenderer(
                 drawBond(screenPos(molecule.atom(bond.localId1)), screenPos(molecule.atom(bond.localId2)), bond.order, potentialOrder)
             }
 
+            // Кольцо, которое замкнётся по кнопке: связи ещё нет, поэтому линия пунктирная.
+            highlight.ringPreview?.let { (localId1, localId2) ->
+                drawRingPreview(screenPos(molecule.atom(localId1)), screenPos(molecule.atom(localId2)))
+            }
+
             shape.atoms.forEach { atom ->
                 val atomVibrationParams = VibrationParams(atom.localId.toLong(), molecule.energy, time) // параметры вибрации
                 val fill = ElementColors.fill(atom.isotope)
@@ -170,6 +176,18 @@ class EntityRenderer(
 
 
 
+
+    // Будущая связь кольца: тем же зелёным, что и недостающие линии кратности под курсором, но пунктиром —
+    // этой связи пока нет. Толще обычной связи, чтобы читалась поверх скелета молекулы.
+    private fun DrawScope.drawRingPreview(a: Offset, b: Offset) {
+        drawLine(
+            color = ACTION_COLOR,
+            start = a,
+            end = b,
+            strokeWidth = 5f,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)),
+        )
+    }
 
     private fun DrawScope.drawAtom(
         center: Offset,
