@@ -137,6 +137,7 @@ fun RightPanel(
                 SelectedEntityPanel(
                     selectedElementId = selectedId,
                     selectedAtoms = selectedAtoms,
+                    onSelectAtoms = { selectedAtoms = it },
                     entities = entities,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
@@ -527,10 +528,11 @@ private fun distanceToSegment(point: Position, a: Position, b: Position): Float 
 // Кнопка в стиле беж-панели: лёгкий OutlinedButton — тёплая тонкая рамка + тёмный текст, скругление
 // (перекликается с чёрной обводкой атомов), вместо яркой Material-заливки.
 @Composable
-private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled,
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(1.dp, Color(0xFF8A7B60)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3E362A)),
@@ -546,6 +548,7 @@ private fun PanelButton(text: String, onClick: () -> Unit, modifier: Modifier = 
 private fun SelectedEntityPanel(
     selectedElementId: Long?,
     selectedAtoms: List<Int>, // выбранные атомы молекулы (localId): ими игрок адресует реакцию
+    onSelectAtoms: (List<Int>) -> Unit,
     entities: List<Entity>,
     onSetEnergy: (Long, Float) -> Unit,
     onMoleculeAction: (Long, ReactionSelection) -> Unit,
@@ -590,11 +593,19 @@ private fun SelectedEntityPanel(
         }
 
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
+        // Кольцо адресует ПАРА выбранных атомов, поэтому кнопка ждёт, пока игрок наберёт годную пару.
         if (selectedEntity is Molecule && selectedEntity.canCloseRing) {
+            val pair = atoms.takeIf { it.size == 2 }?.takeIf { selectedEntity.canCloseRing(it[0], it[1]) }
             Spacer(Modifier.height(8.dp))
             PanelButton(
                 text = "Close ring",
-                onClick = { onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing) },
+                enabled = pair != null,
+                onClick = {
+                    pair?.let { (localId1, localId2) ->
+                        onMoleculeAction(selectedEntity.id, ReactionSelection.CloseRing(localId1, localId2))
+                        onSelectAtoms(emptyList())   // пару отработали — выбор снимаем
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

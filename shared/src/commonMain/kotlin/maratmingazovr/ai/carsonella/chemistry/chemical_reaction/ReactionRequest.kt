@@ -22,11 +22,8 @@ sealed interface ReactionSelection {
 
     data class StrengthenBond(val bond: MoleculeBond) : Forced
 
-    /**
-     * Замкнуть кольцо. Пару атомов пока выбирает само правило (лучший кандидат по weight) —
-     * параметризуем так же, как усиление, когда появится клик по атомам.
-     */
-    data object CloseRing : Forced
+    // Замкнуть кольцо между двумя атомами молекулы
+    data class CloseRing(val localId1: Int, val localId2: Int) : Forced
 }
 
 /**

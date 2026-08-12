@@ -34,18 +34,11 @@ data class Bond(
     val order: Int,          // кратность 1..3;
 )
 
-/**
- * Кандидат на замыкание кольца: между узлами [atom1] и [atom2] (оба со свободным слотом, не соседи)
- * можно добавить связь → цикл размера [ringSize] (= длина кратчайшего пути между ними + 1). См.
- * [MoleculeGraph.ringClosureCandidates] и [MoleculeGraph.closeRing].
- */
-data class RingClosureCandidate(val atom1: Int, val atom2: Int, val ringSize: Int)
-
 
 private const val CANONICAL_MAX_NODES = 9 // Потолок наивного перебора O(n!) в MoleculeGraph.canonical; считается по ТЯЖЁЛЫМ атомам (водороды свёрнуты), выше канон = "" (до Моргана, Стадия 2).
 
 private fun Element.isHydrogen() = details.p == 1 // HYDROGEN и DEUTERIUM: одновалентны, значит в молекуле всегда концевые
-private const val RING_MIN_SIZE = 5 // Минимальный размер кольца, который MoleculeGraph.ringClosureCandidates вообще предлагает.
+private const val RING_MIN_SIZE = 3
 
 data class MoleculeGraph(
     val nodes: List<AtomNode>,
@@ -201,7 +194,7 @@ data class MoleculeGraph(
     val energyLevels: List<Float> = listOfNotNull(nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull())
     val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 } // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).
     val strengthenableBonds: List<Bond> = bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 } // Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот
-    val ringClosureCandidates: List<RingClosureCandidate> = run {
+    private val ringClosureCandidates: List<Pair<Int, Int>> = run {
         val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
         if (freeAtoms.size < 2) return@run emptyList()
         val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
@@ -209,7 +202,7 @@ data class MoleculeGraph(
             adjacency.getValue(bond.atom1).add(bond.atom2)
             adjacency.getValue(bond.atom2).add(bond.atom1)
         }
-        val result = mutableListOf<RingClosureCandidate>()
+        val result = mutableListOf<Pair<Int, Int>>()
         for (start in freeAtoms) {
             val dist = HashMap<Int, Int>().apply { put(start, 0) }   // кратчайшие расстояния от start (BFS)
             val queue = ArrayDeque(listOf(start))
@@ -221,11 +214,14 @@ data class MoleculeGraph(
             for (target in freeAtoms) {
                 if (target <= start) continue                       // каждую неупорядоченную пару один раз
                 val ringSize = (dist[target] ?: continue) + 1       // недостижим (связный граф — не случается) → пропуск
-                if (ringSize >= RING_MIN_SIZE) result.add(RingClosureCandidate(start, target, ringSize))
+                if (ringSize >= RING_MIN_SIZE) result.add(start to target)
             }
         }
         result
     } // Кандидаты на замыкание кольца: пары атомов, у которых у ОБОИХ свободный слот и которые соединены
+
+    val hasRingClosureCandidate: Boolean = ringClosureCandidates.isNotEmpty() // Есть ли вообще пара, которую можно замкнуть в кольцо.
+    fun canCloseRing(atom1: Int, atom2: Int): Boolean = ringClosureCandidates.any { (first, second) -> (first == atom1 && second == atom2) || (first == atom2 && second == atom1) } // Можно ли замкнуть кольцо между ЭТОЙ парой узлов (порядок не важен): пару выбирает игрок, годность — здесь.
 
     ////////////////////////////////////////////////
     // ФУНКЦИИ - ДОСТУПНЫЕ НАРУЖУ. ДАННЫЕ ИЗ КЭША //

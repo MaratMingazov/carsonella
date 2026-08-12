@@ -39,12 +39,6 @@ data class MoleculeShape(
     val bonds: List<MoleculeBond>,
 )
 
-data class MoleculeRingCandidate(
-    val localId1: Int,
-    val localId2: Int,
-    val ringSize: Int, // Сколько атомов окажется в цикле, если пару связать. Считается по графу (длина пути)
-)
-
 class Molecule private constructor(
     override val id: Long,
     private var graph: MoleculeGraph,
@@ -252,7 +246,7 @@ class Molecule private constructor(
     ////////////////////////////////////////////////////////////
     // ФУНКЦИИ - ТОЛЬКО НА ОСНОВНЕ ГРАФА. ДАННЫЕ ЗАКЭШИРОВАНЫ //
     val hasFreeValence: Boolean get() = graph.hasFreeValence
-    val canCloseRing: Boolean get() = graph.ringClosureCandidates.isNotEmpty() // Есть ли пара атомов, между которыми можно замкнуть цикл. Дешёвая проверка: кандидаты кеширует граф.
+    val canCloseRing: Boolean get() = graph.hasRingClosureCandidate // Есть ли пара атомов, между которыми можно замкнуть цикл. Дешёвая проверка: кандидаты кеширует граф.
     val dissociationEnergy: Float? get() = graph.weakestBondAndEnergy?.second // ПОРОГ ДИССОЦИАЦИИ (эВ) — энергия слабейшей связи
 
     ///////////////////////////////////////////////////////////////
@@ -267,8 +261,8 @@ class Molecule private constructor(
         .minByOrNull { (_, energy) -> energy }
         ?.let { (bond, energy) -> createMoleculeBonds(graph, listOf(bond)).single() to energy }
     val strengthenableBonds: List<MoleculeBond> get() = createMoleculeBonds(graph, graph.strengthenableBonds) // Связи, которые можно усилить (кратность +1).
-    val ringClosureCandidates: List<MoleculeRingCandidate> get() = graph.ringClosureCandidates.map { MoleculeRingCandidate(it.atom1, it.atom2, it.ringSize) } // Пары атомов, которые можно связать в кольцо, — поставленные в мир. Какую выбрать, решает правило.
-    fun atom(localId: Int): MoleculeAtom = atomsById.getValue(localId) // Атом по номеру узла: им адресуют концы MoleculeBond и MoleculeRingCandidate.
+    fun canCloseRing(localId1: Int, localId2: Int): Boolean = graph.canCloseRing(localId1, localId2) // Можно ли замкнуть кольцо между ЭТОЙ парой атомов
+    fun atom(localId: Int): MoleculeAtom = atomsById.getValue(localId) // Атом по номеру узла: им адресуют концы MoleculeBond.
     fun freeValence(atom: MoleculeAtom): Int = graph.freeValence(atom.localId) // Сколько связей атом ещё может образовать или усилить В ЭТОЙ молекуле. Живёт на графе, а не на атоме: меняется при усилении связи и замыкании кольца, хранимое поле протухло бы.
     val freeValenceAtoms: List<MoleculeAtom> get() = atoms.filter { freeValence(it) > 0 }
     fun split(bond: MoleculeBond): List<MoleculeShape> = graph.split(bond.localId1, bond.localId2).map { fragment -> createMoleculeShape(fragment) }
