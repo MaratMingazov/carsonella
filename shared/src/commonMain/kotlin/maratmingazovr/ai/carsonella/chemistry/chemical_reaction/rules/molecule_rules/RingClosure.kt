@@ -51,10 +51,10 @@ class RingClosure(
                 atom2.kinematics.position, atom2.radius,
                 entityGenerator.random,
             )
-            spawn += {
-                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
-                    MAX_VELOCITY, energy = released, environment = env, electrons = 0)
-            }
+//            spawn += {
+//                entityGenerator.createEntity(Element.PHOTON, photon.position, photon.direction,
+//                    MAX_VELOCITY, energy = released, environment = env, electrons = 0)
+//            }
         }
 
         return ReactionOutcome(
