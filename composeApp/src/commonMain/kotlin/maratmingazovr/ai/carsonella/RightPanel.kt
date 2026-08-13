@@ -131,6 +131,8 @@ fun RightPanel(
                     onSelectAtoms = { selectedAtoms = it },
                     modifier = Modifier.matchParentSize()
                 )
+                // Тихие имена образовавшихся молекул — поверх сцены, в тех же координатах канвы.
+                MoleculeToasts(world.moleculeEvents, Modifier.matchParentSize())
 //                TemperatureBadge(world.updateTemperatureGame())
 
                 // Info-оверлей: карточка в углу канвы при выборе частицы (клик по пустому месту снимает выбор)
@@ -144,11 +146,13 @@ fun RightPanel(
                     modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 170.dp),
                 )
             }
-            ConsolePanel(
-                logs = world.logs,
-                onClear = { world.logs.clear() },
-                height = 100.dp
-            )
+            // Консоль убрана из MVP: в белом минимализме она шумит. Долг — вернуть сигнал «реакция
+            // произошла» тихой строкой сбоку (ROADMAP, побочные открытия). Сами логи в World живут.
+//            ConsolePanel(
+//                logs = world.logs,
+//                onClear = { world.logs.clear() },
+//                height = 100.dp
+//            )
         }
     }
 

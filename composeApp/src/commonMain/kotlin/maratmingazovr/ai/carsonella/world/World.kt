@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
@@ -27,6 +28,9 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionRequest
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.EntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
+
+/** Образовалась известная молекула: имя из реестра и место, где это случилось. */
+data class MoleculeEvent(val id: Long, val name: String, val position: Position)
 
 class World(
     private val _scope: CoroutineScope,
@@ -46,6 +50,10 @@ class World(
     )
     val entities =  mutableStateListOf<Entity>()
     val logs =  mutableStateListOf<String>()
+    // Очередь «родилась известная молекула» для тихих всплывающих имён. Пишет тик, снимает UI,
+    // когда плашка догорела (как logs с кнопкой Clear).
+    val moleculeEvents = mutableStateListOf<MoleculeEvent>()
+    private var _eventId = 0L
     // Счётчик тиков — «время симуляции». Один tick = tickMs (16 мс). Растёт каждый кадр цикла.
     // Нужен для сохранений (резюме с того же момента) и анализа динамики «что образовалось со временем».
     var tick: Long = 0L
@@ -322,9 +330,19 @@ class World(
         val survivors = result.updateState.map { it.entity }.distinctBy { it.id } // на одну сущность бывает несколько мутаций
         val before = (result.consumed + survivors).map { it.displaySymbol }
 
+        // Кто из выживших кем БЫЛ до мутации: событие даём только на смену личности, иначе «Вода»
+        // всплывала бы на каждое поглощение фотона той же водой.
+        val knownBefore = survivors.filterIsInstance<Molecule>().associate { it.id to it.known }
+
         result.consumed.forEach { it.destroy() }
         val products = result.spawn.map { it() }
         result.updateState.forEach { it.mutate() }
+
+        (products + survivors).filterIsInstance<Molecule>()
+            .filter { it.alive && it.known != null && it.known != knownBefore[it.id] }
+            .forEach { molecule ->
+                moleculeEvents += MoleculeEvent(_eventId++, molecule.known!!.nameRu, molecule.kinematics.position)
+            }
 
         // Символы ПОСЛЕ: у выживших они уже новые (H → H⁺), продукты только что родились.
         val after = survivors.map { it.displaySymbol } + products.map { it.displaySymbol }

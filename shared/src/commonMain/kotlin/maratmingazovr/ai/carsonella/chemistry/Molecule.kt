@@ -6,6 +6,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
@@ -194,8 +195,10 @@ class Molecule private constructor(
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
     override fun distanceSquareTo(point: Position): Float = atomsById.values.minOf { it.kinematics.position.distanceSquareTo(point) } // Своей позиции у молекулы нет — отвечает ближайший атом.
+    val known: KnownMolecule? get() = MoleculeRegistry.lookup(graph.canonical) // Запись реестра, если молекула известна. Безымянная (её нет в реестре) — это норма, а не ошибка.
+
     override fun describe(): String {
-        val known = MoleculeRegistry.lookup(graph.canonical)
+        val known = known   // локальная копия: у свойства свой геттер, без неё нет смарт-каста
         val lines = mutableListOf(
             if (known != null) "${known.nameEn} (${graph.formulaPretty})" else graph.formulaPretty,
         )
