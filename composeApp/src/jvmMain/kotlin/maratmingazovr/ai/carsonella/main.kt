@@ -14,9 +14,8 @@ fun main() = application {
     )
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Local Time App",
+        title = "Carsonella",
         state = state,
-        alwaysOnTop = true
     ) {
         App()
     }
