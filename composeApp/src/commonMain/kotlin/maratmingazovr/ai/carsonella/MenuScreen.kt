@@ -31,22 +31,42 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import carsonella.composeapp.generated.resources.Res
+import carsonella.composeapp.generated.resources.jost
+import org.jetbrains.compose.resources.Font
 
-// Стиль меню снят со скриншота Sokobond (SOKOBOND.jpg в корне): белый лист, огромный светло-серый
-// титул, чёрные строчные пункты, выделение — оранжевый прямоугольник БЕЗ скругления.
+
 private val TITLE_GRAY = Color(0xFFC8C8C8)
-private val SELECTION_ORANGE = Color(0xFFE8A33D)
+// #6BC9C2 и #35A69F 0xFFE8A33D
+private val SELECTION_TURQUOISE = Color(0xFF45BDB5)
 private val DISABLED_GRAY = Color(0xFFBDBDBD)
 
-// Шрифт пока системный: Light + разрядка дают близкий к референсу тонкий геометрический вид.
-// Настоящий геометрический .ttf (Jost/Comfortaa, оба с кириллицей) — отдельный шаг, одна строка здесь.
-private val TitleStyle = TextStyle(fontSize = 72.sp, fontWeight = FontWeight.Light, letterSpacing = 0.15.em, color = TITLE_GRAY)
-private val ItemStyle = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Light, letterSpacing = 0.05.em)
+// Шрифт меню — Jost (OFL, licenses/Jost-OFL.txt): геометрический гротеск в духе референса, с
+// кириллицей и подстрочными цифрами. Файл переменный, поэтому вес 300 задаётся variationSettings —
+// без них Skia взяла бы дефолтный инстанс 400 и текст вышел бы жирнее задуманного.
+// Внутрь игры шрифт не идёт: в нём нет → и ≡, а ими пишется консоль реакций.
+@Composable
+internal fun menuFontFamily(): FontFamily =
+    FontFamily(Font(Res.font.jost, FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300))))
+
+@Composable
+internal fun menuTitleStyle(): TextStyle {
+    val family = menuFontFamily()
+    return remember(family) { TextStyle(fontFamily = family, fontSize = 72.sp, fontWeight = FontWeight.Light, letterSpacing = 0.15.em, color = TITLE_GRAY) }
+}
+
+@Composable
+internal fun menuItemStyle(): TextStyle {
+    val family = menuFontFamily()
+    return remember(family) { TextStyle(fontFamily = family, fontSize = 32.sp, fontWeight = FontWeight.Light, letterSpacing = 0.05.em) }
+}
 
 /** Пункт меню: подпись + действие. Выключенный виден, но серый и не выбирается ни мышью, ни стрелками. */
 data class MenuEntry(
@@ -62,9 +82,9 @@ fun MenuScreen(
     onAbout: () -> Unit,
 ) {
     val entries = listOf(
-        MenuEntry("старт", onStart),
-        MenuEntry("настройки", onSettings),
-        MenuEntry("о проекте", onAbout),
+        MenuEntry("start", onStart),
+        MenuEntry("settings", onSettings),
+        MenuEntry("about", onAbout),
     )
     MenuLayout(title = "Carsonella", entries = entries)
 }
@@ -118,7 +138,7 @@ fun MenuLayout(
             Modifier.fillMaxSize().padding(top = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(title.uppercase(), style = TitleStyle, textAlign = TextAlign.Center)
+            Text(title.uppercase(), style = menuTitleStyle(), textAlign = TextAlign.Center)
             Spacer(Modifier.height(60.dp))
             content()
             Column(
@@ -143,12 +163,12 @@ private fun MenuItem(entry: MenuEntry, selected: Boolean, onHover: () -> Unit) {
     val hovered by interaction.collectIsHoveredAsState()
     LaunchedEffect(hovered) { if (hovered) onHover() }
 
-    val background = if (selected && entry.enabled) SELECTION_ORANGE else Color.Transparent
+    val background = if (selected && entry.enabled) SELECTION_TURQUOISE else Color.Transparent
     val textColor = if (entry.enabled) Color.Black else DISABLED_GRAY
 
     Text(
         text = entry.label,
-        style = ItemStyle.copy(color = textColor),
+        style = menuItemStyle().copy(color = textColor),
         modifier = Modifier
             .hoverable(interaction, enabled = entry.enabled)
             .clickable(enabled = entry.enabled, interactionSource = interaction, indication = null) { entry.onClick() }
