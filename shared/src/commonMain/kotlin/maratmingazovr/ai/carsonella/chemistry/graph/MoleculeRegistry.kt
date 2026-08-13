@@ -1,6 +1,10 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
+import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Курируемая запись реестра: что знаем об известной молекуле сверх её структуры.
@@ -12,6 +16,21 @@ data class KnownMolecule(
     val nameRu: String,
     val structuralFormula: String = "",
     val description: String = "",
+    val layout: Map<Int, Vec2D> = emptyMap(),
+)
+
+/**
+ * Эталонная картинка молекулы: чем рисовать (граф) и где стоят узлы (раскладка). Нужна там, где
+ * молекулы ещё нет в мире — карточка уровня, журнал открытий.
+ *
+ * Раскладка КУРИРУЕТСЯ, а не считается: у нас нет валентных углов, поэтому любая расстановка «по
+ * физике» нарисовала бы воду прямой (пружины знают длины связей, но не угол H–O–H = 104.5°).
+ * Единицы — ДОЛИ длины связи, не пиксели: масштаб выбирает рисующий, и картинка не поедет, если
+ * поменяется BOND_PX в [MoleculeGeometry].
+ */
+data class MoleculePicture(
+    val graph: MoleculeGraph,
+    val offsets: Map<Int, Vec2D>,
 )
 
 /**
@@ -36,19 +55,27 @@ object MoleculeRegistry {
     // structuralFormula пуст: у дикарбона он зависит от порядка связи (C–C/C=C/C≡C), а запись одна на три.
     private val dicarbon = KnownMolecule("Dicarbon", "Дикарбон", description = "экзотический бирадикал (пламя/кометы); порядок связи модельно неточен")
 
-    private val byCanonical: Map<String, KnownMolecule> = listOf(
+    // Эталонные графы + записи. Держим список целиком (а не только Map канон→запись): по нему же
+    // строится доступ к картинке молекулы, которой ещё нет в мире.
+    private val entries: List<Pair<MoleculeGraph, KnownMolecule>> = listOf(
         // --- двухатомные ---
-        mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород", "H–H"),
-        mol(listOf(o(0), o(1)), listOf(bond(0, 1, 2)))                           to KnownMolecule("Dioxygen", "Кислород", "O=O"),      // O=O
-        mol(listOf(n(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Dinitrogen", "Азот", "N≡N"),        // N≡N
+        mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород", "H–H", layout = pair()),
+        mol(listOf(o(0), o(1)), listOf(bond(0, 1, 2)))                           to KnownMolecule("Dioxygen", "Кислород", "O=O", layout = pair()),      // O=O
+        mol(listOf(n(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Dinitrogen", "Азот", "N≡N", layout = pair()),        // N≡N
 
         // --- малые неорганические / простые ---
-        mol(listOf(o(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Water", "Вода", "H–O–H"),
+        // Вода уголком 104.5°: O в вершине, водороды симметрично вниз. Прямой её рисовать нельзя —
+        // вся первая глава про то, что у O два слота и они «не как попало».
+        mol(listOf(o(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Water", "Вода", "H–O–H",
+            layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f))),
+        // Перекись: два O по горизонтали, водороды в разные стороны (в реальности молекула ещё и
+        // скручена вокруг O–O, но плоской картинке это не передать).
         mol(listOf(o(0), o(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(1, 3))) to KnownMolecule("Hydrogen peroxide", "Перекись водорода", "H–O–O–H", // H–O–O–H
             "Вода с лишним атомом кислорода: два O держатся друг за друга слабой связью. " +
             "Аптечный антисептик (3%), отбеливатель для тканей и бумаги, в концентрате — ракетное топливо; " +
             "в живой клетке появляется при дыхании, и фермент каталаза срочно её разлагает. " +
-            "Сама медленно распадается на воду и кислород — свет и тепло ускоряют, потому и хранят в тёмной бутылке."),
+            "Сама медленно распадается на воду и кислород — свет и тепло ускоряют, потому и хранят в тёмной бутылке.",
+            layout = at(0 to xy(-0.5f, 0f), 1 to xy(0.5f, 0f), 2 to xy(-1f, -0.8f), 3 to xy(1f, 0.8f))),
 
         // Полиоксиды: та же цепочка O–O, но длиннее. Показывают, где проходит граница существования —
         // слабая связь O–O (1.51 эВ) против сверхпрочной O=O (5.16), в которую цепочка «расстёгивается».
@@ -131,7 +158,7 @@ object MoleculeRegistry {
             listOf(bond(0, 1), bond(1, 2), bond(0, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(1, 7), bond(2, 8))) to KnownMolecule("Ethanol", "Этанол", "CH₃–CH₂–OH"),         // CH₃–CH₂–OH
 
         // --- радикалы (есть свободный валентный слот) ---
-        mol(listOf(o(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Hydroxyl", "Гидроксил", "•OH"),      // •OH
+        mol(listOf(o(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Hydroxyl", "Гидроксил", "•OH", layout = pair()),      // •OH
         mol(listOf(c(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3))) to KnownMolecule("Methyl", "Метил", "•CH₃"),           // •CH₃
         mol(listOf(n(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Amino radical", "Аминорадикал", "•NH₂"), // •NH₂
         mol(listOf(h(0), o(1), o(2)), listOf(bond(0, 1), bond(1, 2)))            to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"), // H–O–O•
@@ -148,10 +175,13 @@ object MoleculeRegistry {
         mol(listOf(c(0), c(1)), listOf(bond(0, 1)))                              to dicarbon,   // •C–C•
         mol(listOf(c(0), c(1)), listOf(bond(0, 1, 2)))                           to dicarbon,   // C=C
         mol(listOf(c(0), c(1)), listOf(bond(0, 1, 3)))                           to dicarbon,   // •C≡C•
-    ).let { entries ->
-        // Две страховки авторинга, обе про ТИХИЕ ошибки. Пустой канон (молекула выше потолка перебора)
+    )
+
+    private val byCanonical: Map<String, KnownMolecule> = run {
+        // Три страховки авторинга, все про ТИХИЕ ошибки. Пустой канон (молекула выше потолка перебора)
         // подписал бы своим именем ЛЮБУЮ крупную молекулу, потому что lookup("") нашёл бы эту запись.
-        // Одинаковый канон у двух записей — associate молча оставил бы последнюю.
+        // Одинаковый канон у двух записей — associate молча оставил бы последнюю. Раскладка не по узлам
+        // графа — картинка молча вышла бы кривой или без атома.
         val nameless = entries.filter { (graph, _) -> graph.canonical.isEmpty() }
         require(nameless.isEmpty()) {
             "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.second.nameEn }}"
@@ -161,18 +191,56 @@ object MoleculeRegistry {
             val collisions = entries.groupBy { it.first.canonical }.filterValues { it.size > 1 }
             "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.second.nameEn } }}"
         }
+        val brokenLayout = entries.filter { (graph, known) ->
+            known.layout.isNotEmpty() && known.layout.keys != graph.nodes.mapTo(mutableSetOf()) { it.localId }
+        }
+        require(brokenLayout.isEmpty()) {
+            "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.second.nameEn }}"
+        }
         byKey
     }
+
+    // Второй вход в тот же реестр — по nameEn. Нужен уровням: цель задаётся именем («Water»), а не
+    // каноном (канон вычисляется из графа, руками его не напишешь). distinct() — из-за дикарбона:
+    // одна запись на три канона.
+    private val byNameEn: Map<String, KnownMolecule> = byCanonical.values.distinct().associateBy { it.nameEn }
 
     /**
      * Известная молекула по её каноническому ключу ([MoleculeGraph.canonical]), либо null — аноним.
      * Крупная молекула (canonical == "") даёт null сама собой: "" не ключ ни одной записи.
      */
     fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical]
+
+    /** Запись реестра по английскому имени — вход для авторинга уровней. */
+    fun byName(nameEn: String): KnownMolecule? = byNameEn[nameEn]
+
+    // Граф по имени. У дикарбона три графа на одно имя — остаётся последний (C≡C); для картинки сойдёт.
+    private val graphByNameEn: Map<String, MoleculeGraph> = entries.associate { (graph, known) -> known.nameEn to graph }
+
+    /**
+     * Эталонная картинка по имени: граф + раскладка. null, если раскладка ещё не нарисована —
+     * тогда рисующему нечего показывать, и он падает на текстовую структурную формулу.
+     */
+    fun picture(nameEn: String): MoleculePicture? {
+        val known = byNameEn[nameEn] ?: return null
+        if (known.layout.isEmpty()) return null
+        val graph = graphByNameEn[nameEn] ?: return null
+        return MoleculePicture(graph, known.layout)
+    }
 }
 
 // Крошечные хелперы авторинга — чтобы список читался как «формулы», а не заборы из AtomNode/Bond.
 private fun mol(nodes: List<AtomNode>, bonds: List<Bond>) = MoleculeGraph(nodes, bonds)
+
+// Хелперы раскладки. Единицы — доли длины связи, ось y вниз (как на экране).
+private fun at(vararg offsets: Pair<Int, Vec2D>): Map<Int, Vec2D> = mapOf(*offsets)
+private fun xy(x: Float, y: Float) = Vec2D(x, y)
+private fun polar(angleDeg: Float, distance: Float = 1f): Vec2D {
+    val rad = angleDeg * PI.toFloat() / 180f
+    return Vec2D(cos(rad) * distance, sin(rad) * distance)
+}
+/** Двухатомная молекула: узлы 0 и 1 по горизонтали. */
+private fun pair(): Map<Int, Vec2D> = at(0 to xy(-0.5f, 0f), 1 to xy(0.5f, 0f))
 private fun h(id: Int) = AtomNode(id, Element.HYDROGEN)
 private fun o(id: Int) = AtomNode(id, Element.OXYGEN_16)
 private fun c(id: Int) = AtomNode(id, Element.CARBON_12)

@@ -1,9 +1,15 @@
 package maratmingazovr.ai.carsonella
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -12,7 +18,12 @@ import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
@@ -46,17 +57,36 @@ fun GameScreen(onExit: () -> Unit) {
     // его снаружи нечего.
     var selectedId by remember { mutableStateOf<Long?>(null) }
 
+    // Прогресс по лестнице. Карточка уровня показывается на ПУСТОМ холсте, поэтому мир под ней
+    // ничего не теряет и пауза не нужна.
+    var levelIndex by remember { mutableStateOf(0) }
+    var briefing by remember { mutableStateOf(true) }
+    val level = LEVELS.getOrNull(levelIndex)
+
+    // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
+    // Ждём факта через first { it } и дальше от списка не зависим — плашка своё событие вскоре удалит,
+    // и производное состояние успело бы погаснуть прямо посреди задержки.
+    LaunchedEffect(levelIndex) {
+        val goalNameEn = LEVELS.getOrNull(levelIndex)?.goalNameEn ?: return@LaunchedEffect
+        snapshotFlow { world.moleculeEvents.any { it.known.nameEn == goalNameEn } }.first { it }
+        delay(1400)                 // дать имени всплыть и прочитаться, а не рубить сцену мгновенно
+        world.requestClear()
+        levelIndex++
+        briefing = true
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            // Именно preview: канва забирает фокус на любое наведение и съедает все KeyDown
+            // (см. RightPanel), поэтому обычный onKeyEvent у предка до Esc бы не дожил.
+            .onPreviewKeyEvent { e ->
+                if (e.type == KeyDown && e.key == Key.Escape) { onExit(); true } else false
+            }
+    ) {
     DragDropContainer {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                // Именно preview: канва забирает фокус на любое наведение и съедает все KeyDown
-                // (см. RightPanel), поэтому обычный onKeyEvent у предка до Esc бы не дожил.
-                .onPreviewKeyEvent { e ->
-                    if (e.type == KeyDown && e.key == Key.Escape) { onExit(); true } else false
-                }
-        ) {
+        Column(Modifier.fillMaxSize()) {
             TopPalette(palette = world.palette)
 
             RightPanel(
@@ -79,6 +109,30 @@ fun GameScreen(onExit: () -> Unit) {
                 onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
                 onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
             )
+        }
+    }
+
+        // Тихое напоминание, что вообще нужно сделать: карточка-модалка уже закрыта, а задание живёт.
+        if (level != null && !briefing) {
+            Text(
+                "уровень ${level.number} · ${level.task.lowercase()}",
+                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 14.sp,
+                color = Color(0xFFA8A8A8),
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+            )
+        }
+
+        if (briefing) {
+            if (level != null) LevelBriefing(level) { briefing = false }
+            // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
+            else MenuLayout(title = "готово", entries = listOf(MenuEntry("в меню", onExit))) {
+                Text(
+                    "уровни первой главы пройдены",
+                    fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 18.sp,
+                    color = Color(0xFF9A9A9A),
+                )
+                Spacer(Modifier.height(48.dp))
+            }
         }
     }
 }

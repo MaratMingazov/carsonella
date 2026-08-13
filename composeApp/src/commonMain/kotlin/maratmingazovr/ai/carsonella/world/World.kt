@@ -14,6 +14,7 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
@@ -29,8 +30,8 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelectio
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.EntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
-/** Образовалась известная молекула: имя из реестра и место, где это случилось. */
-data class MoleculeEvent(val id: Long, val name: String, val position: Position)
+/** Образовалась известная молекула: запись реестра и место, где это случилось. */
+data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: Position)
 
 class World(
     private val _scope: CoroutineScope,
@@ -67,6 +68,7 @@ class World(
     // Отложенная загрузка: load() кладёт сюда слепок, а применяется он внутри тика —
     // чтобы «тик оставался единственным писателем мира» (см. README, технические TODO).
     private var _pendingSnapshot: WorldSnapshotDto? = null
+    private var _pendingClear = false   // очистка холста между уровнями — по тому же правилу
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
@@ -97,6 +99,8 @@ class World(
                     _pendingSnapshot = null
                 }
 
+                if (_pendingClear) { clearNow(); _pendingClear = false }
+
                 tick++
 
                 // снимок, чтобы не падать на ConcurrentModificationException
@@ -121,6 +125,17 @@ class World(
             }
         }
 
+    }
+
+    /** Просьба очистить холст (переход между уровнями). Выполнится в начале следующего тика. */
+    fun requestClear() { _pendingClear = true }
+
+    private fun clearNow() {
+        entities.clear()
+        environment.getEnvChildren().toList().forEach { environment.removeEnvChild(it) }
+        _pendingRequests.clear()
+        moleculeEvents.clear()
+        heldEntityId = null
     }
 
     fun applyForceToEntity(entityId: Long, force: Vec2D) {
@@ -341,7 +356,7 @@ class World(
         (products + survivors).filterIsInstance<Molecule>()
             .filter { it.alive && it.known != null && it.known != knownBefore[it.id] }
             .forEach { molecule ->
-                moleculeEvents += MoleculeEvent(_eventId++, molecule.known!!.nameRu, molecule.kinematics.position)
+                moleculeEvents += MoleculeEvent(_eventId++, molecule.known!!, molecule.kinematics.position)
             }
 
         // Символы ПОСЛЕ: у выживших они уже новые (H → H⁺), продукты только что родились.
