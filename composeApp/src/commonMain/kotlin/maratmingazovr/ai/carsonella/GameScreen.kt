@@ -59,6 +59,7 @@ fun GameScreen(onExit: () -> Unit) {
     // Прогресс по лестнице. Цель живёт в рейле слева, награда — окном поверх холста.
     var levelIndex by remember { mutableStateOf(0) }
     var reward by remember { mutableStateOf(false) }
+    var welcome by remember { mutableStateOf(true) }   // приветствие на входе; холст под ним пуст
     val level = LEVELS.getOrNull(levelIndex)
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
@@ -113,8 +114,12 @@ fun GameScreen(onExit: () -> Unit) {
             }
         }
 
+        // Окон одновременно не бывает: пока висит приветствие, собрать что-либо всё равно нельзя.
+        if (welcome) {
+            WelcomeCard { welcome = false }
+        }
         // Награда за уровень: дальше игрок идёт кликом, холст чистится тогда же.
-        if (reward && level != null) {
+        else if (reward && level != null) {
             LevelReward(level) {
                 world.requestClear()
                 levelIndex++
