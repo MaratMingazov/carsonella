@@ -21,18 +21,21 @@ private const val BOND_LINE_WIDTH = 2.5f
 private const val BOND_LINE_SPACING = 8f          // сдвиг параллельных линий двойной/тройной связи
 private val BOND_COLOR = Color(0xFF212121)
 private const val OUTLINE_WIDTH = 2.5f
+private const val DEFAULT_UNIT_PX = 56f           // масштаб «как на холсте»: атом рисуется своим радиусом
 
 /**
  * Эталонная молекула как картинка: кружки атомов, кратные связи, свободные валентные слоты — то же,
  * что игрок видит на холсте, но по курируемой раскладке из реестра (в мире этой молекулы ещё нет).
  *
  * [unitPx] — сколько пикселей в одной «доле длины связи» из раскладки; им и задаётся размер картинки.
+ * Атомы и линии масштабируются вместе с ним, иначе при мелком unitPx кружки налезали бы друг на друга.
  */
 @Composable
-fun MoleculePicturePreview(picture: MoleculePicture, unitPx: Float = 56f, modifier: Modifier = Modifier) {
+fun MoleculePicturePreview(picture: MoleculePicture, unitPx: Float = DEFAULT_UNIT_PX, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
+    val scale = unitPx / DEFAULT_UNIT_PX
     val positions = picture.offsets.mapValues { (_, offset) -> Offset(offset.x * unitPx, offset.y * unitPx) }
-    val maxRadius = picture.graph.nodes.maxOf { it.isotope.details.radius }
+    val maxRadius = picture.graph.nodes.maxOf { it.isotope.details.radius } * scale
 
     // Размер бокса — по габаритам раскладки плюс радиус крайних атомов и запас на слоты.
     val minX = positions.values.minOf { it.x } - maxRadius - 8f
@@ -47,7 +50,7 @@ fun MoleculePicturePreview(picture: MoleculePicture, unitPx: Float = 56f, modifi
         picture.graph.bonds.forEach { bond ->
             val a = positions.getValue(bond.atom1) + origin
             val b = positions.getValue(bond.atom2) + origin
-            drawBondLines(a, b, bond.order)
+            drawBondLines(a, b, bond.order, scale)
         }
         picture.graph.nodes.forEach { node ->
             drawPreviewAtom(
@@ -55,20 +58,21 @@ fun MoleculePicturePreview(picture: MoleculePicture, unitPx: Float = 56f, modifi
                 center = positions.getValue(node.localId) + origin,
                 element = node.isotope,
                 freeSlots = picture.graph.freeValence(node.localId),
+                scale = scale,
             )
         }
     }
 }
 
 // Кратность — параллельными линиями, как в EntityRenderer: одна/две/три.
-private fun DrawScope.drawBondLines(a: Offset, b: Offset, order: Int) {
+private fun DrawScope.drawBondLines(a: Offset, b: Offset, order: Int, scale: Float) {
     val dir = b - a
     val length = dir.getDistance()
     val perp = if (length > 1e-3f) Offset(-dir.y / length, dir.x / length) else Offset(0f, 1f)
     val firstShift = -(order - 1) / 2f
     for (i in 0 until order) {
-        val shift = perp * ((firstShift + i) * BOND_LINE_SPACING)
-        drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = BOND_LINE_WIDTH)
+        val shift = perp * ((firstShift + i) * BOND_LINE_SPACING * scale)
+        drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = BOND_LINE_WIDTH * scale)
     }
 }
 
@@ -77,21 +81,22 @@ private fun DrawScope.drawPreviewAtom(
     center: Offset,
     element: Element,
     freeSlots: Int,
+    scale: Float,
 ) {
-    val radius = element.details.radius
+    val radius = element.details.radius * scale
     val fill = ElementColors.fill(element)
     drawCircle(color = fill, center = center, radius = radius)
-    drawCircle(color = Color.Black, center = center, radius = radius, style = Stroke(OUTLINE_WIDTH))
+    drawCircle(color = Color.Black, center = center, radius = radius, style = Stroke(OUTLINE_WIDTH * scale))
     drawCenteredSymbol(textMeasurer, center, element.bareSymbol, onFillTextColor(fill), fontSizeSp = radius * 0.7f)
 
     // Свободные слоты — те же белые кружки на кромке, что и в игре: «вот куда ещё можно присоединить».
     if (freeSlots > 0) {
-        val slotRadius = (radius * 0.18f).coerceIn(2.5f, 6f)
+        val slotRadius = (radius * 0.18f).coerceIn(2f, 6f)
         for (i in 0 until freeSlots) {
             val angle = 2.0 * kotlin.math.PI * i / freeSlots - kotlin.math.PI / 2.0
             val p = center + Offset(kotlin.math.cos(angle).toFloat() * radius, kotlin.math.sin(angle).toFloat() * radius)
             drawCircle(color = Color.White, center = p, radius = slotRadius)
-            drawCircle(color = Color.Black, center = p, radius = slotRadius, style = Stroke(OUTLINE_WIDTH))
+            drawCircle(color = Color.Black, center = p, radius = slotRadius, style = Stroke(OUTLINE_WIDTH * scale))
         }
     }
 }

@@ -143,7 +143,8 @@ fun RightPanel(
                     entities = entities,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
-                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 170.dp),
+                    // Справа: слева теперь рейл уровней, и две панели в один угол не ставим.
+                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).widthIn(max = 170.dp),
                 )
             }
             // Консоль убрана из MVP: в белом минимализме она шумит. Долг — вернуть сигнал «реакция

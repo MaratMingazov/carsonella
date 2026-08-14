@@ -3,13 +3,12 @@ package maratmingazovr.ai.carsonella
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -57,10 +56,9 @@ fun GameScreen(onExit: () -> Unit) {
     // его снаружи нечего.
     var selectedId by remember { mutableStateOf<Long?>(null) }
 
-    // Прогресс по лестнице. Карточка уровня показывается на ПУСТОМ холсте, поэтому мир под ней
-    // ничего не теряет и пауза не нужна.
+    // Прогресс по лестнице. Цель живёт в рейле слева и видна всё время, поэтому модалок нет и
+    // паузы в World по-прежнему не нужно.
     var levelIndex by remember { mutableStateOf(0) }
-    var briefing by remember { mutableStateOf(true) }
     val level = LEVELS.getOrNull(levelIndex)
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
@@ -72,7 +70,6 @@ fun GameScreen(onExit: () -> Unit) {
         delay(1400)                 // дать имени всплыть и прочитаться, а не рубить сцену мгновенно
         world.requestClear()
         levelIndex++
-        briefing = true
     }
 
     Box(
@@ -85,48 +82,41 @@ fun GameScreen(onExit: () -> Unit) {
                 if (e.type == KeyDown && e.key == Key.Escape) { onExit(); true } else false
             }
     ) {
-    DragDropContainer {
-        Column(Modifier.fillMaxSize()) {
-            RightPanel(
-                modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
-                accept = { it.element in Element.entries },
-                // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
-                // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
-                onDrop = { data, localPos ->
-                    val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-                    val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
-                    world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
-                },
-                hoverPos = hoverPos,
-                onHover = { hoverPos = it },
-                selectedId = selectedId,
-                onSelect = { selectedId = it },
-                world = world,
-                entities = world.entities,
-                renderer = renderer,
-                time = time,
-                onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
-                onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
-            )
+        DragDropContainer {
+            Row(Modifier.fillMaxSize()) {
+                LevelRail(levels = LEVELS, currentIndex = levelIndex)
 
-            PaletteBar(palette = world.palette)
-        }
-    }
+                Column(Modifier.weight(1f)) {
+                    RightPanel(
+                        modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
+                        accept = { it.element in Element.entries },
+                        // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
+                        // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
+                        onDrop = { data, localPos ->
+                            val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
+                            val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
+                            world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
+                        },
+                        hoverPos = hoverPos,
+                        onHover = { hoverPos = it },
+                        selectedId = selectedId,
+                        onSelect = { selectedId = it },
+                        world = world,
+                        entities = world.entities,
+                        renderer = renderer,
+                        time = time,
+                        onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
+                        onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
+                    )
 
-        // Тихое напоминание, что вообще нужно сделать: карточка-модалка уже закрыта, а задание живёт.
-        if (level != null && !briefing) {
-            Text(
-                "уровень ${level.number} · ${level.task.lowercase()}",
-                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 14.sp,
-                color = Color(0xFFA8A8A8),
-                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-            )
+                    PaletteBar(palette = world.palette)
+                }
+            }
         }
 
-        if (briefing) {
-            if (level != null) LevelBriefing(level) { briefing = false }
-            // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
-            else MenuLayout(title = "готово", entries = listOf(MenuEntry("в меню", onExit))) {
+        // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
+        if (level == null) {
+            MenuLayout(title = "готово", entries = listOf(MenuEntry("в меню", onExit))) {
                 Text(
                     "уровни первой главы пройдены",
                     fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 18.sp,
