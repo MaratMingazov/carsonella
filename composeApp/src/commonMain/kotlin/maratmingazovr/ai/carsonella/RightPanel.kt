@@ -89,7 +89,7 @@ fun RightPanel(
     val onSelectUpToDate = rememberUpdatedState(onSelect) // чтобы замыкание не устаревало
 
     DropTarget(accept = accept, onDrop = onDrop) { dropModifier ->
-        Column(modifier = dropModifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = modifier.then(dropModifier).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

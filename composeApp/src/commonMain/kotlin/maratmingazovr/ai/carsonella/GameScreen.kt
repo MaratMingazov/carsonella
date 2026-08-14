@@ -87,9 +87,8 @@ fun GameScreen(onExit: () -> Unit) {
     ) {
     DragDropContainer {
         Column(Modifier.fillMaxSize()) {
-            TopPalette(palette = world.palette)
-
             RightPanel(
+                modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
                 accept = { it.element in Element.entries },
                 // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
                 // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
@@ -109,6 +108,8 @@ fun GameScreen(onExit: () -> Unit) {
                 onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
                 onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
             )
+
+            PaletteBar(palette = world.palette)
         }
     }
 
