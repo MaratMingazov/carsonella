@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculePicture
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
@@ -21,19 +22,22 @@ private const val BOND_LINE_WIDTH = 2.5f
 private const val BOND_LINE_SPACING = 8f          // сдвиг параллельных линий двойной/тройной связи
 private val BOND_COLOR = Color(0xFF212121)
 private const val OUTLINE_WIDTH = 2.5f
-private const val DEFAULT_UNIT_PX = 56f           // масштаб «как на холсте»: атом рисуется своим радиусом
 
 /**
  * Эталонная молекула как картинка: кружки атомов, кратные связи, свободные валентные слоты — то же,
  * что игрок видит на холсте, но по курируемой раскладке из реестра (в мире этой молекулы ещё нет).
  *
- * [unitPx] — сколько пикселей в одной «доле длины связи» из раскладки; им и задаётся размер картинки.
- * Атомы и линии масштабируются вместе с ним, иначе при мелком unitPx кружки налезали бы друг на друга.
+ * [scale] — во сколько раз мельче холста: 1f = ровно как в игре, вместе с радиусами и линиями.
  */
 @Composable
-fun MoleculePicturePreview(picture: MoleculePicture, unitPx: Float = DEFAULT_UNIT_PX, modifier: Modifier = Modifier) {
+fun MoleculePicturePreview(picture: MoleculePicture, scale: Float = 1f, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
-    val scale = unitPx / DEFAULT_UNIT_PX
+    // Доля длины связи из раскладки — в пикселях. Берём длину покоя пружин (r1 + r2 + BOND_PX) по самой
+    // длинной связи: раскладка задаёт ОДИН масштаб на всю картинку, и по максимуму никто не налезет.
+    val elementById = picture.graph.nodes.associate { it.localId to it.isotope }
+    val unitPx = scale * picture.graph.bonds.maxOf { bond ->
+        MoleculeGeometry.bondLengthPx(elementById.getValue(bond.atom1), elementById.getValue(bond.atom2), bond.order)
+    }
     val positions = picture.offsets.mapValues { (_, offset) -> Offset(offset.x * unitPx, offset.y * unitPx) }
     val maxRadius = picture.graph.nodes.maxOf { it.isotope.details.radius } * scale
 

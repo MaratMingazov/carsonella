@@ -24,8 +24,8 @@ data class Level(
 // Глава 1 «Связь» из лестницы ROADMAP, часть про сборку.
 val LEVELS = listOf(
     Level(1, "Построй молекулу водорода", "Dihydrogen"),
-    Level(2, "Получи воду", "Water"),
-    Level(3, "Получи гидроксил", "Hydroxyl"),
+    Level(2, "Получи гидроксил", "Hydroxyl"),
+    Level(3, "Получи воду", "Water"),
     Level(4, "Получи кислород", "Dioxygen"),
     Level(5, "Получи перекись водорода", "Hydrogen peroxide"),
 )

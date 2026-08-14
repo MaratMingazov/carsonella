@@ -56,9 +56,9 @@ fun GameScreen(onExit: () -> Unit) {
     // его снаружи нечего.
     var selectedId by remember { mutableStateOf<Long?>(null) }
 
-    // Прогресс по лестнице. Цель живёт в рейле слева и видна всё время, поэтому модалок нет и
-    // паузы в World по-прежнему не нужно.
+    // Прогресс по лестнице. Цель живёт в рейле слева, награда — окном поверх холста.
     var levelIndex by remember { mutableStateOf(0) }
+    var reward by remember { mutableStateOf(false) }
     val level = LEVELS.getOrNull(levelIndex)
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
@@ -67,9 +67,8 @@ fun GameScreen(onExit: () -> Unit) {
     LaunchedEffect(levelIndex) {
         val goalNameEn = LEVELS.getOrNull(levelIndex)?.goalNameEn ?: return@LaunchedEffect
         snapshotFlow { world.moleculeEvents.any { it.known.nameEn == goalNameEn } }.first { it }
-        delay(1400)                 // дать имени всплыть и прочитаться, а не рубить сцену мгновенно
-        world.requestClear()
-        levelIndex++
+        delay(900)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
+        reward = true
     }
 
     Box(
@@ -111,6 +110,15 @@ fun GameScreen(onExit: () -> Unit) {
 
                     PaletteBar(palette = world.palette)
                 }
+            }
+        }
+
+        // Награда за уровень: дальше игрок идёт кликом, холст чистится тогда же.
+        if (reward && level != null) {
+            LevelReward(level) {
+                world.requestClear()
+                levelIndex++
+                reward = false
             }
         }
 

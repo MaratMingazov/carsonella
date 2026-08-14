@@ -59,7 +59,12 @@ object MoleculeRegistry {
     // строится доступ к картинке молекулы, которой ещё нет в мире.
     private val entries: List<Pair<MoleculeGraph, KnownMolecule>> = listOf(
         // --- двухатомные ---
-        mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород", "H–H", layout = pair()),
+        mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород", "H–H",
+            "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. " +
+            "Например, наше Солнце состоит на 73% из водорода. " +
+            "Мы с вами состоим из водорода, которому 13.8 миллиарда лет! " +
+            "Он кажется самым простым, но скрывает массу парадоксов!  ",
+            layout = pair()),
         mol(listOf(o(0), o(1)), listOf(bond(0, 1, 2)))                           to KnownMolecule("Dioxygen", "Кислород", "O=O", layout = pair()),      // O=O
         mol(listOf(n(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Dinitrogen", "Азот", "N≡N", layout = pair()),        // N≡N
 
@@ -67,6 +72,9 @@ object MoleculeRegistry {
         // Вода уголком 104.5°: O в вершине, водороды симметрично вниз. Прямой её рисовать нельзя —
         // вся первая глава про то, что у O два слота и они «не как попало».
         mol(listOf(o(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Water", "Вода", "H–O–H",
+            "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. " +
+            "Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. " +
+            "Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
             layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f))),
         // Перекись: два O по горизонтали, водороды в разные стороны (в реальности молекула ещё и
         // скручена вокруг O–O, но плоской картинке это не передать).
@@ -158,7 +166,12 @@ object MoleculeRegistry {
             listOf(bond(0, 1), bond(1, 2), bond(0, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(1, 7), bond(2, 8))) to KnownMolecule("Ethanol", "Этанол", "CH₃–CH₂–OH"),         // CH₃–CH₂–OH
 
         // --- радикалы (есть свободный валентный слот) ---
-        mol(listOf(o(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Hydroxyl", "Гидроксил", "•OH", layout = pair()),      // •OH
+        mol(listOf(o(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Hydroxyl", "Гидроксил", "•OH",      // •OH
+            "Гидроксил - маленькая молекула из одного атома водорода и кислорода. " +
+                    "Сама по себе живет меньше секунды, зато работает как \"конструктор\". " +
+                    "Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. " +
+                    "И у нас уже все готово, чтобы раздобыть ВОДУ! ",
+            layout = pair()),
         mol(listOf(c(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3))) to KnownMolecule("Methyl", "Метил", "•CH₃"),           // •CH₃
         mol(listOf(n(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Amino radical", "Аминорадикал", "•NH₂"), // •NH₂
         mol(listOf(h(0), o(1), o(2)), listOf(bond(0, 1), bond(1, 2)))            to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"), // H–O–O•

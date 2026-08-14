@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
  *
  * Единицы — мировые, они же пиксельные: перевод `Position.toOffset()` в рендере тождественный.
  */
-internal object MoleculeGeometry {
+object MoleculeGeometry {
     private const val BOND_PX = 25f // расстояние между двумя атомами
 
     /** Длина покоя связи. Наружу — потому что по ней же тянут пружины связей в Molecule. */

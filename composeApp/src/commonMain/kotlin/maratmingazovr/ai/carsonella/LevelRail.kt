@@ -102,7 +102,7 @@ private fun CurrentLevel(level: Level) {
         Spacer(Modifier.height(14.dp))
         // Картинка эталона, если раскладка нарисована; иначе — текстовая структурная формула.
         val picture = MoleculeRegistry.picture(level.goalNameEn)
-        if (picture != null) MoleculePicturePreview(picture, unitPx = 36f)
+        if (picture != null) MoleculePicturePreview(picture, scale = 0.6f)
         else Text(
             level.goal.structuralFormula.ifEmpty { level.goal.nameRu },
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 22.sp,
