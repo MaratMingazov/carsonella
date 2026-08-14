@@ -3,7 +3,6 @@ package maratmingazovr.ai.carsonella
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -83,34 +82,30 @@ fun GameScreen(onExit: () -> Unit) {
             }
     ) {
         DragDropContainer {
-            Row(Modifier.fillMaxSize()) {
-                LevelRail(levels = LEVELS, currentIndex = levelIndex)
+            Column(Modifier.fillMaxSize()) {
+                RightPanel(
+                    modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
+                    accept = { it.element in Element.entries },
+                    // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
+                    // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
+                    onDrop = { data, localPos ->
+                        val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
+                        val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
+                        world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
+                    },
+                    hoverPos = hoverPos,
+                    onHover = { hoverPos = it },
+                    selectedId = selectedId,
+                    onSelect = { selectedId = it },
+                    world = world,
+                    entities = world.entities,
+                    renderer = renderer,
+                    time = time,
+                    onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
+                    onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
+                )
 
-                Column(Modifier.weight(1f)) {
-                    RightPanel(
-                        modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
-                        accept = { it.element in Element.entries },
-                        // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
-                        // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
-                        onDrop = { data, localPos ->
-                            val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-                            val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
-                            world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
-                        },
-                        hoverPos = hoverPos,
-                        onHover = { hoverPos = it },
-                        selectedId = selectedId,
-                        onSelect = { selectedId = it },
-                        world = world,
-                        entities = world.entities,
-                        renderer = renderer,
-                        time = time,
-                        onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
-                        onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
-                    )
-
-                    PaletteBar(palette = world.palette)
-                }
+                PaletteBar(palette = world.palette, level = level)
             }
         }
 

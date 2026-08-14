@@ -82,7 +82,7 @@ fun MenuScreen(
     onAbout: () -> Unit,
 ) {
     val entries = listOf(
-        MenuEntry("tutorial", onStart),
+        MenuEntry("play", onStart),
         MenuEntry("settings", onSettings),
         MenuEntry("about", onAbout),
     )

@@ -8,7 +8,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,21 +35,29 @@ import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
 internal val PANEL_BG = Color(0xFFF5EFE3)
 
 // Плашка-палитра под холстом: элементы кружочками (как на канве). Тащатся на канву тем же DragSource →
-// спавн в DropTarget/App.onDrop.
+// спавн в DropTarget/App.onDrop. Задание [level] висит всплывашкой слева над палитрой — подсказка там же,
+// откуда игрок берёт атомы.
 @Composable
-fun PaletteBar(palette: List<Element>, modifier: Modifier = Modifier) {
+fun PaletteBar(palette: List<Element>, level: Level?, modifier: Modifier = Modifier) {
     // Плашка по ширине содержимого, по центру снизу (а не во всю ширину экрана).
     Box(modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.BottomCenter) {
-        Row(
-            Modifier
-                .background(PANEL_BG, RoundedCornerShape(12.dp))
-                .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp),   // зазор между пузырём и палитрой
         ) {
-            palette.forEach { element ->
-                DragSource(element = element) { PaletteAtom(element) }
+            // Сдвиг влево: пузырь стоит не поверх палитры, а сбоку, и стрелка приходит в неё по дуге.
+            if (level != null) TaskBubble(level, Modifier.offset(x = (-160).dp))
+            Row(
+                Modifier
+                    .background(PANEL_BG, RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                palette.forEach { element ->
+                    DragSource(element = element) { PaletteAtom(element) }
+                }
             }
         }
     }
