@@ -12,7 +12,7 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        p = 1, n = 0, radius = 15f),
 
     // --- атомы ---
-    HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",      label = "Hydrogen (H)",         p = 1, n = 0,   covalentRadiusPm = 31, vdwRadiusPm = 120, radius = 20f, description = "Водород", neutronGammaResult = DEUTERIUM),
+    HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",      label = "Hydrogen (H)",         p = 1, n = 0,   covalentRadiusPm = 31, vdwRadiusPm = 120, radius = 35f, description = "Водород", neutronGammaResult = DEUTERIUM),
     DEUTERIUM               to Details (type = ElementType.Atom, symbol = "²H",     label = "DEUTERIUM (²H)",       p = 1, n = 1,   covalentRadiusPm = 31, vdwRadiusPm = 120, description = "Дейтерий"),
     HELIUM_3                to Details (type = ElementType.Atom, symbol = "³He",    label = "Helium (³He)",         p = 2, n = 1,   covalentRadiusPm = 28, vdwRadiusPm = 140, description = "Гелий", alphaGammaResult = BERYLLIUM_7),
     HELIUM_4                to Details (type = ElementType.Atom, symbol = "⁴He",    label = "Helium (⁴He)",         p = 2, n = 2,   covalentRadiusPm = 28, vdwRadiusPm = 140, description = "Гелий", alphaGammaResult = BERYLLIUM_8),

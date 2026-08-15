@@ -50,8 +50,8 @@ fun TaskBubble(level: Level, modifier: Modifier = Modifier) {
         ) {
             Text(
                 level.task,
-                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 15.sp,
-                lineHeight = 21.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
+                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
+                lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
             )
             val picture = MoleculeRegistry.picture(level.goalNameEn)
             if (picture != null) {

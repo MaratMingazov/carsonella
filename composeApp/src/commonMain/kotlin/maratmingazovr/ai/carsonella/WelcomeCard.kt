@@ -29,8 +29,8 @@ fun WelcomeCard(onStart: () -> Unit) {
         Spacer(Modifier.height(20.dp))
         Text(
             WELCOME_TEXT,
-            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 15.sp,
-            lineHeight = 22.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
+            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
+            lineHeight = 24.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
         )
         // Вода как образец: её же игрок соберёт на третьем уровне.
         MoleculeRegistry.picture("Water")?.let { water ->

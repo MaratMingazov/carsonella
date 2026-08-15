@@ -63,7 +63,7 @@ private fun MoleculeToast(event: MoleculeEvent, onFaded: () -> Unit) {
         color = Color(0xFF8A8A8A),
         fontFamily = menuFontFamily(),
         fontWeight = FontWeight.Light,
-        fontSize = 15.sp,
+        fontSize = 17.sp,
         modifier = Modifier
             .onSizeChanged { width = it.width }
             .offset {

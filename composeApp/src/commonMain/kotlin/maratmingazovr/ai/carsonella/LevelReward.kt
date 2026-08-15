@@ -50,8 +50,8 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
             Spacer(Modifier.height(20.dp))
             Text(
                 fact,
-                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 14.sp,
-                lineHeight = 20.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
+                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 16.sp,
+                lineHeight = 23.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
             )
         }
     }
