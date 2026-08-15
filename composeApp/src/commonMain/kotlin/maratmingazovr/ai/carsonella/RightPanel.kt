@@ -29,6 +29,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
@@ -97,6 +99,8 @@ fun RightPanel(
                     // .background(Color(0xFF03040A))  // прежний тёмный фон контейнера
                     .background(Color.White)            // МИНИМАЛИЗМ (Sokobond)
                     .padding(4.dp)
+                    // Границы мира = эта канва: без этого частицу можно увести за край и потерять.
+                    .onSizeChanged { world.requestArea(it.width.toFloat(), it.height.toFloat()) }
                     .focusRequester(focusRequester) // для обработки клавиш клавиутуры
                     .focusable() // важно!
                     .onKeyEvent { e ->
@@ -250,6 +254,9 @@ private fun SceneCanvas(
                         val e = awaitPointerEvent()               // получаем событие
                         val change = e.changes.firstOrNull() ?: continue
 
+                        // Событие уже съели поверх нас (модальное окно) — канва его не видит вообще.
+                        if (change.isConsumed) continue
+
                         // hover: всегда обновляем позицию курсора
                         onHoverLatest.value(change.position)
 
@@ -313,11 +320,14 @@ private fun SceneCanvas(
         }
         */
 
-        // граница корневого environment (на белом фоне — светло-серая)
-        drawCircle(
+        // граница корневого environment — эллипс по размеру канвы (на белом фоне светло-серый)
+        val envCenter = world.environment.getEnvCenter().toOffset()
+        val envRadiusX = world.environment.getEnvRadius()
+        val envRadiusY = world.environment.getEnvRadiusY()
+        drawOval(
             color = Color.Black.copy(alpha = 0.12f),
-            center = world.environment.getEnvCenter().toOffset(),
-            radius = world.environment.getEnvRadius(),
+            topLeft = Offset(envCenter.x - envRadiusX, envCenter.y - envRadiusY),
+            size = Size(envRadiusX * 2f, envRadiusY * 2f),
             style = Stroke(width = 1f)
         )
 

@@ -60,20 +60,26 @@ class PointMovement(
         var position = kinematics.position
         var direction = kinematics.direction
         val center = env.getEnvCenter()
-        val radius = env.getEnvRadius()
+        val radiusX = env.getEnvRadius()
+        val radiusY = env.getEnvRadiusY()
+        if (radiusX <= 0f || radiusY <= 0f) return   // границы ещё не заданы (канва не измерена)
 
-        // Вектор от центра круга к объекту
+        // Вектор от центра эллипса к объекту, в долях радиусов: снаружи, когда сумма квадратов > 1.
+        // При равных радиусах это ровно прежняя проверка по окружности, поэтому звезда ничего не заметит.
         val dx = position.x - center.x
         val dy = position.y - center.y
+        val outside = (dx / radiusX) * (dx / radiusX) + (dy / radiusY) * (dy / radiusY)
 
+        if (outside > 1f) {
+            // Ставим на границу по тому же лучу из центра
+            val k = sqrt(outside)
+            position = Position(x = center.x + dx / k, y = center.y + dy / k)
 
-        if (dx * dx + dy * dy > radius * radius) {
-            // Расстояние от центра
-            val dist = sqrt(dx * dx + dy * dy)
-            // Если снаружи — нормализуем вектор и перемещаем на границу круга
-            val nx = dx / dist
-            val ny = dy / dist
-            position =  Position(x = center.x + nx * radius, y = center.y + ny * radius)
+            // Нормаль к эллипсу в этой точке: (dx/rx², dy/ry²) — у окружности это тот же радиус-вектор
+            var nx = dx / (radiusX * radiusX)
+            var ny = dy / (radiusY * radiusY)
+            val normalLength = sqrt(nx * nx + ny * ny)
+            if (normalLength > 1e-6f) { nx /= normalLength; ny /= normalLength }
 
             // Отразить направление относительно нормали
             val dot = direction.x * nx + direction.y * ny

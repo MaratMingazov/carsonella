@@ -19,10 +19,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.world.PaletteItem
 
 // Drag & Drop state + локаль для доступа из детей
-data class DragData(val element: Element) // "Hydrogen" и т.п.
+data class DragData(val item: PaletteItem) // атом или готовая молекула из палитры
 
 class DragDropState {
     var isDragging by mutableStateOf(false)
@@ -40,9 +40,9 @@ fun DragDropContainer(content: @Composable BoxScope.() -> Unit) {
         CompositionLocalProvider(LocalDragDrop provides state) {
             content()
             if (state.isDragging && state.data != null) {
-                // Призрак перетаскивания — тот же кружок, что в палитре/на канве (а не синий placeholder)
+                // Призрак перетаскивания — то же, что в палитре/на канве (а не синий placeholder)
                 Box(Modifier.offset { IntOffset(state.pos.x.toInt() - 25, state.pos.y.toInt() - 25) }) {
-                    PaletteAtom(state.data!!.element)
+                    PaletteItemView(state.data!!.item)
                 }
             }
         }
@@ -51,17 +51,17 @@ fun DragDropContainer(content: @Composable BoxScope.() -> Unit) {
 
 
 @Composable
-fun DragSource(element: Element, content: @Composable () -> Unit) {
+fun DragSource(item: PaletteItem, content: @Composable () -> Unit) {
     val dnd = LocalDragDrop.current
     var selfCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     Box(
         Modifier
             .onGloballyPositioned { selfCoords = it }
-            .pointerInput(element) {
+            .pointerInput(item) {
                 detectDragGestures(
                     onDragStart = { start ->
                         val inWindow = selfCoords?.localToWindow(start)
-                        dnd.data = DragData(element)
+                        dnd.data = DragData(item)
                         dnd.pos = inWindow!!
                         dnd.isDragging = true
                     },

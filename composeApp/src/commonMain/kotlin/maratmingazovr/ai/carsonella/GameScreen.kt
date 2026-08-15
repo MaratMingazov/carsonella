@@ -22,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
-import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 
@@ -65,9 +63,10 @@ fun GameScreen(onExit: () -> Unit) {
     // Ждём факта через first { it } и дальше от списка не зависим — плашка своё событие вскоре удалит,
     // и производное состояние успело бы погаснуть прямо посреди задержки.
     LaunchedEffect(levelIndex) {
-        val goalNameEn = LEVELS.getOrNull(levelIndex)?.goalNameEn ?: return@LaunchedEffect
-        snapshotFlow { world.moleculeEvents.any { it.known.nameEn == goalNameEn } }.first { it }
-        delay(900)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
+        val current = LEVELS.getOrNull(levelIndex) ?: return@LaunchedEffect
+        world.setInventory(current.inventory)   // палитра уровня = его инвентарь
+        snapshotFlow { world.moleculeEvents.any { it.known.nameEn == current.goalNameEn } }.first { it }
+        delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
         reward = true
     }
 
@@ -85,14 +84,9 @@ fun GameScreen(onExit: () -> Unit) {
             Column(Modifier.fillMaxSize()) {
                 RightPanel(
                     modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
-                    accept = { it.element in Element.entries },
-                    // Фотон не должен рождаться с нулевой энергией (её не бывает у реального фотона) —
-                    // даём дефолт H-α; остальным элементам 0f (основное состояние) корректно.
-                    onDrop = { data, localPos ->
-                        val energy = if (data.element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-                        val electrons = if (data.element == Element.ELECTRON) 1 else data.element.details.p
-                        world.entityGenerator.createEntity(element = data.element, Position(localPos.x, localPos.y), direction = randomDirection(world.random), velocity = 0f, energy = energy, environment = world.environment, electrons = electrons)
-                    },
+                    // Принимаем только то, что ещё осталось в инвентаре уровня.
+                    accept = { data -> world.palette.any { it.item == data.item && it.count > 0 } },
+                    onDrop = { data, localPos -> world.spawnFromPalette(data.item, Position(localPos.x, localPos.y)) },
                     hoverPos = hoverPos,
                     onHover = { hoverPos = it },
                     selectedId = selectedId,
@@ -124,7 +118,7 @@ fun GameScreen(onExit: () -> Unit) {
 
         // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
         if (level == null) {
-            MenuLayout(title = "готово", entries = listOf(MenuEntry("в меню", onExit))) {
+            MenuLayout(title = "молодец", entries = listOf(MenuEntry("close", onExit))) {
                 Text(
                     "уровни первой главы пройдены",
                     fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 18.sp,

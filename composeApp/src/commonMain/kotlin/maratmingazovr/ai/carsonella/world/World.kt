@@ -10,11 +10,19 @@ import kotlinx.datetime.toLocalDateTime
 import maratmingazovr.ai.carsonella.Environment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
+import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.Kinematics
 import maratmingazovr.ai.carsonella.chemistry.Molecule
+import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
+import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
+import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
@@ -33,6 +41,21 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
 data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: Position)
 
+/**
+ * Что лежит в палитре: отдельный элемент или готовая молекула из реестра. Молекулы нужны там, где
+ * уровень выдаёт заготовку («разбери перекись»), и позже — для разблокированных блоков-радикалов.
+ */
+sealed interface PaletteItem {
+    data class Atom(val element: Element) : PaletteItem
+    data class Known(val nameEn: String) : PaletteItem
+}
+
+/** Слот палитры: что игрок может взять и сколько этого осталось на уровне. */
+data class PaletteSlot(val item: PaletteItem, val count: Int)
+
+// Отступ границ мира от края канвы: радиус самого крупного атома плюс запас на валентные слоты.
+private const val EDGE_INSET = 34f
+
 class World(
     private val _scope: CoroutineScope,
 ) {
@@ -41,14 +64,12 @@ class World(
     private val _pendingRequests = mutableListOf<ReactionRequest>()
     private val _seed = 1L
     val random = kotlin.random.Random(_seed)
-    val environment = Environment(Position(1000f, 600f), 500f, TemperatureMode.Space)
-    val palette =  mutableStateListOf(
-        Element.PHOTON,
-        Element.ELECTRON,
-        Element.HYDROGEN,
-        Element.OXYGEN_16,
-        Element.CARBON_12,
-    )
+    // Границы приходят от канвы (requestArea): до первого замера радиусы нулевые, и проверка границ
+    // просто не работает — чтобы стенка не оказалась где попало.
+    val environment = Environment(Position(0f, 0f), 0f, TemperatureMode.Space)
+    // Палитра — это инвентарь текущего уровня: что выдали и сколько осталось. Заполняет уровень
+    // (setInventory), расходует spawnFromPalette. Единственный источник материалов на холсте.
+    val palette = mutableStateListOf<PaletteSlot>()
     val entities =  mutableStateListOf<Entity>()
     val logs =  mutableStateListOf<String>()
     // Очередь «родилась известная молекула» для тихих всплывающих имён. Пишет тик, снимает UI,
@@ -69,6 +90,9 @@ class World(
     // чтобы «тик оставался единственным писателем мира» (см. README, технические TODO).
     private var _pendingSnapshot: WorldSnapshotDto? = null
     private var _pendingClear = false   // очистка холста между уровнями — по тому же правилу
+    private var _pendingArea: EnvArea? = null   // новые границы мира от канвы — тоже через тик
+
+    private data class EnvArea(val center: Position, val radiusX: Float, val radiusY: Float)
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
@@ -101,6 +125,13 @@ class World(
 
                 if (_pendingClear) { clearNow(); _pendingClear = false }
 
+                // Границы мира приходят из UI (канва знает свой размер) — применяем их здесь же,
+                // чтобы писателем мира оставался тик.
+                _pendingArea?.let { area ->
+                    environment.setEnvArea(area.center, area.radiusX, area.radiusY)
+                    _pendingArea = null
+                }
+
                 tick++
 
                 // снимок, чтобы не падать на ConcurrentModificationException
@@ -130,6 +161,84 @@ class World(
     /** Просьба очистить холст (переход между уровнями). Выполнится в начале следующего тика. */
     fun requestClear() { _pendingClear = true }
 
+    /**
+     * Канва сообщает свой размер: мир — эллипс, вписанный в неё с отступом на радиус атома, чтобы
+     * частица у границы оставалась видимой целиком. Иначе частицу можно увести за край холста, и
+     * достать её оттуда будет уже нечем.
+     */
+    fun requestArea(widthPx: Float, heightPx: Float) {
+        val radiusX = widthPx / 2f - EDGE_INSET
+        val radiusY = heightPx / 2f - EDGE_INSET
+        if (radiusX <= 0f || radiusY <= 0f) return   // канва ещё меньше отступа — ждём следующего замера
+        _pendingArea = EnvArea(Position(widthPx / 2f, heightPx / 2f), radiusX, radiusY)
+    }
+
+    /** Уровень выдаёт инвентарь. Холст к этому моменту уже очищен, так что старые остатки не нужны. */
+    fun setInventory(inventory: Map<PaletteItem, Int>) {
+        palette.clear()
+        inventory.forEach { (item, count) -> palette.add(PaletteSlot(item, count)) }
+    }
+
+    /** Игрок кладёт из палитры: расходуем остаток и рождаем на холсте то, что в слоте. */
+    fun spawnFromPalette(item: PaletteItem, position: Position) {
+        val slot = palette.indexOfFirst { it.item == item }
+        if (slot < 0 || palette[slot].count <= 0) return
+        palette[slot] = palette[slot].copy(count = palette[slot].count - 1)
+
+        val entity = when (item) {
+            is PaletteItem.Atom -> spawnAtom(item.element, position)
+            is PaletteItem.Known -> spawnKnownMolecule(item.nameEn, position)
+        } ?: return
+        clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
+    }
+
+    // Правила рождения частицы живут здесь, а не в UI: у фотона не бывает нулевой энергии (даём дефолт
+    // H-α), электрон приходит с одним электроном, остальные — нейтральными.
+    private fun spawnAtom(element: Element, position: Position): Entity {
+        val energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
+        val electrons = if (element == Element.ELECTRON) 1 else element.details.p
+        return entityGenerator.createEntity(
+            element = element, position = position, direction = randomDirection(random),
+            velocity = 0f, energy = energy, environment = environment, electrons = electrons,
+        )
+    }
+
+    // Готовая молекула: берём эталонный граф с курируемой раскладкой из реестра и ставим её в точку
+    // дропа. Раскладка задана в долях длины связи, поэтому умножаем на длину покоя пружин — дальше
+    // геометрию доводят сами пружины.
+    private fun spawnKnownMolecule(nameEn: String, position: Position): Entity? {
+        val picture = MoleculeRegistry.picture(nameEn) ?: return null
+        val graph = picture.graph
+        val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
+        val unitPx = graph.bonds.maxOf { bond ->
+            MoleculeGeometry.bondLengthPx(isotopeOf.getValue(bond.atom1), isotopeOf.getValue(bond.atom2), bond.order)
+        }
+        val atoms = graph.nodes.map { node ->
+            val offset = picture.offsets.getValue(node.localId)
+            MoleculeAtom(
+                localId = node.localId,
+                isotope = node.isotope,
+                kinematics = Kinematics(
+                    position = Position(position.x + offset.x * unitPx, position.y + offset.y * unitPx),
+                    direction = randomDirection(random),
+                    velocity = 0f,
+                ),
+            )
+        }
+        val bonds = graph.bonds.map { MoleculeBond(it.atom1, it.atom2, it.order, graph.energyOf(it), graph.isRingBond(it)) }
+        return entityGenerator.createMolecule(
+            shape = MoleculeShape(atoms, bonds),
+            energy = 0f,
+            environment = environment,
+            electrons = graph.nodes.sumOf { it.isotope.details.p },   // молекула нейтральна
+        )
+    }
+
+    /** Прижать частицу внутрь границ: дроп у самого края и перетаскивание за край холста. */
+    fun clampEntityIntoBounds(entityId: Long) {
+        (entities.find { it.id == entityId } as? Movable)?.checkBorders(environment)
+    }
+
     private fun clearNow() {
         entities.clear()
         environment.getEnvChildren().toList().forEach { environment.removeEnvChild(it) }
@@ -156,17 +265,51 @@ class World(
     }
 
     // Игрок перетаскивает частицу мышью: сдвигаем её на столько, на сколько сдвинулся курсор.
+    // Сразу прижимаем к границам: частица «в руке» тиком не шагается, значит сама себя не проверит.
     fun moveEntityBy(entityId: Long, delta: Vec2D) {
-        (entities.find { it.id == entityId } as? Movable)?.moveBy(delta)
+        val movable = entities.find { it.id == entityId } as? Movable ?: return
+        movable.moveBy(delta)
+        movable.checkBorders(environment)
     }
 
     // Игрок удаляет выбранную частицу с канвы (клавиша Delete). Убиваем через тот же destroy(),
     // что и реакции: onDeath-callback уберёт её из среды и из entities. Если она была «в руке» —
     // снимаем held, чтобы тик не остался с ссылкой на удалённую частицу.
+    // Материал возвращается в палитру: инвентарь конечен, и безвозвратное удаление плодило бы тупики.
     fun removeEntity(entityId: Long) {
         val entity = entities.find { it.id == entityId } ?: return
         if (heldEntityId == entityId) heldEntityId = null
+        returnToPalette(materialsOf(entity))
         entity.destroy()
+    }
+
+    // Из чего частица сделана: атом — сам собой, молекула — своим слотом, если её саму выдавали
+    // (иначе перекись вернулась бы атомами, которых на этом уровне в палитре нет), иначе атомами.
+    // Звёзды и модули в палитре не выдаются, возвращать нечего.
+    private fun materialsOf(entity: Entity): List<PaletteItem> = when (entity) {
+        is Atom -> listOf(PaletteItem.Atom(entity.element))
+        is SubAtom -> listOf(PaletteItem.Atom(entity.element))
+        is Molecule -> {
+            val asWhole = entity.known?.nameEn?.let(PaletteItem::Known)
+            if (asWhole != null && palette.any { it.item == asWhole }) listOf(asWhole)
+            else entity.atoms.map { PaletteItem.Atom(it.isotope) }
+        }
+        else -> emptyList()
+    }
+
+    // Наращиваем только существующие слоты: палитра — это инвентарь уровня, новых слотов в ней
+    // появляться не должно (ион водорода вернётся водородом, а фотон — только если его выдавали).
+    private fun returnToPalette(items: List<PaletteItem>) {
+        items.forEach { item ->
+            val slot = palette.indexOfFirst { it.item == item }
+            if (slot >= 0) palette[slot] = palette[slot].copy(count = palette[slot].count + 1)
+        }
+    }
+
+    /** Сброс задания: холст чистим, инвентарь выдаём заново. Спасает от тупика, когда материал кончился. */
+    fun resetLevel(inventory: Map<PaletteItem, Int>) {
+        requestClear()
+        setInventory(inventory)
     }
 
     // «Поднять» частицу: помечаем held (тик перестаёт её шагать) и убираем из детей среды,

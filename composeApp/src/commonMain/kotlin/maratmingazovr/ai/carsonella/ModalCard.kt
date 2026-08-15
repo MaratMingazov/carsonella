@@ -37,6 +37,7 @@ import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +60,12 @@ fun ModalCard(buttonLabel: String, onAction: () -> Unit, content: @Composable Co
         Modifier
             .fillMaxSize()
             .background(Color.White.copy(alpha = 0.82f * appear))   // дымка, а не затемнение: экран остаётся светлым
+            // Мышь дальше не идёт: иначе сквозь дымку можно тащить атомы из палитры и кликать по холсту.
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) { awaitPointerEvent().changes.forEach { it.consume() } }
+                }
+            }
             .focusRequester(focusRequester)
             .focusable()
             .onPreviewKeyEvent { e ->

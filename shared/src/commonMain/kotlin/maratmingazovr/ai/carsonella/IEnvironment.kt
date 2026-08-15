@@ -9,6 +9,9 @@ import maratmingazovr.ai.carsonella.chemistry.Entity
 interface IEnvironment {
     fun getEnvCenter(): Position
     fun getEnvRadius(): Float
+
+    /** Вертикальный радиус: по умолчанию среда круглая (звезда), корневой мир — эллипс по канве. */
+    fun getEnvRadiusY(): Float = getEnvRadius()
     fun getEnvTemperature(): TemperatureMode
     fun getEnvChildren(): List<Entity>
     fun addEnvChild(entity: Entity)
@@ -21,8 +24,18 @@ class Environment(
     private var temperature: TemperatureMode = TemperatureMode.Space,
     private var children: MutableList<Entity> = mutableListOf(),
 ) : IEnvironment {
+    private var radiusY: Float = radius
+
     override fun getEnvCenter() = center
     override fun getEnvRadius() = radius
+    override fun getEnvRadiusY() = radiusY
+
+    /** Границы мира — эллипс, вписанный в холст; зовётся из тика, когда канва знает свой размер. */
+    fun setEnvArea(center: Position, radiusX: Float, radiusY: Float) {
+        this.center = center
+        this.radius = radiusX
+        this.radiusY = radiusY
+    }
     override fun getEnvTemperature() = temperature
     override fun getEnvChildren(): List<Entity> { return children }
     override fun addEnvChild(entity: Entity) { children.add(entity) }

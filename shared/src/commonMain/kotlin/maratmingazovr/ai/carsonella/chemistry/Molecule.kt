@@ -146,19 +146,24 @@ class Molecule private constructor(
 
     override fun checkBorders(env: IEnvironment) {
         val envCenter = env.getEnvCenter()
-        val envRadius = env.getEnvRadius()
+        val radiusX = env.getEnvRadius()
+        val radiusY = env.getEnvRadiusY()
+        if (radiusX <= 0f || radiusY <= 0f) return   // границы ещё не заданы (канва не измерена)
         var corrected = false
         for (atom in atomsById.values) {
             val k = atom.kinematics
             val dx = k.position.x - envCenter.x
             val dy = k.position.y - envCenter.y
-            if (dx * dx + dy * dy <= envRadius * envRadius) continue // этот атом внутри
-            val dist = sqrt(dx * dx + dy * dy)
-            val nx = dx / dist
-            val ny = dy / dist
+            val outside = (dx / radiusX) * (dx / radiusX) + (dy / radiusY) * (dy / radiusY)
+            if (outside <= 1f) continue // этот атом внутри
+            val scale = sqrt(outside)
+            var nx = dx / (radiusX * radiusX)    // нормаль к эллипсу; у окружности — тот же радиус-вектор
+            var ny = dy / (radiusY * radiusY)
+            val normalLength = sqrt(nx * nx + ny * ny)
+            if (normalLength > 1e-6f) { nx /= normalLength; ny /= normalLength }
             val dot = k.direction.x * nx + k.direction.y * ny
             atom.kinematics = k.copy(
-                position = Position(envCenter.x + nx * envRadius, envCenter.y + ny * envRadius),
+                position = Position(envCenter.x + dx / scale, envCenter.y + dy / scale),
                 direction = Vec2D(k.direction.x - 2 * dot * nx, k.direction.y - 2 * dot * ny),
             )
             corrected = true
@@ -204,7 +209,7 @@ class Molecule private constructor(
         )
         if (known != null) lines += known.nameRu
         if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
-        if (known != null && known.description.isNotEmpty()) lines += known.description
+        //if (known != null && known.description.isNotEmpty()) lines += known.description
         lines += "Energy ${round(energy * 100) / 100}"
         dissociationEnergy?.let { energy ->
             lines += "Weakest bond ${round(energy * 100) / 100} eV"

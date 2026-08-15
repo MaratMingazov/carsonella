@@ -43,11 +43,13 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 34.sp,
             letterSpacing = 0.08.em, color = Color(0xFF45BDB5),
         )
-        // Факт целиком: в окне место есть, в отличие от рейла.
-        if (goal.description.isNotEmpty()) {
+        // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
+        // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
+        val fact = level.rewardText ?: goal.description
+        if (fact.isNotEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(
-                goal.description,
+                fact,
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 14.sp,
                 lineHeight = 20.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
             )
