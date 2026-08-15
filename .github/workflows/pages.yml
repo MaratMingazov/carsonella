@@ -1,0 +1,53 @@
+name: Publish web to GitHub Pages
+
+# Веб-версия — чистая статика (wasmJsBrowserDistribution), поэтому публикация = выложить папку.
+# Собирается на каждый пуш в main; кнопка Run workflow нужна, когда надо перевыложить без изменений.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Требования Pages: id-token — для доверенной публикации, pages — для самой выкладки.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Публикация одна на репозиторий. Не отменяем начатую: половина выложенного сайта хуже старого.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # JDK 25 — тот же, что пинится в gradle-daemon-jvm.properties. Если бы его тут не было,
+      # Gradle скачал бы его сам по ссылкам из того файла, но с готовым быстрее.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      # Кеш зависимостей и Gradle между прогонами. Node для Kotlin/Wasm ставит сам Gradle.
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: ./gradlew :composeApp:wasmJsBrowserDistribution
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: composeApp/build/dist/wasmJs/productionExecutable
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
