@@ -33,8 +33,22 @@ object MoleculeRegistry {
 
     // Радикалы, из которых собираются записи ниже. У них есть и своя запись в реестре — имя одно на оба
     // применения, так что скопировать граф дважды (и разойтись в нём) больше нельзя. Объявлять ДО entries.
-    private val hydroxyl = O.attach(H)              // •OH     — o0 h1
-    private val hydroperoxyl = hydroxyl.attach(O)   // H–O–O•  — o0 h1 o2
+    private val hydroxyl = O.attach(H)                            // •OH     — o0 h1
+    private val hydroperoxyl = hydroxyl.attach(O)                 // H–O–O•  — o0 h1 o2
+    private val amino = N.attach(H).attach(H)                     // •NH₂
+    private val methylidyne = C.attach(H)                         // •CH   (3 слота)
+    private val methylene = methylidyne.attach(H)                 // :CH₂  (2 слота)
+    private val methyl = methylene.attach(H)                      // •CH₃
+    private val ethyl = methyl.attach(methylene)                  // CH₃–CH₂•
+    private val vinyl = methylene.attach(methylidyne, order = 2)  // H₂C=CH•
+    private val ethynyl = methylidyne.attach(C, order = 3)        // H–C≡C•
+    private val formyl = C.attach(O, order = 2).attach(H)         // H–C•=O
+    private val cyano = C.attach(N, order = 3)                    // •C≡N
+
+    // Своей записи в реестре у этих двух нет: они нужны только как ступенька к бутену-2 и изобутилену,
+    // которые из радикалов выше не собрать — там углерод с двумя слотами посередине.
+    private val ethylidene = methyl.attach(methylidyne)           // CH₃–CH: (2 слота)
+    private val vinylidene = methylene.attach(C, order = 2)       // H₂C=C:  (2 слота)
 
     private val entries: List<Pair<MoleculeGraph, KnownMolecule>> = listOf(
         // --- двухатомные ---
@@ -64,45 +78,45 @@ object MoleculeRegistry {
         hydroperoxyl.attach(hydroperoxyl)
         to KnownMolecule("Tetraoxidane", "Тетраоксидан", "H–O–O–O–O–H", "Четыре кислорода подряд — предел, до которого такая цепочка вообще доживает. Собирается из двух радикалов HO₂• и существует только в криогенной заморозке, ниже −100 °C; интересен химикам, применений нет. При нагреве мгновенно распадается на перекись и кислород. Цепочек из пяти кислородов не наблюдали ни разу."),
 
-        mol(listOf(n(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3)))
+        amino.attach(H)
         to KnownMolecule("Ammonia", "Аммиак", "NH₃"),
 
-        mol(listOf(c(0), o(1), o(2)), listOf(bond(0, 1, 2), bond(0, 2, 2)))
+        C.attach(O, order = 2).attach(O, order = 2)
         to KnownMolecule("Carbon dioxide", "Углекислый газ", "O=C=O"),
 
-        mol(listOf(h(0), c(1), n(2)), listOf(bond(0, 1), bond(1, 2, 3)))
+        cyano.attach(H)
         to KnownMolecule("Hydrogen cyanide", "Циановодород", "H–C≡N"),
 
         // --- углеводороды ---
-        mol(listOf(c(0), h(1), h(2), h(3), h(4)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4)))
+        methyl.attach(H)
         to KnownMolecule("Methane", "Метан", "CH₄"),
 
-        mol(listOf(c(0), c(1), h(2), h(3)), listOf(bond(0, 1, 3), bond(0, 2), bond(1, 3)))
+        ethynyl.attach(H)
         to KnownMolecule("Acetylene", "Ацетилен", "HC≡CH"),
 
-        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4), bond(1, 5)))
+        vinyl.attach(H)
         to KnownMolecule("Ethylene", "Этилен", "H₂C=CH₂"),
 
-        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6), h(7)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7)))
+        ethyl.attach(H)
         to KnownMolecule("Ethane", "Этан", "CH₃–CH₃"),
 
         // Бутаны C₄H₁₀ — изомеры по СКЕЛЕТУ: цепочка против ветвления, кратностей связи тут нет вообще.
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)), listOf(bond(0, 1), bond(1, 2), bond(2, 3), bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(1, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13)))
+        // Видно прямо в сборке: два этила встык против трёх метилов на одном углероде.
+        ethyl.attach(ethyl)
         to KnownMolecule("Butane", "Бутан", "CH₃–CH₂–CH₂–CH₃"),
 
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7), bond(2, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13)))
+        methylidyne.attach(methyl).attach(methyl).attach(methyl)
         to KnownMolecule("Isobutane", "Изобутан", "(CH₃)₃CH"),
 
         // Бутены C₄H₈
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)), listOf(bond(0, 1, 2), bond(1, 2), bond(2, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11)))
+        vinyl.attach(ethyl)
         to KnownMolecule("1-Butene", "Бутен-1", "H₂C=CH–CH₂–CH₃"),
 
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
-            listOf(bond(0, 1), bond(1, 2, 2), bond(2, 3),
-                bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("2-Butene", "Бутен-2", "CH₃–CH=CH–CH₃"),
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
-            listOf(bond(0, 1, 2), bond(1, 2), bond(1, 3),
-                bond(0, 4), bond(0, 5), bond(2, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("Isobutylene", "Изобутилен", "H₂C=C(CH₃)₂"),
+        ethylidene.attach(ethylidene, order = 2)
+        to KnownMolecule("2-Butene", "Бутен-2", "CH₃–CH=CH–CH₃"),
+
+        vinylidene.attach(methyl).attach(methyl)
+        to KnownMolecule("Isobutylene", "Изобутилен", "H₂C=C(CH₃)₂"),
 
         // --- кольца ---
         // Первые циклы, которые игрок замыкает сам (RingClosure). Оба трёхчленные и потому напряжённые —
@@ -136,30 +150,27 @@ object MoleculeRegistry {
             "Найден в межзвёздных облаках и в атмосфере Титана."),
 
         // --- кислородсодержащая органика ---
-        mol(listOf(c(0), o(1), h(2), h(3)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3))) to KnownMolecule("Formaldehyde", "Формальдегид", "H₂C=O"), // H₂C=O
-        mol(listOf(c(0), o(1), h(2), h(3), h(4), h(5)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5))) to KnownMolecule("Methanol", "Метанол", "CH₃–OH"),        // CH₃–OH
-        mol(listOf(c(0), o(1), o(2), h(3), h(4)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(2, 4))) to KnownMolecule("Formic acid", "Муравьиная кислота", "H–C(=O)–OH"), // H–C(=O)–O–H
-        mol(listOf(c(0), c(1), o(2), h(3), h(4), h(5), h(6), h(7), h(8)),
-            listOf(bond(0, 1), bond(1, 2), bond(0, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(1, 7), bond(2, 8))) to KnownMolecule("Ethanol", "Этанол", "CH₃–CH₂–OH"),         // CH₃–CH₂–OH
+        formyl.attach(H)              to KnownMolecule("Formaldehyde", "Формальдегид", "H₂C=O"),
+        methyl.attach(hydroxyl)       to KnownMolecule("Methanol", "Метанол", "CH₃–OH"),
+        formyl.attach(hydroxyl)       to KnownMolecule("Formic acid", "Муравьиная кислота", "H–C(=O)–OH"),
+        ethyl.attach(hydroxyl)        to KnownMolecule("Ethanol", "Этанол", "CH₃–CH₂–OH"),
 
         // --- радикалы (есть свободный валентный слот) ---
-
-        mol(listOf(c(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3))) to KnownMolecule("Methyl", "Метил", "•CH₃"),           // •CH₃
-        mol(listOf(n(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Amino radical", "Аминорадикал", "•NH₂"), // •NH₂
-        hydroperoxyl                                                             to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"), // H–O–O•
-        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6))) to KnownMolecule("Ethyl", "Этил", "CH₃–CH₂•"),             // CH₃–CH₂•
-        mol(listOf(c(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Methylidyne", "Метилидин", "•CH"),   // •CH  (3 слота)
-        mol(listOf(c(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Methylene", "Метилен", ":CH₂"),       // :CH₂ (2 слота)
-        mol(listOf(h(0), c(1), c(2)), listOf(bond(0, 1), bond(1, 2, 3)))         to KnownMolecule("Ethynyl", "Этинил", "HC≡C•"),          // H–C≡C•
-        mol(listOf(c(0), c(1), h(2), h(3), h(4)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4)))
-                                                                                 to KnownMolecule("Vinyl", "Винил", "H₂C=CH•"),            // H₂C=CH•
-        mol(listOf(c(0), o(1), h(2)), listOf(bond(0, 1, 2), bond(0, 2)))         to KnownMolecule("Formyl", "Формил", "H–C•=O"),           // H–C•=O
-        mol(listOf(c(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Cyano", "Циано", "•C≡N"),             // •C≡N
+        methyl                        to KnownMolecule("Methyl", "Метил", "•CH₃"),
+        amino                         to KnownMolecule("Amino radical", "Аминорадикал", "•NH₂"),
+        hydroperoxyl                  to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"),
+        ethyl                         to KnownMolecule("Ethyl", "Этил", "CH₃–CH₂•"),
+        methylidyne                   to KnownMolecule("Methylidyne", "Метилидин", "•CH"),
+        methylene                     to KnownMolecule("Methylene", "Метилен", ":CH₂"),
+        ethynyl                       to KnownMolecule("Ethynyl", "Этинил", "HC≡C•"),
+        vinyl                         to KnownMolecule("Vinyl", "Винил", "H₂C=CH•"),
+        formyl                        to KnownMolecule("Formyl", "Формил", "H–C•=O"),
+        cyano                         to KnownMolecule("Cyano", "Циано", "•C≡N"),
 
         // --- дикарбон C₂: все три порядка связи → одно имя «Дикарбон» ---
-        mol(listOf(c(0), c(1)), listOf(bond(0, 1)))                              to dicarbon,   // •C–C•
-        mol(listOf(c(0), c(1)), listOf(bond(0, 1, 2)))                           to dicarbon,   // C=C
-        mol(listOf(c(0), c(1)), listOf(bond(0, 1, 3)))                           to dicarbon,   // •C≡C•
+        C.attach(C)                   to dicarbon,   // •C–C•
+        C.attach(C, order = 2)        to dicarbon,   // C=C
+        C.attach(C, order = 3)        to dicarbon,   // •C≡C•
     )
 
     private val byCanonical: Map<String, KnownMolecule> = run {
@@ -238,6 +249,7 @@ private fun mol(nodes: List<AtomNode>, bonds: List<Bond>) = MoleculeGraph(nodes,
 // Атом как фрагмент: одноузловой граф законен — узел один, связей нет, связность держится.
 private val H = mol(listOf(h(0)), emptyList())
 private val O = mol(listOf(o(0)), emptyList())
+private val C = mol(listOf(c(0)), emptyList())
 private val N = mol(listOf(n(0)), emptyList())
 
 // Единственный узел со свободным слотом. Ноль или больше одного — точку присоединения надо указать явно.
