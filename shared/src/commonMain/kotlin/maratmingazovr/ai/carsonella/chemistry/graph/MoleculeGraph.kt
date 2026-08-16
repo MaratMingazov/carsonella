@@ -192,18 +192,18 @@ data class MoleculeGraph(
      * с пустой лестницей. Для CHNO не случается.
      */
     val energyLevels: List<Float> = listOfNotNull(nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull())
-    val hasFreeValence: Boolean = nodes.any { freeValence(it.localId) > 0 } // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).
+    val freeNodes: List<Int> = nodes.map { it.localId }.filter { freeValenceById.getValue(it) > 0 } // localId узлов, которым ещё есть чем связываться (в порядке nodes).
+    val hasFreeValence: Boolean = freeNodes.isNotEmpty() // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).
     val strengthenableBonds: List<Bond> = bonds.filter { it.order < 3 && freeValence(it.atom1) > 0 && freeValence(it.atom2) > 0 } // Связи, которые можно усилить: `order < 3` И у ОБОИХ концов есть свободный слот
     private val ringClosureCandidates: List<Pair<Int, Int>> = run {
-        val freeAtoms = nodes.map { it.localId }.filter { (freeValenceById[it] ?: 0) > 0 }
-        if (freeAtoms.size < 2) return@run emptyList()
+        if (freeNodes.size < 2) return@run emptyList()
         val adjacency = nodes.associate { it.localId to mutableListOf<Int>() }
         for (bond in bonds) {
             adjacency.getValue(bond.atom1).add(bond.atom2)
             adjacency.getValue(bond.atom2).add(bond.atom1)
         }
         val result = mutableListOf<Pair<Int, Int>>()
-        for (start in freeAtoms) {
+        for (start in freeNodes) {
             val dist = HashMap<Int, Int>().apply { put(start, 0) }   // кратчайшие расстояния от start (BFS)
             val queue = ArrayDeque(listOf(start))
             while (queue.isNotEmpty()) {
@@ -211,7 +211,7 @@ data class MoleculeGraph(
                 val d = dist.getValue(cur)
                 for (nb in adjacency.getValue(cur)) if (nb !in dist) { dist[nb] = d + 1; queue.add(nb) }
             }
-            for (target in freeAtoms) {
+            for (target in freeNodes) {
                 if (target <= start) continue                       // каждую неупорядоченную пару один раз
                 val ringSize = (dist[target] ?: continue) + 1       // недостижим (связный граф — не случается) → пропуск
                 if (ringSize >= RING_MIN_SIZE) result.add(start to target)

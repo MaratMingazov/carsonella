@@ -175,20 +175,19 @@ object MoleculeRegistry {
 
 
 
-private fun MoleculeGraph.freeNodes(): List<Int> = nodes.map { it.localId }.filter { freeValence(it) > 0 } // Узлы, которым есть чем связываться.
 private fun MoleculeGraph.slot(): Int {
-    val free = freeNodes()
+    val free = freeNodes
     require(free.size == 1) { "У $formula свободных узлов ${free.size} ($free) — укажи nodeId/otherNodeId явно" }
     return free.single()
 } // Единственный узел со свободным слотом. Ноль или больше одного — точку присоединения надо указать явно.
 private fun MoleculeGraph.attach(other: MoleculeGraph, order: Int = 1, nodeId: Int = slot(), otherNodeId: Int = other.slot()) = merge(other, nodeId, otherNodeId, order)
 
 
-private fun MoleculeGraph.extend(link: MoleculeGraph, order: Int = 1) = attach(link, order, nodeId = freeNodes().max()) // Продлить цепочку: цепляем к ПОСЛЕДНЕМУ добавленному звену.
+private fun MoleculeGraph.extend(link: MoleculeGraph, order: Int = 1) = attach(link, order, nodeId = freeNodes.max()) // Продлить цепочку: цепляем к ПОСЛЕДНЕМУ добавленному звену.
 
 
 private fun MoleculeGraph.closeChain(): MoleculeGraph {
-    val ends = freeNodes()
+    val ends = freeNodes
     require(ends.size == 2) { "У $formula свободных концов ${ends.size} ($ends) — цепочка так не замкнётся" }
     return closeRing(ends.first(), ends.last())
 } // Замкнуть цепочку саму на себя. Свободных концов ровно два, поэтому указывать нечего.
