@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 private sealed interface Screen {
     data object Menu : Screen
     data object Game : Screen
+    data object Map : Screen
     data object Settings : Screen
     data object About : Screen
 }
@@ -27,9 +28,11 @@ fun App() {
         when (screen) {
             Screen.Menu -> MenuScreen(
                 onStart = { screen = Screen.Game },
+                onMap = { screen = Screen.Map },
                 onSettings = { screen = Screen.Settings },
                 onAbout = { screen = Screen.About },
             )
+            Screen.Map -> DiscoveryMapScreen(onBack = { screen = Screen.Menu })
             // Мир создаётся внутри GameScreen и умирает вместе с ним → возврат в меню
             // останавливает симуляцию, повторный «старт» даёт чистый холст.
             Screen.Game -> GameScreen(onExit = { screen = Screen.Menu })

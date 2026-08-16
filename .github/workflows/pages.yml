@@ -1,10 +1,10 @@
 name: Publish web to GitHub Pages
 
 # Веб-версия — чистая статика (wasmJsBrowserDistribution), поэтому публикация = выложить папку.
-# Собирается на каждый пуш в main; кнопка Run workflow нужна, когда надо перевыложить без изменений.
+# Пока только вручную: Actions → этот workflow → Run workflow. Автосборку на пуш вернуть — раскомментировать.
 on:
-  push:
-    branches: [main]
+#  push:
+#    branches: [main]
   workflow_dispatch:
 
 # Требования Pages: id-token — для доверенной публикации, pages — для самой выкладки.

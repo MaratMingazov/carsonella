@@ -6,47 +6,23 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * Курируемая запись реестра: что знаем об известной молекуле сверх её структуры.
- * [structuralFormula] — сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
- * В отличие от брутто-формулы графа ([MoleculeGraph.formulaPretty] = C₂H₆) показывает, КАК атомы соединены.
- */
+// Курируемая запись реестра: что знаем об известной молекуле сверх её структуры.
 data class KnownMolecule(
     val nameEn: String,
     val nameRu: String,
-    val structuralFormula: String = "",
+    val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
     val description: String = "",
     val layout: Map<Int, Vec2D> = emptyMap(),
 )
 
-/**
- * Эталонная картинка молекулы: чем рисовать (граф) и где стоят узлы (раскладка). Нужна там, где
- * молекулы ещё нет в мире — карточка уровня, журнал открытий.
- *
- * Раскладка КУРИРУЕТСЯ, а не считается: у нас нет валентных углов, поэтому любая расстановка «по
- * физике» нарисовала бы воду прямой (пружины знают длины связей, но не угол H–O–H = 104.5°).
- * Единицы — ДОЛИ длины связи, не пиксели: масштаб выбирает рисующий, и картинка не поедет, если
- * поменяется BOND_PX в [MoleculeGeometry].
- */
+// Эталонная картинка молекулы: чем рисовать (граф) и где стоят узлы (раскладка). Нужна там, где молекулы ещё нет в мире — карточка уровня, журнал открытий.
 data class MoleculePicture(
     val graph: MoleculeGraph,
     val offsets: Map<Int, Vec2D>,
 )
 
-/**
- * Реестр известных молекул: канонический ключ → имя. ОПЦИОНАЛЕН (не ядро): без него молекулы анонимны и
- * опознаются структурно (это норма — большинство молекул безымянны). Ценность — имена курируемого
- * подмножества (позже сюда же ляжет «крючок вехи»: первое появление воды/аминокислоты — событие).
- *
- * Сидируется каноникализацией: строим ЭТАЛОННЫЙ граф известной молекулы и берём его [MoleculeGraph.canonical]
- * как ключ. Публичный [lookup] — по строке-канону, от [MoleculeGraph] не зависит (реестр = Map<canonical, _>).
- *
- * ВАЖНО про авторинг: эталонный граф обязан совпадать по СТРУКТУРЕ с тем, что рождает симуляция —
- *  - те же ИЗОТОПЫ (обычные: HYDROGEN/OXYGEN_16/CARBON_12/NITROGEN_14). D₂O не совпадёт с «Water» — это
- *    физически другая молекула (тяжёлая вода), и это правильно;
- *  - те же КРАТНОСТИ (эмёрджентные): движок доводит O₂ до O=O, N₂ до N≡N, CO₂ до O=C=O. Записать O–O
- *    (order 1) → реальный O₂ не опознается.
- */
+
+// Реестр известных молекул
 object MoleculeRegistry {
 
     // Дикарбон C₂ (экзотический бирадикал: пламя/кометы). В модели встречается на всех трёх порядках связи
@@ -55,76 +31,72 @@ object MoleculeRegistry {
     // structuralFormula пуст: у дикарбона он зависит от порядка связи (C–C/C=C/C≡C), а запись одна на три.
     private val dicarbon = KnownMolecule("Dicarbon", "Дикарбон", description = "экзотический бирадикал (пламя/кометы); порядок связи модельно неточен")
 
-    // Эталонные графы + записи. Держим список целиком (а не только Map канон→запись): по нему же
-    // строится доступ к картинке молекулы, которой ещё нет в мире.
+    // Радикалы, из которых собираются записи ниже. У них есть и своя запись в реестре — имя одно на оба
+    // применения, так что скопировать граф дважды (и разойтись в нём) больше нельзя. Объявлять ДО entries.
+    private val hydroxyl = O.attach(H)              // •OH     — o0 h1
+    private val hydroperoxyl = hydroxyl.attach(O)   // H–O–O•  — o0 h1 o2
+
     private val entries: List<Pair<MoleculeGraph, KnownMolecule>> = listOf(
         // --- двухатомные ---
-        mol(listOf(h(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Dihydrogen", "Водород", "H–H",
-            "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. " +
-            "Например, наше Солнце состоит на 73% из водорода. " +
-            "Мы с вами состоим из водорода, которому 13.8 миллиарда лет! " +
-            "Он кажется самым простым, но скрывает массу парадоксов!  ",
-            layout = pair()),
-        mol(listOf(o(0), o(1)), listOf(bond(0, 1, 2)))                           to KnownMolecule("Dioxygen", "Кислород", "O=O",      // O=O
-            "Мы получили то, чем дышим: в воздухе кислорода 21%, и без него человек живёт минуты. " +
-            "Но первые два миллиарда лет его в воздухе почти не было - кислород выдышали бактерии, " +
-            "и для древней жизни он оказался страшным ядом! " +
-            "Он жадный до связей: и огонь, и ржавчина - это он. " +
-            "А два атома здесь держит двойная связь - первая, которую ты усилил сам.",
-            layout = pair()),
-        mol(listOf(n(0), n(1)), listOf(bond(0, 1, 3)))                           to KnownMolecule("Dinitrogen", "Азот", "N≡N", layout = pair()),        // N≡N
+        H.attach(H)
+        to KnownMolecule("Dihydrogen", "Водород", "H–H", "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!", layout = pair()),
+
+        O.attach(O, order = 2)
+        to KnownMolecule("Dioxygen", "Кислород", "O=O", "Мы получили то, чем дышим: в воздухе кислорода 21%, и без него человек живёт минуты. Но первые два миллиарда лет его в воздухе почти не было - кислород выдышали бактерии, и для древней жизни он оказался страшным ядом! Он жадный до связей: и огонь, и ржавчина - это он. А два атома здесь держит двойная связь - первая, которую ты усилил сам.", layout = pair()),
+
+        N.attach(N, order = 3)
+        to KnownMolecule("Dinitrogen", "Азот", "N≡N", layout = pair()),
+
+        hydroxyl
+        to KnownMolecule("Hydroxyl", "Гидроксил", "•OH", "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ", layout = pair()),
+
 
         // --- малые неорганические / простые ---
-        // Вода уголком 104.5°: O в вершине, водороды симметрично вниз. Прямой её рисовать нельзя —
-        // вся первая глава про то, что у O два слота и они «не как попало».
-        mol(listOf(o(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Water", "Вода", "H–O–H",
-            "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. " +
-            "Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. " +
-            "Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
-            layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f))),
-        // Перекись: два O по горизонтали, водороды в разные стороны (в реальности молекула ещё и
-        // скручена вокруг O–O, но плоской картинке это не передать).
-        mol(listOf(o(0), o(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(1, 3))) to KnownMolecule("Hydrogen peroxide", "Перекись водорода", "H–O–O–H", // H–O–O–H
-            "Это вода с лишним атомом кислорода - та самая перекись из аптечки. " +
-            "Она пенится на ранке потому, что тело мгновенно её разрушает: пузырьки, которые мы видим - это кислород. " +
-            "Кстати, врачи теперь не советуют лить перекись на раны: она убивает не только микробов, но и живые клетки.",
-            layout = at(0 to xy(-0.5f, 0f), 1 to xy(0.5f, 0f), 2 to xy(-1f, -0.8f), 3 to xy(1f, 0.8f))),
+        hydroxyl.attach(H)
+        to KnownMolecule("Water", "Вода", "H–O–H", "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!", layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f))),
 
-        // Полиоксиды: та же цепочка O–O, но длиннее. Показывают, где проходит граница существования —
-        // слабая связь O–O (1.51 эВ) против сверхпрочной O=O (5.16), в которую цепочка «расстёгивается».
-        mol(listOf(o(0), o(1), o(2), h(3), h(4)), listOf(bond(0, 1), bond(1, 2), bond(0, 3), bond(2, 4))) to KnownMolecule("Trioxidane", "Триоксидан", "H–O–O–O–H",
-            "Три кислорода в цепочке — вещество на грани существования, но настоящее: его ловили приборами. " +
-            "Рождается при встрече озона с перекисью, применений не имеет. " +
-            "Живёт миллисекунды в воде (минуты — на сильном морозе в органическом растворителе) и разваливается на воду и кислород."),
+        hydroperoxyl.attach(H)
+        to KnownMolecule("Hydrogen peroxide", "Перекись водорода", "H–O–O–H", "Это вода с лишним атомом кислорода - та самая перекись из аптечки. Она пенится на ранке потому, что тело мгновенно её разрушает: пузырьки, которые мы видим - это кислород. Кстати, врачи теперь не советуют лить перекись на раны: она убивает не только микробов, но и живые клетки.", layout = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f))),
 
-        mol(listOf(o(0), o(1), o(2), o(3), h(4), h(5)), listOf(bond(0, 1), bond(1, 2), bond(2, 3), bond(0, 4), bond(3, 5))) to KnownMolecule("Tetraoxidane", "Тетраоксидан", "H–O–O–O–O–H",
-            "Четыре кислорода подряд — предел, до которого такая цепочка вообще доживает. " +
-            "Собирается из двух радикалов HO₂• и существует только в криогенной заморозке, ниже −100 °C; " +
-            "интересен химикам атмосферы, применений нет. При нагреве мгновенно распадается на перекись и кислород. " +
-            "Цепочек из пяти кислородов не наблюдали ни разу."),
-        mol(listOf(n(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3))) to KnownMolecule("Ammonia", "Аммиак", "NH₃"),
-        mol(listOf(c(0), o(1), o(2)), listOf(bond(0, 1, 2), bond(0, 2, 2)))      to KnownMolecule("Carbon dioxide", "Углекислый газ", "O=C=O"), // O=C=O
-        mol(listOf(h(0), c(1), n(2)), listOf(bond(0, 1), bond(1, 2, 3)))         to KnownMolecule("Hydrogen cyanide", "Циановодород", "H–C≡N"),  // H–C≡N
+        hydroperoxyl.attach(hydroxyl)
+        to KnownMolecule("Trioxidane", "Триоксидан", "H–O–O–O–H", ""),
+
+        hydroperoxyl.attach(hydroperoxyl)
+        to KnownMolecule("Tetraoxidane", "Тетраоксидан", "H–O–O–O–O–H", "Четыре кислорода подряд — предел, до которого такая цепочка вообще доживает. Собирается из двух радикалов HO₂• и существует только в криогенной заморозке, ниже −100 °C; интересен химикам, применений нет. При нагреве мгновенно распадается на перекись и кислород. Цепочек из пяти кислородов не наблюдали ни разу."),
+
+        mol(listOf(n(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3)))
+        to KnownMolecule("Ammonia", "Аммиак", "NH₃"),
+
+        mol(listOf(c(0), o(1), o(2)), listOf(bond(0, 1, 2), bond(0, 2, 2)))
+        to KnownMolecule("Carbon dioxide", "Углекислый газ", "O=C=O"),
+
+        mol(listOf(h(0), c(1), n(2)), listOf(bond(0, 1), bond(1, 2, 3)))
+        to KnownMolecule("Hydrogen cyanide", "Циановодород", "H–C≡N"),
 
         // --- углеводороды ---
-        mol(listOf(c(0), h(1), h(2), h(3), h(4)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4))) to KnownMolecule("Methane", "Метан", "CH₄"),
-        mol(listOf(c(0), c(1), h(2), h(3)), listOf(bond(0, 1, 3), bond(0, 2), bond(1, 3))) to KnownMolecule("Acetylene", "Ацетилен", "HC≡CH"),     // HC≡CH
-        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5)),
-            listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4), bond(1, 5))) to KnownMolecule("Ethylene", "Этилен", "H₂C=CH₂"),        // H₂C=CH₂
-        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6), h(7)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7))) to KnownMolecule("Ethane", "Этан", "CH₃–CH₃"), //  CH₃–CH₃
+        mol(listOf(c(0), h(1), h(2), h(3), h(4)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4)))
+        to KnownMolecule("Methane", "Метан", "CH₄"),
+
+        mol(listOf(c(0), c(1), h(2), h(3)), listOf(bond(0, 1, 3), bond(0, 2), bond(1, 3)))
+        to KnownMolecule("Acetylene", "Ацетилен", "HC≡CH"),
+
+        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5)), listOf(bond(0, 1, 2), bond(0, 2), bond(0, 3), bond(1, 4), bond(1, 5)))
+        to KnownMolecule("Ethylene", "Этилен", "H₂C=CH₂"),
+
+        mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6), h(7)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7)))
+        to KnownMolecule("Ethane", "Этан", "CH₃–CH₃"),
 
         // Бутаны C₄H₁₀ — изомеры по СКЕЛЕТУ: цепочка против ветвления, кратностей связи тут нет вообще.
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)),
-            listOf(bond(0, 1), bond(1, 2), bond(2, 3),
-                bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(1, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13))) to KnownMolecule("Butane", "Бутан", "CH₃–CH₂–CH₂–CH₃"),
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)),
-            listOf(bond(0, 1), bond(0, 2), bond(0, 3),
-                bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7), bond(2, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13))) to KnownMolecule("Isobutane", "Изобутан", "(CH₃)₃CH"),
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)), listOf(bond(0, 1), bond(1, 2), bond(2, 3), bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(1, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13)))
+        to KnownMolecule("Butane", "Бутан", "CH₃–CH₂–CH₂–CH₃"),
+
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11), h(12), h(13)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6), bond(1, 7), bond(2, 8), bond(2, 9), bond(2, 10), bond(3, 11), bond(3, 12), bond(3, 13)))
+        to KnownMolecule("Isobutane", "Изобутан", "(CH₃)₃CH"),
 
         // Бутены C₄H₈
-        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
-            listOf(bond(0, 1, 2), bond(1, 2), bond(2, 3),
-                bond(0, 4), bond(0, 5), bond(1, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("1-Butene", "Бутен-1", "H₂C=CH–CH₂–CH₃"),
+        mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)), listOf(bond(0, 1, 2), bond(1, 2), bond(2, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(2, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11)))
+        to KnownMolecule("1-Butene", "Бутен-1", "H₂C=CH–CH₂–CH₃"),
+
         mol(listOf(c(0), c(1), c(2), c(3), h(4), h(5), h(6), h(7), h(8), h(9), h(10), h(11)),
             listOf(bond(0, 1), bond(1, 2, 2), bond(2, 3),
                 bond(0, 4), bond(0, 5), bond(0, 6), bond(1, 7), bond(2, 8), bond(3, 9), bond(3, 10), bond(3, 11))) to KnownMolecule("2-Butene", "Бутен-2", "CH₃–CH=CH–CH₃"),
@@ -171,15 +143,10 @@ object MoleculeRegistry {
             listOf(bond(0, 1), bond(1, 2), bond(0, 3), bond(0, 4), bond(0, 5), bond(1, 6), bond(1, 7), bond(2, 8))) to KnownMolecule("Ethanol", "Этанол", "CH₃–CH₂–OH"),         // CH₃–CH₂–OH
 
         // --- радикалы (есть свободный валентный слот) ---
-        mol(listOf(o(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Hydroxyl", "Гидроксил", "•OH",      // •OH
-            "Гидроксил - маленькая молекула из одного атома водорода и кислорода. " +
-                    "Сама по себе живет меньше секунды, зато работает как \"конструктор\". " +
-                    "Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. " +
-                    "И у нас уже все готово, чтобы раздобыть ВОДУ! ",
-            layout = pair()),
+
         mol(listOf(c(0), h(1), h(2), h(3)), listOf(bond(0, 1), bond(0, 2), bond(0, 3))) to KnownMolecule("Methyl", "Метил", "•CH₃"),           // •CH₃
         mol(listOf(n(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Amino radical", "Аминорадикал", "•NH₂"), // •NH₂
-        mol(listOf(h(0), o(1), o(2)), listOf(bond(0, 1), bond(1, 2)))            to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"), // H–O–O•
+        hydroperoxyl                                                             to KnownMolecule("Hydroperoxyl", "Гидропероксил", "H–O–O•"), // H–O–O•
         mol(listOf(c(0), c(1), h(2), h(3), h(4), h(5), h(6)), listOf(bond(0, 1), bond(0, 2), bond(0, 3), bond(0, 4), bond(1, 5), bond(1, 6))) to KnownMolecule("Ethyl", "Этил", "CH₃–CH₂•"),             // CH₃–CH₂•
         mol(listOf(c(0), h(1)), listOf(bond(0, 1)))                              to KnownMolecule("Methylidyne", "Метилидин", "•CH"),   // •CH  (3 слота)
         mol(listOf(c(0), h(1), h(2)), listOf(bond(0, 1), bond(0, 2)))            to KnownMolecule("Methylene", "Метилен", ":CH₂"),       // :CH₂ (2 слота)
@@ -232,6 +199,24 @@ object MoleculeRegistry {
     /** Запись реестра по английскому имени — вход для авторинга уровней. */
     fun byName(nameEn: String): KnownMolecule? = byNameEn[nameEn]
 
+    /** Все записи: узлы карты открытий — это реестр, рисовать её руками нечего. */
+    val all: List<KnownMolecule> get() = byNameEn.values.toList()
+
+    /**
+     * Сколько действий игрока нужно от отдельных атомов. Каждое действие добавляет ровно одну единицу
+     * кратности: новая связь +1, усиление +1, замыкание кольца +1 — поэтому сумма кратностей и есть
+     * длина пути. Ею карта открытий раскладывает записи по слоям: •OH (1) раньше H₂O (2), а O₂ (2)
+     * после первой связи, потому что двойную ещё надо усилить.
+     */
+    fun buildSteps(nameEn: String): Int =
+        graphByNameEn[nameEn]?.bonds?.sumOf { it.order } ?: 0
+
+    /** Из каких атомов собран реестр — нулевой слой карты, до всяких молекул. */
+    val atomsInUse: List<Element> get() = graphByNameEn.values
+        .flatMap { graph -> graph.nodes.map { it.isotope } }
+        .distinct()
+        .sortedBy { it.details.p }
+
     // Граф по имени. У дикарбона три графа на одно имя — остаётся последний (C≡C); для картинки сойдёт.
     private val graphByNameEn: Map<String, MoleculeGraph> = entries.associate { (graph, known) -> known.nameEn to graph }
 
@@ -249,6 +234,23 @@ object MoleculeRegistry {
 
 // Крошечные хелперы авторинга — чтобы список читался как «формулы», а не заборы из AtomNode/Bond.
 private fun mol(nodes: List<AtomNode>, bonds: List<Bond>) = MoleculeGraph(nodes, bonds)
+
+// Атом как фрагмент: одноузловой граф законен — узел один, связей нет, связность держится.
+private val H = mol(listOf(h(0)), emptyList())
+private val O = mol(listOf(o(0)), emptyList())
+private val N = mol(listOf(n(0)), emptyList())
+
+// Единственный узел со свободным слотом. Ноль или больше одного — точку присоединения надо указать явно.
+private fun MoleculeGraph.slot(): Int {
+    val free = nodes.map { it.localId }.filter { freeValence(it) > 0 }
+    require(free.size == 1) { "У $formula свободных узлов ${free.size} ($free) — укажи at/otherAt явно" }
+    return free.single()
+}
+
+// Присоединить фрагмент к уже описанной молекуле: •OH + H = H₂O. Номера узлов ЭТОГО графа сохраняются,
+// у присоединяемого сдвигаются (mergeOffset) — поэтому раскладку писать по узлам РЕЗУЛЬТАТА.
+private fun MoleculeGraph.attach(other: MoleculeGraph, order: Int = 1, at: Int = slot(), otherAt: Int = other.slot()) =
+    merge(other, at, otherAt, order)
 
 // Хелперы раскладки. Единицы — доли длины связи, ось y вниз (как на экране).
 private fun at(vararg offsets: Pair<Int, Vec2D>): Map<Int, Vec2D> = mapOf(*offsets)
