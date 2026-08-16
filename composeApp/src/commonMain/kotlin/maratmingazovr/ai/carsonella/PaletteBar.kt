@@ -112,7 +112,7 @@ internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
     when (item) {
         is PaletteItem.Atom -> PaletteAtom(item.element, modifier)
         is PaletteItem.Known -> {
-            val picture = MoleculeRegistry.picture(item.nameEn)
+            val picture = MoleculeRegistry.picture(item.id)
             if (picture != null) MoleculePicturePreview(picture, scale = 0.45f, modifier = modifier)
             else PaletteAtom(Element.PHOTON, modifier)   // раскладки нет — рисовать нечего, но слот не теряем
         }

@@ -47,7 +47,7 @@ data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: P
  */
 sealed interface PaletteItem {
     data class Atom(val element: Element) : PaletteItem
-    data class Known(val nameEn: String) : PaletteItem
+    data class Known(val id: String) : PaletteItem
 }
 
 /** Слот палитры: что игрок может взять и сколько этого осталось на уровне. */
@@ -187,7 +187,7 @@ class World(
 
         val entity = when (item) {
             is PaletteItem.Atom -> spawnAtom(item.element, position)
-            is PaletteItem.Known -> spawnKnownMolecule(item.nameEn, position)
+            is PaletteItem.Known -> spawnKnownMolecule(item.id, position)
         } ?: return
         clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
     }
@@ -206,8 +206,8 @@ class World(
     // Готовая молекула: берём эталонный граф с курируемой раскладкой из реестра и ставим её в точку
     // дропа. Раскладка задана в долях длины связи, поэтому умножаем на длину покоя пружин — дальше
     // геометрию доводят сами пружины.
-    private fun spawnKnownMolecule(nameEn: String, position: Position): Entity? {
-        val picture = MoleculeRegistry.picture(nameEn) ?: return null
+    private fun spawnKnownMolecule(id: String, position: Position): Entity? {
+        val picture = MoleculeRegistry.picture(id) ?: return null
         val graph = picture.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
         val unitPx = graph.bonds.maxOf { bond ->
@@ -290,7 +290,7 @@ class World(
         is Atom -> listOf(PaletteItem.Atom(entity.element))
         is SubAtom -> listOf(PaletteItem.Atom(entity.element))
         is Molecule -> {
-            val asWhole = entity.known?.nameEn?.let(PaletteItem::Known)
+            val asWhole = entity.known?.id?.let(PaletteItem::Known)
             if (asWhole != null && palette.any { it.item == asWhole }) listOf(asWhole)
             else entity.atoms.map { PaletteItem.Atom(it.isotope) }
         }

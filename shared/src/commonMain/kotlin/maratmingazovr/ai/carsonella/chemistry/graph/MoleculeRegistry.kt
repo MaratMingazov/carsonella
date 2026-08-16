@@ -8,8 +8,8 @@ import kotlin.math.sin
 
 // Курируемая запись реестра: что знаем об известной молекуле сверх её структуры.
 data class KnownMolecule(
-    val nameEn: String,
-    val nameRu: String,
+    val id: String,      // СТАБИЛЬНЫЙ КЛЮЧ, не текст для показа: им адресуются уровни и палитра, переименование ломает их. Латиницей.
+    val nameRu: String,  // Отображаемое имя. При локализации отображаемые имена уедут отсюда в каталог, id останется.
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
     val description: String = "",
     val layout: Map<Int, Vec2D> = emptyMap(),
@@ -102,48 +102,48 @@ object MoleculeRegistry {
     private val byCanonical: Map<String, KnownMolecule> = run {
         val nameless = entries.filter { (graph, _) -> graph.canonical.isEmpty() }
         require(nameless.isEmpty()) {
-            "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.second.nameEn }}"
+            "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.second.id }}"
         }
         val byKey = entries.associate { (graph, known) -> graph.canonical to known }
         require(byKey.size == entries.size) {
             val collisions = entries.groupBy { it.first.canonical }.filterValues { it.size > 1 }
-            "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.second.nameEn } }}"
+            "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.second.id } }}"
         }
         val brokenLayout = entries.filter { (graph, known) ->
             known.layout.isNotEmpty() && known.layout.keys != graph.nodes.mapTo(mutableSetOf()) { it.localId }
         }
         require(brokenLayout.isEmpty()) {
-            "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.second.nameEn }}"
+            "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.second.id }}"
         }
         byKey
     }
-    private val byNameEn: Map<String, KnownMolecule> = byCanonical.values.distinct().associateBy { it.nameEn }
+    private val knownById: Map<String, KnownMolecule> = byCanonical.values.distinct().associateBy { it.id }
 
-    val all: List<KnownMolecule> get() = byNameEn.values.toList() // Все записи: узлы карты открытий — это реестр, рисовать её руками нечего.
+    val all: List<KnownMolecule> get() = knownById.values.toList() // Все записи: узлы карты открытий — это реестр, рисовать её руками нечего.
 
     fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical] // Известная молекула по её каноническому ключу
-    fun byName(nameEn: String): KnownMolecule? = byNameEn[nameEn] //Запись реестра по английскому имени — вход для авторинга уровней.
+    fun byId(id: String): KnownMolecule? = knownById[id] // Запись реестра по её ключу — вход для авторинга уровней (канон руками не напишешь).
 
-    fun buildSteps(nameEn: String): Int =
-        graphByNameEn[nameEn]?.bonds?.sumOf { it.order } ?: 0
+    fun buildSteps(id: String): Int =
+        graphById[id]?.bonds?.sumOf { it.order } ?: 0
 
     /** Из каких атомов собран реестр — нулевой слой карты, до всяких молекул. */
-    val atomsInUse: List<Element> get() = graphByNameEn.values
+    val atomsInUse: List<Element> get() = graphById.values
         .flatMap { graph -> graph.nodes.map { it.isotope } }
         .distinct()
         .sortedBy { it.details.p }
 
-    // Граф по имени. У дикарбона три графа на одно имя — остаётся последний (C≡C); для картинки сойдёт.
-    private val graphByNameEn: Map<String, MoleculeGraph> = entries.associate { (graph, known) -> known.nameEn to graph }
+    // Граф по ключу. У дикарбона три графа на один ключ — остаётся последний (C≡C); для картинки сойдёт.
+    private val graphById: Map<String, MoleculeGraph> = entries.associate { (graph, known) -> known.id to graph }
 
     /**
-     * Эталонная картинка по имени: граф + раскладка. null, если раскладка ещё не нарисована —
+     * Эталонная картинка по ключу: граф + раскладка. null, если раскладка ещё не нарисована —
      * тогда рисующему нечего показывать, и он падает на текстовую структурную формулу.
      */
-    fun picture(nameEn: String): MoleculePicture? {
-        val known = byNameEn[nameEn] ?: return null
+    fun picture(id: String): MoleculePicture? {
+        val known = knownById[id] ?: return null
         if (known.layout.isEmpty()) return null
-        val graph = graphByNameEn[nameEn] ?: return null
+        val graph = graphById[id] ?: return null
         return MoleculePicture(graph, known.layout)
     }
 }
@@ -173,13 +173,13 @@ private class RegistryBuilder {
     val entries = mutableListOf<Pair<MoleculeGraph, KnownMolecule>>()
     fun known(
         graph: MoleculeGraph,
-        nameEn: String,
+        id: String,
         nameRu: String,
         structuralFormula: String = "",
         description: String = "",
         layout: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
-        entries += graph to KnownMolecule(nameEn, nameRu, structuralFormula, description, layout)
+        entries += graph to KnownMolecule(id, nameRu, structuralFormula, description, layout)
         return graph
     }
 }

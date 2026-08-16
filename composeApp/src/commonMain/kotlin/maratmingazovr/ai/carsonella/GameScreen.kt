@@ -65,7 +65,7 @@ fun GameScreen(onExit: () -> Unit) {
     LaunchedEffect(levelIndex) {
         val current = LEVELS.getOrNull(levelIndex) ?: return@LaunchedEffect
         world.setInventory(current.inventory)   // палитра уровня = его инвентарь
-        snapshotFlow { world.moleculeEvents.any { it.known.nameEn == current.goalNameEn } }.first { it }
+        snapshotFlow { world.moleculeEvents.any { it.known.id == current.goalId } }.first { it }
         delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
         reward = true
     }

@@ -101,7 +101,7 @@ private class MapLayer(val steps: Int, val atoms: List<Element>, val molecules: 
 private fun buildLayers(): List<MapLayer> {
     val bySteps = MoleculeRegistry.all
         .sortedBy { it.nameRu }
-        .groupBy { MoleculeRegistry.buildSteps(it.nameEn) }
+        .groupBy { MoleculeRegistry.buildSteps(it.id) }
     val zero = MapLayer(0, MoleculeRegistry.atomsInUse, emptyList())
     val rest = bySteps.keys.sorted().map { steps -> MapLayer(steps, emptyList(), bySteps.getValue(steps)) }
     return listOf(zero) + rest
@@ -143,7 +143,7 @@ private fun AtomCard(element: Element) {
 private fun MoleculeCard(known: KnownMolecule) {
     MapCard {
         // Картинка, если раскладка нарисована; иначе структурная формула текстом.
-        val picture = MoleculeRegistry.picture(known.nameEn)
+        val picture = MoleculeRegistry.picture(known.id)
         if (picture != null) MoleculePicturePreview(picture, scale = 0.5f)
         else Text(
             known.structuralFormula.ifEmpty { "?" },
