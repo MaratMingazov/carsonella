@@ -31,13 +31,14 @@ object MoleculeRegistry {
 
     private val entries = registry {
 
-
         // --- двухатомные ---
         val dihydrogen = H.attach(H); known(dihydrogen, "Dihydrogen", "Водород", "H–H", "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!", layout = pair())
         val dioxygen = O.attach(O, order = 2); known(dioxygen, "Dioxygen", "Кислород", "O=O", "Мы получили то, чем дышим: в воздухе кислорода 21%, и без него человек живёт минуты. Но первые два миллиарда лет его в воздухе почти не было - кислород выдышали бактерии, и для древней жизни он оказался страшным ядом! Он жадный до связей: и огонь, и ржавчина - это он. А два атома здесь держит двойная связь - первая, которую ты усилил сам.", layout = pair())
         val dinitrogen = N.attach(N, order = 3); known(dinitrogen, "Dinitrogen", "Азот", "N≡N", layout = pair())
         val hydroxyl = O.attach(H); known(hydroxyl, "Hydroxyl", "Гидроксил", "•OH", "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ", layout = pair())
-
+        val dicarbonSingle = C.attach(C); known(dicarbonSingle, "Dicarbon", "Дикарбон", "•C–C•", description = "")
+        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, "Dicarbon", "Дикарбон", "C=C", description = "")
+        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, "Dicarbon", "Дикарбон", "•C≡C•", description = "")
 
         // --- малые неорганические / простые ---
         val water = hydroxyl.attach(H); known(water, "Water", "Вода", "H–O–H", "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!", layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)))
@@ -81,11 +82,9 @@ object MoleculeRegistry {
 
         val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂•
         val trimethylene = ethanediyl.extend(methylene); known(trimethylene, "Trimethylene", "Триметилен", "•CH₂–CH₂–CH₂•")
-        val cyclopropane = trimethylene.closeChain()
-        known(cyclopropane, "Cyclopropane", "Циклопропан", "(CH₂)₃", "")
+        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, "Cyclopropane", "Циклопропан", "(CH₂)₃", "")
         val oxyethyl = ethanediyl.extend(O)                   // •CH₂–CH₂–O•
-        val oxirane = oxyethyl.closeChain()
-        known(oxirane, "Oxirane", "Оксиран", "(CH₂)₂O", "")
+        val oxirane = oxyethyl.closeChain(); known(oxirane, "Oxirane", "Оксиран", "(CH₂)₂O", "")
 
         val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH•
         val butadienediyl = ethenediyl.extend(ethenediyl)             // •CH=CH–CH=CH•
@@ -98,13 +97,6 @@ object MoleculeRegistry {
         val methanol = methyl.attach(hydroxyl); known(methanol, "Methanol", "Метанол", "CH₃–OH")
         val formicAcid = formyl.attach(hydroxyl); known(formicAcid, "Formic acid", "Муравьиная кислота", "H–C(=O)–OH")
         val ethanol = ethyl.attach(hydroxyl); known(ethanol, "Ethanol", "Этанол", "CH₃–CH₂–OH")
-
-
-
-        // --- дикарбон C₂: все три порядка связи → одно имя «Дикарбон» ---
-        val dicarbonSingle = C.attach(C); known(dicarbonSingle, "Dicarbon", "Дикарбон", description = "")            // •C–C•
-        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, "Dicarbon", "Дикарбон", description = "") // C=C
-        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, "Dicarbon", "Дикарбон", description = "") // •C≡C•
     }
 
     private val byCanonical: Map<String, KnownMolecule> = run {
