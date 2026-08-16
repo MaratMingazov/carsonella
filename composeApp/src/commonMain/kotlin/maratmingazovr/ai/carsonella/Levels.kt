@@ -34,6 +34,10 @@ val LEVELS = listOf(
         task = Prose(
             ru = "Давай перетащим два атома водорода и соберем первую молекулу",
             en = "Let's drag two hydrogen atoms together and build our first molecule",
+        ),
+        rewardText = Prose(
+            ru = "Мы получили Водород - самый распространённый элемент Вселенной, 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!",
+            en = "We have made Hydrogen - the most common element in the Universe, 92% of all atoms. Our Sun, for one, is 73% hydrogen. The hydrogen you and I are made of is 13.8 billion years old! It looks like the simplest thing there is, and yet it hides a pile of paradoxes!",
         )),
     Level(2, goalMoleculeId = MoleculeId.HYDROXYL, inventory = mapOf(atom(Element.HYDROGEN) to 1, atom(Element.OXYGEN_16) to 1),
         task = Prose(
@@ -44,7 +48,11 @@ val LEVELS = listOf(
         task = Prose(
             ru = "Хочу пить! Нужна Вода!",
             en = "I'm thirsty! We need Water!",
-        )),
+        ),
+        rewardText = Prose(
+            ru = "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
+            en = "HOORAY! We have made the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry. We will look into why hot water freezes faster than cold water, why ice does not sink, and much more!",
+    )),
     Level(4, goalMoleculeId = MoleculeId.DIOXYGEN, inventory = mapOf(atom(Element.OXYGEN_16) to 2),
         task = Prose(
             ru = "А ты знаешь что для дыхания всем нам нужен кислород! Давай соберем его. \n hint: у атомов должна быть двойная связь",
