@@ -82,32 +82,15 @@ object MoleculeRegistry {
         val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂•
         val trimethylene = ethanediyl.extend(methylene); known(trimethylene, "Trimethylene", "Триметилен", "•CH₂–CH₂–CH₂•")
         val cyclopropane = trimethylene.closeChain()
-        known(cyclopropane, "Cyclopropane", "Циклопропан", "(CH₂)₃",
-            "Три углерода в треугольнике — самое напряжённое кольцо органики: связи выгнуты почти на 50° " +
-            "от угла, который углерод любит, и потому кольцо охотно раскрывается. Газ; до 1980-х им давали " +
-            "быстрый наркоз, перестали из-за взрывоопасности. Показывает, что вещество задаёт не только состав, " +
-            "но и скелет: у пропилена та же формула C₃H₆, а свойства другие.")
+        known(cyclopropane, "Cyclopropane", "Циклопропан", "(CH₂)₃", "")
         val oxyethyl = ethanediyl.extend(O)                   // •CH₂–CH₂–O•
         val oxirane = oxyethyl.closeChain()
-        known(oxirane, "Oxirane", "Оксиран", "(CH₂)₂O",
-            "Он же этиленоксид: кислород, вставленный в связь C–C, — треугольник из двух углеродов и кислорода. " +
-            "Напряжение делает его жадным, кольцо раскрывается почти обо что угодно, поэтому это один из самых " +
-            "массовых промышленных реагентов: из него делают антифриз и полиэфирное волокно, им же стерилизуют " +
-            "медицинский инструмент. Токсичен и канцерогенен. Найден и в межзвёздных облаках.")
+        known(oxirane, "Oxirane", "Оксиран", "(CH₂)₂O", "")
 
-        // Бензол по КЕКУЛЕ: чередование одинарных и двойных. В реальности связи делокализованы и все
-        // одинаковые («полторы»), но кратности в модели целые — а игрок собирает ровно это чередование:
-        // замкнул кольцо и усилил каждую вторую связь. Оба варианта чередования — один и тот же граф
-        // с точностью до поворота, поэтому канон у них общий и записи хватает одной.
-        // Углероды кольца идут через один (0, 2, 4, …): между ними в нумерации стоят их водороды.
-        val benzene = ring(methylidyne, methylidyne, methylidyne, methylidyne, methylidyne, methylidyne)
-            .strengthenBond(0, 2).strengthenBond(4, 6).strengthenBond(8, 10)
-        known(benzene, "Benzene", "Бензол", "(CH)₆",
-            "Шесть углеродов в правильном шестиугольнике — и электроны двойных связей размазаны по всему кольцу, " +
-            "поэтому в реальности все шесть связей одинаковые, «полуторные», а кольцо необычно стойкое. " +
-            "Выделил Фарадей в 1825-м, кольцевую структуру угадал Кекуле. На нём стоит огромная часть органики: " +
-            "краски, лекарства, пластики; сам канцероген, поэтому его долю в бензине ограничивают. " +
-            "Найден в межзвёздных облаках и в атмосфере Титана.")
+        val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH•
+        val butadienediyl = ethenediyl.extend(ethenediyl)             // •CH=CH–CH=CH•
+        val hexatrienediyl = butadienediyl.extend(ethenediyl)         // •CH=CH–CH=CH–CH=CH•
+        val benzene = hexatrienediyl.closeChain(); known(benzene, "Benzene", "Бензол", "(CH)₆", "")
 
         // --- кислородсодержащая органика ---
         val formyl = carbonyl.attach(H); known(formyl, "Formyl", "Формил", "H–C•=O")
@@ -183,7 +166,7 @@ private fun MoleculeGraph.slot(): Int {
 private fun MoleculeGraph.attach(other: MoleculeGraph, order: Int = 1, nodeId: Int = slot(), otherNodeId: Int = other.slot()) = merge(other, nodeId, otherNodeId, order)
 
 
-private fun MoleculeGraph.extend(link: MoleculeGraph, order: Int = 1) = attach(link, order, nodeId = freeNodes.max()) // Продлить цепочку: цепляем к ПОСЛЕДНЕМУ добавленному звену.
+private fun MoleculeGraph.extend(link: MoleculeGraph, order: Int = 1) = attach(link, order, nodeId = freeNodes.max(), otherNodeId = link.freeNodes.min())
 
 
 private fun MoleculeGraph.closeChain(): MoleculeGraph {
@@ -191,19 +174,6 @@ private fun MoleculeGraph.closeChain(): MoleculeGraph {
     require(ends.size == 2) { "У $formula свободных концов ${ends.size} ($ends) — цепочка так не замкнётся" }
     return closeRing(ends.first(), ends.last())
 } // Замкнуть цепочку саму на себя. Свободных концов ровно два, поэтому указывать нечего.
-
-// Кольцо из фрагментов: цепочка, замкнутая последним звеном на первое. Каждое звено цепляется к
-// ПРЕДЫДУЩЕМУ (не к первому), так что номера узлов ведёт хелпер, а не автор записи.
-private fun ring(first: MoleculeGraph, vararg rest: MoleculeGraph): MoleculeGraph {
-    var graph = first
-    var tail = first.slot()                  // свободный слот последнего присоединённого звена
-    for (link in rest) {
-        val offset = graph.mergeOffset()     // на столько attach сдвинет узлы звена
-        graph = graph.attach(link, nodeId = tail)
-        tail = link.slot() + offset
-    }
-    return graph.closeRing(first.slot(), tail)
-}
 
 // Сборщик реестра. known() кладёт пару «граф → запись» и ВОЗВРАЩАЕТ граф, чтобы из него собиралась
 // следующая молекула; порядок вызовов = порядок записей.
