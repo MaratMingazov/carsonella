@@ -36,7 +36,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
             color = Color.Black, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(20.dp))
-        val picture = MoleculeRegistry.picture(level.goalId)
+        val picture = MoleculeRegistry.picture(level.goalMoleculeId)
         if (picture != null) MoleculePicturePreview(picture)
         else Text(
             goal.structuralFormula.ifEmpty { goal.name(LocalLang.current) },
