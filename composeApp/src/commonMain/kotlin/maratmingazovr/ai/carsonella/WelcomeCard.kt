@@ -21,9 +21,9 @@ private const val WELCOME_TEXT =
 /** Приветствие на входе в игру: что это вообще за игра и что сейчас будет происходить. */
 @Composable
 fun WelcomeCard(onStart: () -> Unit) {
-    ModalCard(buttonLabel = "начать", onAction = onStart) {
+    ModalCard(buttonLabel = text(UiString.WELCOME_START), onAction = onStart) {
         Text(
-            "Welcome to Carsonella",
+            text(UiString.WELCOME_TITLE),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 26.sp,
             color = Color.Black, textAlign = TextAlign.Center,
         )

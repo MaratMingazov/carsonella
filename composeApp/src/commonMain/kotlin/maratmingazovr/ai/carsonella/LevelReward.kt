@@ -23,9 +23,9 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 @Composable
 fun LevelReward(level: Level, onNext: () -> Unit) {
     val goal = level.goal
-    ModalCard(buttonLabel = "дальше", onAction = onNext) {
+    ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
         Text(
-            "получена молекула",
+            text(UiString.REWARD_CAPTION),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 13.sp,
             letterSpacing = 0.2.em, color = Color(0xFFB0B0B0),
         )

@@ -118,9 +118,9 @@ fun GameScreen(onExit: () -> Unit) {
 
         // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
         if (level == null) {
-            MenuLayout(title = "молодец", entries = listOf(MenuEntry("close", onExit))) {
+            MenuLayout(title = text(UiString.CHAPTER_DONE_TITLE), entries = listOf(MenuEntry(text(UiString.MENU_CLOSE), onExit))) {
                 Text(
-                    "уровни первой главы пройдены",
+                    text(UiString.CHAPTER_DONE_TEXT),
                     fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 18.sp,
                     color = Color(0xFF9A9A9A),
                 )

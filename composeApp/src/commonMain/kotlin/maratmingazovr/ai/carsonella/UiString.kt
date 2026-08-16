@@ -19,9 +19,19 @@ enum class UiString(val en: String, val ru: String) {
     MENU_LANGUAGE("language", "язык"),
     MENU_ABOUT("about", "об игре"),
     MENU_BACK("back", "назад"),
+    MENU_CLOSE("close", "закрыть"),
 
     MAP_TITLE("discovery map", "карта открытий"),
     MAP_ATOMS("atoms", "атомы"),
+
+    WELCOME_TITLE("Welcome to Carsonella", "Добро пожаловать в Carsonella"),
+    WELCOME_START("start", "начать"),
+
+    REWARD_CAPTION("molecule obtained", "получена молекула"),
+    REWARD_NEXT("next", "дальше"),
+
+    CHAPTER_DONE_TITLE("well done", "молодец"),
+    CHAPTER_DONE_TEXT("chapter one levels are complete", "уровни первой главы пройдены"),
 
     ABOUT_TITLE("about", "об игре"),
     ABOUT_TEXT("soon...", "скоро..."),
