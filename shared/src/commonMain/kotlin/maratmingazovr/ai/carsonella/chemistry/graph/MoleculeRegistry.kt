@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Lang
+import maratmingazovr.ai.carsonella.Prose
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.math.PI
@@ -11,7 +12,7 @@ import kotlin.math.sin
 data class KnownMolecule(
     val id: MoleculeId,  // Ключ и он же имена на оба языка — см. MoleculeId.
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
-    val description: String = "",
+    val description: Prose? = null,
     val layout: Map<Int, Vec2D> = emptyMap(),
 ) {
     fun name(lang: Lang): String = id.name(lang)
@@ -34,20 +35,44 @@ object MoleculeRegistry {
     private val entries = registry {
 
         // --- двухатомные ---
-        val dihydrogen = H.attach(H); known(dihydrogen, MoleculeId.DIHYDROGEN, "H–H", "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!", layout = pair())
-        val dioxygen = O.attach(O, order = 2); known(dioxygen, MoleculeId.DIOXYGEN, "O=O", "Мы получили то, чем дышим: в воздухе кислорода 21%, и без него человек живёт минуты. Но первые два миллиарда лет его в воздухе почти не было - кислород выдышали бактерии, и для древней жизни он оказался страшным ядом! Он жадный до связей: и огонь, и ржавчина - это он. А два атома здесь держит двойная связь - первая, которую ты усилил сам.", layout = pair())
+        val dihydrogen = H.attach(H); known(dihydrogen, MoleculeId.DIHYDROGEN, "H–H", layout = pair(),
+            description = Prose(
+                ru = "Мы получили самый распространённый элемент Вселенной - 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!",
+                en = "We have made the most common element in the Universe - 92% of all atoms. Our Sun, for one, is 73% hydrogen. The hydrogen you and I are made of is 13.8 billion years old! It looks like the simplest thing there is, and yet it hides a pile of paradoxes!",
+            ))
+        val dioxygen = O.attach(O, order = 2); known(dioxygen, MoleculeId.DIOXYGEN, "O=O", layout = pair(),
+            description = Prose(
+                ru = "Мы получили то, чем дышим: в воздухе кислорода 21%, и без него человек живёт минуты. Но первые два миллиарда лет его в воздухе почти не было - кислород выдышали бактерии, и для древней жизни он оказался страшным ядом! Он жадный до связей: и огонь, и ржавчина - это он. А два атома здесь держит двойная связь - первая, которую ты усилил сам.",
+                en = "We have made the stuff we breathe: air is 21% oxygen, and without it a person lasts minutes. But for the first two billion years there was almost none of it in the air - bacteria breathed it out, and to ancient life it turned out to be a terrible poison! It is greedy for bonds: fire is oxygen, and so is rust. And the two atoms here are held by a double bond - the first one you strengthened yourself.",
+            ))
         val dinitrogen = N.attach(N, order = 3); known(dinitrogen, MoleculeId.DINITROGEN, "N≡N", layout = pair())
-        val hydroxyl = O.attach(H); known(hydroxyl, MoleculeId.HYDROXYL, "•OH", "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ", layout = pair())
-        val dicarbonSingle = C.attach(C); known(dicarbonSingle, MoleculeId.DICARBON, "•C–C•", description = "")
-        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, MoleculeId.DICARBON, "C=C", description = "")
-        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, MoleculeId.DICARBON, "•C≡C•", description = "")
+        val hydroxyl = O.attach(H); known(hydroxyl, MoleculeId.HYDROXYL, "•OH", layout = pair(),
+            description = Prose(
+                ru = "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ",
+                en = "Hydroxyl is a tiny molecule of one hydrogen atom and one oxygen atom. On its own it lives less than a second, but it works like a building block. We will be attaching it to other molecules and watching it change their properties completely. And we already have everything we need to get WATER! ",
+            ))
+        val dicarbonSingle = C.attach(C); known(dicarbonSingle, MoleculeId.DICARBON, "•C–C•")
+        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, MoleculeId.DICARBON, "C=C")
+        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, MoleculeId.DICARBON, "•C≡C•")
 
         // --- малые неорганические / простые ---
-        val water = hydroxyl.attach(H); known(water, MoleculeId.WATER, "H–O–H", "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!", layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)))
+        val water = hydroxyl.attach(H); known(water, MoleculeId.WATER, "H–O–H", layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)),
+            description = Prose(
+                ru = "УРА! Мы получили самую известная молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
+                en = "HOORAY! We have made the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry. We will look into why hot water freezes faster than cold water, why ice does not sink, and much more!",
+            ))
         val hydroperoxyl = hydroxyl.attach(O); known(hydroperoxyl, MoleculeId.HYDROPEROXYL, "H–O–O•")
-        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, MoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", "Это вода с лишним атомом кислорода - та самая перекись из аптечки. Она пенится на ранке потому, что тело мгновенно её разрушает: пузырьки, которые мы видим - это кислород. Кстати, врачи теперь не советуют лить перекись на раны: она убивает не только микробов, но и живые клетки.", layout = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)))
-        val trioxidane = hydroperoxyl.attach(hydroxyl); known(trioxidane, MoleculeId.TRIOXIDANE, "H–O–O–O–H", "")
-        val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, MoleculeId.TETRAOXIDANE, "H–O–O–O–O–H", "Четыре кислорода подряд — предел, до которого такая цепочка вообще доживает. Собирается из двух радикалов HO₂• и существует только в криогенной заморозке, ниже −100 °C; интересен химикам, применений нет. При нагреве мгновенно распадается на перекись и кислород. Цепочек из пяти кислородов не наблюдали ни разу.")
+        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, MoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", layout = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)),
+            description = Prose(
+                ru = "Это вода с лишним атомом кислорода - та самая перекись из аптечки. Она пенится на ранке потому, что тело мгновенно её разрушает: пузырьки, которые мы видим - это кислород. Кстати, врачи теперь не советуют лить перекись на раны: она убивает не только микробов, но и живые клетки.",
+                en = "This is water with one extra oxygen atom - the very peroxide from the medicine cabinet. It foams on a cut because the body destroys it instantly: the bubbles we see are oxygen. By the way, doctors no longer advise pouring peroxide on wounds - it kills not only germs but living cells too.",
+            ))
+        val trioxidane = hydroperoxyl.attach(hydroxyl); known(trioxidane, MoleculeId.TRIOXIDANE, "H–O–O–O–H")
+        val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, MoleculeId.TETRAOXIDANE, "H–O–O–O–O–H",
+            description = Prose(
+                ru = "Четыре кислорода подряд — предел, до которого такая цепочка вообще доживает. Собирается из двух радикалов HO₂• и существует только в криогенной заморозке, ниже −100 °C; интересен химикам, применений нет. При нагреве мгновенно распадается на перекись и кислород. Цепочек из пяти кислородов не наблюдали ни разу.",
+                en = "Four oxygens in a row is the limit such a chain survives at all. It comes together from two HO₂• radicals and exists only under cryogenic freezing, below −100 °C; chemists find it interesting, it has no uses. Heated, it falls apart instantly into peroxide and oxygen. A chain of five oxygens has never been observed even once.",
+            ))
         val imidogen = N.attach(H); known(imidogen, MoleculeId.IMIDOGEN, ":NH")
         val amino = imidogen.attach(H); known(amino, MoleculeId.AMINO_RADICAL, "•NH₂")
         val ammonia = amino.attach(H); known(ammonia, MoleculeId.AMMONIA, "NH₃")
@@ -84,14 +109,14 @@ object MoleculeRegistry {
 
         val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂•
         val trimethylene = ethanediyl.extend(methylene); known(trimethylene, MoleculeId.TRIMETHYLENE, "•CH₂–CH₂–CH₂•")
-        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, MoleculeId.CYCLOPROPANE, "(CH₂)₃", "")
+        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, MoleculeId.CYCLOPROPANE, "(CH₂)₃")
         val oxyethyl = ethanediyl.extend(O)                   // •CH₂–CH₂–O•
-        val oxirane = oxyethyl.closeChain(); known(oxirane, MoleculeId.OXIRANE, "(CH₂)₂O", "")
+        val oxirane = oxyethyl.closeChain(); known(oxirane, MoleculeId.OXIRANE, "(CH₂)₂O")
 
         val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH•
         val butadienediyl = ethenediyl.extend(ethenediyl)             // •CH=CH–CH=CH•
         val hexatrienediyl = butadienediyl.extend(ethenediyl)         // •CH=CH–CH=CH–CH=CH•
-        val benzene = hexatrienediyl.closeChain(); known(benzene, MoleculeId.BENZENE, "(CH)₆", "")
+        val benzene = hexatrienediyl.closeChain(); known(benzene, MoleculeId.BENZENE, "(CH)₆")
 
         // --- кислородсодержащая органика ---
         val formyl = carbonyl.attach(H); known(formyl, MoleculeId.FORMYL, "H–C•=O")
@@ -179,7 +204,7 @@ private class RegistryBuilder {
         graph: MoleculeGraph,
         id: MoleculeId,
         structuralFormula: String = "",
-        description: String = "",
+        description: Prose? = null,
         layout: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
         entries += graph to KnownMolecule(id, structuralFormula, description, layout)
