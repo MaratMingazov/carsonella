@@ -205,9 +205,9 @@ class Molecule private constructor(
     override fun describe(): String {
         val known = known   // локальная копия: у свойства свой геттер, без неё нет смарт-каста
         val lines = mutableListOf(
-            if (known != null) "${known.id} (${graph.formulaPretty})" else graph.formulaPretty,
+            if (known != null) "${known.id.en} (${graph.formulaPretty})" else graph.formulaPretty,
         )
-        if (known != null) lines += known.nameRu
+        if (known != null) lines += known.id.ru
         if (known != null && known.structuralFormula.isNotEmpty()) lines += known.structuralFormula
         //if (known != null && known.description.isNotEmpty()) lines += known.description
         lines += "Energy ${round(energy * 100) / 100}"

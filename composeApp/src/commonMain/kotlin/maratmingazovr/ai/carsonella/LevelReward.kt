@@ -31,7 +31,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            goal.nameRu,
+            goal.name(LocalLang.current),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
             color = Color.Black, textAlign = TextAlign.Center,
         )
@@ -39,7 +39,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
         val picture = MoleculeRegistry.picture(level.goalId)
         if (picture != null) MoleculePicturePreview(picture)
         else Text(
-            goal.structuralFormula.ifEmpty { goal.nameRu },
+            goal.structuralFormula.ifEmpty { goal.name(LocalLang.current) },
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 34.sp,
             letterSpacing = 0.08.em, color = Color(0xFF45BDB5),
         )

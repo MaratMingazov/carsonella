@@ -38,6 +38,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelectio
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.EntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
 data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: Position)
 
@@ -47,7 +48,7 @@ data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: P
  */
 sealed interface PaletteItem {
     data class Atom(val element: Element) : PaletteItem
-    data class Known(val id: String) : PaletteItem
+    data class Known(val id: MoleculeId) : PaletteItem
 }
 
 /** Слот палитры: что игрок может взять и сколько этого осталось на уровне. */
@@ -206,7 +207,7 @@ class World(
     // Готовая молекула: берём эталонный граф с курируемой раскладкой из реестра и ставим её в точку
     // дропа. Раскладка задана в долях длины связи, поэтому умножаем на длину покоя пружин — дальше
     // геометрию доводят сами пружины.
-    private fun spawnKnownMolecule(id: String, position: Position): Entity? {
+    private fun spawnKnownMolecule(id: MoleculeId, position: Position): Entity? {
         val picture = MoleculeRegistry.picture(id) ?: return null
         val graph = picture.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }

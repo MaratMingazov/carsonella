@@ -56,7 +56,9 @@ private val FORMULA_COLOR = Color(0xFF45BDB5)
  */
 @Composable
 fun DiscoveryMapScreen(onBack: () -> Unit) {
-    val layers = remember { buildLayers() }
+    // Язык в ключе: карточки сортируются по имени, а порядок имён у языков разный.
+    val lang = LocalLang.current
+    val layers = remember(lang) { buildLayers(lang) }
 
     Box(
         Modifier
@@ -98,9 +100,9 @@ fun DiscoveryMapScreen(onBack: () -> Unit) {
 // Слой карты: сколько действий от атомов и что на этом расстоянии стоит.
 private class MapLayer(val steps: Int, val atoms: List<Element>, val molecules: List<KnownMolecule>)
 
-private fun buildLayers(): List<MapLayer> {
+private fun buildLayers(lang: Lang): List<MapLayer> {
     val bySteps = MoleculeRegistry.all
-        .sortedBy { it.nameRu }
+        .sortedBy { it.name(lang) }
         .groupBy { MoleculeRegistry.buildSteps(it.id) }
     val zero = MapLayer(0, MoleculeRegistry.atomsInUse, emptyList())
     val rest = bySteps.keys.sorted().map { steps -> MapLayer(steps, emptyList(), bySteps.getValue(steps)) }
@@ -145,7 +147,7 @@ private fun MoleculeCard(known: KnownMolecule) {
             color = FORMULA_COLOR, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
-        CardName(known.nameRu)
+        CardName(known.name(LocalLang.current))
     }
 }
 
