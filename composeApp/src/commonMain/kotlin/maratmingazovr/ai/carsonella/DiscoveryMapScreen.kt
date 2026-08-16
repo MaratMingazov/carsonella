@@ -72,12 +72,12 @@ fun DiscoveryMapScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "карта открытий",
+                    text(UiString.MAP_TITLE),
                     fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
                     letterSpacing = 0.08.em, color = Color(0xFFC8C8C8),
                 )
                 Spacer(Modifier.weight(1f))
-                MapLink("назад", onBack)
+                MapLink(text(UiString.MENU_BACK), onBack)
             }
 
             // Оси две: колонки уходят вправо (усложнение), карточки внутри колонки — вниз.
@@ -115,19 +115,13 @@ private fun LayerColumn(layer: MapLayer) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            if (layer.steps == 0) "атомы" else "${layer.steps} шаг${stepSuffix(layer.steps)}",
+            if (layer.steps == 0) text(UiString.MAP_ATOMS) else mapSteps(LocalLang.current, layer.steps),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 13.sp,
             letterSpacing = 0.1.em, color = LAYER_LABEL,
         )
         layer.atoms.forEach { element -> AtomCard(element) }
         layer.molecules.forEach { known -> MoleculeCard(known) }
     }
-}
-
-private fun stepSuffix(steps: Int): String = when {
-    steps % 10 == 1 && steps % 100 != 11 -> ""
-    steps % 10 in 2..4 && steps % 100 !in 12..14 -> "а"
-    else -> "ов"
 }
 
 @Composable

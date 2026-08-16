@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,7 +16,7 @@ private sealed interface Screen {
     data object Menu : Screen
     data object Game : Screen
     data object Map : Screen
-    data object Settings : Screen
+    data object Language : Screen
     data object About : Screen
 }
 
@@ -24,20 +25,23 @@ private sealed interface Screen {
 fun App() {
     MaterialTheme {
         var screen: Screen by remember { mutableStateOf(Screen.Menu) }
+        var lang: Lang by remember { mutableStateOf(Lang.RU) } // Язык живёт выше экранов: переключатель меняет надписи везде сразу, без перезапуска. Выбор пока не сохраняется — файл настроек это отдельная задача.
 
-        when (screen) {
-            Screen.Menu -> MenuScreen(
-                onStart = { screen = Screen.Game },
-                onMap = { screen = Screen.Map },
-                onSettings = { screen = Screen.Settings },
-                onAbout = { screen = Screen.About },
-            )
-            Screen.Map -> DiscoveryMapScreen(onBack = { screen = Screen.Menu })
-            // Мир создаётся внутри GameScreen и умирает вместе с ним → возврат в меню
-            // останавливает симуляцию, повторный «старт» даёт чистый холст.
-            Screen.Game -> GameScreen(onExit = { screen = Screen.Menu })
-            Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Menu })
-            Screen.About -> AboutScreen(onBack = { screen = Screen.Menu })
+        CompositionLocalProvider(LocalLang provides lang) {
+            when (screen) {
+                Screen.Menu -> MenuScreen(
+                    onStart = { screen = Screen.Game },
+                    onMap = { screen = Screen.Map },
+                    onLanguage = { screen = Screen.Language },
+                    onAbout = { screen = Screen.About },
+                )
+                Screen.Map -> DiscoveryMapScreen(onBack = { screen = Screen.Menu })
+                // Мир создаётся внутри GameScreen и умирает вместе с ним → возврат в меню
+                // останавливает симуляцию, повторный «старт» даёт чистый холст.
+                Screen.Game -> GameScreen(onExit = { screen = Screen.Menu })
+                Screen.Language -> LanguageScreen(current = lang, onPick = { lang = it }, onBack = { screen = Screen.Menu })
+                Screen.About -> AboutScreen(onBack = { screen = Screen.Menu })
+            }
         }
     }
 }

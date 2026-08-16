@@ -79,14 +79,14 @@ data class MenuEntry(
 fun MenuScreen(
     onStart: () -> Unit,
     onMap: () -> Unit,
-    onSettings: () -> Unit,
+    onLanguage: () -> Unit,
     onAbout: () -> Unit,
 ) {
     val entries = listOf(
-        MenuEntry("play", onStart),
-        MenuEntry("map", onMap),
-        MenuEntry("settings", onSettings),
-        MenuEntry("about", onAbout),
+        MenuEntry(text(UiString.MENU_PLAY), onStart),
+        MenuEntry(text(UiString.MENU_MAP), onMap),
+        MenuEntry(text(UiString.MENU_LANGUAGE), onLanguage),
+        MenuEntry(text(UiString.MENU_ABOUT), onAbout),
     )
     MenuLayout(title = "Carsonella", entries = entries)
 }
@@ -103,7 +103,7 @@ fun MenuLayout(
     content: @Composable () -> Unit = {},
 ) {
     // Выделен первый доступный пункт: у выключенных выделения не бывает.
-    var selected by remember(entries.size) { mutableStateOf(entries.indexOfFirst { it.enabled }.coerceAtLeast(0)) }
+    var selected by remember(entries.map { it.enabled }) { mutableStateOf(entries.indexOfFirst { it.enabled }.coerceAtLeast(0)) }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 

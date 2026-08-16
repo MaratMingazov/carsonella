@@ -21,22 +21,22 @@ private fun bodyStyle(): TextStyle {
     return remember(family) { TextStyle(fontFamily = family, fontSize = 18.sp, fontWeight = FontWeight.Light, lineHeight = 30.sp, color = Color.DarkGray) }
 }
 
-private const val ABOUT_TEXT =
-    "soon..."
-
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
-    MenuLayout(title = "about", entries = listOf(MenuEntry("back", onBack)), onBack = onBack) {
-        Text(ABOUT_TEXT, style = bodyStyle(), textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = 560.dp))
+    MenuLayout(title = text(UiString.ABOUT_TITLE), entries = listOf(MenuEntry(text(UiString.MENU_BACK), onBack)), onBack = onBack) {
+        Text(text(UiString.ABOUT_TEXT), style = bodyStyle(), textAlign = TextAlign.Center, modifier = Modifier.widthIn(max = 560.dp))
         Spacer(Modifier.height(48.dp))
     }
 }
 
+/**
+ * Выбор языка. Языки подписаны на самих себе ([Lang.ownName]) — так их найдёт и тот, кто текущего языка
+ * не знает; текущий выключен, потому что выбирать его нечего.
+ */
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
-    // Настраивать пока нечего — экран честно пустой, строки появятся вместе с настройками.
-    MenuLayout(title = "settings", entries = listOf(MenuEntry("back", onBack)), onBack = onBack) {
-        Text("soon", style = bodyStyle(), textAlign = TextAlign.Center)
-        Spacer(Modifier.height(48.dp))
-    }
+fun LanguageScreen(current: Lang, onPick: (Lang) -> Unit, onBack: () -> Unit) {
+    val entries = Lang.entries.map { lang ->
+        MenuEntry(lang.ownName, onClick = { onPick(lang) }, enabled = lang != current)
+    } + MenuEntry(text(UiString.MENU_BACK), onBack)
+    MenuLayout(title = text(UiString.LANGUAGE_TITLE), entries = entries, onBack = onBack)
 }
