@@ -45,7 +45,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
         )
         // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
         // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
-        val fact = level.rewardText ?: goal.description
+        val fact = level.rewardText?.of(LocalLang.current) ?: goal.description // описание из реестра ещё не локализовано
         if (fact.isNotEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(
