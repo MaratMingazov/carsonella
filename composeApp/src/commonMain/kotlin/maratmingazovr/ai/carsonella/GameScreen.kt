@@ -31,7 +31,12 @@ import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
  *
  */
 @Composable
-fun GameScreen(onDiscover: (MoleculeId) -> Unit, onExit: () -> Unit) {
+fun GameScreen(
+    completed: Set<LevelId>,
+    onDiscover: (MoleculeId) -> Unit,
+    onComplete: (LevelId) -> Unit,
+    onExit: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     val textMeasurer = rememberTextMeasurer()
     val renderer = remember { EntityRenderer(textMeasurer) }
@@ -51,17 +56,15 @@ fun GameScreen(onDiscover: (MoleculeId) -> Unit, onExit: () -> Unit) {
     // его снаружи нечего.
     var selectedId by remember { mutableStateOf<Long?>(null) }
 
-    // Прогресс по лестнице. Цель живёт в рейле слева, награда — окном поверх холста.
-    var levelIndex by remember { mutableStateOf(0) }
     var reward by remember { mutableStateOf(false) }
     var welcome by remember { mutableStateOf(true) }   // приветствие на входе; холст под ним пуст
-    val level = LEVELS.getOrNull(levelIndex)
+    val level = LEVELS.firstOrNull { it.id !in completed }
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
     // Ждём факта через first { it } и дальше от списка не зависим — плашка своё событие вскоре удалит,
     // и производное состояние успело бы погаснуть прямо посреди задержки.
-    LaunchedEffect(levelIndex) {
-        val current = LEVELS.getOrNull(levelIndex) ?: return@LaunchedEffect
+    LaunchedEffect(level?.id) {
+        val current = level ?: return@LaunchedEffect
         world.setInventory(current.inventory)   // палитра уровня = его инвентарь
         snapshotFlow { world.moleculeEvents.any { it.known.id == current.goalMoleculeId } }.first { it }
         delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
@@ -116,12 +119,12 @@ fun GameScreen(onDiscover: (MoleculeId) -> Unit, onExit: () -> Unit) {
         else if (reward && level != null) {
             LevelReward(level) {
                 world.requestClear()
-                levelIndex++
+                onComplete(level.id)
                 reward = false
             }
         }
 
-        // Лестница кончилась: пятый уровень пока последний, дальше — только в меню.
+        // Лестница кончилась: все цели пройдены, дальше — только в меню.
         if (level == null) {
             MenuLayout(title = text(UiString.CHAPTER_DONE_TITLE), entries = listOf(MenuEntry(text(UiString.MENU_CLOSE), onExit))) {
                 Text(

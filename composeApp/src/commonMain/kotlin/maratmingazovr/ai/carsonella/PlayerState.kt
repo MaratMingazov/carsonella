@@ -13,7 +13,11 @@ data class Settings(
 
 data class Progress(
     val discovered: Set<MoleculeId> = emptySet(),   // журнал открытий: что игрок получал хоть раз
+    val completed: Set<LevelId> = emptySet(),       // пройденные цели; текущая — первая непройденная
 ) {
     fun discover(id: MoleculeId): Progress =
         if (id in discovered) this else copy(discovered = discovered + id)
+
+    fun complete(id: LevelId): Progress =
+        if (id in completed) this else copy(completed = completed + id)
 }
