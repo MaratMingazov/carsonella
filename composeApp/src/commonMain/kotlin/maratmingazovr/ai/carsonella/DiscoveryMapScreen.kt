@@ -39,10 +39,12 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 
 private val CARD_WIDTH = 128.dp
 private val CARD_BORDER = Color(0xFFE4E4E4)
+private val CARD_OPEN_FILL = Color(0xFFF1FBFA)   // открытая карточка светится бирюзой, а не только рамкой
 private val LAYER_LABEL = Color(0xFFC0C0C0)
 private val NAME_COLOR = Color(0xFF5A5A5A)
 private val FORMULA_COLOR = Color(0xFF45BDB5)
@@ -52,10 +54,11 @@ private val FORMULA_COLOR = Color(0xFF45BDB5)
  * ([MoleculeRegistry.buildSteps]). Слева направо — усложнение: атомы, потом первая связь, потом всё
  * остальное. Ничего не прописано руками: узлы и слои выводятся из реестра, и карта не может соврать.
  *
- * Пока это КАТАЛОГ, а не карта: журнала открытий нет, поэтому «где я нахожусь» показать нечем.
+ * Открытое подсвечено журналом игрока. Слоёв доступности (доступное → силуэт → туман) пока нет, поэтому
+ * весь реестр виден сразу.
  */
 @Composable
-fun DiscoveryMapScreen(onBack: () -> Unit) {
+fun DiscoveryMapScreen(discovered: Set<MoleculeId>, onBack: () -> Unit) {
     // Язык в ключе: карточки сортируются по имени, а порядок имён у языков разный.
     val lang = LocalLang.current
     val layers = remember(lang) { buildLayers(lang) }
@@ -91,7 +94,7 @@ fun DiscoveryMapScreen(onBack: () -> Unit) {
                     .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                layers.forEach { layer -> LayerColumn(layer) }
+                layers.forEach { layer -> LayerColumn(layer, discovered) }
             }
         }
     }
@@ -110,7 +113,7 @@ private fun buildLayers(lang: Lang): List<MapLayer> {
 }
 
 @Composable
-private fun LayerColumn(layer: MapLayer) {
+private fun LayerColumn(layer: MapLayer, discovered: Set<MoleculeId>) {
     Column(
         Modifier.width(CARD_WIDTH),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -122,7 +125,7 @@ private fun LayerColumn(layer: MapLayer) {
             letterSpacing = 0.1.em, color = LAYER_LABEL,
         )
         layer.atoms.forEach { element -> AtomCard(element) }
-        layer.molecules.forEach { known -> MoleculeCard(known) }
+        layer.molecules.forEach { known -> MoleculeCard(known, open = known.id in discovered) }
     }
 }
 
@@ -136,8 +139,8 @@ private fun AtomCard(element: Element) {
 }
 
 @Composable
-private fun MoleculeCard(known: KnownMolecule) {
-    MapCard {
+private fun MoleculeCard(known: KnownMolecule, open: Boolean) {
+    MapCard(open) {
         // Картинка, если раскладка нарисована; иначе структурная формула текстом.
         val picture = MoleculeRegistry.picture(known.id)
         if (picture != null) MoleculePicturePreview(picture, scale = 0.5f)
@@ -152,11 +155,13 @@ private fun MoleculeCard(known: KnownMolecule) {
 }
 
 @Composable
-private fun MapCard(content: @Composable () -> Unit) {
+private fun MapCard(open: Boolean = false, content: @Composable () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
     Column(
         Modifier
             .width(CARD_WIDTH)
-            .border(1.dp, CARD_BORDER, RoundedCornerShape(12.dp))
+            .background(if (open) CARD_OPEN_FILL else Color.Transparent, shape)
+            .border(1.dp, if (open) FORMULA_COLOR else CARD_BORDER, shape)
             .padding(horizontal = 10.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) { content() }

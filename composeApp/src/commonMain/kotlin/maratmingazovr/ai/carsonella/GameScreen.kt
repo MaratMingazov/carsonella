@@ -22,18 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 
 /**
  * Игровой экран: живой мир, палитра сверху, канва с правой панелью.
  *
- * Мир живёт ровно столько, сколько живёт этот экран: `World.start()` крутит вечный цикл в
- * rememberCoroutineScope, а тот отменяется при уходе экрана из композиции. Выход в меню
- * останавливает симуляцию, вход создаёт мир заново — с чистым холстом.
  */
 @Composable
-fun GameScreen(onExit: () -> Unit) {
+fun GameScreen(onDiscover: (MoleculeId) -> Unit, onExit: () -> Unit) {
     val scope = rememberCoroutineScope()
     val textMeasurer = rememberTextMeasurer()
     val renderer = remember { EntityRenderer(textMeasurer) }
@@ -68,6 +66,13 @@ fun GameScreen(onExit: () -> Unit) {
         snapshotFlow { world.moleculeEvents.any { it.known.id == current.goalMoleculeId } }.first { it }
         delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
         reward = true
+    }
+
+    // Журнал открытий питается тем же событием, что и всплывающие имена. Одно и то же приходит по
+    // многу раз, и это нормально: discover() идемпотентен, дедупликация тут не нужна.
+    LaunchedEffect(Unit) {
+        snapshotFlow { world.moleculeEvents.map { it.known.id }.toSet() }
+            .collect { ids -> ids.forEach(onDiscover) }
     }
 
     Box(

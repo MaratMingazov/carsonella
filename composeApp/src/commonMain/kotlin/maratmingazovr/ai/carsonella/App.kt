@@ -10,8 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.tooling.preview.Preview
 
-// Экраны приложения. Дальше сюда добавятся уровни и журнал открытий; «продолжить» появится,
-// когда будет что продолжать.
 private sealed interface Screen {
     data object Menu : Screen
     data object Game : Screen
@@ -25,9 +23,9 @@ private sealed interface Screen {
 fun App() {
     MaterialTheme {
         var screen: Screen by remember { mutableStateOf(Screen.Menu) }
-        var lang: Lang by remember { mutableStateOf(Lang.RU) } // Язык живёт выше экранов: переключатель меняет надписи везде сразу, без перезапуска. Выбор пока не сохраняется — файл настроек это отдельная задача.
+        var player: PlayerState by remember { mutableStateOf(PlayerState()) }
 
-        CompositionLocalProvider(LocalLang provides lang) {
+        CompositionLocalProvider(LocalLang provides player.settings.lang) {
             when (screen) {
                 Screen.Menu -> MenuScreen(
                     onStart = { screen = Screen.Game },
@@ -35,11 +33,16 @@ fun App() {
                     onLanguage = { screen = Screen.Language },
                     onAbout = { screen = Screen.About },
                 )
-                Screen.Map -> DiscoveryMapScreen(onBack = { screen = Screen.Menu })
-                // Мир создаётся внутри GameScreen и умирает вместе с ним → возврат в меню
-                // останавливает симуляцию, повторный «старт» даёт чистый холст.
-                Screen.Game -> GameScreen(onExit = { screen = Screen.Menu })
-                Screen.Language -> LanguageScreen(current = lang, onPick = { lang = it }, onBack = { screen = Screen.Menu })
+                Screen.Map -> DiscoveryMapScreen(discovered = player.progress.discovered, onBack = { screen = Screen.Menu })
+                Screen.Game -> GameScreen(
+                    onDiscover = { player = player.copy(progress = player.progress.discover(it)) },
+                    onExit = { screen = Screen.Menu },
+                )
+                Screen.Language -> LanguageScreen(
+                    current = player.settings.lang,
+                    onPick = { player = player.copy(settings = player.settings.copy(lang = it)) },
+                    onBack = { screen = Screen.Menu },
+                )
                 Screen.About -> AboutScreen(onBack = { screen = Screen.Menu })
             }
         }
