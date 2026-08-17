@@ -58,7 +58,7 @@ fun GameScreen(
 
     var reward by remember { mutableStateOf(false) }
     var welcome by remember { mutableStateOf(true) }   // приветствие на входе; холст под ним пуст
-    val level = LEVELS.firstOrNull { it.id !in completed }
+    val level = availableLevels(completed).firstOrNull()
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
     // Ждём факта через first { it } и дальше от списка не зависим — плашка своё событие вскоре удалит,
