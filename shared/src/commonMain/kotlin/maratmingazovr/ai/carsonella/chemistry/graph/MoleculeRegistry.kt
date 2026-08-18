@@ -8,9 +8,9 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-// Курируемая запись реестра: что знаем об известной молекуле сверх её структуры.
 data class KnownMolecule(
-    val id: KnownMoleculeId,  // Ключ и он же имена на оба языка — см. MoleculeId.
+    val id: KnownMoleculeId,  // Ключ и он же имена на оба языка
+    val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
     val description: Prose? = null,
     val layout: Map<Int, Vec2D> = emptyMap(),
@@ -103,25 +103,24 @@ object MoleculeRegistry {
     }
 
     private val byCanonical: Map<String, KnownMolecule> = run {
-        val nameless = entries.filter { (graph, _) -> graph.canonical.isEmpty() }
-        require(nameless.isEmpty()) { "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.second.id }}" }
-        val byKey = entries.associate { (graph, known) -> graph.canonical to known }
+        val nameless = entries.filter { it.graph.canonical.isEmpty() }
+        require(nameless.isEmpty()) { "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.id }}" }
+        val byKey = entries.associateBy { it.graph.canonical }
         require(byKey.size == entries.size) {
-            val collisions = entries.groupBy { it.first.canonical }.filterValues { it.size > 1 }
-            "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.second.id } }}"
+            val collisions = entries.groupBy { it.graph.canonical }.filterValues { it.size > 1 }
+            "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.id } }}"
         }
-        val brokenLayout = entries.filter { (graph, known) -> known.layout.isNotEmpty() && known.layout.keys != graph.nodes.mapTo(mutableSetOf()) { it.localId } }
-        require(brokenLayout.isEmpty()) { "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.second.id }}" }
+        val brokenLayout = entries.filter { it.layout.isNotEmpty() && it.layout.keys != it.graph.nodes.mapTo(mutableSetOf()) { node -> node.localId } }
+        require(brokenLayout.isEmpty()) { "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.id }}" }
         val uncovered = KnownMoleculeId.entries - byKey.values.map { it.id }.toSet()
         require(uncovered.isEmpty()) { "У ключей нет записи в реестре: $uncovered — byId() обещает не возвращать null, значит покрыть надо все" }
         byKey
     }
-    private val knownById: Map<KnownMoleculeId, KnownMolecule> = byCanonical.values.distinct().associateBy { it.id }
+
+    private val knownById: Map<KnownMoleculeId, KnownMolecule> = entries.associateBy { it.id }
 
     fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical] // Известная молекула по её каноническому ключу
     fun byId(id: KnownMoleculeId): KnownMolecule = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
-
-    private val graphByKnowMoleculeId: Map<KnownMoleculeId, MoleculeGraph> = entries.associate { (graph, known) -> known.id to graph } // Граф по ключу.
 
     /**
      * Эталонная картинка по ключу: граф + раскладка. null, если раскладка ещё не нарисована —
@@ -129,9 +128,7 @@ object MoleculeRegistry {
      */
     fun picture(id: KnownMoleculeId): MoleculePicture? {
         val known = knownById.getValue(id)
-        if (known.layout.isEmpty()) return null
-        val graph = graphByKnowMoleculeId.getValue(id)
-        return MoleculePicture(graph, known.layout)
+        return if (known.layout.isEmpty()) null else MoleculePicture(known.graph, known.layout)
     }
 }
 
@@ -151,18 +148,18 @@ private fun MoleculeGraph.closeChain(): MoleculeGraph {
 } // Замкнуть цепочку саму на себя. Свободных концов ровно два, поэтому указывать нечего.
 
 private class RegistryBuilder {
-    val entries = mutableListOf<Pair<MoleculeGraph, KnownMolecule>>()
+    val entries = mutableListOf<KnownMolecule>()
     fun known(
         graph: MoleculeGraph,
         id: KnownMoleculeId,
         structuralFormula: String = "",
         layout: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
-        entries += graph to KnownMolecule(id, structuralFormula, MOLECULE_FACTS[id], layout)
+        entries += KnownMolecule(id, graph, structuralFormula, MOLECULE_FACTS[id], layout)
         return graph
     }
 }
-private fun registry(build: RegistryBuilder.() -> Unit): List<Pair<MoleculeGraph, KnownMolecule>> = RegistryBuilder().apply(build).entries.toList()
+private fun registry(build: RegistryBuilder.() -> Unit): List<KnownMolecule> = RegistryBuilder().apply(build).entries.toList()
 
 // Хелперы раскладки. Единицы — доли длины связи, ось y вниз (как на экране).
 private fun at(vararg offsets: Pair<Int, Vec2D>): Map<Int, Vec2D> = mapOf(*offsets)
