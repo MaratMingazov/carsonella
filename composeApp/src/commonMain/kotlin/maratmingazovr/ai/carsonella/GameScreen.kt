@@ -58,7 +58,8 @@ fun GameScreen(
     var selectedId by remember { mutableStateOf<Long?>(null) }
 
     var reward by remember { mutableStateOf(false) }
-    var welcome by remember { mutableStateOf(true) }   // приветствие на входе; холст под ним пуст
+    // Приветствие — только в самом начале игры, пока не пройдено ни одного уровня; холст под ним пуст.
+    var welcome by remember { mutableStateOf(completed.isEmpty()) }
     val level = availableLevels(completed).firstOrNull()
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.

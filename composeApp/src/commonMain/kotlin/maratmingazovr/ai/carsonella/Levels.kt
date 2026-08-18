@@ -3,18 +3,21 @@ package maratmingazovr.ai.carsonella
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.neutralElectrons
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_TITLE
+import maratmingazovr.ai.carsonella.world.renderers.isBareProton
 
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 
 enum class LevelId {
-    HYDROGEN_ATOM, DIHYDROGEN, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
+    PROTON, ELECTRON, PHOTON,
+    HYDROGEN_ATOM, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
 sealed interface LevelGoal {
     val goalElementTitle: TranslatedText // название элемента, которое нужно получить
     data class CreateAtom(val element: Element, val electrons: Int = neutralElectrons(element)) : LevelGoal {
-        override val goalElementTitle get() = element.title
+        override val goalElementTitle get() = if (isBareProton(element, electrons)) BARE_PROTON_TITLE else element.title
     }
     data class CreateMolecule(val knownMoleculeId: KnownMoleculeId) : LevelGoal {
         override val goalElementTitle get() = knownMoleculeId.title
@@ -25,31 +28,56 @@ sealed interface LevelGoal {
 //    val text:
 //)
 
-/** Запись реестра для молекулярной цели: у неё есть имя, картинка и факт. У атомарной — нет. */
-val LevelGoal.knownMoleculeId: KnownMoleculeId? get() = (this as? LevelGoal.CreateMolecule)?.knownMoleculeId
-
 data class Level(
     val id: LevelId,
     val requiredLevels: Set<LevelId> = emptySet(), // задание доступно, когда эти пройдены; пока цепочка линейна
     val requiredAtoms: Set<Element> = emptySet(), // задания доступны, если игрок уже открыл эти атомы
     val requiredMolecules: Set<KnownMoleculeId> = emptySet(), // задание доступны, если игрок уже открыл эти молекулы
+    val granted: Boolean = false, // дано с самого начала: узел на карте есть и закрыт, играть его не нужно
     val taskDescription: TranslatedText, // описание задачи, которое нужно выполнить
     val levelGoal: LevelGoal, // что должно появиться на холсте, чтобы задание закрылось
     val inventory: Map<PaletteItem, Int>, // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
     val rewardText: TranslatedText, // Когда игрок успещно проходит уровень, то у него появляется модальное окно  поздравлением. Там будет отображаться этот текст
 )
 
-/**
- * Задания, за которые игрок может взяться сейчас: сами не пройдены, а зависимости выполнены. Пока
- * цепочка линейна, доступное всегда одно; с ветвлением их станет два-три, и это тот же список.
- */
-fun availableLevels(completed: Set<LevelId>): List<Level> =
-    LEVELS.filter { it.id !in completed && completed.containsAll(it.requiredLevels) }
+// Пройдено — это и то, что игрок закрыл сам, и то, что выдано ([Level.granted]) и до чего дошла очередь.
+// Выданное открывается по своим же зависимостям, поэтому досчитываем до неподвижной точки: granted
+// стоит и в середине цепочки, и может зависеть от другого granted.
+fun effectiveCompleted(completed: Set<LevelId>): Set<LevelId> {
+    var done = completed
+    while (true) {
+        val opened = LEVELS.filter { it.granted && it.id !in done && done.containsAll(it.requiredLevels) }
+        if (opened.isEmpty()) return done
+        done = done + opened.map { it.id }
+    }
+}
+
+fun availableLevels(completed: Set<LevelId>): List<Level> {
+    val done = effectiveCompleted(completed)
+    return LEVELS.filter { it.id !in done && done.containsAll(it.requiredLevels) }
+}
+
+// Узел «дано»: играть нечего, поэтому ни задания, ни награды, ни инвентаря у него нет.
+private fun granted(id: LevelId, levelGoal: LevelGoal, requiredLevels: Set<LevelId> = emptySet()) = Level(
+    id = id,
+    requiredLevels = requiredLevels,
+    levelGoal = levelGoal,
+    granted = true,
+    taskDescription = TranslatedText("", ""),
+    inventory = emptyMap(),
+    rewardText = TranslatedText("", ""),
+)
 
 
 val LEVELS = listOf(
+    // Элементарные частицы игрок не собирает — они у него уже есть, поэтому узлы сразу закрыты.
+    granted(LevelId.PROTON, LevelGoal.CreateAtom(Element.HYDROGEN, electrons = 0)),
+    granted(LevelId.ELECTRON, LevelGoal.CreateAtom(Element.ELECTRON)),
+    granted(LevelId.PHOTON, LevelGoal.CreateAtom(Element.PHOTON)),
+
     Level(
         LevelId.HYDROGEN_ATOM,
+        requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
         levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN),
         inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 3, PaletteItem.Atom(Element.ELECTRON) to 3),
         taskDescription = TranslatedText(
@@ -69,7 +97,10 @@ val LEVELS = listOf(
             ru = "Мы получили Водород - самый распространённый элемент Вселенной, 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!",
             en = "We have made Hydrogen - the most common element in the Universe, 92% of all atoms. Our Sun, for one, is 73% hydrogen. The hydrogen you and I are made of is 13.8 billion years old! It looks like the simplest thing there is, and yet it hides a pile of paradoxes!",
         )),
-    Level(LevelId.HYDROXYL, requiredLevels = setOf(LevelId.DIHYDROGEN), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1),
+    // Ядра кислорода наварили звёзды, а звёздной главы в игре пока нет — поэтому атом выдаём готовым.
+    granted(LevelId.OXYGEN_ATOM, LevelGoal.CreateAtom(Element.OXYGEN_16), requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON)),
+
+    Level(LevelId.HYDROXYL, requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1),
         taskDescription = TranslatedText(
             ru = "Теперь попробуем соединить атомы водорода и кислорода",
             en = "Now let's try joining a hydrogen atom and an oxygen atom",
@@ -87,7 +118,7 @@ val LEVELS = listOf(
             ru = "УРА! Мы получили самую известную молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
             en = "HOORAY! We have made the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry. Why does hot water freeze faster than cold? Why does ice not sink? We will find that out, and much more!",
     )),
-    Level(LevelId.DIOXYGEN, requiredLevels = setOf(LevelId.WATER), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIOXYGEN), inventory = mapOf(PaletteItem.Atom(Element.OXYGEN_16) to 2),
+    Level(LevelId.DIOXYGEN, requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIOXYGEN), inventory = mapOf(PaletteItem.Atom(Element.OXYGEN_16) to 2),
         taskDescription = TranslatedText(
             ru = "А ты знаешь что для дыхания всем нам нужен кислород! Давай соберем его. \n hint: у атомов должна быть двойная связь",
             en = "Did you know that we all need oxygen to breathe! Let's build some. \n hint: the atoms need a double bond",

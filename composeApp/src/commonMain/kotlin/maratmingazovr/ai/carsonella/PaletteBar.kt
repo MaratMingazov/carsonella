@@ -43,6 +43,7 @@ import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_FILL
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_SYMBOL
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
+import maratmingazovr.ai.carsonella.world.renderers.isBareProton
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
 
 // Мягкий пастельный бежевый фон плашек (палитра + Info-карточка на канве).
@@ -130,7 +131,6 @@ internal fun paletteAtomBoxDp(element: Element, electrons: Int = neutralElectron
     with(LocalDensity.current) { (atomRadiusPx(element, electrons) * 2f + 5f).toDp() }
 
 // Голый водород — это протон: мельче атома и со своим символом, как на канве (см. EntityRenderer).
-private fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
 private fun atomRadiusPx(element: Element, electrons: Int) =
     if (isBareProton(element, electrons)) Element.ELECTRON.details.radius else element.details.radius
 

@@ -98,10 +98,13 @@ fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
 
 private enum class LevelStatus { DONE, OPEN, LOCKED }
 
-private fun stateOf(level: Level, completed: Set<LevelId>): LevelStatus = when {
-    level.id in completed -> LevelStatus.DONE
-    completed.containsAll(level.requiredLevels) -> LevelStatus.OPEN
-    else -> LevelStatus.LOCKED
+private fun stateOf(level: Level, completed: Set<LevelId>): LevelStatus {
+    val done = effectiveCompleted(completed)
+    return when {
+        level.id in done -> LevelStatus.DONE
+        done.containsAll(level.requiredLevels) -> LevelStatus.OPEN
+        else -> LevelStatus.LOCKED
+    }
 }
 
 // Слои: задание без зависимостей стоит в нулевом, остальные — на шаг правее самой глубокой зависимости.
@@ -132,7 +135,7 @@ private fun LevelCard(level: Level, state: LevelStatus) {
             LevelStatus.OPEN -> {
                 LevelGoalImage(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
-                CardText(text(level.taskDescription), TEXT_COLOR, 13.sp)
+                CardText(text(level.levelGoal.goalElementTitle), TEXT_COLOR, 13.sp)
             }
             LevelStatus.DONE -> {
                 LevelGoalImage(level.levelGoal, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить

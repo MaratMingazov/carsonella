@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.Position
+import maratmingazovr.ai.carsonella.TranslatedText
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -26,9 +27,11 @@ internal const val STAR_HZ = 0.2f     // пульс звезды: 1 цикл/5с
 internal const val SLOT_HZ = 1f / 15f  // вращение свободных слотов: 1 оборот/15с — медленно, плавно, без скачка
 
 // Голый водород (H без электрона) — это протон, и рисуется он как протон, а не как атом: мелкий тёплый
-// кружок с «p». В модели отдельного протона нет, поэтому его вид живёт здесь литералами.
+// кружок с «p». В модели отдельного протона нет, поэтому его вид и имя живут здесь литералами.
 internal const val BARE_PROTON_SYMBOL = "p"
 internal val BARE_PROTON_FILL = Color(0xFFFAD0A0)
+internal val BARE_PROTON_TITLE = TranslatedText(ru = "Протон", en = "Proton")
+internal fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
 
 private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы
 
@@ -89,7 +92,7 @@ class EntityRenderer(
         withValenceSlots: Boolean,
     ) {
         val position = center.toOffset()  + vibrationParams.positionOffset
-        val bareProton = element == Element.HYDROGEN && entity.electrons == 0
+        val bareProton = isBareProton(element, entity.electrons)
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
         val radius = if (bareProton) Element.ELECTRON.details.radius else element.details.radius
