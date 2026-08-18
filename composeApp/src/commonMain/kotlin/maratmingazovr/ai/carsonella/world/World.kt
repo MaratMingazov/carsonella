@@ -47,9 +47,14 @@ data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: P
  * уровень выдаёт заготовку («разбери перекись»), и позже — для разблокированных блоков-радикалов.
  */
 sealed interface PaletteItem {
-    data class Atom(val element: Element) : PaletteItem
+    // Заряд — часть слота: голый протон это HYDROGEN с нулём электронов, и он обязан быть отдельным
+    // слотом от нейтрального водорода (иначе рекомбинация вернула бы протон водородом и наоборот).
+    data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
     data class Known(val id: MoleculeId) : PaletteItem
 }
+
+// Сколько электронов у частицы «по умолчанию»: у свободного электрона он свой, у остальных — нейтраль.
+fun neutralElectrons(element: Element): Int = if (element == Element.ELECTRON) 1 else element.details.p
 
 /** Слот палитры: что игрок может взять и сколько этого осталось на уровне. */
 data class PaletteSlot(val item: PaletteItem, val count: Int)
@@ -187,17 +192,14 @@ class World(
         palette[slot] = palette[slot].copy(count = palette[slot].count - 1)
 
         val entity = when (item) {
-            is PaletteItem.Atom -> spawnAtom(item.element, position)
+            is PaletteItem.Atom -> spawnAtom(item.element, item.electrons, position)
             is PaletteItem.Known -> spawnKnownMolecule(item.id, position)
         } ?: return
         clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
     }
 
-    // Правила рождения частицы живут здесь, а не в UI: у фотона не бывает нулевой энергии (даём дефолт
-    // H-α), электрон приходит с одним электроном, остальные — нейтральными.
-    private fun spawnAtom(element: Element, position: Position): Entity {
+    private fun spawnAtom(element: Element, electrons: Int, position: Position): Entity {
         val energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-        val electrons = if (element == Element.ELECTRON) 1 else element.details.p
         return entityGenerator.createEntity(
             element = element, position = position, direction = randomDirection(random),
             velocity = 0f, energy = energy, environment = environment, electrons = electrons,
@@ -288,8 +290,8 @@ class World(
     // (иначе перекись вернулась бы атомами, которых на этом уровне в палитре нет), иначе атомами.
     // Звёзды и модули в палитре не выдаются, возвращать нечего.
     private fun materialsOf(entity: Entity): List<PaletteItem> = when (entity) {
-        is Atom -> listOf(PaletteItem.Atom(entity.element))
-        is SubAtom -> listOf(PaletteItem.Atom(entity.element))
+        is Atom -> listOf(PaletteItem.Atom(entity.element, entity.electrons))
+        is SubAtom -> listOf(PaletteItem.Atom(entity.element, entity.electrons))
         is Molecule -> {
             val asWhole = entity.known?.id?.let(PaletteItem::Known)
             if (asWhole != null && palette.any { it.item == asWhole }) listOf(asWhole)

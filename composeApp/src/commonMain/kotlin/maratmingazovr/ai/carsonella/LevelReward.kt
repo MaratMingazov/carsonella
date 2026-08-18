@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 
 /**
  * Награда за уровень модальным окном: что получилось, эталонная картинка и факт из реестра. Дальше
@@ -22,30 +21,28 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
  */
 @Composable
 fun LevelReward(level: Level, onNext: () -> Unit) {
-    val goal = level.goal
+    val known = level.goal.known
     ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
+        // У атомарной цели имени в реестре нет, поэтому подпись говорит «получен атом», а вместо имени
+        // стоит сам кружок с символом — он одинаково читается на обоих языках.
         Text(
-            text(UiString.REWARD_CAPTION),
+            text(if (known != null) UiString.REWARD_CAPTION else UiString.REWARD_CAPTION_ATOM),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 13.sp,
             letterSpacing = 0.2.em, color = Color(0xFFB0B0B0),
         )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            goal.name(LocalLang.current),
-            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
-            color = Color.Black, textAlign = TextAlign.Center,
-        )
+        if (known != null) {
+            Spacer(Modifier.height(12.dp))
+            Text(
+                known.name(LocalLang.current),
+                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
+                color = Color.Black, textAlign = TextAlign.Center,
+            )
+        }
         Spacer(Modifier.height(20.dp))
-        val picture = MoleculeRegistry.picture(level.goalMoleculeId)
-        if (picture != null) MoleculePicturePreview(picture)
-        else Text(
-            goal.structuralFormula.ifEmpty { goal.name(LocalLang.current) },
-            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 34.sp,
-            letterSpacing = 0.08.em, color = Color(0xFF45BDB5),
-        )
+        GoalPreview(level.goal)
         // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
         // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
-        val fact = (level.rewardText ?: goal.description)?.of(LocalLang.current)
+        val fact = (level.rewardText ?: known?.description)?.of(LocalLang.current)
         if (!fact.isNullOrEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(

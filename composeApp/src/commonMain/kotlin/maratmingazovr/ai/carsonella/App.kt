@@ -33,7 +33,7 @@ fun App() {
                     onLanguage = { screen = Screen.Language },
                     onAbout = { screen = Screen.About },
                 )
-                Screen.Map -> DiscoveryMapScreen(discovered = player.progress.discovered, onBack = { screen = Screen.Menu })
+                Screen.Map -> LevelMapScreen(completed = player.progress.completed, onBack = { screen = Screen.Menu })
                 Screen.Game -> GameScreen(
                     completed = player.progress.completed,
                     onDiscover = { player = player.copy(progress = player.progress.discover(it)) },

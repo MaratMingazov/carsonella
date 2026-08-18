@@ -39,6 +39,10 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.PaletteSlot
+import maratmingazovr.ai.carsonella.world.neutralElectrons
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_FILL
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_RADIUS
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_SYMBOL
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
@@ -110,7 +114,7 @@ fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = M
 @Composable
 internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
     when (item) {
-        is PaletteItem.Atom -> PaletteAtom(item.element, modifier)
+        is PaletteItem.Atom -> PaletteAtom(item.element, modifier, item.electrons)
         is PaletteItem.Known -> {
             val picture = MoleculeRegistry.picture(item.id)
             if (picture != null) MoleculePicturePreview(picture, scale = 0.45f, modifier = modifier)
@@ -122,24 +126,30 @@ internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
 // Ширина слота: и кружок, и число под ним занимают её целиком, поэтому столбики не разъезжаются.
 @Composable
 private fun slotWidth(item: PaletteItem): Dp = when (item) {
-    is PaletteItem.Atom -> paletteAtomBoxDp(item.element)
+    is PaletteItem.Atom -> paletteAtomBoxDp(item.element, item.electrons)
     is PaletteItem.Known -> MOLECULE_SLOT_WIDTH
 }
 
 // Ширина бокса кружка: радиус в px переводим в dp, чтобы Canvas вышел ровно 2*radius (+запас на обводку).
 @Composable
-internal fun paletteAtomBoxDp(element: Element): Dp =
-    with(LocalDensity.current) { (element.details.radius * 2f + 5f).toDp() }
+internal fun paletteAtomBoxDp(element: Element, electrons: Int = neutralElectrons(element)): Dp =
+    with(LocalDensity.current) { (atomRadiusPx(element, electrons) * 2f + 5f).toDp() }
+
+// Голый водород — это протон: мельче атома и со своим символом, как на канве (см. EntityRenderer).
+private fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
+private fun atomRadiusPx(element: Element, electrons: Int) =
+    if (isBareProton(element, electrons)) BARE_PROTON_RADIUS else element.details.radius
 
 // Плоский кружок элемента — тот же вид, что у частицы на канве (заливка + чёрная обводка + символ),
 // но статично и без валентных слотов. Переиспользует ElementColors.fill / drawCenteredSymbol.
 @Composable
-internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier) {
+internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier, electrons: Int = neutralElectrons(element)) {
     val textMeasurer = rememberTextMeasurer()
-    val fill = ElementColors.fill(element)
-    val symbol = element.bareSymbol
-    val radiusPx = element.details.radius   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
-    val boxDp = paletteAtomBoxDp(element)
+    val bareProton = isBareProton(element, electrons)
+    val fill = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
+    val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
+    val radiusPx = atomRadiusPx(element, electrons)   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
+    val boxDp = paletteAtomBoxDp(element, electrons)
 
     // Наведение → обводка чуть толще (визуальный отклик палитры).
     val interaction = remember { MutableInteractionSource() }

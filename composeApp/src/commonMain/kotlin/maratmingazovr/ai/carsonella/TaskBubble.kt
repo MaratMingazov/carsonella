@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 
 private val BUBBLE_WIDTH = 240.dp
 private val BUBBLE_BORDER = Color(0xFFE0E0E0)
@@ -53,11 +52,8 @@ fun TaskBubble(level: Level, modifier: Modifier = Modifier) {
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
                 lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
             )
-            val picture = MoleculeRegistry.picture(level.goalMoleculeId)
-            if (picture != null) {
-                Spacer(Modifier.height(12.dp))
-                MoleculePicturePreview(picture, scale = 0.6f)
-            }
+            Spacer(Modifier.height(12.dp))
+            GoalPreview(level.goal, scale = 0.6f)
         }
         HintArrow()
     }

@@ -27,9 +27,9 @@ internal const val SLOT_HZ = 1f / 15f  // вращение свободных с
 
 // Голый водород (H без электрона) — это протон, и рисуется он как протон, а не как атом: мелкий тёплый
 // кружок с «p». В модели отдельного протона нет, поэтому его вид живёт здесь литералами.
-private const val BARE_PROTON_RADIUS = 15f
-private const val BARE_PROTON_SYMBOL = "p"
-private val BARE_PROTON_FILL = Color(0xFFFAD0A0)
+internal const val BARE_PROTON_RADIUS = 15f
+internal const val BARE_PROTON_SYMBOL = "p"
+internal val BARE_PROTON_FILL = Color(0xFFFAD0A0)
 
 private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы
 

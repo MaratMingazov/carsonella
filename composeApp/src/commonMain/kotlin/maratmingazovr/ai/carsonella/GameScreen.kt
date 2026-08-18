@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
@@ -66,7 +67,14 @@ fun GameScreen(
     LaunchedEffect(level?.id) {
         val current = level ?: return@LaunchedEffect
         world.setInventory(current.inventory)   // палитра уровня = его инвентарь
-        snapshotFlow { world.moleculeEvents.any { it.known.id == current.goalMoleculeId } }.first { it }
+        // У молекулы событие есть, у атома нет — его ищем среди живых частиц. Заряд в условии значим:
+        // протон это тот же HYDROGEN, и без проверки электронов задание закрылось бы сразу.
+        when (val goal = current.goal) {
+            is Goal.Molecule -> snapshotFlow { world.moleculeEvents.any { it.known.id == goal.id } }
+            is Goal.Atom -> snapshotFlow {
+                world.entities.any { it is Atom && it.alive && it.element == goal.element && it.electrons == goal.electrons }
+            }
+        }.first { it }
         delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно
         reward = true
     }

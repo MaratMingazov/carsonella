@@ -126,18 +126,10 @@ object MoleculeRegistry {
     }
     private val knownById: Map<MoleculeId, KnownMolecule> = byCanonical.values.distinct().associateBy { it.id }
 
-    val all: List<KnownMolecule> get() = knownById.values.toList() // Все записи: узлы карты открытий — это реестр, рисовать её руками нечего.
+    val all: List<KnownMolecule> get() = knownById.values.toList() // Все записи реестра — каталог названий целиком.
 
     fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical] // Известная молекула по её каноническому ключу
     fun byId(id: MoleculeId): KnownMolecule = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
-
-    fun buildSteps(id: MoleculeId): Int = graphById.getValue(id).bonds.sumOf { it.order }
-
-    /** Из каких атомов собран реестр — нулевой слой карты, до всяких молекул. */
-    val atomsInUse: List<Element> get() = graphById.values
-        .flatMap { graph -> graph.nodes.map { it.isotope } }
-        .distinct()
-        .sortedBy { it.details.p }
 
     // Граф по ключу. У дикарбона три графа на один ключ — остаётся последний (C≡C); для картинки сойдёт.
     private val graphById: Map<MoleculeId, MoleculeGraph> = entries.associate { (graph, known) -> known.id to graph }
