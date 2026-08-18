@@ -111,14 +111,10 @@ fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = M
 
 // Что лежит в слоте: кружок элемента или эталонная картинка молекулы (мельче, чем в карточке уровня).
 @Composable
-internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
-    when (item) {
-        is PaletteItem.Atom -> PaletteAtom(item.element, modifier, item.electrons)
-        is PaletteItem.KnownMolecule -> {
-            val knownMolecule = item.id.details
-            if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = 0.45f, modifier = modifier)
-            else PaletteAtom(Element.PHOTON, modifier)   // раскладки нет — рисовать нечего, но слот не теряем
-        }
+internal fun PaletteItemView(paletteItem: PaletteItem, modifier: Modifier = Modifier) {
+    when (paletteItem) {
+        is PaletteItem.Atom -> PaletteAtom(paletteItem.element, modifier, paletteItem.electrons)
+        is PaletteItem.KnownMolecule -> KnownMoleculePreview(paletteItem.knownMoleculeId.details, scale = 0.45f, modifier = modifier)
     }
 }
 

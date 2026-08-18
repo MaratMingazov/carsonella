@@ -8,6 +8,6 @@ import androidx.compose.ui.Modifier
 fun LevelGoalImage(levelGoal: LevelGoal, scale: Float = 1f, modifier: Modifier = Modifier) {
     when (levelGoal) {
         is LevelGoal.CreateAtom -> PaletteAtom(levelGoal.element, modifier, levelGoal.electrons) // атом рисуем так же как и в палитре
-        is LevelGoal.CreateMolecule -> KnownMoleculePreview(levelGoal.id.details, scale = scale, modifier = modifier)
+        is LevelGoal.CreateMolecule -> KnownMoleculePreview(levelGoal.knownMoleculeId.details, scale = scale, modifier = modifier)
     }
 }

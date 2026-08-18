@@ -42,7 +42,7 @@ data class MoleculeEvent(val id: Long, val knownMoleculeId: KnownMoleculeId, val
 
 sealed interface PaletteItem {
     data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
-    data class KnownMolecule(val id: KnownMoleculeId) : PaletteItem
+    data class KnownMolecule(val knownMoleculeId: KnownMoleculeId) : PaletteItem
 }
 
 // Сколько электронов у частицы «по умолчанию»: у свободного электрона он свой, у остальных — нейтраль.
@@ -184,7 +184,7 @@ class World(
 
         val entity = when (item) {
             is PaletteItem.Atom -> spawnAtom(item.element, item.electrons, position)
-            is PaletteItem.KnownMolecule -> spawnKnownMolecule(item.id, position)
+            is PaletteItem.KnownMolecule -> spawnKnownMolecule(item.knownMoleculeId, position)
         } ?: return
         clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
     }

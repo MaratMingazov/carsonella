@@ -16,8 +16,8 @@ sealed interface LevelGoal {
     data class CreateAtom(val element: Element, val electrons: Int = neutralElectrons(element)) : LevelGoal {
         override val goalElementTitle get() = element.title
     }
-    data class CreateMolecule(val id: KnownMoleculeId) : LevelGoal {
-        override val goalElementTitle get() = id.title
+    data class CreateMolecule(val knownMoleculeId: KnownMoleculeId) : LevelGoal {
+        override val goalElementTitle get() = knownMoleculeId.title
     }
 }
 
@@ -26,7 +26,7 @@ sealed interface LevelGoal {
 //)
 
 /** Запись реестра для молекулярной цели: у неё есть имя, картинка и факт. У атомарной — нет. */
-val LevelGoal.knownMoleculeId: KnownMoleculeId? get() = (this as? LevelGoal.CreateMolecule)?.id
+val LevelGoal.knownMoleculeId: KnownMoleculeId? get() = (this as? LevelGoal.CreateMolecule)?.knownMoleculeId
 
 data class Level(
     val id: LevelId,
