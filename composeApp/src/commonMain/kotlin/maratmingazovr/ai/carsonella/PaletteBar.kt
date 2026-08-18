@@ -115,7 +115,7 @@ internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
     when (item) {
         is PaletteItem.Atom -> PaletteAtom(item.element, modifier, item.electrons)
         is PaletteItem.Known -> {
-            val knownMolecule = item.id.knownMoleculeDetails
+            val knownMolecule = item.id.details
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = 0.45f, modifier = modifier)
             else PaletteAtom(Element.PHOTON, modifier)   // раскладки нет — рисовать нечего, но слот не теряем
         }

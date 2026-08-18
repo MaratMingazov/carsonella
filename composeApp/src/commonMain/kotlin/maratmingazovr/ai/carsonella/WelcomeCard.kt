@@ -33,7 +33,7 @@ fun WelcomeCard(onStart: () -> Unit) {
             lineHeight = 24.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
         )
         // Вода как образец: её же игрок соберёт на третьем уровне.
-        KnownMoleculeId.WATER.knownMoleculeDetails.let { water ->
+        KnownMoleculeId.WATER.details.let { water ->
             Spacer(Modifier.height(24.dp))
             KnownMoleculePreview(water)
         }

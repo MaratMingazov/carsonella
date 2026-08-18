@@ -17,7 +17,7 @@ fun GoalPreview(goal: Goal, scale: Float = 1f, modifier: Modifier = Modifier) {
     when (goal) {
         is Goal.Atom -> PaletteAtom(goal.element, modifier, goal.electrons)
         is Goal.Molecule -> {
-            val knownMolecule = goal.id.knownMoleculeDetails
+            val knownMolecule = goal.id.details
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = scale, modifier = modifier)
             else Text(
                 knownMolecule.structuralFormula.ifEmpty { "?" },

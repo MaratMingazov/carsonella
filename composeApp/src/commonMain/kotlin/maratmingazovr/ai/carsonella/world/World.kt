@@ -200,7 +200,7 @@ class World(
 
     // Игрок перетащил известную молекулу на игровое поле. Нужно ее создать
     private fun spawnKnownMolecule(id: KnownMoleculeId, position: Position): Entity? {
-        val knownMolecule = id.knownMoleculeDetails
+        val knownMolecule = id.details
         val graph = knownMolecule.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
         val unitPx = graph.bonds.maxOf { bond ->

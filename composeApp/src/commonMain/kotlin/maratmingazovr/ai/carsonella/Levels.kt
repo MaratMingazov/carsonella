@@ -26,7 +26,7 @@ sealed interface Goal {
 }
 
 /** Запись реестра для молекулярной цели: у неё есть имя, картинка и факт. У атомарной — нет. */
-val Goal.known: KnownMoleculeDetails? get() = (this as? Goal.Molecule)?.id?.knownMoleculeDetails
+val Goal.known: KnownMoleculeDetails? get() = (this as? Goal.Molecule)?.id?.details
 
 data class Level(
     val id: LevelId,
