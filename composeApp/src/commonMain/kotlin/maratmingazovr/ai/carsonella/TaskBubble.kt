@@ -53,7 +53,7 @@ fun TaskBubble(level: Level, modifier: Modifier = Modifier) {
                 lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(12.dp))
-            GoalPreview(level.levelGoal, scale = 0.6f)
+            LevelGoalImage(level.levelGoal, scale = 0.6f)
         }
         HintArrow()
     }

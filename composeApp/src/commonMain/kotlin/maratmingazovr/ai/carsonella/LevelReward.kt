@@ -9,44 +9,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
-/**
- * Награда за уровень модальным окном: что получилось, эталонная картинка и факт из реестра. Дальше
- * игрок идёт сам — по кнопке, а не по таймеру.
- *
- * Формулировка нейтральная («получена молекула»), потому что рост эмёрджентный: молекула могла
- * собраться и без игрока, и врать об авторстве нельзя.
- */
+
+// Когда игрок успешно проходит уровень, то появляется модальное окно с поздравлением
 @Composable
 fun LevelReward(level: Level, onNext: () -> Unit) {
-    val knownMoleculeId = level.levelGoal.knownMoleculeId
     ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
-        // У атомарной цели имени в реестре нет, поэтому подпись говорит «получен атом», а вместо имени
-        // стоит сам кружок с символом — он одинаково читается на обоих языках.
+        Spacer(Modifier.height(12.dp))
         Text(
-            text(if (knownMoleculeId != null) UiString.REWARD_CAPTION else UiString.REWARD_CAPTION_ATOM),
-            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 13.sp,
-            letterSpacing = 0.2.em, color = Color(0xFFB0B0B0),
+            text(level.levelGoal.goalElementTitle),
+            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
+            color = Color.Black, textAlign = TextAlign.Center,
         )
-        if (knownMoleculeId != null) {
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text(knownMoleculeId.title),
-                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
-                color = Color.Black, textAlign = TextAlign.Center,
-            )
-        }
+
         Spacer(Modifier.height(20.dp))
-        GoalPreview(level.levelGoal)
-        // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
-        // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
-        val fact = text(level.rewardText)
-        if (!fact.isNullOrEmpty()) {
+        LevelGoalImage(level.levelGoal)
+        val levelRewardText = text(level.rewardText)
+        if (levelRewardText.isNotEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(
-                fact,
+                levelRewardText,
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 16.sp,
                 lineHeight = 23.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
             )

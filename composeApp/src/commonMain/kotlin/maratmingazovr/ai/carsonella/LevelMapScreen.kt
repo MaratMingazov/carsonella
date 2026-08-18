@@ -128,18 +128,16 @@ private fun LevelCard(level: Level, state: LevelStatus) {
             .padding(horizontal = 12.dp, vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val levelDescription = level.taskDescription
         when (state) {
             LevelStatus.OPEN -> {
-                GoalPreview(level.levelGoal, scale = 0.5f)
+                LevelGoalImage(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
                 CardText(text(level.taskDescription), TEXT_COLOR, 13.sp)
             }
             LevelStatus.DONE -> {
-                GoalPreview(level.levelGoal, scale = 0.5f)
+                LevelGoalImage(level.levelGoal, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
                 Spacer(Modifier.height(10.dp))
-                // У атомарной цели имени в реестре нет — тогда карточка обходится символом на кружке.
-                level.levelGoal.knownMoleculeId?.let { CardText(text(it.title), TEXT_COLOR, 15.sp) }
+                CardText(text(level.levelGoal.goalElementTitle), TEXT_COLOR, 15.sp) // пишем название этой молекулы или атома
             }
             LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
         }

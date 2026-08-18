@@ -70,8 +70,8 @@ fun GameScreen(
         // У молекулы событие есть, у атома нет — его ищем среди живых частиц. Заряд в условии значим:
         // протон это тот же HYDROGEN, и без проверки электронов задание закрылось бы сразу.
         when (val goal = current.levelGoal) {
-            is LevelGoal.CreatedMolecule -> snapshotFlow { world.moleculeEvents.any { it.knownMoleculeId == goal.id } }
-            is LevelGoal.CreatedAtom -> snapshotFlow {
+            is LevelGoal.CreateMolecule -> snapshotFlow { world.moleculeEvents.any { it.knownMoleculeId == goal.id } }
+            is LevelGoal.CreateAtom -> snapshotFlow {
                 world.entities.any { it is Atom && it.alive && it.element == goal.element && it.electrons == goal.electrons }
             }
         }.first { it }
