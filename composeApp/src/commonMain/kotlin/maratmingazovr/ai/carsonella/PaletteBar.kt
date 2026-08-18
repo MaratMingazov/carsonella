@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.PaletteSlot
 import maratmingazovr.ai.carsonella.world.neutralElectrons
@@ -116,7 +115,7 @@ internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
     when (item) {
         is PaletteItem.Atom -> PaletteAtom(item.element, modifier, item.electrons)
         is PaletteItem.Known -> {
-            val knownMolecule = MoleculeRegistry.knownMoleculeById(item.id)
+            val knownMolecule = item.id.knownMoleculeDetails
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = 0.45f, modifier = modifier)
             else PaletteAtom(Element.PHOTON, modifier)   // раскладки нет — рисовать нечего, но слот не теряем
         }

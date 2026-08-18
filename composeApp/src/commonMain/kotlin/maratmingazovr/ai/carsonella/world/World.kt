@@ -20,9 +20,8 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.DEFAULT_PHOTON_ENERGY_EV
@@ -40,7 +39,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
-data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: Position)
+data class MoleculeEvent(val id: Long, val known: KnownMoleculeDetails, val position: Position)
 
 sealed interface PaletteItem {
     data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
@@ -201,7 +200,7 @@ class World(
 
     // Игрок перетащил известную молекулу на игровое поле. Нужно ее создать
     private fun spawnKnownMolecule(id: KnownMoleculeId, position: Position): Entity? {
-        val knownMolecule = MoleculeRegistry.knownMoleculeById(id)
+        val knownMolecule = id.knownMoleculeDetails
         val graph = knownMolecule.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
         val unitPx = graph.bonds.maxOf { bond ->

@@ -8,7 +8,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-data class KnownMolecule(
+data class KnownMoleculeDetails(
     val id: KnownMoleculeId,  // Ключ и он же имена на оба языка
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
@@ -96,7 +96,7 @@ object MoleculeRegistry {
         val ethanol = ethyl.attach(hydroxyl); known(ethanol, KnownMoleculeId.ETHANOL, "CH₃–CH₂–OH")
     }
 
-    private val byCanonical: Map<String, KnownMolecule> = run {
+    private val byCanonical: Map<String, KnownMoleculeDetails> = run {
         val nameless = entries.filter { it.graph.canonical.isEmpty() }
         require(nameless.isEmpty()) { "Записи реестра без канона (тяжёлых атомов больше потолка): ${nameless.map { it.id }}" }
         val byKey = entries.associateBy { it.graph.canonical }
@@ -111,10 +111,10 @@ object MoleculeRegistry {
         byKey
     }
 
-    private val knownById: Map<KnownMoleculeId, KnownMolecule> = entries.associateBy { it.id }
+    private val knownById: Map<KnownMoleculeId, KnownMoleculeDetails> = entries.associateBy { it.id }
 
-    fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical] // Известная молекула по её каноническому ключу
-    fun knownMoleculeById(id: KnownMoleculeId): KnownMolecule = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
+    fun lookup(canonical: String): KnownMoleculeDetails? = byCanonical[canonical] // Известная молекула по её каноническому ключу
+    fun knownMoleculeById(id: KnownMoleculeId): KnownMoleculeDetails = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
 }
 
 
@@ -133,18 +133,18 @@ private fun MoleculeGraph.closeChain(): MoleculeGraph {
 } // Замкнуть цепочку саму на себя. Свободных концов ровно два, поэтому указывать нечего.
 
 private class RegistryBuilder {
-    val entries = mutableListOf<KnownMolecule>()
+    val entries = mutableListOf<KnownMoleculeDetails>()
     fun known(
         graph: MoleculeGraph,
         id: KnownMoleculeId,
         structuralFormula: String = "",
         offsets: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
-        entries += KnownMolecule(id, graph, structuralFormula, offsets = offsets)
+        entries += KnownMoleculeDetails(id, graph, structuralFormula, offsets = offsets)
         return graph
     }
 }
-private fun registry(build: RegistryBuilder.() -> Unit): List<KnownMolecule> = RegistryBuilder().apply(build).entries.toList()
+private fun registry(build: RegistryBuilder.() -> Unit): List<KnownMoleculeDetails> = RegistryBuilder().apply(build).entries.toList()
 
 // Хелперы раскладки. Единицы — доли длины связи, ось y вниз (как на экране).
 private fun at(vararg offsets: Pair<Int, Vec2D>): Map<Int, Vec2D> = mapOf(*offsets)

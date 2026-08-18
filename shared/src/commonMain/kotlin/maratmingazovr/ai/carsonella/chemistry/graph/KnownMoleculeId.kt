@@ -79,4 +79,5 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
     ;
 
     fun name(lang: Lang): String = title.of(lang)
+    val knownMoleculeDetails: KnownMoleculeDetails get() = MoleculeRegistry.knownMoleculeById(this)
 }

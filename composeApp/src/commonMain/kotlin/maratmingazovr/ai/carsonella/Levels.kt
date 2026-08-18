@@ -1,8 +1,7 @@
 package maratmingazovr.ai.carsonella
 
 import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.neutralElectrons
 
@@ -27,7 +26,7 @@ sealed interface Goal {
 }
 
 /** Запись реестра для молекулярной цели: у неё есть имя, картинка и факт. У атомарной — нет. */
-val Goal.known: KnownMolecule? get() = (this as? Goal.Molecule)?.let { MoleculeRegistry.knownMoleculeById(it.id) }
+val Goal.known: KnownMoleculeDetails? get() = (this as? Goal.Molecule)?.id?.knownMoleculeDetails
 
 data class Level(
     val id: LevelId,
