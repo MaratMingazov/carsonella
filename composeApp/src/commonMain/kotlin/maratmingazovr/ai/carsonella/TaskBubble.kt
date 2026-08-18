@@ -48,12 +48,12 @@ fun TaskBubble(level: Level, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                level.task.of(LocalLang.current),
+                level.taskDescription.of(LocalLang.current),
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
                 lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(12.dp))
-            GoalPreview(level.goal, scale = 0.6f)
+            GoalPreview(level.levelGoal, scale = 0.6f)
         }
         HintArrow()
     }

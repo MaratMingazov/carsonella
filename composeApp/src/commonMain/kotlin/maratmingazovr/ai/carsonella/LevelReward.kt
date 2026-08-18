@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun LevelReward(level: Level, onNext: () -> Unit) {
-    val known = level.goal.known
+    val known = level.levelGoal.known
     ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
         // У атомарной цели имени в реестре нет, поэтому подпись говорит «получен атом», а вместо имени
         // стоит сам кружок с символом — он одинаково читается на обоих языках.
@@ -39,7 +39,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
             )
         }
         Spacer(Modifier.height(20.dp))
-        GoalPreview(level.goal)
+        GoalPreview(level.levelGoal)
         // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
         // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
         val fact = (level.rewardText ?: known?.description)?.of(LocalLang.current)

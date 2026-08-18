@@ -48,7 +48,7 @@ private val LOCKED_COLOR = Color(0xFFD8D8D8)
 
 // * Карта заданий: узлы — задания, слой — глубина по зависимостям. Руками не рисуется: и узлы, и слои выводятся из [LEVELS], поэтому карта показывает ровно то, что игра и запустит.
 @Composable
-fun LevelMapScreen(completed: Set<LevelId>, onBack: () -> Unit) {
+fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
     val layers = remember { levelLayers() }
 
     Box(
@@ -88,7 +88,7 @@ fun LevelMapScreen(completed: Set<LevelId>, onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        layer.forEach { level -> LevelCard(level, stateOf(level, completed)) }
+                        layer.forEach { level -> LevelCard(level, stateOf(level, playerState.progress.completedLevels)) }
                     }
                 }
             }
@@ -96,12 +96,12 @@ fun LevelMapScreen(completed: Set<LevelId>, onBack: () -> Unit) {
     }
 }
 
-private enum class NodeState { DONE, OPEN, LOCKED }
+private enum class LevelStatus { DONE, OPEN, LOCKED }
 
-private fun stateOf(level: Level, completed: Set<LevelId>): NodeState = when {
-    level.id in completed -> NodeState.DONE
-    completed.containsAll(level.requires) -> NodeState.OPEN
-    else -> NodeState.LOCKED
+private fun stateOf(level: Level, completed: Set<LevelId>): LevelStatus = when {
+    level.id in completed -> LevelStatus.DONE
+    completed.containsAll(level.requires) -> LevelStatus.OPEN
+    else -> LevelStatus.LOCKED
 }
 
 // Слои: задание без зависимостей стоит в нулевом, остальные — на шаг правее самой глубокой зависимости.
@@ -115,10 +115,11 @@ private fun levelLayers(): List<List<Level>> {
     return byDepth.keys.sorted().map { byDepth.getValue(it) }
 }
 
+// это как мы рисуем карточку уровня на карте
 @Composable
-private fun LevelCard(level: Level, state: NodeState) {
+private fun LevelCard(level: Level, state: LevelStatus) {
     val shape = RoundedCornerShape(12.dp)
-    val done = state == NodeState.DONE
+    val done = state == LevelStatus.DONE
     Column(
         Modifier
             .width(CARD_WIDTH)
@@ -128,18 +129,18 @@ private fun LevelCard(level: Level, state: NodeState) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         when (state) {
-            NodeState.DONE -> {
-                GoalPreview(level.goal, scale = 0.5f)
+            LevelStatus.DONE -> {
+                GoalPreview(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
                 // У атомарной цели имени в реестре нет — тогда карточка обходится символом на кружке.
-                level.goal.known?.let { CardText(it.name(LocalLang.current), TEXT_COLOR, 15.sp) }
+                level.levelGoal.known?.let { CardText(it.name(LocalLang.current), TEXT_COLOR, 15.sp) }
             }
-            NodeState.OPEN -> {
-                GoalPreview(level.goal, scale = 0.5f)
+            LevelStatus.OPEN -> {
+                GoalPreview(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
-                CardText(level.task.of(LocalLang.current), TEXT_COLOR, 13.sp)
+                CardText(level.taskDescription.of(LocalLang.current), TEXT_COLOR, 13.sp)
             }
-            NodeState.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
+            LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
         }
     }
 }

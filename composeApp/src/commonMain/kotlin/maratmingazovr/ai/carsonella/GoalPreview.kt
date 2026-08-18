@@ -13,11 +13,11 @@ import androidx.compose.ui.unit.sp
  * на канве. Один вид на три места: задание в пузыре, награда, карточка на карте.
  */
 @Composable
-fun GoalPreview(goal: Goal, scale: Float = 1f, modifier: Modifier = Modifier) {
-    when (goal) {
-        is Goal.Atom -> PaletteAtom(goal.element, modifier, goal.electrons)
-        is Goal.Molecule -> {
-            val knownMolecule = goal.id.details
+fun GoalPreview(levelGoal: LevelGoal, scale: Float = 1f, modifier: Modifier = Modifier) {
+    when (levelGoal) {
+        is LevelGoal.Atom -> PaletteAtom(levelGoal.element, modifier, levelGoal.electrons)
+        is LevelGoal.Molecule -> {
+            val knownMolecule = levelGoal.id.details
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = scale, modifier = modifier)
             else Text(
                 knownMolecule.structuralFormula.ifEmpty { "?" },
