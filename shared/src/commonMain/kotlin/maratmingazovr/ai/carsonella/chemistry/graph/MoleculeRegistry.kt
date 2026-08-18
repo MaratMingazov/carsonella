@@ -12,10 +12,10 @@ data class KnownMolecule(
     val id: KnownMoleculeId,  // Ключ и он же имена на оба языка
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
-    val translatedText: TranslatedText? = null,
     val offsets: Map<Int, Vec2D> = emptyMap(), // эталонное расположение атомов
 ) {
     fun name(lang: Lang): String = id.name(lang)
+    val description: TranslatedText? get() = id.description
 }
 
 private val H = MoleculeGraph(listOf(AtomNode(0, Element.HYDROGEN)), emptyList())
@@ -140,7 +140,7 @@ private class RegistryBuilder {
         structuralFormula: String = "",
         offsets: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
-        entries += KnownMolecule(id, graph, structuralFormula, MOLECULE_FACTS[id], offsets = offsets)
+        entries += KnownMolecule(id, graph, structuralFormula, offsets = offsets)
         return graph
     }
 }
