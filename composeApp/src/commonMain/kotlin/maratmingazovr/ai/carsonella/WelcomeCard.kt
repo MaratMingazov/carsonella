@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 private const val WELCOME_TEXT =
     "Это исследовательская игра, в которой мы будем из простых атомов строить сложные молекулы и структуры. " +
     "Мы начнём с нескольких обучающих раундов, чтобы понять механику игры. " +
@@ -34,7 +34,7 @@ fun WelcomeCard(onStart: () -> Unit) {
             lineHeight = 24.sp, color = Color(0xFF8A8A8A), textAlign = TextAlign.Center,
         )
         // Вода как образец: её же игрок соберёт на третьем уровне.
-        MoleculeRegistry.picture(MoleculeId.WATER)?.let { water ->
+        MoleculeRegistry.picture(KnownMoleculeId.WATER)?.let { water ->
             Spacer(Modifier.height(24.dp))
             MoleculePicturePreview(water)
         }

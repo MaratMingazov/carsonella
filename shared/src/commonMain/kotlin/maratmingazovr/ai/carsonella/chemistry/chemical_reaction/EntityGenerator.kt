@@ -85,7 +85,7 @@ class EntityGenerator(
         environment,
     )
 
-    // Общая для обоих путей прописка новорождённой в мире: список, среда, соседи, канал реакций, лог.
+
     private fun register(entity: Entity, environment: IEnvironment): Entity {
         entity.apply {
             entities.add(this)
@@ -100,5 +100,5 @@ class EntityGenerator(
         }
         environment.addEnvChild(entity)
         return entity
-    }
+    } // После создания атома/молекулы нужно прописать им доп свойства
 }

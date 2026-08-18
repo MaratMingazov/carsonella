@@ -1,6 +1,6 @@
 package maratmingazovr.ai.carsonella
 
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 
 data class PlayerState(
     val settings: Settings = Settings(),
@@ -12,10 +12,10 @@ data class Settings(
 )
 
 data class Progress(
-    val discovered: Set<MoleculeId> = emptySet(),   // журнал открытий: что игрок получал хоть раз
+    val discovered: Set<KnownMoleculeId> = emptySet(),   // журнал открытий: что игрок получал хоть раз
     val completed: Set<LevelId> = emptySet(),       // пройденные цели; текущая — первая непройденная
 ) {
-    fun discover(id: MoleculeId): Progress =
+    fun discover(id: KnownMoleculeId): Progress =
         if (id in discovered) this else copy(discovered = discovered + id)
 
     fun complete(id: LevelId): Progress =

@@ -2,16 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Lang
 
-/**
- * Известная молекула как КЛЮЧ и как имя. Ключом её адресуют уровни, палитра и картинки; имена лежат
- * рядом, оба языка на одной строке — пропуск или расхождение видно глазом.
- *
- * Почему перечисление, а не строка: цель уровня и содержимое палитры проверяются компилятором. Со
- * строкой опечатка стреляла в рантайме («в реестре нет записи»), теперь она не собирается. Реестр
- * обязан покрыть КАЖДУЮ константу — это проверяется при инициализации, поэтому [MoleculeRegistry.byId]
- * не возвращает null.
- */
-enum class MoleculeId(val ru: String, val en: String) {
+enum class KnownMoleculeId(val ru: String, val en: String) {
     DIHYDROGEN       ("Водород", "Dihydrogen"),
     DIOXYGEN         ("Кислород", "Dioxygen"),
     DINITROGEN       ("Азот", "Dinitrogen"),

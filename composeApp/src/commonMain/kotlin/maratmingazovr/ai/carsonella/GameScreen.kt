@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 import maratmingazovr.ai.carsonella.world.World
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 
@@ -34,7 +34,7 @@ import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 @Composable
 fun GameScreen(
     completed: Set<LevelId>,
-    onDiscover: (MoleculeId) -> Unit,
+    onDiscover: (KnownMoleculeId) -> Unit,
     onComplete: (LevelId) -> Unit,
     onExit: () -> Unit,
 ) {
