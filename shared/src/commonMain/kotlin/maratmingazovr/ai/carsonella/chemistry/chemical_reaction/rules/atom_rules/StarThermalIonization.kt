@@ -59,7 +59,7 @@ class StarThermalIonization(
         return ReactionOutcome(
             updateState = listOf(StateUpdate(atom) { atom.electrons = electrons - 1; atom.energy = 0f }),
             spawn = listOf {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     Element.ELECTRON,
                     electronPosition,
                     randomDirection(entityGenerator.random),

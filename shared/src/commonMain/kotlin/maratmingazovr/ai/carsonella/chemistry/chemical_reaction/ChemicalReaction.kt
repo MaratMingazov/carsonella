@@ -48,7 +48,7 @@ interface IEntityGenerator {
     val random: Random
 
     /** Атом, частица или звезда — по элементу. Какой класс строить, решает генератор. */
-    fun createEntity(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
+    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
 
     fun createMolecule(shape: MoleculeShape, energy: Float, environment: IEnvironment, electrons: Int): Entity
     fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity

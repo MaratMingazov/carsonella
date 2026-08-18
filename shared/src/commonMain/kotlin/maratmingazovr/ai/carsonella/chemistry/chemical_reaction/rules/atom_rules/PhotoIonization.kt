@@ -112,7 +112,7 @@ class PhotoIonization (
                     atom.energy = 0f
                 }),
                 spawn = listOf {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         ELECTRON,
                         electronPosition,
                         electronDirection,

@@ -57,7 +57,7 @@ class BetaMinusDecay(
             consumed = listOf(parent),
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         childElement,
                         parentPosition,
                         parent.kinematics.direction,
@@ -68,7 +68,7 @@ class BetaMinusDecay(
                     )
                 },
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         ELECTRON,
                         Position(parentPosition.x + parentRadius, parentPosition.y),
                         randomDirection(entityGenerator.random),

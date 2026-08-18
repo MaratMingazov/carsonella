@@ -70,7 +70,7 @@ class StarEmission (
             val resultElement =  if (!chance(0.5f, entityGenerator.random))  Element.HYDROGEN else Element.ELECTRON
             return ReactionOutcome(
                 spawn = listOf {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         resultElement,
                         star.kinematics.position,
                         randomDirection(entityGenerator.random),

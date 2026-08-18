@@ -131,7 +131,7 @@ class StarProtonCaptureReaction(
                     consumed = listOf(a1, a2),
                     spawn = listOf(
                         {
-                            entityGenerator.createEntity(
+                            entityGenerator.createAtom(
                                 resultElement,
                                 resultPosition,
                                 direction,
@@ -142,7 +142,7 @@ class StarProtonCaptureReaction(
                             )
                         },
                         {
-                            entityGenerator.createEntity(
+                            entityGenerator.createAtom(
                                 PHOTON,
                                 Position(
                                     resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
@@ -164,7 +164,7 @@ class StarProtonCaptureReaction(
                 val shakeOff = parentElectrons - resultElectrons
                 val spawnList = mutableListOf<() -> Entity>()
                 spawnList += {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         resultElement,
                         resultPosition,
                         direction,
@@ -176,7 +176,7 @@ class StarProtonCaptureReaction(
                 }
                 spawnList += {
                     // Испущенная α — голое ядро ⁴He²⁺ (electrons = 0).
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         HELIUM_4,
                         Position(
                             resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
@@ -191,7 +191,7 @@ class StarProtonCaptureReaction(
                 }
                 repeat(shakeOff) {
                     spawnList += {
-                        entityGenerator.createEntity(
+                        entityGenerator.createAtom(
                             ELECTRON,
                             Position(resultPosition.x, resultPosition.y + resultElement.details.radius),
                             randomDirection(entityGenerator.random),
@@ -214,7 +214,7 @@ class StarProtonCaptureReaction(
                     consumed = listOf(a1, a2),
                     spawn = listOf(
                         {
-                            entityGenerator.createEntity(
+                            entityGenerator.createAtom(
                                 resultElement,
                                 resultPosition,
                                 direction,
@@ -226,7 +226,7 @@ class StarProtonCaptureReaction(
                         },
                         {
                             // Нейтрон-отдача по направлению СМ (impulse-split не моделируется).
-                            entityGenerator.createEntity(
+                            entityGenerator.createAtom(
                                 NEUTRON,
                                 Position(
                                     resultPosition.x + 1.5f * direction.x * resultElement.details.radius,

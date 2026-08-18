@@ -93,7 +93,7 @@ abstract class MoleculeReactionRule : ReactionRule {
                 val atom = frag.atoms.single()
                 val kinematics = atom.kinematics
                 val kineticVelocity = kinematics.velocity + KINETIC_VELOCITY_PER_EV * energyPerFragment
-                return@map { generator.createEntity(atom.isotope, kinematics.position, kinematics.direction, kineticVelocity, 0f, env, electrons) }
+                return@map { generator.createAtom(atom.isotope, kinematics.position, kinematics.direction, kineticVelocity, 0f, env, electrons) }
             } else {
                 return@map { generator.createMolecule(frag, energyPerFragment, env, electrons) }
             }

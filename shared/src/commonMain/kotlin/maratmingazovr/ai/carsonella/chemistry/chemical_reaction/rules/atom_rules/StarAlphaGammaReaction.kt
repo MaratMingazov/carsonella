@@ -70,7 +70,7 @@ class StarAlphaGammaReaction(
             // с двумя createEntity наружу вернулась бы только вторая сущность.
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         resultElement,
                         resultPosition,
                         direction,
@@ -81,7 +81,7 @@ class StarAlphaGammaReaction(
                     )
                 },
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         Element.PHOTON,
                         Position(
                             resultPosition.x + 1.5f * direction.x * resultElement.details.radius,

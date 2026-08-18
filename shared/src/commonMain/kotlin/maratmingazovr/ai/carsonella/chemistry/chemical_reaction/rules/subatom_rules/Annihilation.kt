@@ -83,7 +83,7 @@ class Annihilation(
             consumed = listOf(positronEntity, electronEntity),
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         Element.PHOTON,
                         Position(
                             centerPosition.x + photonDirection.x * photonRadius,
@@ -97,7 +97,7 @@ class Annihilation(
                     )
                 },
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         Element.PHOTON,
                         Position(
                             centerPosition.x + oppositeDirection.x * photonRadius,

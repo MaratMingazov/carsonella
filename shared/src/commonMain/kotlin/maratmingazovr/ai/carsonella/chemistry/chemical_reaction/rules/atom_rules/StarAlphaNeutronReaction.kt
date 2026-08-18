@@ -78,7 +78,7 @@ class StarAlphaNeutronReaction(
             consumed = listOf(atom1, atom2),
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         resultElement,
                         resultPosition,
                         direction,
@@ -91,7 +91,7 @@ class StarAlphaNeutronReaction(
                 {
                     // Нейтрон-отдача вылетает по направлению движения СМ (impulse-splitting в проекте
                     // не моделируется — см. StarPPChain / AlphaProtonReaction).
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         Element.NEUTRON,
                         Position(
                             resultPosition.x + 1.5f * direction.x * resultElement.details.radius,

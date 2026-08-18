@@ -78,7 +78,7 @@ class RecombinationReaction(
                 atom1.energy = 0f
             }),
             spawn = listOf {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     Element.PHOTON,
                     Position(
                         resultPosition.x + 1.5f * direction.x * radius,

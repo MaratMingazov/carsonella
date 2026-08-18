@@ -86,7 +86,7 @@ class StarNeutronAlphaReaction(
 
         val spawnList = mutableListOf<() -> Entity>()
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 resultElement,
                 resultPosition,
                 direction,
@@ -100,7 +100,7 @@ class StarNeutronAlphaReaction(
             // α-отдача вылетает по направлению движения СМ — отдельный degree of
             // freedom импульса между продуктами в проекте не моделируется (см. StarPPChain).
             // Испущенная α — голое ядро ⁴He²⁺ (electrons = 0).
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 HELIUM_4,
                 Position(
                     resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
@@ -115,7 +115,7 @@ class StarNeutronAlphaReaction(
         }
         repeat(shakeOff) {
             spawnList += {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     ELECTRON,
                     Position(resultPosition.x, resultPosition.y + resultElement.details.radius),
                     randomDirection(entityGenerator.random),

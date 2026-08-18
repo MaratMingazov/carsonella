@@ -24,10 +24,10 @@ class EntityGenerator(
     override val random: Random,
 ) : IEntityGenerator {
 
-    override fun createEntity(
+    override fun createAtom(
         element: Element, position: Position, direction: Vec2D,
         velocity: Float, energy: Float, environment: IEnvironment, electrons: Int,
-    ): Entity = createEntityWithId(idGen.nextId(), element, position, direction, velocity, energy, environment, electrons)
+    ): Entity = createAtomWithId(idGen.nextId(), element, position, direction, velocity, energy, environment, electrons)
 
     override fun createMolecule(
         shape: MoleculeShape, energy: Float, environment: IEnvironment, electrons: Int,
@@ -66,14 +66,7 @@ class EntityGenerator(
         environment,
     )
 
-    /**
-     * То же, что createEntity, но с заранее заданным id вместо idGen.nextId().
-     * Нужно при загрузке сохранения: id должны совпасть с сохранёнными, чтобы корректно
-     * восстановить дерево среды (parentId ссылается на id родителя).
-     *
-     * Только по элементу: в сейвах молекулы не восстанавливаются (там формула, не граф).
-     */
-    fun createEntityWithId(
+    fun createAtomWithId(
         id: Long,
         element: Element,
         position: Position,

@@ -51,7 +51,7 @@ class AlphaDecay(
             consumed = listOf(parent),
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         childElement,
                         parentPosition,
                         parent.kinematics.direction,
@@ -63,7 +63,7 @@ class AlphaDecay(
                 },
                 {
                     // α-частица — голое ядро ⁴He²⁺ (electrons = 0)
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         HELIUM_4,
                         Position(parentPosition.x + parentRadius, parentPosition.y),
                         randomDirection(entityGenerator.random),

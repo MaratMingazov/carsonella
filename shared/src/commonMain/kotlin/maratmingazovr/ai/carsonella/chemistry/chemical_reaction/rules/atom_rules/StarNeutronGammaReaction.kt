@@ -82,7 +82,7 @@ class StarNeutronGammaReaction(
             consumed = listOf(atom1, atom2),
             spawn = listOf(
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         resultElement,
                         resultPosition,
                         direction,
@@ -93,7 +93,7 @@ class StarNeutronGammaReaction(
                     )
                 },
                 {
-                    entityGenerator.createEntity(
+                    entityGenerator.createAtom(
                         Element.PHOTON,
                         Position(
                             resultPosition.x + 1.5f * direction.x * resultElement.details.radius,

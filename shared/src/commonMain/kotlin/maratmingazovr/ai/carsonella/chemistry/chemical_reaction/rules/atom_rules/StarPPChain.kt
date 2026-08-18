@@ -123,7 +123,7 @@ class StarPPChain(
         val spawnList = mutableListOf<() -> Entity>()
 
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 result,
                 resultPosition,
                 direction,
@@ -138,7 +138,7 @@ class StarPPChain(
         extras.forEachIndexed { index, extra ->
             val offsetSign = if (index % 2 == 0) 1f else -1f
             spawnList += {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     extra,
                     Position(resultPosition.x + offsetSign * 1.5f * direction.x * resultRadius, resultPosition.y),
                     direction,
@@ -153,7 +153,7 @@ class StarPPChain(
         // На каждом шаге pp-цепочки выделяется фотон ~1000 эВ
         val resultPhotonEnergy = 1000f
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 PHOTON,
                 Position(
                     resultPosition.x + 1.5f * direction.x * resultRadius,

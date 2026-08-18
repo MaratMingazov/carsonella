@@ -58,7 +58,7 @@ class BetaPlusDecay(
 
         val spawnList = mutableListOf<() -> Entity>()
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 childElement,
                 parentPosition,
                 parent.kinematics.direction,
@@ -69,7 +69,7 @@ class BetaPlusDecay(
             )
         }
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 POSITRON,
                 Position(parentPosition.x + parentRadius, parentPosition.y),
                 randomDirection(entityGenerator.random),
@@ -81,7 +81,7 @@ class BetaPlusDecay(
         }
         repeat(shakeOff) {
             spawnList += {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     ELECTRON,
                     Position(parentPosition.x - parentRadius, parentPosition.y),
                     randomDirection(entityGenerator.random),

@@ -68,7 +68,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
         return ReactionOutcome(
             updateState = listOf(StateUpdate(molecule) { molecule.energy = 0f }),
             spawn = listOf {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     Element.PHOTON,
                     photon.position,
                     photon.direction,

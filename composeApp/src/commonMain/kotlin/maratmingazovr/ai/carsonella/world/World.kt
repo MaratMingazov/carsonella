@@ -42,13 +42,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeId
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
 data class MoleculeEvent(val id: Long, val known: KnownMolecule, val position: Position)
 
-/**
- * Что лежит в палитре: отдельный элемент или готовая молекула из реестра. Молекулы нужны там, где
- * уровень выдаёт заготовку («разбери перекись»), и позже — для разблокированных блоков-радикалов.
- */
 sealed interface PaletteItem {
-    // Заряд — часть слота: голый протон это HYDROGEN с нулём электронов, и он обязан быть отдельным
-    // слотом от нейтрального водорода (иначе рекомбинация вернула бы протон водородом и наоборот).
     data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
     data class Known(val id: MoleculeId) : PaletteItem
 }
@@ -56,8 +50,7 @@ sealed interface PaletteItem {
 // Сколько электронов у частицы «по умолчанию»: у свободного электрона он свой, у остальных — нейтраль.
 fun neutralElectrons(element: Element): Int = if (element == Element.ELECTRON) 1 else element.details.p
 
-/** Слот палитры: что игрок может взять и сколько этого осталось на уровне. */
-data class PaletteSlot(val item: PaletteItem, val count: Int)
+data class PaletteSlot(val item: PaletteItem, val count: Int) // Слот палитры: что игрок может взять и сколько этого осталось на уровне.
 
 // Отступ границ мира от края канвы: радиус самого крупного атома плюс запас на валентные слоты.
 private const val EDGE_INSET = 34f
@@ -200,7 +193,7 @@ class World(
 
     private fun spawnAtom(element: Element, electrons: Int, position: Position): Entity {
         val energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
-        return entityGenerator.createEntity(
+        return entityGenerator.createAtom(
             element = element, position = position, direction = randomDirection(random),
             velocity = 0f, energy = energy, environment = environment, electrons = electrons,
         )
@@ -449,7 +442,7 @@ class World(
                 logs += "${currentTime()}: load: неизвестный элемент ${e.element}, пропущен"
                 return@forEach
             }
-            byId[e.id] = entityGenerator.createEntityWithId(
+            byId[e.id] = entityGenerator.createAtomWithId(
                 id = e.id,
                 element = element,
                 position = Position(e.x, e.y),

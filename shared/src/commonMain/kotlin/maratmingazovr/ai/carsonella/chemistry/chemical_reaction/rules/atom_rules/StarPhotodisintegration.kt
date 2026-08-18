@@ -105,7 +105,7 @@ class StarPhotodisintegration(
 
         val spawnList = mutableListOf<() -> Entity>()
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 parent, position, direction,
                 // Излишек фотона (leftover) — в КИНЕТИКУ продукта, а не во внутреннюю energy: энергия атома
                 // квантована (только уровни, инвариант Atom). Продукт рождается в основном состоянии (energy = 0).
@@ -116,7 +116,7 @@ class StarPhotodisintegration(
             )
         }
         spawnList += {
-            entityGenerator.createEntity(
+            entityGenerator.createAtom(
                 ejected,
                 Position(position.x + 1.5f * direction.x * radius, position.y + 1.5f * direction.y * radius),
                 direction, 20f, energy = 0f, environment = a.getEnvironment(),
@@ -125,7 +125,7 @@ class StarPhotodisintegration(
         }
         repeat(shakeOff) {
             spawnList += {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     ELECTRON, Position(position.x, position.y + radius),
                     randomDirection(entityGenerator.random), 20f, energy = 0f, environment = a.getEnvironment(),
                     electrons = 1,

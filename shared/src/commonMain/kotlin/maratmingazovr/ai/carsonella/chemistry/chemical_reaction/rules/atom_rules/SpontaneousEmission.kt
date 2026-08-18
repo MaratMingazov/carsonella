@@ -69,7 +69,7 @@ class SpontaneousEmission(
             // уровня из таблицы, чтобы не накапливался float-дрейф и contains() не падал на следующем тике.
             updateState = listOf(StateUpdate(entity) { entity.energy = targetEnergy }),
             spawn = listOf {
-                entityGenerator.createEntity(
+                entityGenerator.createAtom(
                     Element.PHOTON,
                     photonPosition,
                     photonDirection,

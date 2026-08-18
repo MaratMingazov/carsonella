@@ -73,7 +73,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
                 molecule.energy = 0f
             }),
             spawn = listOf {
-                entityGenerator.createEntity(ELECTRON, electronPosition, electronDirection, electronVelocity, 0f, env, electrons = 1)
+                entityGenerator.createAtom(ELECTRON, electronPosition, electronDirection, electronVelocity, 0f, env, electrons = 1)
             },
         )
     }
