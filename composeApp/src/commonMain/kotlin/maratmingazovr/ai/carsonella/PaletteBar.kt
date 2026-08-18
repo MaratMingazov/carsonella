@@ -40,7 +40,6 @@ import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.PaletteSlot
 import maratmingazovr.ai.carsonella.world.neutralElectrons
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_FILL
-import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_RADIUS
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_SYMBOL
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
@@ -133,7 +132,7 @@ internal fun paletteAtomBoxDp(element: Element, electrons: Int = neutralElectron
 // Голый водород — это протон: мельче атома и со своим символом, как на канве (см. EntityRenderer).
 private fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
 private fun atomRadiusPx(element: Element, electrons: Int) =
-    if (isBareProton(element, electrons)) BARE_PROTON_RADIUS else element.details.radius
+    if (isBareProton(element, electrons)) Element.ELECTRON.details.radius else element.details.radius
 
 // Плоский кружок элемента — тот же вид, что у частицы на канве (заливка + чёрная обводка + символ),
 // но статично и без валентных слотов. Переиспользует ElementColors.fill / drawCenteredSymbol.
@@ -143,7 +142,7 @@ internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier, electr
     val bareProton = isBareProton(element, electrons)
     val fill = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
     val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
-    val radiusPx = atomRadiusPx(element, electrons)   // тот же радиус (px), что на канве: атомы 25f, субатомы 15f
+    val radiusPx = atomRadiusPx(element, electrons)
     val boxDp = paletteAtomBoxDp(element, electrons)
 
     // Наведение → обводка чуть толще (визуальный отклик палитры).

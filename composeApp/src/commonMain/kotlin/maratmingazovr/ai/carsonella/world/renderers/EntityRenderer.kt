@@ -27,7 +27,6 @@ internal const val SLOT_HZ = 1f / 15f  // вращение свободных с
 
 // Голый водород (H без электрона) — это протон, и рисуется он как протон, а не как атом: мелкий тёплый
 // кружок с «p». В модели отдельного протона нет, поэтому его вид живёт здесь литералами.
-internal const val BARE_PROTON_RADIUS = 15f
 internal const val BARE_PROTON_SYMBOL = "p"
 internal val BARE_PROTON_FILL = Color(0xFFFAD0A0)
 
@@ -93,7 +92,7 @@ class EntityRenderer(
         val bareProton = element == Element.HYDROGEN && entity.electrons == 0
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
-        val radius = if (bareProton) BARE_PROTON_RADIUS else element.details.radius
+        val radius = if (bareProton) Element.ELECTRON.details.radius else element.details.radius
 
         with(drawScope) {
             if (withValenceSlots) {
