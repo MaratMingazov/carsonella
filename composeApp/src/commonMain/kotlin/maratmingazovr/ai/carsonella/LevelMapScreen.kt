@@ -100,7 +100,7 @@ private enum class LevelStatus { DONE, OPEN, LOCKED }
 
 private fun stateOf(level: Level, completed: Set<LevelId>): LevelStatus = when {
     level.id in completed -> LevelStatus.DONE
-    completed.containsAll(level.requires) -> LevelStatus.OPEN
+    completed.containsAll(level.requiredLevels) -> LevelStatus.OPEN
     else -> LevelStatus.LOCKED
 }
 
@@ -109,7 +109,7 @@ private fun levelLayers(): List<List<Level>> {
     val byId = LEVELS.associateBy { it.id }
     val depth = mutableMapOf<LevelId, Int>()
     fun depthOf(level: Level): Int = depth.getOrPut(level.id) {
-        level.requires.mapNotNull { byId[it] }.maxOfOrNull { depthOf(it) + 1 } ?: 0
+        level.requiredLevels.mapNotNull { byId[it] }.maxOfOrNull { depthOf(it) + 1 } ?: 0
     }
     val byDepth = LEVELS.groupBy { depthOf(it) }
     return byDepth.keys.sorted().map { byDepth.getValue(it) }
@@ -133,12 +133,12 @@ private fun LevelCard(level: Level, state: LevelStatus) {
                 GoalPreview(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
                 // У атомарной цели имени в реестре нет — тогда карточка обходится символом на кружке.
-                level.levelGoal.known?.let { CardText(it.name(LocalLang.current), TEXT_COLOR, 15.sp) }
+                level.levelGoal.knownMoleculeId?.let { CardText(text(it.title), TEXT_COLOR, 15.sp) }
             }
             LevelStatus.OPEN -> {
                 GoalPreview(level.levelGoal, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
-                CardText(level.taskDescription.of(LocalLang.current), TEXT_COLOR, 13.sp)
+                CardText(text(level.taskDescription), TEXT_COLOR, 13.sp)
             }
             LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
         }

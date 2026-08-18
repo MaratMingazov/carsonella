@@ -39,7 +39,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
-data class MoleculeEvent(val id: Long, val known: KnownMoleculeDetails, val position: Position)
+data class MoleculeEvent(val id: Long, val knownMoleculeId: KnownMoleculeId, val position: Position)
 
 sealed interface PaletteItem {
     data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
@@ -492,7 +492,7 @@ class World(
         (products + survivors).filterIsInstance<Molecule>()
             .filter { it.alive && it.known != null && it.known != knownBefore[it.id] }
             .forEach { molecule ->
-                moleculeEvents += MoleculeEvent(_eventId++, molecule.known!!, molecule.kinematics.position)
+                moleculeEvents += MoleculeEvent(_eventId++, molecule.known!!.id, molecule.kinematics.position)
             }
 
         // Символы ПОСЛЕ: у выживших они уже новые (H → H⁺), продукты только что родились.

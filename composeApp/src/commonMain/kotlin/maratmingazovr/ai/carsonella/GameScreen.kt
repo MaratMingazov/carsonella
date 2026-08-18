@@ -70,8 +70,8 @@ fun GameScreen(
         // У молекулы событие есть, у атома нет — его ищем среди живых частиц. Заряд в условии значим:
         // протон это тот же HYDROGEN, и без проверки электронов задание закрылось бы сразу.
         when (val goal = current.levelGoal) {
-            is LevelGoal.Molecule -> snapshotFlow { world.moleculeEvents.any { it.known.id == goal.id } }
-            is LevelGoal.Atom -> snapshotFlow {
+            is LevelGoal.CreatedMolecule -> snapshotFlow { world.moleculeEvents.any { it.knownMoleculeId == goal.id } }
+            is LevelGoal.CreatedAtom -> snapshotFlow {
                 world.entities.any { it is Atom && it.alive && it.element == goal.element && it.electrons == goal.electrons }
             }
         }.first { it }
@@ -82,7 +82,7 @@ fun GameScreen(
     // Журнал открытий питается тем же событием, что и всплывающие имена. Одно и то же приходит по
     // многу раз, и это нормально: discover() идемпотентен, дедупликация тут не нужна.
     LaunchedEffect(Unit) {
-        snapshotFlow { world.moleculeEvents.map { it.known.id }.toSet() }
+        snapshotFlow { world.moleculeEvents.map { it.knownMoleculeId }.toSet() }
             .collect { ids -> ids.forEach(onDiscover) }
     }
 

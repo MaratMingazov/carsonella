@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GoalPreview(levelGoal: LevelGoal, scale: Float = 1f, modifier: Modifier = Modifier) {
     when (levelGoal) {
-        is LevelGoal.Atom -> PaletteAtom(levelGoal.element, modifier, levelGoal.electrons)
-        is LevelGoal.Molecule -> {
+        is LevelGoal.CreatedAtom -> PaletteAtom(levelGoal.element, modifier, levelGoal.electrons)
+        is LevelGoal.CreatedMolecule -> {
             val knownMolecule = levelGoal.id.details
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = scale, modifier = modifier)
             else Text(

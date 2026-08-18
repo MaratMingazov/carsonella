@@ -21,19 +21,19 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun LevelReward(level: Level, onNext: () -> Unit) {
-    val known = level.levelGoal.known
+    val knownMoleculeId = level.levelGoal.knownMoleculeId
     ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
         // У атомарной цели имени в реестре нет, поэтому подпись говорит «получен атом», а вместо имени
         // стоит сам кружок с символом — он одинаково читается на обоих языках.
         Text(
-            text(if (known != null) UiString.REWARD_CAPTION else UiString.REWARD_CAPTION_ATOM),
+            text(if (knownMoleculeId != null) UiString.REWARD_CAPTION else UiString.REWARD_CAPTION_ATOM),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 13.sp,
             letterSpacing = 0.2.em, color = Color(0xFFB0B0B0),
         )
-        if (known != null) {
+        if (knownMoleculeId != null) {
             Spacer(Modifier.height(12.dp))
             Text(
-                known.name(LocalLang.current),
+                text(knownMoleculeId.title),
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
                 color = Color.Black, textAlign = TextAlign.Center,
             )
@@ -42,7 +42,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
         GoalPreview(level.levelGoal)
         // Факт целиком: в окне место есть. Уровень может сказать своё вместо описания из реестра —
         // на разрыве перекиси рассказ про гидроксил уже был бы повтором второго раунда.
-        val fact = (level.rewardText ?: known?.description)?.of(LocalLang.current)
+        val fact = text(level.rewardText)
         if (!fact.isNullOrEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(

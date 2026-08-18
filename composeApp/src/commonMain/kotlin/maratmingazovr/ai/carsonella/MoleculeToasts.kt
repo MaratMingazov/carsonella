@@ -59,7 +59,7 @@ private fun MoleculeToast(event: MoleculeEvent, onFaded: () -> Unit) {
     // Ширину знаем только после замера, поэтому центрируем по факту: до первого замера прячем.
     var width by remember { mutableStateOf(0) }
     Text(
-        text = event.known.name(LocalLang.current),
+        text = text(event.knownMoleculeId.title),
         color = Color(0xFF8A8A8A),
         fontFamily = menuFontFamily(),
         fontWeight = FontWeight.Light,

@@ -1,6 +1,5 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
-import maratmingazovr.ai.carsonella.Lang
 import maratmingazovr.ai.carsonella.TranslatedText
 
 enum class KnownMoleculeId(val title: TranslatedText, val description: TranslatedText? = null) {
@@ -78,6 +77,5 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
     ETHANOL          (TranslatedText("Этанол", "Ethanol")),
     ;
 
-    fun name(lang: Lang): String = title.of(lang)
     val details: KnownMoleculeDetails get() = MoleculeRegistry.knownMoleculeById(this)
 }
