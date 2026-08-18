@@ -20,7 +20,6 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.MoleculeShape
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
@@ -43,7 +42,7 @@ data class MoleculeEvent(val id: Long, val knownMoleculeId: KnownMoleculeId, val
 
 sealed interface PaletteItem {
     data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
-    data class Known(val id: KnownMoleculeId) : PaletteItem
+    data class KnownMolecule(val id: KnownMoleculeId) : PaletteItem
 }
 
 // Сколько электронов у частицы «по умолчанию»: у свободного электрона он свой, у остальных — нейтраль.
@@ -185,7 +184,7 @@ class World(
 
         val entity = when (item) {
             is PaletteItem.Atom -> spawnAtom(item.element, item.electrons, position)
-            is PaletteItem.Known -> spawnKnownMolecule(item.id, position)
+            is PaletteItem.KnownMolecule -> spawnKnownMolecule(item.id, position)
         } ?: return
         clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
     }
@@ -283,7 +282,7 @@ class World(
         is Atom -> listOf(PaletteItem.Atom(entity.element, entity.electrons))
         is SubAtom -> listOf(PaletteItem.Atom(entity.element, entity.electrons))
         is Molecule -> {
-            val asWhole = entity.known?.id?.let(PaletteItem::Known)
+            val asWhole = entity.known?.id?.let(PaletteItem::KnownMolecule)
             if (asWhole != null && palette.any { it.item == asWhole }) listOf(asWhole)
             else entity.atoms.map { PaletteItem.Atom(it.isotope) }
         }

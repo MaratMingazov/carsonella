@@ -2,7 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.TranslatedText
 
-enum class KnownMoleculeId(val title: TranslatedText, val description: TranslatedText? = null) {
+enum class KnownMoleculeId(val title: TranslatedText, val description: TranslatedText) {
     DIHYDROGEN(
         TranslatedText("Водород", "Dihydrogen"),
         TranslatedText(
@@ -17,7 +17,10 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
             en = "Oxygen is what we breathe. Air is 21% oxygen, and without it a person lasts minutes. But for the first two billion years there was almost none of it in the air - bacteria breathed it out. To ancient life it turned out to be a terrible poison! It is greedy for bonds: fire is oxygen, and so is rust. And the two atoms here are held by a double bond - the first one you strengthened yourself.",
         ),
     ),
-    DINITROGEN(TranslatedText("Азот", "Dinitrogen")),
+    DINITROGEN(
+        TranslatedText("Азот", "Dinitrogen"),
+        TranslatedText(ru = "", en = ""),
+    ),
     HYDROXYL(
         TranslatedText("Гидроксил", "Hydroxyl"),
         TranslatedText(
@@ -25,7 +28,10 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
             en = "Hydroxyl is a tiny molecule of one hydrogen atom and one oxygen atom. On its own it lives less than a second, but it works like a building block.",
         ),
     ),
-    DICARBON         (TranslatedText("Дикарбон", "Dicarbon")),
+    DICARBON(
+        TranslatedText("Дикарбон", "Dicarbon"),
+        TranslatedText(ru = "", en = ""),
+    ),
     WATER(
         TranslatedText("Вода", "Water"),
         TranslatedText(
@@ -33,7 +39,7 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
             en = "Water is the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry.",
         ),
     ),
-    HYDROPEROXYL     (TranslatedText("Гидропероксил", "Hydroperoxyl")),
+    HYDROPEROXYL(TranslatedText("Гидропероксил", "Hydroperoxyl"), TranslatedText(ru = "", en = "")),
     HYDROGEN_PEROXIDE(
         TranslatedText("Перекись водорода", "Hydrogen peroxide"),
         TranslatedText(
@@ -41,40 +47,40 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
             en = "This is water with one extra oxygen atom - the very peroxide from the medicine cabinet. It foams on a cut because the body destroys it instantly: the bubbles we see are oxygen. By the way, doctors no longer advise pouring peroxide on wounds - it kills not only germs but living cells too.",
         ),
     ),
-    TRIOXIDANE       (TranslatedText("Триоксидан", "Trioxidane")),
-    TETRAOXIDANE     (TranslatedText("Тетраоксидан", "Tetraoxidane")),
-    IMIDOGEN         (TranslatedText("Имидоген", "Imidogen")),
-    AMINO_RADICAL    (TranslatedText("Аминорадикал", "Amino radical")),
-    AMMONIA          (TranslatedText("Аммиак", "Ammonia")),
-    CARBON_DIOXIDE   (TranslatedText("Углекислый газ", "Carbon dioxide")),
-    CYANO            (TranslatedText("Циано", "Cyano")),
-    HYDROGEN_CYANIDE (TranslatedText("Циановодород", "Hydrogen cyanide")),
-    METHYLIDYNE      (TranslatedText("Метилидин", "Methylidyne")),
-    METHYLENE        (TranslatedText("Метилен", "Methylene")),
-    METHYL           (TranslatedText("Метил", "Methyl")),
-    METHANE          (TranslatedText("Метан", "Methane")),
-    ETHYNYL          (TranslatedText("Этинил", "Ethynyl")),
-    ACETYLENE        (TranslatedText("Ацетилен", "Acetylene")),
-    VINYL            (TranslatedText("Винил", "Vinyl")),
-    ETHYLENE         (TranslatedText("Этилен", "Ethylene")),
-    ETHYL            (TranslatedText("Этил", "Ethyl")),
-    ETHANE           (TranslatedText("Этан", "Ethane")),
-    BUTANE           (TranslatedText("Бутан", "Butane")),
-    ISOPROPYL        (TranslatedText("Изопропил", "Isopropyl")),
-    ISOBUTANE        (TranslatedText("Изобутан", "Isobutane")),
-    BUTENE_1         (TranslatedText("Бутен-1", "1-Butene")),
-    BUTENE_2         (TranslatedText("Бутен-2", "2-Butene")),
-    ISOPROPENYL      (TranslatedText("Изопропенил", "Isopropenyl")),
-    ISOBUTYLENE      (TranslatedText("Изобутилен", "Isobutylene")),
-    TRIMETHYLENE     (TranslatedText("Триметилен", "Trimethylene")),
-    CYCLOPROPANE     (TranslatedText("Циклопропан", "Cyclopropane")),
-    OXIRANE          (TranslatedText("Оксиран", "Oxirane")),
-    BENZENE          (TranslatedText("Бензол", "Benzene")),
-    FORMYL           (TranslatedText("Формил", "Formyl")),
-    FORMALDEHYDE     (TranslatedText("Формальдегид", "Formaldehyde")),
-    METHANOL         (TranslatedText("Метанол", "Methanol")),
-    FORMIC_ACID      (TranslatedText("Муравьиная кислота", "Formic acid")),
-    ETHANOL          (TranslatedText("Этанол", "Ethanol")),
+    TRIOXIDANE(TranslatedText("Триоксидан", "Trioxidane"), TranslatedText(ru = "", en = "")),
+    TETRAOXIDANE(TranslatedText("Тетраоксидан", "Tetraoxidane"), TranslatedText(ru = "", en = "")),
+    IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
+    AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
+    AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
+    CARBON_DIOXIDE   (TranslatedText("Углекислый газ", "Carbon dioxide"), TranslatedText(ru = "", en = "")),
+    CYANO            (TranslatedText("Циано", "Cyano"), TranslatedText(ru = "", en = "")),
+    HYDROGEN_CYANIDE (TranslatedText("Циановодород", "Hydrogen cyanide"), TranslatedText(ru = "", en = "")),
+    METHYLIDYNE      (TranslatedText("Метилидин", "Methylidyne"), TranslatedText(ru = "", en = "")),
+    METHYLENE        (TranslatedText("Метилен", "Methylene"), TranslatedText(ru = "", en = "")),
+    METHYL           (TranslatedText("Метил", "Methyl"), TranslatedText(ru = "", en = "")),
+    METHANE          (TranslatedText("Метан", "Methane"), TranslatedText(ru = "", en = "")),
+    ETHYNYL          (TranslatedText("Этинил", "Ethynyl"), TranslatedText(ru = "", en = "")),
+    ACETYLENE        (TranslatedText("Ацетилен", "Acetylene"), TranslatedText(ru = "", en = "")),
+    VINYL            (TranslatedText("Винил", "Vinyl"), TranslatedText(ru = "", en = "")),
+    ETHYLENE         (TranslatedText("Этилен", "Ethylene"), TranslatedText(ru = "", en = "")),
+    ETHYL            (TranslatedText("Этил", "Ethyl"), TranslatedText(ru = "", en = "")),
+    ETHANE           (TranslatedText("Этан", "Ethane"), TranslatedText(ru = "", en = "")),
+    BUTANE           (TranslatedText("Бутан", "Butane"), TranslatedText(ru = "", en = "")),
+    ISOPROPYL        (TranslatedText("Изопропил", "Isopropyl"), TranslatedText(ru = "", en = "")),
+    ISOBUTANE        (TranslatedText("Изобутан", "Isobutane"), TranslatedText(ru = "", en = "")),
+    BUTENE_1         (TranslatedText("Бутен-1", "1-Butene"), TranslatedText(ru = "", en = "")),
+    BUTENE_2         (TranslatedText("Бутен-2", "2-Butene"), TranslatedText(ru = "", en = "")),
+    ISOPROPENYL      (TranslatedText("Изопропенил", "Isopropenyl"), TranslatedText(ru = "", en = "")),
+    ISOBUTYLENE      (TranslatedText("Изобутилен", "Isobutylene"), TranslatedText(ru = "", en = "")),
+    TRIMETHYLENE     (TranslatedText("Триметилен", "Trimethylene"), TranslatedText(ru = "", en = "")),
+    CYCLOPROPANE     (TranslatedText("Циклопропан", "Cyclopropane"), TranslatedText(ru = "", en = "")),
+    OXIRANE          (TranslatedText("Оксиран", "Oxirane"), TranslatedText(ru = "", en = "")),
+    BENZENE          (TranslatedText("Бензол", "Benzene"), TranslatedText(ru = "", en = "")),
+    FORMYL           (TranslatedText("Формил", "Formyl"), TranslatedText(ru = "", en = "")),
+    FORMALDEHYDE     (TranslatedText("Формальдегид", "Formaldehyde"), TranslatedText(ru = "", en = "")),
+    METHANOL         (TranslatedText("Метанол", "Methanol"), TranslatedText(ru = "", en = "")),
+    FORMIC_ACID      (TranslatedText("Муравьиная кислота", "Formic acid"), TranslatedText(ru = "", en = "")),
+    ETHANOL          (TranslatedText("Этанол", "Ethanol"), TranslatedText(ru = "", en = "")),
     ;
 
     val details: KnownMoleculeDetails get() = MoleculeRegistry.knownMoleculeById(this)

@@ -114,7 +114,7 @@ fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = M
 internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
     when (item) {
         is PaletteItem.Atom -> PaletteAtom(item.element, modifier, item.electrons)
-        is PaletteItem.Known -> {
+        is PaletteItem.KnownMolecule -> {
             val knownMolecule = item.id.details
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = 0.45f, modifier = modifier)
             else PaletteAtom(Element.PHOTON, modifier)   // раскладки нет — рисовать нечего, но слот не теряем
@@ -126,7 +126,7 @@ internal fun PaletteItemView(item: PaletteItem, modifier: Modifier = Modifier) {
 @Composable
 private fun slotWidth(item: PaletteItem): Dp = when (item) {
     is PaletteItem.Atom -> paletteAtomBoxDp(item.element, item.electrons)
-    is PaletteItem.Known -> MOLECULE_SLOT_WIDTH
+    is PaletteItem.KnownMolecule -> MOLECULE_SLOT_WIDTH
 }
 
 // Ширина бокса кружка: радиус в px переводим в dp, чтобы Canvas вышел ровно 2*radius (+запас на обводку).

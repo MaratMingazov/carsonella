@@ -55,7 +55,3 @@ fun text(string: UiString): String = string.of(LocalLang.current)
 @Composable
 @ReadOnlyComposable
 fun text(text: TranslatedText): String = text.of(LocalLang.current)
-
-//@Composable
-//@ReadOnlyComposable
-//fun text(text: TranslatedText?): String? = text?.of(LocalLang.current)
