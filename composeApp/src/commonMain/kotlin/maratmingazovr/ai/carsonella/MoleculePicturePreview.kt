@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.graph.KnownMolecule
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculePicture
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
@@ -30,16 +30,16 @@ private const val OUTLINE_WIDTH = 2.5f
  * [scale] — во сколько раз мельче холста: 1f = ровно как в игре, вместе с радиусами и линиями.
  */
 @Composable
-fun MoleculePicturePreview(picture: MoleculePicture, scale: Float = 1f, modifier: Modifier = Modifier) {
+fun KnownMoleculePreview(knownMolecule: KnownMolecule, scale: Float = 1f, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     // Доля длины связи из раскладки — в пикселях. Берём длину покоя пружин (r1 + r2 + BOND_PX) по самой
     // длинной связи: раскладка задаёт ОДИН масштаб на всю картинку, и по максимуму никто не налезет.
-    val elementById = picture.graph.nodes.associate { it.localId to it.isotope }
-    val unitPx = scale * picture.graph.bonds.maxOf { bond ->
+    val elementById = knownMolecule.graph.nodes.associate { it.localId to it.isotope }
+    val unitPx = scale * knownMolecule.graph.bonds.maxOf { bond ->
         MoleculeGeometry.bondLengthPx(elementById.getValue(bond.atom1), elementById.getValue(bond.atom2), bond.order)
     }
-    val positions = picture.offsets.mapValues { (_, offset) -> Offset(offset.x * unitPx, offset.y * unitPx) }
-    val maxRadius = picture.graph.nodes.maxOf { it.isotope.details.radius } * scale
+    val positions = knownMolecule.offsets.mapValues { (_, offset) -> Offset(offset.x * unitPx, offset.y * unitPx) }
+    val maxRadius = knownMolecule.graph.nodes.maxOf { it.isotope.details.radius } * scale
 
     // Размер бокса — по габаритам раскладки плюс радиус крайних атомов и запас на слоты.
     val minX = positions.values.minOf { it.x } - maxRadius - 8f
@@ -51,17 +51,17 @@ fun MoleculePicturePreview(picture: MoleculePicture, scale: Float = 1f, modifier
 
     Canvas(modifier.size(widthDp, heightDp)) {
         val origin = Offset(-minX, -minY)   // сдвиг раскладки в положительные координаты канвы
-        picture.graph.bonds.forEach { bond ->
+        knownMolecule.graph.bonds.forEach { bond ->
             val a = positions.getValue(bond.atom1) + origin
             val b = positions.getValue(bond.atom2) + origin
             drawBondLines(a, b, bond.order, scale)
         }
-        picture.graph.nodes.forEach { node ->
+        knownMolecule.graph.nodes.forEach { node ->
             drawPreviewAtom(
                 textMeasurer = textMeasurer,
                 center = positions.getValue(node.localId) + origin,
                 element = node.isotope,
-                freeSlots = picture.graph.freeValence(node.localId),
+                freeSlots = knownMolecule.graph.freeValence(node.localId),
                 scale = scale,
             )
         }

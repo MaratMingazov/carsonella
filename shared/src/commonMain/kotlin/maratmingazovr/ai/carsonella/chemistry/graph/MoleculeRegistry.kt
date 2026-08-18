@@ -13,7 +13,7 @@ data class KnownMolecule(
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
     val description: Prose? = null,
-    val layout: Map<Int, Vec2D> = emptyMap(),
+    val offsets: Map<Int, Vec2D> = emptyMap(), // эталонное расположение атомов
 ) {
     fun name(lang: Lang): String = id.name(lang)
 }
@@ -110,7 +110,7 @@ object MoleculeRegistry {
             val collisions = entries.groupBy { it.graph.canonical }.filterValues { it.size > 1 }
             "Записи реестра с одинаковым каноном: ${collisions.values.map { group -> group.map { it.id } }}"
         }
-        val brokenLayout = entries.filter { it.layout.isNotEmpty() && it.layout.keys != it.graph.nodes.mapTo(mutableSetOf()) { node -> node.localId } }
+        val brokenLayout = entries.filter { it.offsets.isNotEmpty() && it.offsets.keys != it.graph.nodes.mapTo(mutableSetOf()) { node -> node.localId } }
         require(brokenLayout.isEmpty()) { "Раскладка не совпадает с узлами графа: ${brokenLayout.map { it.id }}" }
         val uncovered = KnownMoleculeId.entries - byKey.values.map { it.id }.toSet()
         require(uncovered.isEmpty()) { "У ключей нет записи в реестре: $uncovered — byId() обещает не возвращать null, значит покрыть надо все" }
@@ -128,7 +128,7 @@ object MoleculeRegistry {
      */
     fun picture(id: KnownMoleculeId): MoleculePicture? {
         val known = knownById.getValue(id)
-        return if (known.layout.isEmpty()) null else MoleculePicture(known.graph, known.layout)
+        return if (known.offsets.isEmpty()) null else MoleculePicture(known.graph, known.offsets)
     }
 }
 

@@ -36,7 +36,7 @@ fun WelcomeCard(onStart: () -> Unit) {
         // Вода как образец: её же игрок соберёт на третьем уровне.
         MoleculeRegistry.picture(KnownMoleculeId.WATER)?.let { water ->
             Spacer(Modifier.height(24.dp))
-            MoleculePicturePreview(water)
+            KnownMoleculePreview(water)
         }
     }
 }
