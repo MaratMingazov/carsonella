@@ -199,18 +199,16 @@ class World(
         )
     }
 
-    // Готовая молекула: берём эталонный граф с курируемой раскладкой из реестра и ставим её в точку
-    // дропа. Раскладка задана в долях длины связи, поэтому умножаем на длину покоя пружин — дальше
-    // геометрию доводят сами пружины.
+    // Игрок перетащил известную молекулу на игровое поле. Нужно ее создать
     private fun spawnKnownMolecule(id: KnownMoleculeId, position: Position): Entity? {
-        val picture = MoleculeRegistry.picture(id) ?: return null
-        val graph = picture.graph
+        val knownMolecule = MoleculeRegistry.knownMoleculeById(id)
+        val graph = knownMolecule.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
         val unitPx = graph.bonds.maxOf { bond ->
             MoleculeGeometry.bondLengthPx(isotopeOf.getValue(bond.atom1), isotopeOf.getValue(bond.atom2), bond.order)
         }
         val atoms = graph.nodes.map { node ->
-            val offset = picture.offsets.getValue(node.localId)
+            val offset = knownMolecule.offsets.getValue(node.localId)
             MoleculeAtom(
                 localId = node.localId,
                 isotope = node.isotope,

@@ -18,10 +18,10 @@ fun GoalPreview(goal: Goal, scale: Float = 1f, modifier: Modifier = Modifier) {
     when (goal) {
         is Goal.Atom -> PaletteAtom(goal.element, modifier, goal.electrons)
         is Goal.Molecule -> {
-            val knownMolecule = MoleculeRegistry.byId(goal.id)
+            val knownMolecule = MoleculeRegistry.knownMoleculeById(goal.id)
             if (knownMolecule.offsets.isNotEmpty()) KnownMoleculePreview(knownMolecule, scale = scale, modifier = modifier)
             else Text(
-                MoleculeRegistry.byId(goal.id).structuralFormula.ifEmpty { "?" },
+                MoleculeRegistry.knownMoleculeById(goal.id).structuralFormula.ifEmpty { "?" },
                 fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 16.sp,
                 color = Color(0xFF45BDB5), textAlign = TextAlign.Center, modifier = modifier,
             )

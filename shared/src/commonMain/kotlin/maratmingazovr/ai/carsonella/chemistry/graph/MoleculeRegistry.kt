@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Lang
-import maratmingazovr.ai.carsonella.Prose
+import maratmingazovr.ai.carsonella.Description
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.math.PI
@@ -12,17 +12,11 @@ data class KnownMolecule(
     val id: KnownMoleculeId,  // Ключ и он же имена на оба языка
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
-    val description: Prose? = null,
+    val description: Description? = null,
     val offsets: Map<Int, Vec2D> = emptyMap(), // эталонное расположение атомов
 ) {
     fun name(lang: Lang): String = id.name(lang)
 }
-
-// Эталонная картинка молекулы: чем рисовать (граф) и где стоят узлы (раскладка). Нужна там, где молекулы ещё нет в мире — карточка уровня, журнал открытий.
-data class MoleculePicture(
-    val graph: MoleculeGraph,
-    val offsets: Map<Int, Vec2D>,
-)
 
 private val H = MoleculeGraph(listOf(AtomNode(0, Element.HYDROGEN)), emptyList())
 private val O = MoleculeGraph(listOf(AtomNode(0, Element.OXYGEN_16)), emptyList())
@@ -35,18 +29,18 @@ object MoleculeRegistry {
     private val entries = registry {
 
         // --- двухатомные ---
-        val dihydrogen = H.attach(H); known(dihydrogen, KnownMoleculeId.DIHYDROGEN, "H–H", layout = pair())
-        val dioxygen = O.attach(O, order = 2); known(dioxygen, KnownMoleculeId.DIOXYGEN, "O=O", layout = pair())
-        val dinitrogen = N.attach(N, order = 3); known(dinitrogen, KnownMoleculeId.DINITROGEN, "N≡N", layout = pair())
-        val hydroxyl = O.attach(H); known(hydroxyl, KnownMoleculeId.HYDROXYL, "•OH", layout = pair())
+        val dihydrogen = H.attach(H); known(dihydrogen, KnownMoleculeId.DIHYDROGEN, "H–H", offsets = pair())
+        val dioxygen = O.attach(O, order = 2); known(dioxygen, KnownMoleculeId.DIOXYGEN, "O=O", offsets = pair())
+        val dinitrogen = N.attach(N, order = 3); known(dinitrogen, KnownMoleculeId.DINITROGEN, "N≡N", offsets = pair())
+        val hydroxyl = O.attach(H); known(hydroxyl, KnownMoleculeId.HYDROXYL, "•OH", offsets = pair())
         val dicarbonSingle = C.attach(C); known(dicarbonSingle, KnownMoleculeId.DICARBON, "•C–C•")
         val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, KnownMoleculeId.DICARBON, "C=C")
         val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, KnownMoleculeId.DICARBON, "•C≡C•")
 
         // --- малые неорганические / простые ---
-        val water = hydroxyl.attach(H); known(water, KnownMoleculeId.WATER, "H–O–H", layout = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)))
+        val water = hydroxyl.attach(H); known(water, KnownMoleculeId.WATER, "H–O–H", offsets = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)))
         val hydroperoxyl = hydroxyl.attach(O); known(hydroperoxyl, KnownMoleculeId.HYDROPEROXYL, "H–O–O•")
-        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, KnownMoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", layout = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)))
+        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, KnownMoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)))
         val trioxidane = hydroperoxyl.attach(hydroxyl); known(trioxidane, KnownMoleculeId.TRIOXIDANE, "H–O–O–O–H")
         val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, KnownMoleculeId.TETRAOXIDANE, "H–O–O–O–O–H")
         val imidogen = N.attach(H); known(imidogen, KnownMoleculeId.IMIDOGEN, ":NH")
@@ -120,16 +114,7 @@ object MoleculeRegistry {
     private val knownById: Map<KnownMoleculeId, KnownMolecule> = entries.associateBy { it.id }
 
     fun lookup(canonical: String): KnownMolecule? = byCanonical[canonical] // Известная молекула по её каноническому ключу
-    fun byId(id: KnownMoleculeId): KnownMolecule = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
-
-    /**
-     * Эталонная картинка по ключу: граф + раскладка. null, если раскладка ещё не нарисована —
-     * тогда рисующему нечего показывать, и он падает на текстовую структурную формулу.
-     */
-    fun picture(id: KnownMoleculeId): MoleculePicture? {
-        val known = knownById.getValue(id)
-        return if (known.offsets.isEmpty()) null else MoleculePicture(known.graph, known.offsets)
-    }
+    fun knownMoleculeById(id: KnownMoleculeId): KnownMolecule = knownById.getValue(id) // Запись реестра по ключу. Не null: покрытие всех ключей проверено при инициализации.
 }
 
 
@@ -153,9 +138,9 @@ private class RegistryBuilder {
         graph: MoleculeGraph,
         id: KnownMoleculeId,
         structuralFormula: String = "",
-        layout: Map<Int, Vec2D> = emptyMap(),
+        offsets: Map<Int, Vec2D> = emptyMap(),
     ): MoleculeGraph {
-        entries += KnownMolecule(id, graph, structuralFormula, MOLECULE_FACTS[id], layout)
+        entries += KnownMolecule(id, graph, structuralFormula, MOLECULE_FACTS[id], offsets = offsets)
         return graph
     }
 }
