@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
 import maratmingazovr.ai.carsonella.Lang
-import maratmingazovr.ai.carsonella.Description
+import maratmingazovr.ai.carsonella.TranslatedText
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Element
 import kotlin.math.PI
@@ -12,7 +12,7 @@ data class KnownMolecule(
     val id: KnownMoleculeId,  // Ключ и он же имена на оба языка
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
-    val description: Description? = null,
+    val translatedText: TranslatedText? = null,
     val offsets: Map<Int, Vec2D> = emptyMap(), // эталонное расположение атомов
 ) {
     fun name(lang: Lang): String = id.name(lang)

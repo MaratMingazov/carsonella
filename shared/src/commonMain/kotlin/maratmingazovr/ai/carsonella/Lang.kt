@@ -18,7 +18,7 @@ enum class Lang(val tag: String, val ownName: String) {
 /**
  * Здесь мы храним просто текст на разных языках. Чтобы потом в зависимости от языка игры подставить текст на нужной языке
  */
-data class Description(val ru: String, val en: String) {
+data class TranslatedText(val ru: String, val en: String) {
     fun of(lang: Lang): String = when (lang) {
         Lang.RU -> ru
         Lang.EN -> en
