@@ -18,7 +18,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
     ModalCard(buttonLabel = text(UiString.REWARD_NEXT), onAction = onNext) {
         Spacer(Modifier.height(12.dp))
         Text(
-            text(level.levelGoal.goalElementTitle),
+            text(level.title),
             fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 28.sp,
             color = Color.Black, textAlign = TextAlign.Center,
         )
