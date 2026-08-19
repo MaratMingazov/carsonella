@@ -24,20 +24,18 @@ sealed interface LevelGoal {
     }
 }
 
-//data class LevelReward(
-//    val text:
-//)
+data class LevelReward(
+    val text: TranslatedText, // Когда игрок успещно проходит уровень, то у него появляется модальное окно  поздравлением. Там будет отображаться этот текст
+)
 
 data class Level(
     val id: LevelId,
     val requiredLevels: Set<LevelId> = emptySet(), // задание доступно, когда эти пройдены; пока цепочка линейна
-    val requiredAtoms: Set<Element> = emptySet(), // задания доступны, если игрок уже открыл эти атомы
-    val requiredMolecules: Set<KnownMoleculeId> = emptySet(), // задание доступны, если игрок уже открыл эти молекулы
     val granted: Boolean = false, // дано с самого начала: узел на карте есть и закрыт, играть его не нужно
     val taskDescription: TranslatedText, // описание задачи, которое нужно выполнить
     val levelGoal: LevelGoal, // что должно появиться на холсте, чтобы задание закрылось
     val inventory: Map<PaletteItem, Int>, // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
-    val rewardText: TranslatedText, // Когда игрок успещно проходит уровень, то у него появляется модальное окно  поздравлением. Там будет отображаться этот текст
+    val reward: LevelReward, // Награда за успешное прохождение уровня
 )
 
 // Пройдено — это и то, что игрок закрыл сам, и то, что выдано ([Level.granted]) и до чего дошла очередь.
@@ -65,7 +63,7 @@ private fun granted(id: LevelId, levelGoal: LevelGoal, requiredLevels: Set<Level
     granted = true,
     taskDescription = TranslatedText("", ""),
     inventory = emptyMap(),
-    rewardText = TranslatedText("", ""),
+    reward = LevelReward(text = TranslatedText("", "")),
 )
 
 
@@ -84,20 +82,27 @@ val LEVELS = listOf(
             ru = "Начнём с самого начала: пусть протон поймает электрон и станет атомом водорода \n hint: подведи электрон к протону",
             en = "Let's start at the very beginning: let a proton catch an electron and become a hydrogen atom \n hint: bring the electron up to the proton",
         ),
-        rewardText = TranslatedText(
-            ru = "Электрон сел на протон, а лишнюю энергию отдал светом - тем самым фотоном, который улетел в сторону. Так было и во Вселенной: через 380 тысяч лет после Большого взрыва протоны наконец разобрали себе электроны, туман из заряженных частиц пропал, и свет полетел свободно. Мы этот свет видим до сих пор - это реликтовое излучение.",
-            en = "The electron settled onto the proton and gave up the spare energy as light - the very photon that just flew off. That is how it went in the Universe too: 380 thousand years after the Big Bang the protons finally took up their electrons, the fog of charged particles cleared, and light flew free. We still see that light today - it is the cosmic microwave background.",
-        )),
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Электрон сел на протон, а лишнюю энергию отдал светом - тем самым фотоном, который улетел в сторону. Так было и во Вселенной: через 380 тысяч лет после Большого взрыва протоны наконец разобрали себе электроны, туман из заряженных частиц пропал, и свет полетел свободно. Мы этот свет видим до сих пор - это реликтовое излучение.",
+                    en = "The electron settled onto the proton and gave up the spare energy as light - the very photon that just flew off. That is how it went in the Universe too: 380 thousand years after the Big Bang the protons finally took up their electrons, the fog of charged particles cleared, and light flew free. We still see that light today - it is the cosmic microwave background.",
+                )
+            ),
+    ),
     Level(LevelId.DIHYDROGEN, requiredLevels = setOf(LevelId.HYDROGEN_ATOM), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIHYDROGEN), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2),
         taskDescription = TranslatedText(
             ru = "Давай перетащим два атома водорода и соберем первую молекулу",
             en = "Let's drag two hydrogen atoms together and build our first molecule",
         ),
-        rewardText = TranslatedText(
-            ru = "Мы получили Водород - самый распространённый элемент Вселенной, 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!",
-            en = "We have made Hydrogen - the most common element in the Universe, 92% of all atoms. Our Sun, for one, is 73% hydrogen. The hydrogen you and I are made of is 13.8 billion years old! It looks like the simplest thing there is, and yet it hides a pile of paradoxes!",
-        )),
-    // Ядра кислорода наварили звёзды, а звёздной главы в игре пока нет — поэтому атом выдаём готовым.
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Мы получили Водород - самый распространённый элемент Вселенной, 92% всех атомов. Например, наше Солнце состоит на 73% из водорода. Мы с вами состоим из водорода, которому 13.8 миллиарда лет! Он кажется самым простым, но скрывает массу парадоксов!",
+                    en = "We have made Hydrogen - the most common element in the Universe, 92% of all atoms. Our Sun, for one, is 73% hydrogen. The hydrogen you and I are made of is 13.8 billion years old! It looks like the simplest thing there is, and yet it hides a pile of paradoxes!",
+                )
+        ),
+    ),
     granted(LevelId.OXYGEN_ATOM, LevelGoal.CreateAtom(Element.OXYGEN_16), requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON)),
 
     Level(LevelId.HYDROXYL, requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1),
@@ -105,25 +110,34 @@ val LEVELS = listOf(
             ru = "Теперь попробуем соединить атомы водорода и кислорода",
             en = "Now let's try joining a hydrogen atom and an oxygen atom",
         ),
-        rewardText = TranslatedText(
-            ru = "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ",
-            en = "Hydroxyl is a tiny molecule of one hydrogen atom and one oxygen atom. On its own it lives less than a second, but it works like a building block. We will be attaching it to other molecules and watching it change their properties completely. And we already have everything we need to get WATER! ",
-        )),
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Гидроксил - маленькая молекула из одного атома водорода и кислорода. Сама по себе живет меньше секунды, зато работает как \"конструктор\". Мы будем прикреплять ее к другим молекулам и увидим как она полностью меняет их свойства. И у нас уже все готово, чтобы раздобыть ВОДУ! ",
+                    en = "Hydroxyl is a tiny molecule of one hydrogen atom and one oxygen atom. On its own it lives less than a second, but it works like a building block. We will be attaching it to other molecules and watching it change their properties completely. And we already have everything we need to get WATER! ",
+                )
+        ),
+    ),
     Level(LevelId.WATER, requiredLevels = setOf(LevelId.HYDROXYL), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.WATER), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 1),
         taskDescription = TranslatedText(
             ru = "Хочу пить! Нужна Вода!",
             en = "I'm thirsty! We need Water!",
         ),
-        rewardText = TranslatedText(
-            ru = "УРА! Мы получили самую известную молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
-            en = "HOORAY! We have made the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry. Why does hot water freeze faster than cold? Why does ice not sink? We will find that out, and much more!",
-    )),
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "УРА! Мы получили самую известную молекулу на свете и главное вещество жизни. Мы сами примерно на 60% состоим из воды. Благодаря необычному строению своей молекулы, она нарушает почти все правила физики и химии. Мы исследуем почему горячая вода замерзает быстрее холодной? Почему лед не тонет? И многое другое!",
+                    en = "HOORAY! We have made the most famous molecule in the world and the main substance of life. We ourselves are about 60% water. Thanks to the unusual shape of its molecule it breaks almost every rule of physics and chemistry. Why does hot water freeze faster than cold? Why does ice not sink? We will find that out, and much more!",
+                )
+        ),
+    ),
     Level(LevelId.DIOXYGEN, requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIOXYGEN), inventory = mapOf(PaletteItem.Atom(Element.OXYGEN_16) to 2),
         taskDescription = TranslatedText(
             ru = "А ты знаешь что для дыхания всем нам нужен кислород! Давай соберем его. \n hint: у атомов должна быть двойная связь",
             en = "Did you know that we all need oxygen to breathe! Let's build some. \n hint: the atoms need a double bond",
         ),
-        rewardText = KnownMoleculeId.DIOXYGEN.description),
+        reward = LevelReward(text=KnownMoleculeId.DIOXYGEN.description),
+    ),
     Level(
         LevelId.HYDROGEN_PEROXIDE,
         requiredLevels = setOf(LevelId.DIOXYGEN),
@@ -133,15 +147,19 @@ val LEVELS = listOf(
             ru = "Теперь давай попробуем построить перекись водорода",
             en = "Now let's try building hydrogen peroxide",
         ),
-        rewardText = KnownMoleculeId.HYDROGEN_PEROXIDE.title),
+        reward = LevelReward(text=KnownMoleculeId.HYDROGEN_PEROXIDE.description),
+    ),
     Level(LevelId.PEROXIDE_SPLIT, requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE), levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
         taskDescription = TranslatedText(
             ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
             en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
         ),
-        rewardText = TranslatedText(
-            ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
-            en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
+                    en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
+                )
         ),
     ),
 )

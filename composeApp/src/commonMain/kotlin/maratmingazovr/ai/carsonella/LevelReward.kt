@@ -25,7 +25,7 @@ fun LevelReward(level: Level, onNext: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
         LevelGoalImage(level.levelGoal)
-        val levelRewardText = text(level.rewardText)
+        val levelRewardText = text(level.reward.text)
         if (levelRewardText.isNotEmpty()) {
             Spacer(Modifier.height(20.dp))
             Text(
