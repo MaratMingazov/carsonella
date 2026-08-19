@@ -77,7 +77,7 @@ val LEVELS = listOf(
         LevelId.HYDROGEN_ATOM,
         requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
         levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 3, PaletteItem.Atom(Element.ELECTRON) to 3),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 1, PaletteItem.Atom(Element.ELECTRON) to 1),
         taskDescription = TranslatedText(
             ru = "Начнём с самого начала: пусть протон поймает электрон и станет атомом водорода \n hint: подведи электрон к протону",
             en = "Let's start at the very beginning: let a proton catch an electron and become a hydrogen atom \n hint: bring the electron up to the proton",
