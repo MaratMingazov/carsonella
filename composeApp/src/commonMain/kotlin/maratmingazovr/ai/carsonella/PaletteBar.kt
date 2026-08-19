@@ -54,6 +54,7 @@ internal val PANEL_BG = Color(0xFFF5EFE3)
 private val PLATE_PADDING = 12.dp
 private val SLOT_GAP = 12.dp
 private val MOLECULE_SLOT_WIDTH = 64.dp   // молекула шире кружка: даём ей фиксированную колонку
+private const val MOLECULE_SLOT_SCALE = 0.45f // в слоте молекула мельче, чем на карточке уровня
 
 // Плашка-палитра под холстом: элементы кружочками (как на канве). Тащатся на канву тем же DragSource →
 // спавн в DropTarget/App.onDrop. Задание [level] висит всплывашкой слева над палитрой — подсказка там же,
@@ -81,8 +82,8 @@ fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = M
                     palette.forEach { slot ->
                         // Кончился — гаснет и перестаёт быть DragSource: тащить нечего.
                         Box(Modifier.width(slotWidth(slot.item)), contentAlignment = Alignment.Center) {
-                            if (slot.count > 0) DragSource(item = slot.item) { PaletteItemView(slot.item) }
-                            else PaletteItemView(slot.item, Modifier.alpha(0.35f))
+                            if (slot.count > 0) DragSource(item = slot.item) { PaletteItemView(slot.item, MOLECULE_SLOT_SCALE) }
+                            else PaletteItemView(slot.item, MOLECULE_SLOT_SCALE, Modifier.alpha(0.35f))
                         }
                     }
                 }
@@ -109,12 +110,13 @@ fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = M
     }
 }
 
-// Что лежит в слоте: кружок элемента или эталонная картинка молекулы (мельче, чем в карточке уровня).
+// Что лежит в слоте или на карточке уровня: кружок элемента или эталонная картинка молекулы.
+// [scale] пока действует только на молекулу — у кружка атома своего масштаба нет, он всегда как на канве.
 @Composable
-internal fun PaletteItemView(paletteItem: PaletteItem, modifier: Modifier = Modifier) {
+internal fun PaletteItemView(paletteItem: PaletteItem, scale: Float = 1f, modifier: Modifier = Modifier) {
     when (paletteItem) {
         is PaletteItem.Atom -> PaletteAtom(paletteItem.element, modifier, paletteItem.electrons)
-        is PaletteItem.KnownMolecule -> KnownMoleculePreview(paletteItem.knownMoleculeId.details, scale = 0.45f, modifier = modifier)
+        is PaletteItem.KnownMolecule -> KnownMoleculePreview(paletteItem.knownMoleculeId.details, scale = scale, modifier = modifier)
     }
 }
 

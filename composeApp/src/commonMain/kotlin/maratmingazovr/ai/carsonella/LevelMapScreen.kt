@@ -133,12 +133,12 @@ private fun LevelCard(level: Level, state: LevelStatus) {
     ) {
         when (state) {
             LevelStatus.OPEN -> {
-                LevelGoalImage(level.levelGoal, scale = 0.5f)
+                LevelImage(level.image, scale = 0.5f)
                 Spacer(Modifier.height(10.dp))
                 CardText(text(level.levelGoal.goalElementTitle), TEXT_COLOR, 13.sp)
             }
             LevelStatus.DONE -> {
-                LevelGoalImage(level.levelGoal, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
+                LevelImage(level.image, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
                 Spacer(Modifier.height(10.dp))
                 CardText(text(level.levelGoal.goalElementTitle), TEXT_COLOR, 15.sp) // пишем название этой молекулы или атома
             }
