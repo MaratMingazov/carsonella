@@ -31,6 +31,10 @@ internal const val SLOT_HZ = 1f / 15f  // вращение свободных с
 internal const val BARE_PROTON_SYMBOL = "p"
 internal val BARE_PROTON_FILL = Color(0xFFFAD0A0)
 internal val BARE_PROTON_TITLE = TranslatedText(ru = "Протон", en = "Proton")
+internal val BARE_PROTON_DESCRIPTION = TranslatedText(
+    ru = "Протон - это ядро водорода, с которого сняли электрон, самое простое ядро на свете. Именно число протонов решает, что за элемент перед тобой: один - водород, шесть - углерод, восемь - кислород. Протоны родились в первые мгновения после Большого взрыва и с тех пор не распался ни один - похоже, они вечные.",
+    en = "A proton is a hydrogen nucleus with the electron taken off - the simplest nucleus there is. It is the number of protons that decides which element you are looking at: one is hydrogen, six is carbon, eight is oxygen. Protons were born in the first moments after the Big Bang and not one has fallen apart since - they look to be forever.",
+)
 internal fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
 
 private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы

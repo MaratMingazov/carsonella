@@ -23,7 +23,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,13 +52,21 @@ private val LOCKED_COLOR = Color(0xFFD8D8D8)
 @Composable
 fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
     val layers = remember { levelLayers() }
+    val completed = playerState.progress.completedLevels
+    var opened by remember { mutableStateOf<Level?>(null) }   // карточка, раскрытая в окно
 
     Box(
         Modifier
             .fillMaxSize()
             .background(Color.White)
+            // Esc сначала закрывает окно и только потом уводит с карты: иначе взгляд на карточку
+            // выкидывал бы в меню.
             .onPreviewKeyEvent { e ->
-                if (e.type == KeyDown && e.key == Key.Escape) { onBack(); true } else false
+                when {
+                    e.type != KeyDown || e.key != Key.Escape -> false
+                    opened != null -> { opened = null; true }
+                    else -> { onBack(); true }
+                }
             },
     ) {
         Column(Modifier.fillMaxSize()) {
@@ -88,10 +98,21 @@ fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        layer.forEach { level -> LevelCard(level, stateOf(level, playerState.progress.completedLevels)) }
+                        layer.forEach { level ->
+                            // Туман не кликается: раскрывать в нём нечего, там и на карточке одни «?».
+                            val state = stateOf(level, completed)
+                            LevelCard(level, state, onClick = if (state == LevelStatus.LOCKED) null else ({ opened = level }))
+                        }
                     }
                 }
             }
+        }
+
+        // Окно поверх карты, а не внутри прокрутки: иначе оно уезжало бы вместе с содержимым.
+        // Пройденный уровень рассказывает, что получилось, доступный — что предстоит сделать.
+        opened?.let { level ->
+            val done = stateOf(level, completed) == LevelStatus.DONE
+            LevelDetails(level, if (done) level.reward.text else level.description, text(UiString.MENU_CLOSE)) { opened = null }
         }
     }
 }
@@ -118,16 +139,23 @@ private fun levelLayers(): List<List<Level>> {
     return byDepth.keys.sorted().map { byDepth.getValue(it) }
 }
 
-// это как мы рисуем карточку уровня на карте
+// это как мы рисуем карточку уровня на карте. [onClick] пустой у тумана — его раскрывать нечем.
 @Composable
-private fun LevelCard(level: Level, state: LevelStatus) {
+private fun LevelCard(level: Level, state: LevelStatus, onClick: (() -> Unit)?) {
     val shape = RoundedCornerShape(12.dp)
     val done = state == LevelStatus.DONE
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
     Column(
         Modifier
             .width(CARD_WIDTH)
             .background(if (done) DONE_FILL else Color.Transparent, shape)
-            .border(1.dp, if (done) ACCENT else CARD_BORDER, shape)
+            .border(1.dp, if (done || hovered) ACCENT else CARD_BORDER, shape)   // hovered бывает только у кликабельной
+            .then(
+                // Без ряби: экран нарисован руками, материаловский всплеск тут чужой. Отклик даёт рамка.
+                if (onClick == null) Modifier
+                else Modifier.hoverable(interaction).clickable(interaction, indication = null) { onClick() }
+            )
             .padding(horizontal = 12.dp, vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

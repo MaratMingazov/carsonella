@@ -145,13 +145,43 @@ enum class ElementType { SubAtom, Atom, Star }
 
 enum class Element(val title: TranslatedText, val description: TranslatedText) {
     // --- субатомные частицы ---
-    PHOTON(TranslatedText(ru="Фотон", en="Photon"), TranslatedText(ru = "", en = "")),
-    ELECTRON(TranslatedText(ru="Электрон", en="Electron"), TranslatedText(ru = "", en = "")),
-    NEUTRON(TranslatedText(ru="Нейтрон", en="Neutron"), TranslatedText(ru = "", en = "")),
-    POSITRON(TranslatedText(ru="Позитрон", en="Positron"), TranslatedText(ru = "", en = "")),
+    PHOTON(
+        TranslatedText(ru = "Фотон", en = "Photon"),
+        TranslatedText(
+            ru = "Фотон - это частица света. Массы у него нет вовсе, поэтому он всегда летит с одной и той же скоростью - 300 тысяч километров в секунду, и от Солнца до нас добирается за 8 минут. Живёт он ровно от рождения до встречи: родился, когда электрон отдал лишнюю энергию, и исчез, когда его кто-то поймал.",
+            en = "A photon is a particle of light. It has no mass at all, so it always travels at one and the same speed - 300 thousand kilometres per second - and it takes 8 minutes to get here from the Sun. It lives exactly from birth to encounter: born when an electron gave up its spare energy, gone the moment something catches it.",
+        ),
+    ),
+    ELECTRON(
+        TranslatedText(ru = "Электрон", en = "Electron"),
+        TranslatedText(
+            ru = "Электрон в 1836 раз легче протона. Он не шарик и не бегает по орбите: вокруг ядра он размазан облаком, и спросить, где он именно, нельзя. Зато вся химия - это он: связь между атомами и есть поделённые электроны. И ток в проводах тоже они.",
+            en = "An electron is 1836 times lighter than a proton. It is not a little ball and it does not run along an orbit: around the nucleus it is smeared into a cloud, and there is no asking where exactly it is. But all of chemistry is electrons: a bond between atoms is simply electrons shared. And the current in wires is them too.",
+        ),
+    ),
+    NEUTRON(
+        TranslatedText(ru = "Нейтрон", en = "Neutron"),
+        TranslatedText(
+            ru = "Заряда у нейтрона нет, поэтому ядра его не отталкивают - он влетает в них беспрепятственно, и так рождаются новые элементы. Внутри ядра он живёт сколько угодно, а вылетев наружу распадается минут за пятнадцать: превращается в протон и электрон.",
+            en = "A neutron has no charge, so nuclei do not push it away - it flies straight in, and that is how new elements are born. Inside a nucleus it lives as long as you like, but out on its own it falls apart in about fifteen minutes: it turns into a proton and an electron.",
+        ),
+    ),
+    POSITRON(
+        TranslatedText(ru = "Позитрон", en = "Positron"),
+        TranslatedText(
+            ru = "Позитрон - это электрон наоборот: та же частица, но заряд у неё плюс. Встретив электрон, оба исчезают, а вместо них рождаются два фотона - вещество целиком превращается в свет. Позитроны родятся в недрах звёзд, а ещё работают в больницах: ПЭТ-сканер видит как раз эти вспышки.",
+            en = "A positron is an electron the other way round: the same particle, but its charge is plus. When it meets an electron both vanish, and two photons are born instead - matter turns into light entirely. Positrons are born in the cores of stars, and they also work in hospitals: a PET scanner sees exactly these flashes.",
+        ),
+    ),
 
     // --- атомы ---
-    HYDROGEN(TranslatedText(ru="Водород", en="Hydrogen"), TranslatedText(ru = "", en = "")),
+    HYDROGEN(
+        TranslatedText(ru = "Водород", en = "Hydrogen"),
+        TranslatedText(
+            ru = "Проще атома не бывает: один протон и один электрон, больше в нём ничего нет. Почти всё вещество Вселенной сделано из него. А на Земле свободного водорода почти не осталось - он такой лёгкий, что улетает из атмосферы в космос; весь наш водород связан в воде и в живом.",
+            en = "There is no simpler atom: one proton and one electron, and nothing else in it. Almost all the matter in the Universe is made of it. On Earth, though, there is hardly any free hydrogen left - it is so light that it escapes the atmosphere into space; all of ours is locked up in water and in living things.",
+        ),
+    ),
     DEUTERIUM(TranslatedText(ru="Дейтерий", en="Deuterium"), TranslatedText(ru = "", en = "")),
     HELIUM_3(TranslatedText(ru="Гелий", en="Helium"), TranslatedText(ru = "", en = "")),
     HELIUM_4(TranslatedText(ru="Гелий", en="Helium"), TranslatedText(ru = "", en = "")),
@@ -160,14 +190,32 @@ enum class Element(val title: TranslatedText, val description: TranslatedText) {
     BERYLLIUM_7(TranslatedText(ru="Бериллий", en="Beryllium"), TranslatedText(ru = "", en = "")),
     BERYLLIUM_8(TranslatedText(ru="Бериллий", en="Beryllium"), TranslatedText(ru = "", en = "")),
     BORON_8(TranslatedText(ru="Бор", en="Boron"), TranslatedText(ru = "", en = "")),
-    CARBON_12(TranslatedText(ru="Углерод", en="Carbon"), TranslatedText(ru = "", en = "")),
+    CARBON_12(
+        TranslatedText(ru = "Углерод", en = "Carbon"),
+        TranslatedText(
+            ru = "Углерод держит сразу четыре связи и умеет цепляться сам за себя - цепочками, кольцами, сетками любой длины. Поэтому вся жизнь построена на нём, и соединений у него больше, чем у всех остальных элементов вместе взятых. И грифель карандаша, и алмаз - это он: разница только в том, как соединены атомы.",
+            en = "Carbon holds four bonds at once and can latch onto itself - in chains, rings and nets of any length. That is why all life is built on it, and why it has more compounds than every other element put together. Pencil lead and diamond are both carbon: the only difference is how the atoms are joined.",
+        ),
+    ),
     CARBON_13(TranslatedText(ru="Углерод", en="Carbon"), TranslatedText(ru = "", en = "")),
     CARBON_14(TranslatedText(ru="Углерод", en="Carbon"), TranslatedText(ru = "", en = "")),
     NITROGEN_13(TranslatedText(ru="Азот", en="Nitrogen"), TranslatedText(ru = "", en = "")),
-    NITROGEN_14(TranslatedText(ru="Азот", en="Nitrogen"), TranslatedText(ru = "", en = "")),
+    NITROGEN_14(
+        TranslatedText(ru = "Азот", en = "Nitrogen"),
+        TranslatedText(
+            ru = "Азот - это про белки: из них сделано всё живое, и в каждом есть его атомы. У атома три свободные связи, но в воздухе они заняты друг другом - два азота держит тройная связь, самая прочная из обычных. Поэтому воздуха вокруг полно, а растениям он недоступен: разорвать эту связь умеют только молнии и бактерии.",
+            en = "Nitrogen is about proteins: everything alive is made of them, and every one has nitrogen atoms in it. The atom has three free bonds, but in the air they are taken up by each other - two nitrogens are held by a triple bond, the strongest of the ordinary ones. So the air is full of it and plants still cannot reach it: only lightning and bacteria can break that bond.",
+        ),
+    ),
     NITROGEN_15(TranslatedText(ru="Азот", en="Nitrogen"), TranslatedText(ru = "", en = "")),
     OXYGEN_15(TranslatedText(ru="Кислород", en="Oxygen"), TranslatedText(ru = "", en = "")),
-    OXYGEN_16(TranslatedText(ru="Кислород", en="Oxygen"), TranslatedText(ru = "", en = "")),
+    OXYGEN_16(
+        TranslatedText(ru = "Кислород", en = "Oxygen"),
+        TranslatedText(
+            ru = "Во Вселенной кислород третий по распространённости - после водорода и гелия, а на Земле он вообще первый: почти половина веса земной коры это он. Одному ему не сидится: до полной оболочки не хватает двух электронов, и он хватается за первого встречного. Камни под ногами, вода в стакане и воздух в лёгких - везде он.",
+            en = "In the Universe oxygen comes third - after hydrogen and helium - and on Earth it comes first: nearly half the weight of the crust is oxygen. It cannot sit still on its own: it is two electrons short of a full shell, so it grabs the first thing it meets. The rocks underfoot, the water in a glass, the air in your lungs - it is in all of them.",
+        ),
+    ),
     OXYGEN_17(TranslatedText(ru="Кислород", en="Oxygen"), TranslatedText(ru = "", en = "")),
     OXYGEN_18(TranslatedText(ru="Кислород", en="Oxygen"), TranslatedText(ru = "", en = "")),
     FLUORINE_17(TranslatedText(ru="Фтор", en="Fluorine"), TranslatedText(ru = "", en = "")),

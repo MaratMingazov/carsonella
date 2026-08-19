@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.neutralElectrons
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_DESCRIPTION
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_TITLE
 
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
@@ -30,7 +31,7 @@ data class Level(
     val description: TranslatedText, // описание задачи, которое нужно выполнить
     val levelGoal: LevelGoal, // что должно появиться на холсте, чтобы задание закрылось
     val image: List<PaletteItem>, // картинка уровня
-    val inventory: Map<PaletteItem, Int>, // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
+    val inventory: Map<PaletteItem, Int> = emptyMap(), // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
     val reward: LevelReward, // Награда за успешное прохождение уровня
 )
 
@@ -51,25 +52,41 @@ fun availableLevels(completed: Set<LevelId>): List<Level> {
     return LEVELS.filter { it.id !in done && done.containsAll(it.requiredLevels) }
 }
 
-// Узел «дано»: играть нечего, поэтому ни задания, ни награды, ни инвентаря у него нет.
-private fun granted(id: LevelId, levelTitle: TranslatedText, levelGoal: LevelGoal, levelImage: List<PaletteItem>, requiredLevels: Set<LevelId> = emptySet()) = Level(
-    id = id,
-    title = levelTitle,
-    requiredLevels = requiredLevels,
-    levelGoal = levelGoal,
-    image = levelImage,
-    granted = true,
-    description = TranslatedText("", ""),
-    inventory = emptyMap(),
-    reward = LevelReward(text = TranslatedText("", "")),
-)
+
 
 
 val LEVELS = listOf(
     // Элементарные частицы игрок не собирает — они у него уже есть, поэтому узлы сразу закрыты.
-    granted(LevelId.PROTON, levelTitle = BARE_PROTON_TITLE, LevelGoal.CreateAtom(Element.HYDROGEN, electrons = 0), levelImage = listOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0))),
-    granted(LevelId.ELECTRON, levelTitle = Element.ELECTRON.title, LevelGoal.CreateAtom(Element.ELECTRON), levelImage = listOf(PaletteItem.Atom(Element.ELECTRON))),
-    granted(LevelId.PHOTON, levelTitle = Element.PHOTON.title, LevelGoal.CreateAtom(Element.PHOTON), levelImage = listOf(PaletteItem.Atom(Element.PHOTON))),
+
+    Level(
+        LevelId.PROTON,
+        title = BARE_PROTON_TITLE,
+        granted = true,
+        levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN, electrons = 0),
+        image = listOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = BARE_PROTON_DESCRIPTION),
+    ),
+
+    Level(
+        LevelId.ELECTRON,
+        title = Element.ELECTRON.title,
+        granted = true,
+        levelGoal = LevelGoal.CreateAtom(Element.ELECTRON),
+        image = listOf(PaletteItem.Atom(Element.ELECTRON)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = Element.ELECTRON.description),
+    ),
+
+    Level(
+        LevelId.PHOTON,
+        title =  Element.PHOTON.title,
+        granted = true,
+        levelGoal = LevelGoal.CreateAtom(Element.PHOTON),
+        image = listOf(PaletteItem.Atom(Element.PHOTON)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = Element.PHOTON.description),
+    ),
 
     Level(
         LevelId.HYDROGEN_ATOM,
@@ -109,7 +126,17 @@ val LEVELS = listOf(
                 )
         ),
     ),
-    granted(LevelId.OXYGEN_ATOM, levelTitle = Element.OXYGEN_16.title,  LevelGoal.CreateAtom(Element.OXYGEN_16), levelImage = listOf(PaletteItem.Atom(Element.OXYGEN_16)), requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON)),
+
+    Level(
+        LevelId.OXYGEN_ATOM,
+        title =  Element.OXYGEN_16.title,
+        granted = true,
+        requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
+        levelGoal = LevelGoal.CreateAtom(Element.OXYGEN_16),
+        image = listOf(PaletteItem.Atom(Element.OXYGEN_16)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = Element.OXYGEN_16.description),
+    ),
 
     Level(
         LevelId.HYDROXYL,

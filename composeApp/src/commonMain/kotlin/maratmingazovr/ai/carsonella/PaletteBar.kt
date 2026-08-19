@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -57,53 +56,45 @@ private val MOLECULE_SLOT_WIDTH = 64.dp   // молекула шире круж�
 private const val MOLECULE_SLOT_SCALE = 0.45f // в слоте молекула мельче, чем на карточке уровня
 
 // Плашка-палитра под холстом: элементы кружочками (как на канве). Тащатся на канву тем же DragSource →
-// спавн в DropTarget/App.onDrop. Задание [level] висит всплывашкой слева над палитрой — подсказка там же,
-// откуда игрок берёт атомы.
+// спавн в DropTarget/App.onDrop. Задание рядом не живёт: оно накладкой над холстом, иначе плашка
+// вместе с ним отъедала бы у мира высоту (см. GameScreen).
 @Composable
-fun PaletteBar(palette: List<PaletteSlot>, level: Level?, modifier: Modifier = Modifier) {
+fun PaletteBar(palette: List<PaletteSlot>, modifier: Modifier = Modifier) {
     // Плашка по ширине содержимого, по центру снизу (а не во всю ширину экрана).
     Box(modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.BottomCenter) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),   // зазор между пузырём и палитрой
-        ) {
-            // Сдвиг влево: пузырь стоит не поверх палитры, а сбоку, и стрелка приходит в неё по дуге.
-            if (level != null) TaskBubble(level, Modifier.offset(x = (-160).dp))
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(
-                    Modifier
-                        .background(PANEL_BG, RoundedCornerShape(12.dp))
-                        .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-                        .padding(horizontal = PLATE_PADDING, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(SLOT_GAP),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    palette.forEach { slot ->
-                        // Кончился — гаснет и перестаёт быть DragSource: тащить нечего.
-                        Box(Modifier.width(slotWidth(slot.item)), contentAlignment = Alignment.Center) {
-                            if (slot.count > 0) DragSource(item = slot.item) { PaletteItemView(slot.item, MOLECULE_SLOT_SCALE) }
-                            else PaletteItemView(slot.item, MOLECULE_SLOT_SCALE, Modifier.alpha(0.35f))
-                        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(
+                Modifier
+                    .background(PANEL_BG, RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
+                    .padding(horizontal = PLATE_PADDING, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(SLOT_GAP),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                palette.forEach { slot ->
+                    // Кончился — гаснет и перестаёт быть DragSource: тащить нечего.
+                    Box(Modifier.width(slotWidth(slot.item)), contentAlignment = Alignment.Center) {
+                        if (slot.count > 0) DragSource(item = slot.item) { PaletteItemView(slot.item, MOLECULE_SLOT_SCALE) }
+                        else PaletteItemView(slot.item, MOLECULE_SLOT_SCALE, Modifier.alpha(0.35f))
                     }
                 }
-                // Остатки — ПОД плашкой, а не внутри: внутри они растягивали её по высоте. Тот же шаг и
-                // те же ширины, что у кружков, поэтому каждое число стоит ровно под своим.
-                Spacer(Modifier.height(5.dp))
-                Row(
-                    Modifier.padding(horizontal = PLATE_PADDING),
-                    horizontalArrangement = Arrangement.spacedBy(SLOT_GAP),
-                ) {
-                    palette.forEach { slot ->
-                        Text(
-                            "×${slot.count}",
-                            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 12.sp,
-                            color = Color(0xFF7A7A7A), textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .width(slotWidth(slot.item))
-                                .alpha(if (slot.count > 0) 1f else 0.4f),
-                        )
-                    }
+            }
+            // Остатки — ПОД плашкой, а не внутри: внутри они растягивали её по высоте. Тот же шаг и
+            // те же ширины, что у кружков, поэтому каждое число стоит ровно под своим.
+            Spacer(Modifier.height(5.dp))
+            Row(
+                Modifier.padding(horizontal = PLATE_PADDING),
+                horizontalArrangement = Arrangement.spacedBy(SLOT_GAP),
+            ) {
+                palette.forEach { slot ->
+                    Text(
+                        "×${slot.count}",
+                        fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 12.sp,
+                        color = Color(0xFF7A7A7A), textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .width(slotWidth(slot.item))
+                            .alpha(if (slot.count > 0) 1f else 0.4f),
+                    )
                 }
             }
         }

@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -99,24 +101,32 @@ fun GameScreen(
     ) {
         DragDropContainer {
             Column(Modifier.fillMaxSize()) {
-                RightPanel(
-                    modifier = Modifier.weight(1f),   // канва берёт всю высоту, кроме палитры под ней
-                    // Принимаем только то, что ещё осталось в инвентаре уровня.
-                    accept = { data -> world.palette.any { it.item == data.item && it.count > 0 } },
-                    onDrop = { data, localPos -> world.spawnFromPalette(data.item, Position(localPos.x, localPos.y)) },
-                    hoverPos = hoverPos,
-                    onHover = { hoverPos = it },
-                    selectedId = selectedId,
-                    onSelect = { selectedId = it },
-                    world = world,
-                    entities = world.entities,
-                    renderer = renderer,
-                    time = time,
-                    onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
-                    onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
-                )
+                Box(Modifier.weight(1f)) {
+                    RightPanel(
+                        modifier = Modifier.fillMaxSize(),   // канва берёт всю высоту, кроме палитры под ней
+                        // Принимаем только то, что ещё осталось в инвентаре уровня.
+                        accept = { data -> world.palette.any { it.item == data.item && it.count > 0 } },
+                        onDrop = { data, localPos -> world.spawnFromPalette(data.item, Position(localPos.x, localPos.y)) },
+                        hoverPos = hoverPos,
+                        onHover = { hoverPos = it },
+                        selectedId = selectedId,
+                        onSelect = { selectedId = it },
+                        world = world,
+                        entities = world.entities,
+                        renderer = renderer,
+                        time = time,
+                        onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
+                        onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
+                    )
 
-                PaletteBar(palette = world.palette, level = level)
+                    // Задание накладкой поверх холста, а не строкой в колонке: строкой оно отъедало
+                    // у мира высоту. Фон и рамка мышь не ловят — клики и перетаскивание идут сквозь.
+                    // Сдвиг от центра, а не от края экрана: пузырь должен стоять рядом с палитрой,
+                    // чтобы стрелка приходила в неё, — иначе на широком окне он уезжает в даль.
+                    if (level != null) TaskBubble(level, Modifier.align(Alignment.BottomCenter).offset(x = (-160).dp))
+                }
+
+                PaletteBar(palette = world.palette)
             }
         }
 
