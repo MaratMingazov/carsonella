@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.behavior
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.outsideFactor
 import maratmingazovr.ai.carsonella.chemistry.Kinematics
 import kotlin.math.sqrt
 
@@ -64,11 +65,9 @@ class PointMovement(
         val radiusY = env.getEnvRadiusY()
         if (radiusX <= 0f || radiusY <= 0f) return   // границы ещё не заданы (канва не измерена)
 
-        // Вектор от центра эллипса к объекту, в долях радиусов: снаружи, когда сумма квадратов > 1.
-        // При равных радиусах это ровно прежняя проверка по окружности, поэтому звезда ничего не заметит.
         val dx = position.x - center.x
         val dy = position.y - center.y
-        val outside = (dx / radiusX) * (dx / radiusX) + (dy / radiusY) * (dy / radiusY)
+        val outside = env.outsideFactor(position)
 
         if (outside > 1f) {
             // Ставим на границу по тому же лучу из центра

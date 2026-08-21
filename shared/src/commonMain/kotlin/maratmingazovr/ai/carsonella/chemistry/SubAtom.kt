@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry
 import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.outsideFactor
 import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
 import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
@@ -75,20 +76,20 @@ class SubAtom private constructor(
     private fun initPhoton(environment: IEnvironment) {
         reduceVelocity()
         applyNewPosition()
-        checkBorders(environment)
         // Фотон достиг границы своей среды?
-//        val distanceSquare = state.value.position.distanceSquareTo(environment.getEnvCenter())
-//        if (distanceSquare > environment.getEnvRadius() * environment.getEnvRadius()) {
-//            // Если среда — частица-контейнер (звезда/модуль), она выпускает фотон в свою внешнюю
-//            // среду: свет уходит из звезды в космос (тот же приём updateMyEnvironment, что и в StarEmission).
-//            // Если это корневая среда (не Entity) — фотон покидает мир и гаснет.
-//            val container = environment as? Entity
-//            if (container != null) {
-//                updateMyEnvironment(container.getEnvironment())
-//            } else {
-//                destroy()
-//            }
-//        }
+        if (environment.outsideFactor(kinematics.position) > 1f) {
+            // Если среда — частица-контейнер (звезда/модуль), она выпускает фотон в свою внешнюю
+            // среду: свет уходит из звезды в космос (тот же приём updateMyEnvironment, что и в StarEmission).
+            // Если это корневая среда (не Entity) — фотон покидает мир и гаснет.
+            val container = environment as? Entity
+            if (container != null) {
+                updateMyEnvironment(container.getEnvironment())
+            } else {
+                destroy()
+            }
+            return
+        }
+        checkBorders(environment)
     }
 
     private fun initElectron(environment: IEnvironment, neighbors: List<Entity>) {

@@ -77,7 +77,7 @@ fun GameScreen(
         when (val goal = current.levelGoal) {
             is LevelGoal.CreateMolecule -> snapshotFlow { world.moleculeEvents.any { it.knownMoleculeId == goal.knownMoleculeId } }
             is LevelGoal.CreateAtom -> snapshotFlow {
-                world.entities.any { it is Atom && it.alive && it.element == goal.element && it.electrons == goal.electrons }
+                world.entities.count { it is Atom && it.alive && it.element == goal.element && it.electrons == goal.electrons } >= goal.count
             }
         }.first { it }
         delay(1500)                  // дать увидеть саму молекулу, а не накрыть её окном мгновенно

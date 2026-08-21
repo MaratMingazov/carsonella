@@ -18,6 +18,22 @@ interface IEnvironment {
     fun removeEnvChild(entity: Entity)
 }
 
+/**
+ * Насколько точка вышла за границу среды: `>1` — снаружи, `1` — ровно на кромке, `<1` — внутри.
+ * Мера эллиптическая (у круглой среды сводится к обычной окружности); `sqrt` от неё — тот множитель,
+ * которым точку возвращают на границу. Одна формула на всех, кто про границу спрашивает.
+ * Границы ещё не заданы (канва не измерена) — считаем, что снаружи никого нет.
+ */
+fun IEnvironment.outsideFactor(point: Position): Float {
+    val radiusX = getEnvRadius()
+    val radiusY = getEnvRadiusY()
+    if (radiusX <= 0f || radiusY <= 0f) return 0f
+    val center = getEnvCenter()
+    val dx = point.x - center.x
+    val dy = point.y - center.y
+    return (dx / radiusX) * (dx / radiusX) + (dy / radiusY) * (dy / radiusY)
+}
+
 class Environment(
     private var center: Position = Position(0f, 0f),
     private var radius: Float = 0f,

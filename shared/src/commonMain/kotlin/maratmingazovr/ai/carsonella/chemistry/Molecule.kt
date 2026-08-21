@@ -4,6 +4,7 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
+import maratmingazovr.ai.carsonella.outsideFactor
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
@@ -154,7 +155,7 @@ class Molecule private constructor(
             val k = atom.kinematics
             val dx = k.position.x - envCenter.x
             val dy = k.position.y - envCenter.y
-            val outside = (dx / radiusX) * (dx / radiusX) + (dy / radiusY) * (dy / radiusY)
+            val outside = env.outsideFactor(k.position)
             if (outside <= 1f) continue // этот атом внутри
             val scale = sqrt(outside)
             var nx = dx / (radiusX * radiusX)    // нормаль к эллипсу; у окружности — тот же радиус-вектор

@@ -12,12 +12,13 @@ import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 
 enum class LevelId {
     PROTON, ELECTRON, PHOTON,
-    HYDROGEN_ATOM, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
+    HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
 sealed interface LevelGoal {
-    data class CreateAtom(val element: Element, val electrons: Int = neutralElectrons(element)) : LevelGoal
+    // count — сколько таких атомов должно быть живо ОДНОВРЕМЕННО (тип задания «урожай»).
+    data class CreateAtom(val element: Element, val electrons: Int = neutralElectrons(element), val count: Int = 1) : LevelGoal
     data class CreateMolecule(val knownMoleculeId: KnownMoleculeId) : LevelGoal
 }
 
@@ -55,6 +56,21 @@ fun availableLevels(completed: Set<LevelId>): List<Level> {
     val done = effectiveCompleted(completed)
     return LEVELS.filter { it.id !in done && done.containsAll(it.requiredLevels) }
 }
+
+// Сетка одинаковых частиц: columns × rows с шагом step, центр — на centerX по горизонтали и на оси мира по вертикали.
+// Шаг меньше радиуса действия сил, иначе облако не расталкивается и стоит решёткой.
+private fun cluster(item: PaletteItem, centerX: Float, columns: Int, rows: Int, step: Float): List<InitialEntity> =
+    (0 until columns).flatMap { column ->
+        (0 until rows).map { row ->
+            InitialEntity(
+                item,
+                Vec2D(
+                    x = centerX + (column - (columns - 1) / 2f) * step,
+                    y = (row - (rows - 1) / 2f) * step,
+                ),
+            )
+        }
+    }
 
 
 
@@ -98,12 +114,12 @@ val LEVELS = listOf(
         requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
         levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN),
         image = listOf(PaletteItem.Atom(Element.HYDROGEN)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 10, PaletteItem.Atom(Element.ELECTRON) to 10),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 1, PaletteItem.Atom(Element.ELECTRON) to 1),
         description = TranslatedText(
             ru = "Начнём с самого начала: пусть протон поймает электрон и станет атомом водорода \n hint: подведи электрон к протону",
             en = "Let's start at the very beginning: let a proton catch an electron and become a hydrogen atom \n hint: bring the electron up to the proton",
         ),
-        worldArea = WorldArea.Circle(radiusPx = 400f),
+        worldArea = WorldArea.Circle(radiusPx = 300f),
         reward = LevelReward(
             text =
                 TranslatedText(
@@ -112,6 +128,35 @@ val LEVELS = listOf(
                 )
             ),
     ),
+    // Экспериментальный раунд: та же рекомбинация, что и в HYDROGEN_ATOM, но масштабом сцены.
+    // Протоны и электроны стоят двумя облаками с шагом меньше радиуса сил — облака сами расталкиваются.
+    Level(
+        LevelId.RECOMBINATION,
+        title = TranslatedText(
+            ru = "Эпоха рекомбинации",
+            en = "The recombination era",
+        ),
+        requiredLevels = setOf(LevelId.HYDROGEN_ATOM),
+        levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN, count = 10),
+        image = listOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0), PaletteItem.Atom(Element.ELECTRON)),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 10, PaletteItem.Atom(Element.ELECTRON) to 10),
+        worldArea = WorldArea.Circle(radiusPx = 300f),
+        initialEntities =
+            cluster(PaletteItem.Atom(Element.HYDROGEN, electrons = 0), centerX = -170f, columns = 3, rows = 3, step = 55f) +
+            cluster(PaletteItem.Atom(Element.ELECTRON), centerX = 170f, columns = 3, rows = 3, step = 50f),
+        description = TranslatedText(
+            ru = "Так выглядела вся Вселенная: горячий туман из протонов и электронов, и больше ничего. Собери 10 атомов водорода \n hint: одинаковые заряды расталкиваются — толпу придётся перемешать",
+            en = "This is what the whole Universe looked like: a hot fog of protons and electrons, and nothing else. Make 5 hydrogen atoms \n hint: like charges push each other apart - you will have to stir the crowd",
+        ),
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Вселенной понадобилось на это 380 тысяч лет. Всё это время было слишком горячо: едва протон ловил электрон, первый же встречный фотон выбивал его обратно, и туман держался. Свет не мог пролететь и метра, Вселенная была непрозрачной. А когда она наконец остыла и атомы собрались, туман исчез разом - и весь накопленный свет полетел свободно во все стороны. Он летит до сих пор.",
+                    en = "It took the Universe 380 thousand years. All that time it was too hot: the moment a proton caught an electron, the first passing photon knocked it straight back out, and the fog held. Light could not travel a metre, the Universe was opaque. And when it finally cooled and the atoms came together, the fog vanished all at once - and all the light that had piled up flew free in every direction. It is still flying now.",
+                )
+        ),
+    ),
+
     Level(
         LevelId.DIHYDROGEN,
         title = KnownMoleculeId.DIHYDROGEN.title,
