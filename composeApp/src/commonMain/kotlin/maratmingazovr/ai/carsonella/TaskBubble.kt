@@ -3,6 +3,8 @@ package maratmingazovr.ai.carsonella
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,26 +40,58 @@ private const val ARROW_WIDTH = 2.2f
  * Внутри тот же эталон молекулы, что был в карточке уровня; стрелка нарисована дугой и уходит в палитру.
  */
 @Composable
-fun TaskBubble(level: Level, modifier: Modifier = Modifier) {
+fun TaskBubble(level: Level, open: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     // Стрелка сбоку, а не под пузырём: пузырь стоит далеко слева, и дуга идёт от его правого бока в палитру.
     Row(modifier, verticalAlignment = Alignment.Bottom) {
-        Column(
-            Modifier
-                .widthIn(max = BUBBLE_WIDTH)
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .border(1.dp, BUBBLE_BORDER, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        if (!open) {
+            TaskBadge(onToggle)
+            return@Row
+        }
+        Box {
+            Column(
+                Modifier
+                    .widthIn(max = BUBBLE_WIDTH)
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .border(1.dp, BUBBLE_BORDER, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text(level.description),
+                    fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
+                    lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(12.dp))
+                LevelImage(level.image, scale = 0.6f)
+            }
+            // Крестик живёт в отступе карточки, куда текст не заходит, поэтому наложения нет.
+            // Кликабелен только он: повесить clickable на весь пузырь — значит перекрыть холст под ним.
             Text(
-                text(level.description),
-                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 17.sp,
-                lineHeight = 24.sp, color = BUBBLE_TEXT, textAlign = TextAlign.Center,
+                "×",
+                Modifier.align(Alignment.TopEnd).clickable(onClick = onToggle).padding(horizontal = 5.dp, vertical = 1.dp),
+                fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 16.sp, color = BUBBLE_BORDER,
             )
-            Spacer(Modifier.height(12.dp))
-            LevelImage(level.image, scale = 0.6f)
         }
         HintArrow()
+    }
+}
+
+// Свёрнутое задание. Не «закрыто»: в описании лежит подсказка, и вернуть её нужно уметь.
+@Composable
+private fun TaskBadge(onClick: () -> Unit) {
+    Box(
+        Modifier
+            .size(28.dp)
+            .clip(CircleShape)
+            .background(Color.White)
+            .border(1.dp, BUBBLE_BORDER, CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            "?",
+            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 15.sp, color = BUBBLE_TEXT,
+        )
     }
 }
 

@@ -63,6 +63,9 @@ fun GameScreen(
     // Приветствие — только в самом начале игры, пока не пройдено ни одного уровня; холст под ним пуст.
     var welcome by remember { mutableStateOf(completed.isEmpty()) }
     val level = availableLevels(completed).firstOrNull()
+    // Пузырь с заданием игрок может свернуть, прочитав. Ключ по уровню: новое задание — новый текст,
+    // его надо показать, иначе свернувший однажды больше никогда его не увидит.
+    var taskOpen by remember(level?.id) { mutableStateOf(true) }
 
     // Цель засчитывается по тому же событию, что рисует всплывающее имя: известная молекула родилась.
     // Ждём факта через first { it } и дальше от списка не зависим — плашка своё событие вскоре удалит,
@@ -125,7 +128,12 @@ fun GameScreen(
                     // у мира высоту. Фон и рамка мышь не ловят — клики и перетаскивание идут сквозь.
                     // Сдвиг от центра, а не от края экрана: пузырь должен стоять рядом с палитрой,
                     // чтобы стрелка приходила в неё, — иначе на широком окне он уезжает в даль.
-                    if (level != null) TaskBubble(level, Modifier.align(Alignment.BottomCenter).offset(x = (-160).dp))
+                    if (level != null) TaskBubble(
+                        level,
+                        open = taskOpen,
+                        onToggle = { taskOpen = !taskOpen },
+                        modifier = Modifier.align(Alignment.BottomCenter).offset(x = (-160).dp),
+                    )
                 }
 
                 PaletteBar(palette = world.palette)
