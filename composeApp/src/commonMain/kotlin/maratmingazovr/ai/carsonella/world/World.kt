@@ -59,6 +59,9 @@ sealed interface WorldArea {
     data class Circle(val radiusPx: Float) : WorldArea // задаем конкретный радиус
 }
 
+// Что уже стоит на сцене в начале уровня: смещение от центра мира в пикселях.
+data class InitialEntity(val item: PaletteItem, val offset: Vec2D)
+
 class World(
     private val _scope: CoroutineScope,
 ) {
@@ -94,6 +97,7 @@ class World(
     private var _pendingSnapshot: WorldSnapshotDto? = null
     private var _pendingClear = false   // очистка холста между уровнями — по тому же правилу
     private var _pendingArea: EnvArea? = null   // новые границы мира от канвы — тоже через тик
+    private var _pendingSetup: List<InitialEntity>? = null   // стартовая расстановка уровня — по тому же правилу
 
     private data class EnvArea(val center: Position, val radiusX: Float, val radiusY: Float)
     private data class CanvasSize(val width: Float, val height: Float)
@@ -138,6 +142,16 @@ class World(
                 _pendingArea?.let { area ->
                     environment.setEnvArea(area.center, area.radiusX, area.radiusY)
                     _pendingArea = null
+                }
+
+                // Стартовая расстановка уровня — после очистки и границ: раньше её либо сотрёт clear,
+                // либо посчитает от чужого центра. Пока канву не измерили, ждём: центр (0,0) свёл бы
+                // всю композицию в угол холста.
+                _pendingSetup?.let { items ->
+                    if (environment.getEnvRadius() > 0f) {
+                        items.forEach { spawnInitial(it) }
+                        _pendingSetup = null
+                    }
                 }
 
                 tick++
@@ -205,12 +219,24 @@ class World(
         inventory.forEach { (item, count) -> palette.add(PaletteSlot(item, count)) }
     }
 
+    // Уровень расставляет стартовые частицы. Выполнится в тике, когда канва измерена (см. start()).
+    fun setInitialEntities(items: List<InitialEntity>) { _pendingSetup = items.takeIf { it.isNotEmpty() } }
+
     /** Игрок кладёт из палитры: расходуем остаток и рождаем на холсте то, что в слоте. */
     fun spawnFromPalette(item: PaletteItem, position: Position) {
         val slot = palette.indexOfFirst { it.item == item }
         if (slot < 0 || palette[slot].count <= 0) return
         palette[slot] = palette[slot].copy(count = palette[slot].count - 1)
+        spawnItem(item, position)
+    }
 
+    // Обстановка уровня, а не инвентарь: палитру не расходует. Смещение считаем от центра мира.
+    private fun spawnInitial(initial: InitialEntity) {
+        val center = environment.getEnvCenter()
+        spawnItem(initial.item, Position(center.x + initial.offset.x, center.y + initial.offset.y))
+    }
+
+    private fun spawnItem(item: PaletteItem, position: Position) {
         val entity = when (item) {
             is PaletteItem.Atom -> spawnAtom(item.element, item.electrons, position)
             is PaletteItem.KnownMolecule -> spawnKnownMolecule(item.knownMoleculeId, position)

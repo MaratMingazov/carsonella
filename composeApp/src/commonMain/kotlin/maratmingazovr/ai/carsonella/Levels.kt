@@ -1,6 +1,7 @@
 package maratmingazovr.ai.carsonella
 
 import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.world.InitialEntity
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.WorldArea
 import maratmingazovr.ai.carsonella.world.neutralElectrons
@@ -34,6 +35,7 @@ data class Level(
     val image: List<PaletteItem>, // картинка уровня
     val inventory: Map<PaletteItem, Int> = emptyMap(), // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
     val worldArea: WorldArea = WorldArea.FitCanvas, // размер мира: по умолчанию весь холст, для опытов — круг заданного радиуса
+    val initialEntities: List<InitialEntity> = emptyList(), // что уже стоит на сцене к началу уровня; смещение от центра мира в пикселях
     val reward: LevelReward, // Награда за успешное прохождение уровня
 )
 
