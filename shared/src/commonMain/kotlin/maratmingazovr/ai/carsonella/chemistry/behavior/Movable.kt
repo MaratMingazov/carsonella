@@ -51,7 +51,7 @@ class PointMovement(
     }
 
     override fun reduceVelocity() {
-        val newVelocity = if (kinematics.velocity < 0.1f) 0f else kinematics.velocity * 0.99f
+        val newVelocity = if (kinematics.velocity < 0.01f) 0f else kinematics.velocity * 0.99f
         update(kinematics.copy(velocity = newVelocity))
     }
 

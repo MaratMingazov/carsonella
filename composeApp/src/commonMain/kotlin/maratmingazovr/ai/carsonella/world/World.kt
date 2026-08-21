@@ -53,6 +53,12 @@ data class PaletteSlot(val item: PaletteItem, val count: Int) // Слот пал
 // Отступ границ мира от края канвы: радиус самого крупного атома плюс запас на валентные слоты.
 private const val EDGE_INSET = 34f
 
+// Размер мира на уровне: весь холст или круг заданного радиуса — чтобы ставить опыты в тесноте.
+sealed interface WorldArea {
+    data object FitCanvas : WorldArea // мир занимает все доступное место
+    data class Circle(val radiusPx: Float) : WorldArea // задаем конкретный радиус
+}
+
 class World(
     private val _scope: CoroutineScope,
 ) {
@@ -90,6 +96,11 @@ class World(
     private var _pendingArea: EnvArea? = null   // новые границы мира от канвы — тоже через тик
 
     private data class EnvArea(val center: Position, val radiusX: Float, val radiusY: Float)
+    private data class CanvasSize(val width: Float, val height: Float)
+
+    // Последний замер канвы и режим от уровня: границы = функция от них двоих, меняться может любое.
+    private var _canvas: CanvasSize? = null
+    private var _worldArea: WorldArea = WorldArea.FitCanvas
 
     private val _chemicalReactionResolver = ChemicalReactionResolver(entityGenerator)
 
@@ -158,16 +169,34 @@ class World(
     /** Просьба очистить холст (переход между уровнями). Выполнится в начале следующего тика. */
     fun requestClear() { _pendingClear = true }
 
-    /**
-     * Канва сообщает свой размер: мир — эллипс, вписанный в неё с отступом на радиус атома, чтобы
-     * частица у границы оставалась видимой целиком. Иначе частицу можно увести за край холста, и
-     * достать её оттуда будет уже нечем.
-     */
+    /** Канва сообщает свой размер. Запоминаем: границы пересчитываются и при смене режима. */
     fun requestArea(widthPx: Float, heightPx: Float) {
-        val radiusX = widthPx / 2f - EDGE_INSET
-        val radiusY = heightPx / 2f - EDGE_INSET
-        if (radiusX <= 0f || radiusY <= 0f) return   // канва ещё меньше отступа — ждём следующего замера
-        _pendingArea = EnvArea(Position(widthPx / 2f, heightPx / 2f), radiusX, radiusY)
+        _canvas = CanvasSize(widthPx, heightPx)
+        recomputeArea()
+    }
+
+    // Level задаёт свой размер мира. Канва при смене уровня та же, onSizeChanged не придёт — считаем сами.
+    fun setWorldArea(area: WorldArea) {
+        _worldArea = area
+        recomputeArea()
+    }
+
+    /**
+     * Режим + размер канвы → границы. Мир вписан в канву с отступом на радиус атома, чтобы частица
+     * у границы оставалась видимой целиком: иначе её можно увести за край холста и уже ничем не достать.
+     * Кладём в очередь — применит тик, писатель мира остаётся один.
+     */
+    private fun recomputeArea() {
+        val canvas = _canvas ?: return
+        val maxRadiusX = canvas.width / 2f - EDGE_INSET
+        val maxRadiusY = canvas.height / 2f - EDGE_INSET
+        if (maxRadiusX <= 0f || maxRadiusY <= 0f) return   // канва ещё меньше отступа — ждём следующего замера
+        val (radiusX, radiusY) = when (val area = _worldArea) {
+            WorldArea.FitCanvas -> maxRadiusX to maxRadiusY
+            // Круг уровня ужимаем до вписанного: на узком окне заданный радиус вылез бы за холст.
+            is WorldArea.Circle -> minOf(area.radiusPx, maxRadiusX, maxRadiusY).let { it to it }
+        }
+        _pendingArea = EnvArea(Position(canvas.width / 2f, canvas.height / 2f), radiusX, radiusY)
     }
 
     /** Уровень выдаёт инвентарь. Холст к этому моменту уже очищен, так что старые остатки не нужны. */

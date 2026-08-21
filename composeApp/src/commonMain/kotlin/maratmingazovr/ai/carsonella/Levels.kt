@@ -2,6 +2,7 @@ package maratmingazovr.ai.carsonella
 
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.PaletteItem
+import maratmingazovr.ai.carsonella.world.WorldArea
 import maratmingazovr.ai.carsonella.world.neutralElectrons
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_DESCRIPTION
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_TITLE
@@ -32,6 +33,7 @@ data class Level(
     val levelGoal: LevelGoal, // что должно появиться на холсте, чтобы задание закрылось
     val image: List<PaletteItem>, // картинка уровня
     val inventory: Map<PaletteItem, Int> = emptyMap(), // Что выдаём в палитру и сколько: порядок сохраняется, он же порядок слотов на экране.
+    val worldArea: WorldArea = WorldArea.FitCanvas, // размер мира: по умолчанию весь холст, для опытов — круг заданного радиуса
     val reward: LevelReward, // Награда за успешное прохождение уровня
 )
 
@@ -94,11 +96,12 @@ val LEVELS = listOf(
         requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
         levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN),
         image = listOf(PaletteItem.Atom(Element.HYDROGEN)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 1, PaletteItem.Atom(Element.ELECTRON) to 1),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 10, PaletteItem.Atom(Element.ELECTRON) to 10),
         description = TranslatedText(
             ru = "Начнём с самого начала: пусть протон поймает электрон и станет атомом водорода \n hint: подведи электрон к протону",
             en = "Let's start at the very beginning: let a proton catch an electron and become a hydrogen atom \n hint: bring the electron up to the proton",
         ),
+        worldArea = WorldArea.Circle(radiusPx = 400f),
         reward = LevelReward(
             text =
                 TranslatedText(

@@ -70,6 +70,7 @@ fun GameScreen(
     LaunchedEffect(level?.id) {
         val current = level ?: return@LaunchedEffect
         world.setInventory(current.inventory)   // палитра уровня = его инвентарь
+        world.setWorldArea(current.worldArea)   // и его же размер мира
         // У молекулы событие есть, у атома нет — его ищем среди живых частиц. Заряд в условии значим:
         // протон это тот же HYDROGEN, и без проверки электронов задание закрылось бы сразу.
         when (val goal = current.levelGoal) {
