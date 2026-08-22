@@ -50,6 +50,10 @@ fun neutralElectrons(element: Element): Int = if (element == Element.ELECTRON) 1
 
 data class PaletteSlot(val item: PaletteItem, val count: Int) // Слот палитры: что игрок может взять и сколько этого осталось на уровне.
 
+// Бездонный слот свободного мира. Не 0 и не -1 намеренно: все проверки «count > 0» продолжают работать
+// как есть, особый случай остаётся ровно в двух местах — расход не списывается, подпись «∞» вместо числа.
+const val UNLIMITED = Int.MAX_VALUE
+
 // Отступ границ мира от края канвы: радиус самого крупного атома плюс запас на валентные слоты.
 private const val EDGE_INSET = 34f
 
@@ -226,7 +230,7 @@ class World(
     fun spawnFromPalette(item: PaletteItem, position: Position) {
         val slot = palette.indexOfFirst { it.item == item }
         if (slot < 0 || palette[slot].count <= 0) return
-        palette[slot] = palette[slot].copy(count = palette[slot].count - 1)
+        if (palette[slot].count != UNLIMITED) palette[slot] = palette[slot].copy(count = palette[slot].count - 1)
         spawnItem(item, position)
     }
 

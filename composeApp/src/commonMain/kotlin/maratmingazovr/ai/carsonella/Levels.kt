@@ -13,6 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 enum class LevelId {
     PROTON, ELECTRON, PHOTON,
     HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
+    TRIOXIDANE, TETRAOXIDANE,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
@@ -269,4 +270,30 @@ val LEVELS = listOf(
 //                )
 //        ),
 //    ),
+    Level(
+        LevelId.TRIOXIDANE,
+        title = KnownMoleculeId.TRIOXIDANE.title,
+        requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.TRIOXIDANE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.TRIOXIDANE)),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 3),
+        description = TranslatedText(
+            ru = "В перекиси два кислорода подряд. А если поставить третий? \n hint: нужна цепочка H–O–O–O–H",
+            en = "Peroxide has two oxygens in a row. What if we put in a third? \n hint: you need the chain H–O–O–O–H",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.TRIOXIDANE.description),
+    ),
+    Level(
+        LevelId.TETRAOXIDANE,
+        title = KnownMoleculeId.TETRAOXIDANE.title,
+        requiredLevels = setOf(LevelId.TRIOXIDANE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.TETRAOXIDANE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.TETRAOXIDANE)),
+        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 4),
+        description = TranslatedText(
+            ru = "А ещё один кислород влезет? \n hint: нужна цепочка H–O–O–O–O–H",
+            en = "Will one more oxygen fit? \n hint: you need the chain H–O–O–O–O–H",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.TETRAOXIDANE.description),
+    ),
 )

@@ -78,12 +78,14 @@ data class MenuEntry(
 @Composable
 fun MenuScreen(
     onStart: () -> Unit,
+    onSandbox: () -> Unit,
     onMap: () -> Unit,
     onLanguage: () -> Unit,
     onAbout: () -> Unit,
 ) {
     val entries = listOf(
         MenuEntry(text(UiString.MENU_PLAY), onStart),
+        MenuEntry(text(UiString.MENU_SANDBOX), onSandbox),
         MenuEntry(text(UiString.MENU_MAP), onMap),
         MenuEntry(text(UiString.MENU_LANGUAGE), onLanguage),
         MenuEntry(text(UiString.MENU_ABOUT), onAbout),

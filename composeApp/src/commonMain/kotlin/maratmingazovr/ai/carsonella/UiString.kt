@@ -15,6 +15,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
  */
 enum class UiString(val en: String, val ru: String) {
     MENU_PLAY("play", "играть"),
+    MENU_SANDBOX("laboratory", "лаборатория"),
     MENU_MAP("map", "карта"),
     MENU_LANGUAGE("language", "язык"),
     MENU_ABOUT("about", "об игре"),

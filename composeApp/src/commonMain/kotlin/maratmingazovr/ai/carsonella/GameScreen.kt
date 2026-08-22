@@ -2,7 +2,6 @@ package maratmingazovr.ai.carsonella
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -11,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
@@ -19,7 +17,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -27,11 +24,10 @@ import kotlinx.coroutines.flow.first
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 import maratmingazovr.ai.carsonella.world.World
-import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 
 /**
- * Игровой экран: живой мир, палитра сверху, канва с правой панелью.
- *
+ * Кампания: сцена мира ([WorldStage]) плюс лестница заданий поверх неё — пузырь с целью, награда,
+ * приветствие. Палитру и размер мира здесь задаёт текущий уровень.
  */
 @Composable
 fun GameScreen(
@@ -41,23 +37,7 @@ fun GameScreen(
     onExit: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val textMeasurer = rememberTextMeasurer()
-    val renderer = remember { EntityRenderer(textMeasurer) }
     val world = remember { World(scope).apply { start() } }
-
-    // Единый монотонный «часовой» источник (секунды с запуска). Каждый эффект берёт свою частоту
-    // (VIB_HZ/STAR_HZ/SLOT_HZ в рендере). Монотонность (НЕ заворачивается) → плавное непрерывное
-    // вращение слотов без скачков, в отличие от прежних зацикленных phase/phase2.
-    val time by produceState(0f) {
-        val start = withFrameNanos { it }
-        while (true) { withFrameNanos { now -> value = (now - start) / 1_000_000_000f } }
-    }
-
-    var hoverPos by remember { mutableStateOf<Offset?>(null) } // это координаты моего курсора на канве
-    // hoveredId здесь НЕТ намеренно: «что под курсором» — не состояние, а функция от hoverPos и
-    // положения частиц. SceneCanvas вычисляет его сам (см. hitTest), поэтому хранить и обновлять
-    // его снаружи нечего.
-    var selectedId by remember { mutableStateOf<Long?>(null) }
 
     var reward by remember { mutableStateOf(false) }
     // Приветствие — только в самом начале игры, пока не пройдено ни одного уровня; холст под ним пуст.
@@ -104,40 +84,17 @@ fun GameScreen(
                 if (e.type == KeyDown && e.key == Key.Escape) { onExit(); true } else false
             }
     ) {
-        DragDropContainer {
-            Column(Modifier.fillMaxSize()) {
-                Box(Modifier.weight(1f)) {
-                    RightPanel(
-                        modifier = Modifier.fillMaxSize(),   // канва берёт всю высоту, кроме палитры под ней
-                        // Принимаем только то, что ещё осталось в инвентаре уровня.
-                        accept = { data -> world.palette.any { it.item == data.item && it.count > 0 } },
-                        onDrop = { data, localPos -> world.spawnFromPalette(data.item, Position(localPos.x, localPos.y)) },
-                        hoverPos = hoverPos,
-                        onHover = { hoverPos = it },
-                        selectedId = selectedId,
-                        onSelect = { selectedId = it },
-                        world = world,
-                        entities = world.entities,
-                        renderer = renderer,
-                        time = time,
-                        onSetEnergy = { id, energy -> world.setEntityEnergy(id, energy) },
-                        onMoleculeAction = { id, selection -> world.requestMoleculeAction(id, selection) },
-                    )
-
-                    // Задание накладкой поверх холста, а не строкой в колонке: строкой оно отъедало
-                    // у мира высоту. Фон и рамка мышь не ловят — клики и перетаскивание идут сквозь.
-                    // Сдвиг от центра, а не от края экрана: пузырь должен стоять рядом с палитрой,
-                    // чтобы стрелка приходила в неё, — иначе на широком окне он уезжает в даль.
-                    if (level != null) TaskBubble(
-                        level,
-                        open = taskOpen,
-                        onToggle = { taskOpen = !taskOpen },
-                        modifier = Modifier.align(Alignment.BottomCenter).offset(x = (-160).dp),
-                    )
-                }
-
-                PaletteBar(palette = world.palette)
-            }
+        WorldStage(world) {
+            // Задание накладкой поверх холста, а не строкой в колонке: строкой оно отъедало
+            // у мира высоту. Фон и рамка мышь не ловят — клики и перетаскивание идут сквозь.
+            // Сдвиг от центра, а не от края экрана: пузырь должен стоять рядом с палитрой,
+            // чтобы стрелка приходила в неё, — иначе на широком окне он уезжает в даль.
+            if (level != null) TaskBubble(
+                level,
+                open = taskOpen,
+                onToggle = { taskOpen = !taskOpen },
+                modifier = Modifier.align(Alignment.BottomCenter).offset(x = (-160).dp),
+            )
         }
 
         // Окон одновременно не бывает: пока висит приветствие, собрать что-либо всё равно нельзя.

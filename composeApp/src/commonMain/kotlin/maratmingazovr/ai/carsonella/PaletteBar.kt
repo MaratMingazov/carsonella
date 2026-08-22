@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.PaletteSlot
+import maratmingazovr.ai.carsonella.world.UNLIMITED
 import maratmingazovr.ai.carsonella.world.neutralElectrons
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_FILL
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_SYMBOL
@@ -88,7 +89,7 @@ fun PaletteBar(palette: List<PaletteSlot>, modifier: Modifier = Modifier) {
             ) {
                 palette.forEach { slot ->
                     Text(
-                        "×${slot.count}",
+                        if (slot.count == UNLIMITED) "∞" else "×${slot.count}",
                         fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 12.sp,
                         color = Color(0xFF7A7A7A), textAlign = TextAlign.Center,
                         modifier = Modifier

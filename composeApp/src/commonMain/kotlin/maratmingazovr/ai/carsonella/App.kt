@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 private sealed interface Screen {
     data object Menu : Screen
     data object Game : Screen
+    data object Sandbox : Screen
     data object Map : Screen
     data object Language : Screen
     data object About : Screen
@@ -29,11 +30,16 @@ fun App() {
             when (screen) {
                 Screen.Menu -> MenuScreen(
                     onStart = { screen = Screen.Game },
+                    onSandbox = { screen = Screen.Sandbox },
                     onMap = { screen = Screen.Map },
                     onLanguage = { screen = Screen.Language },
                     onAbout = { screen = Screen.About },
                 )
                 Screen.Map -> LevelMapScreen(playerState = player, onBack = { screen = Screen.Menu })
+                Screen.Sandbox -> SandboxScreen(
+                    onDiscover = { player = player.copy(progress = player.progress.discoverMolecule(it)) },
+                    onExit = { screen = Screen.Menu },
+                )
                 Screen.Game -> GameScreen(
                     completed = player.progress.completedLevels,
                     onDiscover = { player = player.copy(progress = player.progress.discoverMolecule(it)) },

@@ -47,8 +47,20 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
             en = "This is water with one extra oxygen atom - the very peroxide from the medicine cabinet. It foams on a cut because the body destroys it instantly: the bubbles we see are oxygen. By the way, doctors no longer advise pouring peroxide on wounds - it kills not only germs but living cells too.",
         ),
     ),
-    TRIOXIDANE(TranslatedText("Триоксидан", "Trioxidane"), TranslatedText(ru = "", en = "")),
-    TETRAOXIDANE(TranslatedText("Тетраоксидан", "Tetraoxidane"), TranslatedText(ru = "", en = "")),
+    TRIOXIDANE(
+        TranslatedText("Триоксидан", "Trioxidane"), 
+        TranslatedText(
+            ru = "Это перекись, которой добавили ещё один кислород. Такая цепочка держится еле-еле: в тепле она разваливается за минуты, поэтому в аптеке её не купишь. Зато в воздухе над нами она рождается постоянно - и заметили её там совсем недавно, в 2022 году.",
+            en = "This is peroxide with one more oxygen added. A chain like this barely holds: in the warm it falls apart in minutes, so you will not find it in a pharmacy. But up in the air above us it is being made all the time - and it was only spotted there recently, in 2022.",
+        ),
+    ),
+    TETRAOXIDANE(
+        TranslatedText("Тетраоксидан", "Tetraoxidane"), 
+        TranslatedText(
+            ru = "Четыре кислорода подряд - предел, до которого такую цепочку вообще смогли дотянуть. Живёт она только на сильном морозе: чуть теплее - и цепочка рвётся сама, выбрасывая кислород. Чем длиннее цепочка, тем слабее она держится.",
+            en = "Four oxygens in a row is as far as a chain like this has ever been stretched. It survives only in deep cold: any warmer and the chain snaps by itself, throwing off oxygen. The longer the chain, the worse it holds together.",
+        ),
+    ),
     IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
     AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
     AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
