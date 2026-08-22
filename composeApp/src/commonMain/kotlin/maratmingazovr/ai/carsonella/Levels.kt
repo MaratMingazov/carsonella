@@ -123,8 +123,8 @@ val LEVELS = listOf(
         reward = LevelReward(
             text =
                 TranslatedText(
-                    ru = "Электрон сел на протон, а лишнюю энергию отдал светом - тем самым фотоном, который улетел в сторону. Так было и во Вселенной: через 380 тысяч лет после Большого взрыва протоны наконец разобрали себе электроны, туман из заряженных частиц пропал, и свет полетел свободно. Мы этот свет видим до сих пор - это реликтовое излучение.",
-                    en = "The electron settled onto the proton and gave up the spare energy as light - the very photon that just flew off. That is how it went in the Universe too: 380 thousand years after the Big Bang the protons finally took up their electrons, the fog of charged particles cleared, and light flew free. We still see that light today - it is the cosmic microwave background.",
+                    ru = "Видишь фотон, который улетел в сторону? Электрон притянулся к протону, разогнался — и лишнее выбросил светом. Почти весь свет вокруг рождается так же: и в лампе, и на Солнце светят электроны, которые нашли своё место и отдали лишнюю энергию фотоном",
+                    en = "See the photon that flew off? The electron was pulled to the proton, picked up speed - and threw the spare out as light. Almost all the light around you is made the same way: in a lamp and in the Sun it is electrons finding their place and giving up the spare energy as a photon",
                 )
             ),
     ),
@@ -145,14 +145,14 @@ val LEVELS = listOf(
             cluster(PaletteItem.Atom(Element.HYDROGEN, electrons = 0), centerX = -170f, columns = 3, rows = 3, step = 55f) +
             cluster(PaletteItem.Atom(Element.ELECTRON), centerX = 170f, columns = 3, rows = 3, step = 50f),
         description = TranslatedText(
-            ru = "Так выглядела вся Вселенная: горячий туман из протонов и электронов, и больше ничего. Собери 10 атомов водорода \n hint: одинаковые заряды расталкиваются — толпу придётся перемешать",
-            en = "This is what the whole Universe looked like: a hot fog of protons and electrons, and nothing else. Make 5 hydrogen atoms \n hint: like charges push each other apart - you will have to stir the crowd",
+            ru = "Вот так выглядела Вселенная: состояла из протонов и электронов, и больше ничего. Собери из неё 10 атомов водорода \n hint: одинаковые заряды расталкиваются — толпу придётся перемешать",
+            en = "This is what the Universe looked like: protons and electrons, and nothing else. Make 10 hydrogen atoms out of it \n hint: like charges push each other apart - you will have to stir the crowd",
         ),
         reward = LevelReward(
             text =
                 TranslatedText(
-                    ru = "Вселенной понадобилось на это 380 тысяч лет. Всё это время было слишком горячо: едва протон ловил электрон, первый же встречный фотон выбивал его обратно, и туман держался. Свет не мог пролететь и метра, Вселенная была непрозрачной. А когда она наконец остыла и атомы собрались, туман исчез разом - и весь накопленный свет полетел свободно во все стороны. Он летит до сих пор.",
-                    en = "It took the Universe 380 thousand years. All that time it was too hot: the moment a proton caught an electron, the first passing photon knocked it straight back out, and the fog held. Light could not travel a metre, the Universe was opaque. And when it finally cooled and the atoms came together, the fog vanished all at once - and all the light that had piled up flew free in every direction. It is still flying now.",
+                    ru = "Вселенной на это понадобилось 380 тысяч лет: было слишком горячо — только протон поймает электрон, как налетевший фотон выбивает его обратно. А пока электроны летали свободно, свет не мог пробиться: Вселенная была как густой туман — светло, а разглядеть ничего нельзя. Потом она остыла, атомы собрались, и туман пропал разом. Свет полетел во все стороны и летит до сих пор: телескопы ловят его со всего неба и зовут реликтовым излучением.",
+                    en = "It took the Universe 380 thousand years: it was simply too hot - the moment a proton caught an electron, a passing photon knocked it straight back out. And while the electrons flew loose, light could not get through: the Universe was like thick fog - bright, but you could not see a thing. Then it cooled, the atoms came together, and the fog cleared all at once. The light flew off in every direction and is still flying: telescopes pick it up from all over the sky and call it the cosmic microwave background.",
                 )
         ),
     ),
@@ -249,24 +249,24 @@ val LEVELS = listOf(
         ),
         reward = LevelReward(text=KnownMoleculeId.HYDROGEN_PEROXIDE.description),
     ),
-    Level(
-        LevelId.PEROXIDE_SPLIT,
-        title = TranslatedText(
-            ru = "Разрыв перекиси светом",
-            en = "Peroxide split by light",
-        ),
-        requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE), PaletteItem.Atom(Element.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
-        description = TranslatedText(
-            ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
-            en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
-        ),
-        reward = LevelReward(
-            text =
-                TranslatedText(
-                    ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
-                    en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
-                )
-        ),
-    ),
+//    Level(
+//        LevelId.PEROXIDE_SPLIT,
+//        title = TranslatedText(
+//            ru = "Разрыв перекиси светом",
+//            en = "Peroxide split by light",
+//        ),
+//        requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
+//        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE), PaletteItem.Atom(Element.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
+//        description = TranslatedText(
+//            ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
+//            en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
+//        ),
+//        reward = LevelReward(
+//            text =
+//                TranslatedText(
+//                    ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
+//                    en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
+//                )
+//        ),
+//    ),
 )

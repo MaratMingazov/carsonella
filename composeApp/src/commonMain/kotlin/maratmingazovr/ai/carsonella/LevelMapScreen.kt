@@ -217,22 +217,19 @@ private fun LevelCard(level: Level, state: LevelStatus, onClick: (() -> Unit)?) 
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LevelImage(level.image, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
-        Spacer(Modifier.height(10.dp))
-        CardText(text(level.title), TEXT_COLOR, 15.sp) // название карточки
-//        when (state) {
-//            LevelStatus.OPEN -> {
-//                LevelImage(level.image, scale = 0.5f)
-//                Spacer(Modifier.height(10.dp))
-//                CardText(text(level.title), TEXT_COLOR, 13.sp) // название карточки
-//            }
-//            LevelStatus.DONE -> {
-//                LevelImage(level.image, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
-//                Spacer(Modifier.height(10.dp))
-//                CardText(text(level.title), TEXT_COLOR, 15.sp) // название карточки
-//            }
-//            LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
-//        }
+        when (state) {
+            LevelStatus.OPEN -> {
+                LevelImage(level.image, scale = 0.5f)
+                Spacer(Modifier.height(10.dp))
+                CardText(text(level.title), TEXT_COLOR, 13.sp) // название карточки
+            }
+            LevelStatus.DONE -> {
+                LevelImage(level.image, scale = 0.5f) // рисуем саму молекулу или атом, который нужно получить
+                Spacer(Modifier.height(10.dp))
+                CardText(text(level.title), TEXT_COLOR, 15.sp) // название карточки
+            }
+            LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
+        }
     }
 }
 
