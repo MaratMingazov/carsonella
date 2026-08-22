@@ -181,7 +181,7 @@ val LEVELS = listOf(
         LevelId.OXYGEN_ATOM,
         title =  Element.OXYGEN_16.title,
         granted = true,
-        requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
+        requiredLevels = setOf(LevelId.DIHYDROGEN), // чтобы на карте нарисовать после молекулы водорода
         levelGoal = LevelGoal.CreateAtom(Element.OXYGEN_16),
         image = listOf(PaletteItem.Atom(Element.OXYGEN_16)),
         description = TranslatedText(ru = "", en = ""),
