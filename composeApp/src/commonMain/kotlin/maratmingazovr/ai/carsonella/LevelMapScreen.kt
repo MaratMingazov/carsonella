@@ -59,7 +59,7 @@ private val LOCKED_COLOR = Color(0xFFD8D8D8)
 
 // * Карта заданий: узлы — задания, слой — глубина по зависимостям. Руками не рисуется: и узлы, и слои выводятся из [LEVELS], поэтому карта показывает ровно то, что игра и запустит.
 @Composable
-fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
+fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: () -> Unit) {
     val map = remember { spiralMap() }
     val completed = playerState.progress.completedLevels
     var opened by remember { mutableStateOf<Level?>(null) }   // карточка, раскрытая в окно
@@ -122,10 +122,18 @@ fun LevelMapScreen(playerState: PlayerState, onBack: () -> Unit) {
         }
 
         // Окно поверх карты, а не внутри прокрутки: иначе оно уезжало бы вместе с содержимым.
-        // Пройденный уровень рассказывает, что получилось, доступный — что предстоит сделать.
+        // Пройденный уровень рассказывает, что получилось, доступный — что предстоит сделать,
+        // и только у доступного есть кнопка: играть тут не во что, если задание уже закрыто.
         opened?.let { level ->
-            val done = stateOf(level, completed) == LevelStatus.DONE
-            LevelDetails(level, if (done) level.reward.text else level.description, text(UiString.MENU_CLOSE)) { opened = null }
+            val state = stateOf(level, completed)
+            val done = state == LevelStatus.DONE
+            LevelDetails(
+                level,
+                if (done) level.reward.text else level.description,
+                buttonLabel = if (state == LevelStatus.OPEN) text(UiString.MENU_PLAY) else null,
+                onAction = if (state == LevelStatus.OPEN) ({ opened = null; onPlay(level.id) }) else null,
+                onClose = { opened = null },
+            )
         }
     }
 }

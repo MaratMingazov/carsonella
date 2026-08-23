@@ -43,11 +43,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Оболочка модального окна: дымка поверх холста, карточка по центру, плавное проявление и ровно одно
- * действие — кнопка, она же Enter/Space. Содержимое передаётся снаружи (приветствие, награда).
+ * Оболочка модального окна: дымка поверх холста, карточка по центру, плавное проявление. Содержимое
+ * передаётся снаружи (приветствие, награда, карточка с карты).
+ *
+ * Действий бывает два, и оба необязательны: кнопка внизу ([buttonLabel] + [onAction], она же Enter/Space)
+ * — это «дальше», а крестик в углу ([onClose]) — «просто закрыть». Окно-рассказ обходится крестиком,
+ * окно-шаг — кнопкой, карточка доступного задания показывает оба.
  */
 @Composable
-fun ModalCard(buttonLabel: String, onAction: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+fun ModalCard(
+    buttonLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val focusRequester = remember { FocusRequester() }
 
     // Проявление: дымка набегает вместе с карточкой, карточка ещё и чуть подрастает — окно приезжает
@@ -69,13 +78,15 @@ fun ModalCard(buttonLabel: String, onAction: () -> Unit, content: @Composable Co
             .focusRequester(focusRequester)
             .focusable()
             .onPreviewKeyEvent { e ->
-                if (e.type == KeyDown && (e.key == Key.Enter || e.key == Key.NumPadEnter || e.key == Key.Spacebar)) {
+                if (onAction != null && e.type == KeyDown && (e.key == Key.Enter || e.key == Key.NumPadEnter || e.key == Key.Spacebar)) {
                     onAction(); true
                 } else false
             },
         contentAlignment = Alignment.Center,
     ) {
-        Column(
+        // Крестик лежит в том же боксе, что и колонка, а не в ней: иначе он занимал бы строку
+        // и сдвигал заголовок вниз. Проявляется вместе с карточкой — graphicsLayer общий.
+        Box(
             Modifier
                 .widthIn(min = 300.dp, max = 480.dp)
                 .graphicsLayer {
@@ -84,15 +95,37 @@ fun ModalCard(buttonLabel: String, onAction: () -> Unit, content: @Composable Co
                     scaleY = 0.96f + 0.04f * appear
                 }
                 .background(Color.White, RoundedCornerShape(14.dp))
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp))
-                .padding(horizontal = 40.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp)),
         ) {
-            content()
-            Spacer(Modifier.height(24.dp))
-            CardButton(buttonLabel, onAction)
+            Column(
+                Modifier.padding(horizontal = 40.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                content()
+                if (buttonLabel != null && onAction != null) {
+                    Spacer(Modifier.height(24.dp))
+                    CardButton(buttonLabel, onAction)
+                }
+            }
+            if (onClose != null) CloseCross(onClose, Modifier.align(Alignment.TopEnd))
         }
     }
+}
+
+// Крестик закрытия: серый, на наведении бирюзовый — тот же отклик, что у ссылок меню.
+@Composable
+private fun CloseCross(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    Text(
+        "×",
+        fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 24.sp,
+        color = if (hovered) Color(0xFF45BDB5) else Color(0xFFBDBDBD),
+        modifier = modifier
+            .hoverable(interaction)
+            .clickable(interactionSource = interaction, indication = null) { onClick() }
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+    )
 }
 
 // Кнопка карточки: та же бирюза, что выделяет пункт меню, но здесь она нужна всегда — это единственное

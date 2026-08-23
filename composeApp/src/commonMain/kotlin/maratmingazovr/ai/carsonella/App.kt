@@ -12,7 +12,8 @@ import androidx.compose.ui.tooling.preview.Preview
 
 private sealed interface Screen {
     data object Menu : Screen
-    data object Game : Screen
+    // level != null — раунд выбран на карте: туда же и возвращаемся, когда он кончится.
+    data class Game(val level: LevelId? = null) : Screen
     data object Sandbox : Screen
     data object Map : Screen
     data object Language : Screen
@@ -27,24 +28,30 @@ fun App() {
         var player: PlayerState by remember { mutableStateOf(PlayerState()) }
 
         CompositionLocalProvider(LocalLang provides player.settings.lang) {
-            when (screen) {
+            when (val current = screen) {
                 Screen.Menu -> MenuScreen(
-                    onStart = { screen = Screen.Game },
+                    onStart = { screen = Screen.Game() },
                     onSandbox = { screen = Screen.Sandbox },
                     onMap = { screen = Screen.Map },
                     onLanguage = { screen = Screen.Language },
                     onAbout = { screen = Screen.About },
                 )
-                Screen.Map -> LevelMapScreen(playerState = player, onBack = { screen = Screen.Menu })
+                Screen.Map -> LevelMapScreen(
+                    playerState = player,
+                    onPlay = { screen = Screen.Game(it) },
+                    onBack = { screen = Screen.Menu },
+                )
                 Screen.Sandbox -> SandboxScreen(
                     onDiscover = { player = player.copy(progress = player.progress.discoverMolecule(it)) },
                     onExit = { screen = Screen.Menu },
                 )
-                Screen.Game -> GameScreen(
+                is Screen.Game -> GameScreen(
                     completed = player.progress.completedLevels,
+                    requestedLevel = current.level,
                     onDiscover = { player = player.copy(progress = player.progress.discoverMolecule(it)) },
                     onComplete = { player = player.copy(progress = player.progress.completeLevel(it)) },
-                    onExit = { screen = Screen.Menu },
+                    // Пришёл с карты — выходим на карту, а не в меню. Это же и Esc.
+                    onExit = { screen = if (current.level != null) Screen.Map else Screen.Menu },
                 )
                 Screen.Language -> LanguageScreen(
                     current = player.settings.lang,

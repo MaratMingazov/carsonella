@@ -32,6 +32,7 @@ import maratmingazovr.ai.carsonella.world.World
 @Composable
 fun GameScreen(
     completed: Set<LevelId>,
+    requestedLevel: LevelId? = null,
     onDiscover: (KnownMoleculeId) -> Unit,
     onComplete: (LevelId) -> Unit,
     onExit: () -> Unit,
@@ -40,9 +41,13 @@ fun GameScreen(
     val world = remember { World(scope).apply { start() } }
 
     var reward by remember { mutableStateOf(false) }
-    // Приветствие — только в самом начале игры, пока не пройдено ни одного уровня; холст под ним пуст.
-    var welcome by remember { mutableStateOf(completed.isEmpty()) }
-    val level = availableLevels(completed).firstOrNull()
+    // Приветствие — только на входе в игру с чистого листа. Пришедшему с карты оно ни к чему:
+    // он уже выбрал, во что играть.
+    var welcome by remember { mutableStateOf(requestedLevel == null && completed.isEmpty()) }
+    // Карта присылает конкретный раунд, кампания берёт первый доступный. Если присланного среди
+    // доступных нет (например, его успели закрыть), тихо откатываемся на обычный ход.
+    val available = availableLevels(completed)
+    val level = available.firstOrNull { it.id == requestedLevel } ?: available.firstOrNull()
     // Пузырь с заданием игрок может свернуть, прочитав. Ключ по уровню: новое задание — новый текст,
     // его надо показать, иначе свернувший однажды больше никогда его не увидит.
     var taskOpen by remember(level?.id) { mutableStateOf(true) }
@@ -107,6 +112,9 @@ fun GameScreen(
                 world.requestClear()
                 onComplete(level.id)
                 reward = false
+                // Раунд был взят с карты — туда и возвращаемся: игрок пришёл за ним одним, а не за
+                // лестницей. Кампания на своём ходу просто продолжается следующим доступным.
+                if (requestedLevel != null) onExit()
             }
         }
 

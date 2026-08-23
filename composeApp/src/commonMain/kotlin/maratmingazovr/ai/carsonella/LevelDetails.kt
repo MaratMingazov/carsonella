@@ -13,11 +13,18 @@ import androidx.compose.ui.unit.sp
 
 /**
  * Уровень крупным планом: имя, картинка и один текст. Одно окно на два места — награда за пройденный
- * уровень и карточка, раскрытая с карты; отличаются они только текстом и надписью на кнопке.
+ * уровень и карточка, раскрытая с карты; отличаются они текстом и набором действий. У награды это
+ * кнопка «дальше», у карточки с карты — крестик, а если задание доступно, то ещё и кнопка «играть».
  */
 @Composable
-fun LevelDetails(level: Level, body: TranslatedText, buttonLabel: String, onAction: () -> Unit) {
-    ModalCard(buttonLabel = buttonLabel, onAction = onAction) {
+fun LevelDetails(
+    level: Level,
+    body: TranslatedText,
+    buttonLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
+) {
+    ModalCard(buttonLabel = buttonLabel, onAction = onAction, onClose = onClose) {
         Spacer(Modifier.height(12.dp))
         Text(
             text(level.title),
