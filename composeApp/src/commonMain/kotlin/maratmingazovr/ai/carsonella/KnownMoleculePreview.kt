@@ -19,7 +19,7 @@ import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
 import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
 
 private const val BOND_LINE_WIDTH = 2.5f
-private const val BOND_LINE_SPACING = 8f          // сдвиг параллельных линий двойной/тройной связи
+private const val BOND_LINE_SPACING = 15f          // сдвиг параллельных линий двойной/тройной связи
 private val BOND_COLOR = Color(0xFF212121)
 private const val OUTLINE_WIDTH = 2.5f
 

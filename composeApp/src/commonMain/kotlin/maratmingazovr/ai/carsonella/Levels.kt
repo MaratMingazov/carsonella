@@ -14,6 +14,7 @@ enum class LevelId {
     PROTON, ELECTRON, PHOTON,
     HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
     TRIOXIDANE, TETRAOXIDANE, CARBON_12, METHANE,
+    ETHANE, ETHYLENE, ACETYLENE, METHANOL, FORMALDEHYDE, CARBON_DIOXIDE,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
@@ -318,5 +319,83 @@ val LEVELS = listOf(
             en = "Carbon has four free bonds all at once. Let's put four hydrogen atoms on them",
         ),
         reward = LevelReward(text = KnownMoleculeId.METHANE.description),
+    ),
+    Level(
+        LevelId.ETHANE,
+        title = KnownMoleculeId.ETHANE.title,
+        requiredLevels = setOf(LevelId.METHANE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ETHANE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ETHANE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 6),
+        description = TranslatedText(
+            ru = "Возьми два атома углерода. Обвесь оба водородами, оставив у каждого по одной свободной связи, а потом соедини эти два конца",
+            en = "Take two carbon atoms. Hang hydrogens on both, leaving one free bond on each, then join those two ends",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.ETHANE.description),
+    ),
+    Level(
+        LevelId.ETHYLENE,
+        title = KnownMoleculeId.ETHYLENE.title,
+        requiredLevels = setOf(LevelId.ETHANE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ETHYLENE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ETHYLENE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        description = TranslatedText(
+            ru = "На этот раз оставь на каждом углероде по две свободные связи. Соедини их между собой, а потом усиль эту связь \n hint: клик по связи повышает её кратность",
+            en = "This time leave two free bonds on each carbon. Join them together, then strengthen that bond \n hint: click a bond to raise its order",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.ETHYLENE.description),
+    ),
+    Level(
+        LevelId.ACETYLENE,
+        title = KnownMoleculeId.ACETYLENE.title,
+        requiredLevels = setOf(LevelId.ETHYLENE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ACETYLENE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ACETYLENE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 2),
+        description = TranslatedText(
+            ru = "Оставь на каждом углероде уже по три свободные связи. Соединив их, ты сможешь усилить связь дважды \n hint: усиливай связь, пока получается",
+            en = "Leave three free bonds on each carbon this time. Once you join them, you can strengthen the bond twice \n hint: keep strengthening the bond while it lets you",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.ACETYLENE.description),
+    ),
+    Level(
+        LevelId.METHANOL,
+        title = KnownMoleculeId.METHANOL.title,
+        requiredLevels = setOf(LevelId.ACETYLENE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.METHANOL),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.METHANOL)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        description = TranslatedText(
+            ru = "Собери отдельно метил (три водорода на углероде) и гидроксил (один водород на кислороде), а потом соедини их свободные концы",
+            en = "Build a methyl (three hydrogens on carbon) and a hydroxyl (one hydrogen on oxygen) separately, then join their free ends",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.METHANOL.description),
+    ),
+    Level(
+        LevelId.FORMALDEHYDE,
+        title = KnownMoleculeId.FORMALDEHYDE.title,
+        requiredLevels = setOf(LevelId.METHANOL),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.FORMALDEHYDE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.FORMALDEHYDE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1, PaletteItem.Atom(Element.HYDROGEN) to 2),
+        description = TranslatedText(
+            ru = "Оставь на углероде две свободные связи и присоедини к нему кислород, а потом усиль эту связь",
+            en = "Leave two free bonds on carbon and attach oxygen to it, then strengthen that bond",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.FORMALDEHYDE.description),
+    ),
+    Level(
+        LevelId.CARBON_DIOXIDE,
+        title = KnownMoleculeId.CARBON_DIOXIDE.title,
+        requiredLevels = setOf(LevelId.FORMALDEHYDE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.CARBON_DIOXIDE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.CARBON_DIOXIDE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 2),
+        description = TranslatedText(
+            ru = "Присоедини к углероду один кислород и усиль связь до двойной. У углерода ещё останется два свободных места — сделай то же самое со вторым кислородом",
+            en = "Attach one oxygen to carbon and strengthen the bond to a double one. Carbon still has two free bonds left - do the same with a second oxygen",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.CARBON_DIOXIDE.description),
     ),
 )

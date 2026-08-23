@@ -64,7 +64,13 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
     IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
     AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
     AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
-    CARBON_DIOXIDE   (TranslatedText("Углекислый газ", "Carbon dioxide"), TranslatedText(ru = "", en = "")),
+    CARBON_DIOXIDE(
+        TranslatedText("Углекислый газ", "Carbon dioxide"),
+        TranslatedText(
+            ru = "У углерода получилось сразу две двойные связи, к одному атому. Этот газ мы выдыхаем, а растения им дышат и строят из него всё своё тело. Он же даёт пузырьки в газировке и держит планету в тепле - без него на Земле было бы холоднее.",
+            en = "Carbon ended up with two double bonds at once, both on the same atom. This is the gas we breathe out, and the one plants breathe in to build their whole body out of it. It is also what makes soda fizzy, and it keeps the planet warm - without it, Earth would be colder.",
+        ),
+    ),
     CYANO            (TranslatedText("Циано", "Cyano"), TranslatedText(ru = "", en = "")),
     HYDROGEN_CYANIDE (TranslatedText("Циановодород", "Hydrogen cyanide"), TranslatedText(ru = "", en = "")),
     METHYLIDYNE      (TranslatedText("Метилидин", "Methylidyne"), TranslatedText(ru = "", en = "")),
@@ -78,11 +84,29 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
         ),
     ),
     ETHYNYL          (TranslatedText("Этинил", "Ethynyl"), TranslatedText(ru = "", en = "")),
-    ACETYLENE        (TranslatedText("Ацетилен", "Acetylene"), TranslatedText(ru = "", en = "")),
+    ACETYLENE(
+        TranslatedText("Ацетилен", "Acetylene"),
+        TranslatedText(
+            ru = "Тройная связь между двумя углеродами - самая крепкая связь, которую ты пока собирал. В ней столько энергии, что сваркой режут металл именно ацетиленовым пламенем - оно одно из самых горячих, какие вообще можно поджечь.",
+            en = "The triple bond between the two carbons is the strongest bond you have built so far. It holds so much energy that welders cut metal with an acetylene flame - it is one of the hottest flames you can light.",
+        ),
+    ),
     VINYL            (TranslatedText("Винил", "Vinyl"), TranslatedText(ru = "", en = "")),
-    ETHYLENE         (TranslatedText("Этилен", "Ethylene"), TranslatedText(ru = "", en = "")),
+    ETHYLENE(
+        TranslatedText("Этилен", "Ethylene"),
+        TranslatedText(
+            ru = "Двойная связь между углеродами делает этилен вспыльчивым: ему хочется раскрыться и сцепиться с соседом - так собирают полиэтилен, пакеты и бутылки. А ещё это гормон растений: именно этилен заставляет бананы и яблоки дозревать.",
+            en = "The double bond between the carbons makes ethylene eager to react: it wants to open up and latch onto its neighbour - that is how polyethylene, bags and bottles are made. It is also a plant hormone: ethylene is what makes bananas and apples ripen.",
+        ),
+    ),
     ETHYL            (TranslatedText("Этил", "Ethyl"), TranslatedText(ru = "", en = "")),
-    ETHANE           (TranslatedText("Этан", "Ethane"), TranslatedText(ru = "", en = "")),
+    ETHANE(
+        TranslatedText("Этан", "Ethane"),
+        TranslatedText(
+            ru = "Два атома углерода, соединённые напрямую, - первая молекула, где углерод цепляется сам за себя. Так начинаются все цепочки жизни. Этан - младший брат метана в природном газе, и его тоже сжигают ради тепла.",
+            en = "Two carbon atoms joined straight to each other - the first molecule where carbon latches onto itself. That is how every chain of life begins. Ethane is methane's little brother in natural gas, and it too gets burned for heat.",
+        ),
+    ),
     BUTANE           (TranslatedText("Бутан", "Butane"), TranslatedText(ru = "", en = "")),
     ISOPROPYL        (TranslatedText("Изопропил", "Isopropyl"), TranslatedText(ru = "", en = "")),
     ISOBUTANE        (TranslatedText("Изобутан", "Isobutane"), TranslatedText(ru = "", en = "")),
@@ -95,8 +119,20 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
     OXIRANE          (TranslatedText("Оксиран", "Oxirane"), TranslatedText(ru = "", en = "")),
     BENZENE          (TranslatedText("Бензол", "Benzene"), TranslatedText(ru = "", en = "")),
     FORMYL           (TranslatedText("Формил", "Formyl"), TranslatedText(ru = "", en = "")),
-    FORMALDEHYDE     (TranslatedText("Формальдегид", "Formaldehyde"), TranslatedText(ru = "", en = "")),
-    METHANOL         (TranslatedText("Метанол", "Methanol"), TranslatedText(ru = "", en = "")),
+    FORMALDEHYDE(
+        TranslatedText("Формальдегид", "Formaldehyde"),
+        TranslatedText(
+            ru = "Первая молекула, где кислород двойной связью сидит прямо на углероде. Её раствором - формалином - хранят анатомические препараты в музеях: формальдегид не даёт тканям разлагаться. В крошечных количествах его производит и твоё собственное тело.",
+            en = "The first molecule where oxygen sits right on carbon by a double bond. Its solution - formalin - is what museums use to preserve anatomical specimens: formaldehyde keeps tissue from decaying. Your own body makes tiny amounts of it too.",
+        ),
+    ),
+    METHANOL(
+        TranslatedText("Метанол", "Methanol"),
+        TranslatedText(
+            ru = "Метанол называют древесным спиртом: раньше его получали, нагревая дерево без воздуха. Пить его нельзя - он ядовит, в отличие от родственного ему винного спирта.",
+            en = "Methanol is called wood alcohol: it used to be made by heating wood without air. You cannot drink it - it is poisonous, unlike its cousin, drinking alcohol.",
+        ),
+    ),
     FORMIC_ACID      (TranslatedText("Муравьиная кислота", "Formic acid"), TranslatedText(ru = "", en = "")),
     ETHANOL          (TranslatedText("Этанол", "Ethanol"), TranslatedText(ru = "", en = "")),
     ;

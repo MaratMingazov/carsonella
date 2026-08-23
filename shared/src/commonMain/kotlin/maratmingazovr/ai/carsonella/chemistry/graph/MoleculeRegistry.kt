@@ -43,7 +43,7 @@ object MoleculeRegistry {
         val amino = imidogen.attach(H); known(amino, KnownMoleculeId.AMINO_RADICAL, "•NH₂")
         val ammonia = amino.attach(H); known(ammonia, KnownMoleculeId.AMMONIA, "NH₃")
         val carbonyl = C.attach(O, order = 2)                 // >C=O — группа, а не вещество: своей записи нет
-        val carbonDioxide = carbonyl.attach(O, order = 2); known(carbonDioxide, KnownMoleculeId.CARBON_DIOXIDE, "O=C=O")
+        val carbonDioxide = carbonyl.attach(O, order = 2); known(carbonDioxide, KnownMoleculeId.CARBON_DIOXIDE, "O=C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(-1f, 0f), 2 to xy(1f, 0f)))
         val cyano = C.attach(N, order = 3); known(cyano, KnownMoleculeId.CYANO, "•C≡N")
         val hydrogenCyanide = cyano.attach(H); known(hydrogenCyanide, KnownMoleculeId.HYDROGEN_CYANIDE, "H–C≡N")
 
@@ -53,11 +53,11 @@ object MoleculeRegistry {
         val methyl = methylene.attach(H); known(methyl, KnownMoleculeId.METHYL, "•CH₃")
         val methane = methyl.attach(H); known(methane, KnownMoleculeId.METHANE, "CH₄", offsets = at(0 to xy(0f, 0f), 1 to polar(45f), 2 to polar(135f), 3 to polar(225f), 4 to polar(315f)))
         val ethynyl = methylidyne.attach(C, order = 3); known(ethynyl, KnownMoleculeId.ETHYNYL, "HC≡C•")
-        val acetylene = ethynyl.attach(H); known(acetylene, KnownMoleculeId.ACETYLENE, "HC≡CH")
+        val acetylene = ethynyl.attach(H); known(acetylene, KnownMoleculeId.ACETYLENE, "HC≡CH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1.5f, 0f), 2 to xy(0.5f, 0f), 3 to xy(1.5f, 0f)))
         val vinyl = methylene.attach(methylidyne, order = 2); known(vinyl, KnownMoleculeId.VINYL, "H₂C=CH•")
-        val ethylene = vinyl.attach(H); known(ethylene, KnownMoleculeId.ETHYLENE, "H₂C=CH₂")
+        val ethylene = vinyl.attach(H); known(ethylene, KnownMoleculeId.ETHYLENE, "H₂C=CH₂", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-0.9f, 0.9f), 3 to xy(0.5f, 0f), 4 to xy(0.9f, -0.9f), 5 to xy(0.9f, 0.9f)))
         val ethyl = methyl.attach(methylene); known(ethyl, KnownMoleculeId.ETHYL, "CH₃–CH₂•")
-        val ethane = ethyl.attach(H); known(ethane, KnownMoleculeId.ETHANE, "CH₃–CH₃")
+        val ethane = ethyl.attach(H); known(ethane, KnownMoleculeId.ETHANE, "CH₃–CH₃", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-1.50f, 0f), 3 to xy(-0.9f, 0.9f), 4 to xy(0.5f, 0f), 5 to xy(0.9f, -0.9f), 6 to xy(1.5f, 0f), 7 to xy(0.9f, 0.9f)))
 
         // Бутаны C₄H₁₀
         val butane = ethyl.attach(ethyl); known(butane, KnownMoleculeId.BUTANE, "CH₃–CH₂–CH₂–CH₃")
@@ -86,8 +86,8 @@ object MoleculeRegistry {
 
         // --- кислородсодержащая органика ---
         val formyl = carbonyl.attach(H); known(formyl, KnownMoleculeId.FORMYL, "H–C•=O")
-        val formaldehyde = formyl.attach(H); known(formaldehyde, KnownMoleculeId.FORMALDEHYDE, "H₂C=O")
-        val methanol = methyl.attach(hydroxyl); known(methanol, KnownMoleculeId.METHANOL, "CH₃–OH")
+        val formaldehyde = formyl.attach(H); known(formaldehyde, KnownMoleculeId.FORMALDEHYDE, "H₂C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(0f, -1f), 2 to xy(-0.87f, 0.5f), 3 to xy(0.87f, 0.5f)))
+        val methanol = methyl.attach(hydroxyl); known(methanol, KnownMoleculeId.METHANOL, "CH₃–OH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-1.5f, 0f), 3 to xy(-0.9f, 0.9f), 4 to xy(0.5f, 0f), 5 to xy(0.9f, -0.9f)))
         val formicAcid = formyl.attach(hydroxyl); known(formicAcid, KnownMoleculeId.FORMIC_ACID, "H–C(=O)–OH")
         val ethanol = ethyl.attach(hydroxyl); known(ethanol, KnownMoleculeId.ETHANOL, "CH₃–CH₂–OH")
     }
