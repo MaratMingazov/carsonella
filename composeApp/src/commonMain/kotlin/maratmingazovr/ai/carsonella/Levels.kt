@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 enum class LevelId {
     PROTON, ELECTRON, PHOTON,
     HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
-    TRIOXIDANE, TETRAOXIDANE,
+    TRIOXIDANE, TETRAOXIDANE, CARBON_12,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
@@ -250,26 +250,26 @@ val LEVELS = listOf(
         ),
         reward = LevelReward(text=KnownMoleculeId.HYDROGEN_PEROXIDE.description),
     ),
-//    Level(
-//        LevelId.PEROXIDE_SPLIT,
-//        title = TranslatedText(
-//            ru = "Разрыв перекиси светом",
-//            en = "Peroxide split by light",
-//        ),
-//        requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
-//        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE), PaletteItem.Atom(Element.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
-//        description = TranslatedText(
-//            ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
-//            en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
-//        ),
-//        reward = LevelReward(
-//            text =
-//                TranslatedText(
-//                    ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
-//                    en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
-//                )
-//        ),
-//    ),
+    Level(
+        LevelId.PEROXIDE_SPLIT,
+        title = TranslatedText(
+            ru = "Разрыв перекиси светом",
+            en = "Peroxide split by light",
+        ),
+        requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE), PaletteItem.Atom(Element.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
+        description = TranslatedText(
+            ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
+            en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
+        ),
+        reward = LevelReward(
+            text =
+                TranslatedText(
+                    ru = "Свет разорвал самую слабую связь - ту, что держала два кислорода вместе, и из одной молекулы получилось две! Так же светом разбивает молекулы и солнце: в атмосфере из таких осколков собирается всё остальное. Кстати, поэтому перекись и держат в тёмной бутылке.",
+                    en = "The light broke the weakest bond - the one holding the two oxygens together - and one molecule became two! The Sun breaks molecules the same way: up in the atmosphere everything else is built out of fragments like these. That, by the way, is why peroxide is kept in a dark bottle.",
+                )
+        ),
+    ),
     Level(
         LevelId.TRIOXIDANE,
         title = KnownMoleculeId.TRIOXIDANE.title,
@@ -295,5 +295,15 @@ val LEVELS = listOf(
             en = "Will one more oxygen fit? \n hint: you need the chain H–O–O–O–O–H",
         ),
         reward = LevelReward(text = KnownMoleculeId.TETRAOXIDANE.description),
+    ),
+    Level(
+        LevelId.CARBON_12,
+        title =  Element.CARBON_12.title,
+        granted = true,
+        requiredLevels = setOf(LevelId.TETRAOXIDANE),
+        levelGoal = LevelGoal.CreateAtom(Element.CARBON_12),
+        image = listOf(PaletteItem.Atom(Element.CARBON_12)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = Element.CARBON_12.description),
     ),
 )

@@ -38,6 +38,7 @@ fun App() {
                 )
                 Screen.Map -> LevelMapScreen(
                     playerState = player,
+                    onDevMode = { player = player.copy(settings = player.settings.copy(devMode = it)) },
                     onPlay = { screen = Screen.Game(it) },
                     onBack = { screen = Screen.Menu },
                 )

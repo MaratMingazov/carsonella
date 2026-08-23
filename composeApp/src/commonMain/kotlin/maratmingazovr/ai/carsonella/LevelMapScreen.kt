@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,9 +60,15 @@ private val LOCKED_COLOR = Color(0xFFD8D8D8)
 
 // * Карта заданий: узлы — задания, слой — глубина по зависимостям. Руками не рисуется: и узлы, и слои выводятся из [LEVELS], поэтому карта показывает ровно то, что игра и запустит.
 @Composable
-fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: () -> Unit) {
+fun LevelMapScreen(
+    playerState: PlayerState,
+    onDevMode: (Boolean) -> Unit,
+    onPlay: (LevelId) -> Unit,
+    onBack: () -> Unit,
+) {
     val map = remember { spiralMap() }
     val completed = playerState.progress.completedLevels
+    val devMode = playerState.settings.devMode
     var opened by remember { mutableStateOf<Level?>(null) }   // карточка, раскрытая в окно
 
     Box(
@@ -89,6 +96,8 @@ fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: 
                     letterSpacing = 0.08.em, color = Color(0xFFC8C8C8),
                 )
                 Spacer(Modifier.weight(1f))
+                DevModeToggle(devMode, onDevMode)
+                Spacer(Modifier.width(24.dp))
                 MapLink(text(UiString.MENU_BACK), onBack)
             }
 
@@ -110,7 +119,7 @@ fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: 
                         Box(Modifier.width(mapWidth).height(mapHeight)) {
                             map.cards.forEach { (level, cell) ->
                                 // Туман не кликается: раскрывать в нём нечего, там и на карточке одни «?».
-                                val state = stateOf(level, completed)
+                                val state = stateOf(level, completed, devMode)
                                 Box(Modifier.offset(x = STEP_X * cell.x, y = STEP_Y * cell.y)) {
                                     LevelCard(level, state, onClick = if (state == LevelStatus.LOCKED) null else ({ opened = level }))
                                 }
@@ -125,13 +134,15 @@ fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: 
         // Пройденный уровень рассказывает, что получилось, доступный — что предстоит сделать,
         // и только у доступного есть кнопка: играть тут не во что, если задание уже закрыто.
         opened?.let { level ->
-            val state = stateOf(level, completed)
-            val done = state == LevelStatus.DONE
+            val state = stateOf(level, completed, devMode)
+            val done = state == LevelStatus.DONE || level.granted
+            // В отладке играбельно всё, включая пройденное: уровень часто нужно перепройти, чтобы проверить.
+            val playable = state == LevelStatus.OPEN || devMode
             LevelDetails(
                 level,
                 if (done) level.reward.text else level.description,
-                buttonLabel = if (state == LevelStatus.OPEN) text(UiString.MENU_PLAY) else null,
-                onAction = if (state == LevelStatus.OPEN) ({ opened = null; onPlay(level.id) }) else null,
+                buttonLabel = if (playable) text(UiString.MENU_PLAY) else null,
+                onAction = if (playable) ({ opened = null; onPlay(level.id) }) else null,
                 onClose = { opened = null },
             )
         }
@@ -140,11 +151,12 @@ fun LevelMapScreen(playerState: PlayerState, onPlay: (LevelId) -> Unit, onBack: 
 
 private enum class LevelStatus { DONE, OPEN, LOCKED }
 
-private fun stateOf(level: Level, completed: Set<LevelId>): LevelStatus {
+private fun stateOf(level: Level, completed: Set<LevelId>, devMode: Boolean): LevelStatus {
     val done = effectiveCompleted(completed)
     return when {
         level.id in done -> LevelStatus.DONE
-        done.containsAll(level.requiredLevels) -> LevelStatus.OPEN
+        devMode && level.granted -> LevelStatus.DONE
+        devMode || done.containsAll(level.requiredLevels) -> LevelStatus.OPEN
         else -> LevelStatus.LOCKED
     }
 }
@@ -217,7 +229,6 @@ private fun LevelCard(level: Level, state: LevelStatus, onClick: (() -> Unit)?) 
             .background(if (done) DONE_FILL else Color.Transparent, shape)
             .border(1.dp, if (done || hovered) ACCENT else CARD_BORDER, shape)   // hovered бывает только у кликабельной
             .then(
-                // Без ряби: экран нарисован руками, материаловский всплеск тут чужой. Отклик даёт рамка.
                 if (onClick == null) Modifier
                 else Modifier.hoverable(interaction).clickable(interaction, indication = null) { onClick() }
             )
@@ -236,7 +247,7 @@ private fun LevelCard(level: Level, state: LevelStatus, onClick: (() -> Unit)?) 
                 Spacer(Modifier.height(10.dp))
                 CardText(text(level.title), TEXT_COLOR, 15.sp) // название карточки
             }
-            LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 26.sp)
+            LevelStatus.LOCKED -> CardText("?", LOCKED_COLOR, 36.sp)
         }
     }
 }
@@ -249,6 +260,34 @@ private fun CardText(text: String, color: Color, size: TextUnit) {
         lineHeight = size * 1.35f, color = color, textAlign = TextAlign.Center,
         maxLines = 2, overflow = TextOverflow.Ellipsis,   // высота клетки фиксированная, длинное название её не растянет
     )
+}
+
+// Отладочная галочка. Квадратик нарисован рамкой, а не символом: галочки нет в шрифте меню.
+@Composable
+private fun DevModeToggle(checked: Boolean, onChange: (Boolean) -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    val shape = RoundedCornerShape(3.dp)
+    val active = checked || hovered
+    Row(
+        Modifier
+            .hoverable(interaction)
+            .clickable(interaction, indication = null) { onChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(13.dp)
+                .background(if (checked) ACCENT else Color.Transparent, shape)
+                .border(1.dp, if (active) ACCENT else LOCKED_COLOR, shape)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text(UiString.MAP_DEV_MODE),
+            fontFamily = menuFontFamily(), fontWeight = FontWeight.Light, fontSize = 15.sp,
+            color = if (active) ACCENT else Color(0xFFA8A8A8),
+        )
+    }
 }
 
 // «назад» строкой: экран и без того плотный, кнопка тут была бы лишним пятном.

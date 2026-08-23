@@ -44,10 +44,10 @@ fun GameScreen(
     // Приветствие — только на входе в игру с чистого листа. Пришедшему с карты оно ни к чему:
     // он уже выбрал, во что играть.
     var welcome by remember { mutableStateOf(requestedLevel == null && completed.isEmpty()) }
-    // Карта присылает конкретный раунд, кампания берёт первый доступный. Если присланного среди
-    // доступных нет (например, его успели закрыть), тихо откатываемся на обычный ход.
-    val available = availableLevels(completed)
-    val level = available.firstOrNull { it.id == requestedLevel } ?: available.firstOrNull()
+    // Карта присылает конкретный раунд, и ищем его среди ВСЕХ уровней, а не только доступных:
+    // в отладке с карты запускается и запертое, и уже пройденное. Кто что разрешает — забота карты,
+    // здесь просто выполняем просьбу. Кампания на своём ходу берёт первый доступный.
+    val level = requestedLevel?.let { id -> LEVELS.firstOrNull { it.id == id } } ?: availableLevels(completed).firstOrNull()
     // Пузырь с заданием игрок может свернуть, прочитав. Ключ по уровню: новое задание — новый текст,
     // его надо показать, иначе свернувший однажды больше никогда его не увидит.
     var taskOpen by remember(level?.id) { mutableStateOf(true) }

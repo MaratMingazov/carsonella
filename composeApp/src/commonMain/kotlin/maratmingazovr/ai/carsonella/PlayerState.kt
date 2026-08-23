@@ -10,6 +10,9 @@ data class PlayerState(
 
 data class Settings(
     val lang: Lang = Lang.RU,
+    // Отладка: снимает замки на карте, чтобы можно было зайти в любой уровень и проверить его.
+    // Прогресс при этом не подделывается — карта по-прежнему показывает, что пройдено на самом деле.
+    val devMode: Boolean = false,
 )
 
 data class Progress(

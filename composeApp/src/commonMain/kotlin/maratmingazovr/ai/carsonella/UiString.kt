@@ -20,6 +20,7 @@ enum class UiString(val en: String, val ru: String) {
     MENU_LANGUAGE("language", "язык"),
     MENU_ABOUT("about", "об игре"),
     MENU_BACK("back", "назад"),
+    MAP_DEV_MODE("dev mode", "отладка"),
     MENU_CLOSE("close", "закрыть"),
 
     MAP_TITLE("map", "карта"),
