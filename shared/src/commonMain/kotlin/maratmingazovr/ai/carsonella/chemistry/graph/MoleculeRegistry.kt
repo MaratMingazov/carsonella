@@ -51,7 +51,7 @@ object MoleculeRegistry {
         val methylidyne = C.attach(H); known(methylidyne, KnownMoleculeId.METHYLIDYNE, "•CH")
         val methylene = methylidyne.attach(H); known(methylene, KnownMoleculeId.METHYLENE, ":CH₂")
         val methyl = methylene.attach(H); known(methyl, KnownMoleculeId.METHYL, "•CH₃")
-        val methane = methyl.attach(H); known(methane, KnownMoleculeId.METHANE, "CH₄")
+        val methane = methyl.attach(H); known(methane, KnownMoleculeId.METHANE, "CH₄", offsets = at(0 to xy(0f, 0f), 1 to polar(45f), 2 to polar(135f), 3 to polar(225f), 4 to polar(315f)))
         val ethynyl = methylidyne.attach(C, order = 3); known(ethynyl, KnownMoleculeId.ETHYNYL, "HC≡C•")
         val acetylene = ethynyl.attach(H); known(acetylene, KnownMoleculeId.ACETYLENE, "HC≡CH")
         val vinyl = methylene.attach(methylidyne, order = 2); known(vinyl, KnownMoleculeId.VINYL, "H₂C=CH•")

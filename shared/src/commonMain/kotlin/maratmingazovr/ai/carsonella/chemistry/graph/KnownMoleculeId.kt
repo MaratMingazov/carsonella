@@ -70,7 +70,13 @@ enum class KnownMoleculeId(val title: TranslatedText, val description: Translate
     METHYLIDYNE      (TranslatedText("Метилидин", "Methylidyne"), TranslatedText(ru = "", en = "")),
     METHYLENE        (TranslatedText("Метилен", "Methylene"), TranslatedText(ru = "", en = "")),
     METHYL           (TranslatedText("Метил", "Methyl"), TranslatedText(ru = "", en = "")),
-    METHANE          (TranslatedText("Метан", "Methane"), TranslatedText(ru = "", en = "")),
+    METHANE(
+        TranslatedText("Метан", "Methane"),
+        TranslatedText(
+            ru = "Метан - простейшая молекула с углеродом: один атом держит сразу четыре водорода. Это тот самый природный газ, на котором готовят еду, и главный газ, который пускают коровы и болота. А ещё на Титане, спутнике Сатурна, из метана целые реки и озёра - там так холодно, что он течёт, как у нас вода.",
+            en = "Methane is the simplest carbon molecule: one atom holding four hydrogens at once. It is the natural gas used for cooking, and the main gas that cows and swamps let out. On Titan, a moon of Saturn, whole rivers and lakes are made of methane - it is so cold there that it flows the way water does here.",
+        ),
+    ),
     ETHYNYL          (TranslatedText("Этинил", "Ethynyl"), TranslatedText(ru = "", en = "")),
     ACETYLENE        (TranslatedText("Ацетилен", "Acetylene"), TranslatedText(ru = "", en = "")),
     VINYL            (TranslatedText("Винил", "Vinyl"), TranslatedText(ru = "", en = "")),

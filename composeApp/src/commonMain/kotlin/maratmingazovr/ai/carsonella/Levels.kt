@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
 enum class LevelId {
     PROTON, ELECTRON, PHOTON,
     HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
-    TRIOXIDANE, TETRAOXIDANE, CARBON_12,
+    TRIOXIDANE, TETRAOXIDANE, CARBON_12, METHANE,
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
@@ -305,5 +305,18 @@ val LEVELS = listOf(
         image = listOf(PaletteItem.Atom(Element.CARBON_12)),
         description = TranslatedText(ru = "", en = ""),
         reward = LevelReward(text = Element.CARBON_12.description),
+    ),
+    Level(
+        LevelId.METHANE,
+        title = KnownMoleculeId.METHANE.title,
+        requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.CARBON_12),
+        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.METHANE),
+        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.METHANE)),
+        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        description = TranslatedText(
+            ru = "У углерода целых четыре свободные связи. Давай посадим на них четыре атома водорода",
+            en = "Carbon has four free bonds all at once. Let's put four hydrogen atoms on them",
+        ),
+        reward = LevelReward(text = KnownMoleculeId.METHANE.description),
     ),
 )
