@@ -28,8 +28,6 @@ enum class UiString(val en: String, val ru: String) {
     WELCOME_TITLE("Welcome to Carsonella", "Добро пожаловать в Carsonella"),
     WELCOME_START("start", "начать"),
 
-    REWARD_CAPTION("molecule obtained", "получена молекула"),
-    REWARD_CAPTION_ATOM("atom obtained", "получен атом"),
     REWARD_NEXT("next", "дальше"),
 
     CHAPTER_DONE_TITLE("well done", "молодец"),
@@ -37,7 +35,6 @@ enum class UiString(val en: String, val ru: String) {
 
     INFO_IONIZATION("ionization, eV", "ионизация, эВ"),
     INFO_BONDS("bonds, eV", "связи, эВ"),
-    INFO_WEAKEST_BOND("weakest", "слабейшая"),
     INFO_ELECTRONEGATIVITY("electronegativity", "электроотрицательность"),
 
     ABOUT_TITLE("about", "об игре"),

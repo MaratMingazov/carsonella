@@ -622,8 +622,7 @@ private fun SelectedEntityPanel(
             }
         }
 
-        // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
-        // Кольцо адресует ПАРА выбранных атомов, поэтому кнопка ждёт, пока игрок наберёт годную пару.
+        // Рисуем кнопку "Закрыть молекулу в кольцо"
         if (selectedEntity is Molecule && selectedEntity.canCloseRing) {
             val ring = closableRing(selectedEntity, atoms)
             Spacer(Modifier.height(8.dp))
@@ -639,6 +638,7 @@ private fun SelectedEntityPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+
         // Редактор энергии (пока только фотон).
         if (selectedEntity is SubAtom && selectedEntity.element == Element.PHOTON) {
             Spacer(Modifier.height(8.dp))
@@ -719,13 +719,11 @@ private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
         )
     }
 
-    // Связи ПО ТИПАМ, а не по штукам: энергия — свойство типа связи, поэтому у воды одна строка O–H,
-    // а не две. Слабейший тип помечен: он и есть порог диссоциации, с него молекула начнёт разваливаться.
+    // Рисуем каждую связь молекулы и сколько энергии нужно на ее разрыв
     val types = bondTypes(molecule)
     if (types.isNotEmpty()) {
         Spacer(Modifier.height(12.dp))
         Text(text(UiString.INFO_BONDS), style = MaterialTheme.typography.labelSmall, color = Color.Black)
-        val weakest = molecule.dissociationEnergy
         types.forEach { type ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BondGlyph(type)
@@ -735,10 +733,7 @@ private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Black,
                 )
-                if (type.energy != null && type.energy == weakest) {
-                    Spacer(Modifier.width(6.dp))
-                    Text(text(UiString.INFO_WEAKEST_BOND), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                }
+                Spacer(Modifier.height(30.dp))
             }
         }
     }
@@ -747,13 +742,17 @@ private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
     if (selectedAtoms.isNotEmpty()) {
         Spacer(Modifier.height(12.dp))
         Text(text(UiString.INFO_ELECTRONEGATIVITY), style = MaterialTheme.typography.labelSmall, color = Color.Black)
-        Text(
-            selectedAtoms.joinToString(", ") { localId ->
-                val isotope = molecule.atom(localId).isotope
-                "${isotope.bareSymbol}$localId ${isotope.electronegativity?.toString() ?: "—"}"
-            },
-            style = MaterialTheme.typography.bodySmall,
-        )
+        selectedAtoms.forEach { localId ->
+            val isotope = molecule.atom(localId).isotope
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                ElementChip(ElementColors.fill(isotope), isotope.bareSymbol)
+                Text(
+                    isotope.electronegativity?.toString() ?: "—",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Black,
+                )
+            }
+        }
     }
 }
 
@@ -776,7 +775,7 @@ private fun bondTypes(molecule: Molecule): List<BondTypeRow> = molecule.bonds
     .distinctBy { Triple(it.heavy.details.p, it.light.details.p, it.order) }
 
 private val BOND_GLYPH_ATOM = 11.dp     // радиус кружка атома в значке связи
-private val BOND_GLYPH_GAP = 16.dp      // просвет между кружками — сама «связь»
+private val BOND_GLYPH_GAP = 10.dp      // просвет между кружками — сама «связь»
 
 // Значок связи: два кружка и линии по кратности — тот же язык, что на холсте, только мельче.
 @Composable
@@ -787,7 +786,7 @@ private fun BondGlyph(type: BondTypeRow) {
         val left = Offset(radius + 1f, size.height / 2f)
         val right = Offset(size.width - radius - 1f, size.height / 2f)
 
-        drawBondLines(left, right, type.order, lineWidth = 1.5f, spacing = radius * 0.45f)
+        drawBondLines(left, right, type.order, lineWidth = 2f, spacing = radius * 0.45f)
         listOf(left to type.heavy, right to type.light).forEach { (center, element) ->
             drawElementCircle(
                 textMeasurer, center, radius, ElementColors.fill(element), element.bareSymbol,
@@ -800,20 +799,26 @@ private fun BondGlyph(type: BondTypeRow) {
 
 private val PARTICLE_CHIP = 22.dp
 
-// Частица рядом со своим количеством: кружок как на холсте (заливка, обводка, символ), но размером с текст.
+// Кружок как на холсте (заливка, обводка, символ), но размером с текст — чтобы стоять в строке подписи.
+@Composable
+private fun ElementChip(fill: Color, symbol: String) {
+    val textMeasurer = rememberTextMeasurer()
+    Canvas(Modifier.size(PARTICLE_CHIP)) {
+        // Размер шрифта берём от dp-величины кружка, а не от радиуса в пикселях: иначе на плотном
+        // экране символ раздувается вдвое.
+        drawElementCircle(
+            textMeasurer, Offset(size.width / 2f, size.height / 2f), size.minDimension / 2f - 1f, fill, symbol,
+            outline = Stroke(1.5f),
+            fontSizeSp = PARTICLE_CHIP.value * 0.42f,
+        )
+    }
+}
+
+// Частица рядом со своим количеством.
 @Composable
 private fun ParticleCount(fill: Color, symbol: String, count: Int) {
-    val textMeasurer = rememberTextMeasurer()
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Canvas(Modifier.size(PARTICLE_CHIP)) {
-            // Размер шрифта берём от dp-величины кружка, а не от радиуса в пикселях: иначе на плотном
-            // экране символ раздувается вдвое.
-            drawElementCircle(
-                textMeasurer, Offset(size.width / 2f, size.height / 2f), size.minDimension / 2f - 1f, fill, symbol,
-                outline = Stroke(1.5f),
-                fontSizeSp = PARTICLE_CHIP.value * 0.42f,
-            )
-        }
+        ElementChip(fill, symbol)
         Text("$count", style = MaterialTheme.typography.bodySmall, color = Color.Black)
     }
 }
