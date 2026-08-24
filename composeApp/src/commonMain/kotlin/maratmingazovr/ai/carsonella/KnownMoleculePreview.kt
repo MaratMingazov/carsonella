@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -15,12 +14,12 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
-import maratmingazovr.ai.carsonella.world.renderers.drawCenteredSymbol
-import maratmingazovr.ai.carsonella.world.renderers.onFillTextColor
+import maratmingazovr.ai.carsonella.world.renderers.drawBondLines
+import maratmingazovr.ai.carsonella.world.renderers.drawElementCircle
+import maratmingazovr.ai.carsonella.world.renderers.drawValenceSlots
 
 private const val BOND_LINE_WIDTH = 2.5f
 private const val BOND_LINE_SPACING = 15f          // сдвиг параллельных линий двойной/тройной связи
-private val BOND_COLOR = Color(0xFF212121)
 private const val OUTLINE_WIDTH = 2.5f
 
 /**
@@ -54,7 +53,7 @@ fun KnownMoleculePreview(knownMoleculeDetails: KnownMoleculeDetails, scale: Floa
         knownMoleculeDetails.graph.bonds.forEach { bond ->
             val a = positions.getValue(bond.atom1) + origin
             val b = positions.getValue(bond.atom2) + origin
-            drawBondLines(a, b, bond.order, scale)
+            drawBondLines(a, b, bond.order, lineWidth = BOND_LINE_WIDTH * scale, spacing = BOND_LINE_SPACING * scale)
         }
         knownMoleculeDetails.graph.nodes.forEach { node ->
             drawPreviewAtom(
@@ -68,18 +67,6 @@ fun KnownMoleculePreview(knownMoleculeDetails: KnownMoleculeDetails, scale: Floa
     }
 }
 
-// Кратность — параллельными линиями, как в EntityRenderer: одна/две/три.
-private fun DrawScope.drawBondLines(a: Offset, b: Offset, order: Int, scale: Float) {
-    val dir = b - a
-    val length = dir.getDistance()
-    val perp = if (length > 1e-3f) Offset(-dir.y / length, dir.x / length) else Offset(0f, 1f)
-    val firstShift = -(order - 1) / 2f
-    for (i in 0 until order) {
-        val shift = perp * ((firstShift + i) * BOND_LINE_SPACING * scale)
-        drawLine(color = BOND_COLOR, start = a + shift, end = b + shift, strokeWidth = BOND_LINE_WIDTH * scale)
-    }
-}
-
 private fun DrawScope.drawPreviewAtom(
     textMeasurer: TextMeasurer,
     center: Offset,
@@ -88,19 +75,8 @@ private fun DrawScope.drawPreviewAtom(
     scale: Float,
 ) {
     val radius = element.details.radius * scale
-    val fill = ElementColors.fill(element)
-    drawCircle(color = fill, center = center, radius = radius)
-    drawCircle(color = Color.Black, center = center, radius = radius, style = Stroke(OUTLINE_WIDTH * scale))
-    drawCenteredSymbol(textMeasurer, center, element.bareSymbol, onFillTextColor(fill), fontSizeSp = radius * 0.7f)
-
-    // Свободные слоты — те же белые кружки на кромке, что и в игре: «вот куда ещё можно присоединить».
-    if (freeSlots > 0) {
-        val slotRadius = (radius * 0.18f).coerceIn(2f, 6f)
-        for (i in 0 until freeSlots) {
-            val angle = 2.0 * kotlin.math.PI * i / freeSlots - kotlin.math.PI / 2.0
-            val p = center + Offset(kotlin.math.cos(angle).toFloat() * radius, kotlin.math.sin(angle).toFloat() * radius)
-            drawCircle(color = Color.White, center = p, radius = slotRadius)
-            drawCircle(color = Color.Black, center = p, radius = slotRadius, style = Stroke(OUTLINE_WIDTH * scale))
-        }
-    }
+    val outlineWidth = OUTLINE_WIDTH * scale
+    drawElementCircle(textMeasurer, center, radius, ElementColors.fill(element), element.bareSymbol, Stroke(outlineWidth))
+    // Слоты стоят от «двенадцати часов»: картинка статичная, крутить их, как на холсте, нечем.
+    drawValenceSlots(center, radius, freeSlots, startAngle = -kotlin.math.PI.toFloat() / 2f, outlineWidth = outlineWidth)
 }

@@ -528,6 +528,9 @@ enum class Element(val title: TranslatedText, val description: TranslatedText) {
             emptyList()
         }
 
+    // Электроотрицательность по Полингу; null — значения нет (благородные газы) или элемент тяжёлый.
+    val electronegativity: Float? get() = electronegativityByZ[details.p]
+
     // Валентность = сколько ковалентных связей атом может образовать: заполнение оболочек (2/8/8)
     fun valence(electrons: Int): Int {
         if (details.p - electrons > MAX_BONDING_CHARGE) return 0   // если атом теряет больше 1 электрона, то в ковалентную связь он уже вступать не может
@@ -551,6 +554,9 @@ enum class Element(val title: TranslatedText, val description: TranslatedText) {
 
         // Энергетические лестницы ионизации по Z (одна на элемент, общая для изотопов). Опора energyLevels(electrons).
         private val atomEnergyLevelsByZ: Map<Int, List<List<Float>>> = atomEnergyLevelsTable()
+
+        // Электроотрицательность по Z — тоже одна на элемент. Опора electronegativity.
+        private val electronegativityByZ: Map<Int, Float> = electronegativityTable()
 
         // База для symbol(e). Пока каталог не свёрнут — выводим из существующего symbol срезанием
         // (на шаге 2C станет хранимым полем изотопа). Считается один раз.

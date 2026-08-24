@@ -15,7 +15,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
  */
 enum class UiString(val en: String, val ru: String) {
     MENU_PLAY("play", "играть"),
-    MENU_SANDBOX("laboratory", "лаборатория"),
+    MENU_SANDBOX("lab", "лаба"),
     MENU_MAP("map", "карта"),
     MENU_LANGUAGE("language", "язык"),
     MENU_ABOUT("about", "об игре"),
@@ -34,6 +34,11 @@ enum class UiString(val en: String, val ru: String) {
 
     CHAPTER_DONE_TITLE("well done", "молодец"),
     CHAPTER_DONE_TEXT("chapter one levels are complete", "уровни первой главы пройдены"),
+
+    INFO_IONIZATION("ionization, eV", "ионизация, эВ"),
+    INFO_BONDS("bonds, eV", "связи, эВ"),
+    INFO_WEAKEST_BOND("weakest", "слабейшая"),
+    INFO_ELECTRONEGATIVITY("electronegativity", "электроотрицательность"),
 
     ABOUT_TITLE("about", "об игре"),
     ABOUT_TEXT("soon...", "скоро..."),

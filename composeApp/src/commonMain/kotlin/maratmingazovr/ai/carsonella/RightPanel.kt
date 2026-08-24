@@ -47,8 +47,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Element
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
@@ -56,8 +59,15 @@ import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelection
 import maratmingazovr.ai.carsonella.world.World
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_FILL
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_SYMBOL
+import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_TITLE
+import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.EntityRenderer
 import maratmingazovr.ai.carsonella.world.renderers.Highlight
+import maratmingazovr.ai.carsonella.world.renderers.drawBondLines
+import maratmingazovr.ai.carsonella.world.renderers.drawElementCircle
+import maratmingazovr.ai.carsonella.world.renderers.isBareProton
 import kotlin.math.round
 
 
@@ -147,7 +157,7 @@ fun RightPanel(
                     entities = entities,
                     onSetEnergy = onSetEnergy,
                     onMoleculeAction = onMoleculeAction,
-                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 170.dp),
+                    modifier = Modifier.align(Alignment.TopStart).padding(12.dp).widthIn(max = 220.dp),
                 )
             }
             // Консоль убрана из MVP: в белом минимализме она шумит. Долг — вернуть сигнал «реакция
@@ -582,38 +592,34 @@ private fun SelectedEntityPanel(
     val selectedElement by selectedEntity.changes.collectAsState() // подписываем на элемент. Чтобы при изменении состояния этого элемента Compose перерисовал панель
 
     Column(
+        // Белая плашка с тонкой рамкой — тот же вид, что у ModalCard: карточки игры выглядят одинаково.
         modifier.fillMaxWidth()
-            .background(PANEL_BG, RoundedCornerShape(12.dp))
-            .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .background(Color.White, RoundedCornerShape(14.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(14.dp))
+            .padding(14.dp)
     ) {
-        Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
-        Spacer(Modifier.height(8.dp))
-        Text(selectedEntity.describe(), style = MaterialTheme.typography.bodySmall)
+        val atoms = liveAtoms(selectedEntity as? Molecule, selectedAtoms) // выбранные игроком атомы молекулы
 
-        // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Пусто → не показываем.
-        val levels = selectedEntity.energyLevels
-        if (levels.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text("Levels, eV:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
-            Text(
-                levels.joinToString(", ") { (round(it * 100) / 100).toString() },
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+        // Данные — свои у каждого типа сущности. Частица и звезда пока на общем describe().
+        when (selectedEntity) {
+            is Atom -> AtomInfo(selectedEntity)
+            is Molecule -> MoleculeInfo(selectedEntity, atoms)
+            else -> {
+                Text("Info", style = MaterialTheme.typography.labelLarge, color = Color.Black)
+                Spacer(Modifier.height(8.dp))
+                Text(selectedEntity.describe(), style = MaterialTheme.typography.bodySmall)
 
-        // Выбранные атомы молекулы: символ с номером узла и сколько связей атом ещё может образовать.
-        val atoms = liveAtoms(selectedEntity as? Molecule, selectedAtoms)
-        if (selectedEntity is Molecule && atoms.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text("Atoms:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
-            Text(
-                atoms.joinToString(", ") { localId ->
-                    val atom = selectedEntity.atom(localId)
-                    "${atom.isotope.bareSymbol}$localId (${selectedEntity.freeValence(atom)} free)"
-                },
-                style = MaterialTheme.typography.bodySmall,
-            )
+                // Энергетическая лестница (эВ): уровни возбуждения, последний = порог ионизации. Пусто → не показываем.
+                val levels = selectedEntity.energyLevels
+                if (levels.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Levels, eV:", style = MaterialTheme.typography.labelSmall, color = Color.Black)
+                    Text(
+                        levels.joinToString(", ") { evText(it) },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
         }
 
         // Действия «лего» по молекуле: форсим правило через ReactionSelection (см. World.requestMoleculeAction).
@@ -643,6 +649,177 @@ private fun SelectedEntityPanel(
         }
     }
 }
+
+// Карточка АТОМА: имя, состав частицами, порог ионизации. Своя, а не describe(): про атом интереснее
+// показать, из чего он собран, чем печатать те же числа строкой.
+@Composable
+private fun AtomInfo(atom: Atom) {
+    val element = atom.element
+    // Голый водород на холсте рисуется протоном и зовётся протоном — карточка не должна с ним спорить.
+    val title = if (isBareProton(element, atom.electrons)) text(BARE_PROTON_TITLE)
+                else "${text(element.title)} (${element.symbol(atom.electrons)})"
+
+    Text(
+        title,
+        style = MaterialTheme.typography.labelLarge,
+        color = Color.Black,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    // Состав в один ряд теми же кружками, что и на холсте: протон тёплый, электрон голубой, нейтрон серый.
+    Spacer(Modifier.height(12.dp))
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ParticleCount(BARE_PROTON_FILL, BARE_PROTON_SYMBOL, element.details.p)
+        ParticleCount(ElementColors.fill(Element.ELECTRON), Element.ELECTRON.details.symbol, atom.electrons)
+        ParticleCount(ElementColors.fill(Element.NEUTRON), Element.NEUTRON.details.symbol, element.details.n)
+    }
+
+    val levels = atom.energyLevels
+    if (levels.isNotEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        Text(text(UiString.INFO_IONIZATION), style = MaterialTheme.typography.labelSmall, color = Color.Black)
+        Text(levels.joinToString(", ") { evText(it) }, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+// Карточка МОЛЕКУЛЫ: имя, порог ионизации, типы связей с их энергией. Состав частицами тут не нужен —
+// про молекулу интереснее, чем она держится и что в ней порвётся первым.
+@Composable
+private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
+    val known = molecule.known
+
+    Text(
+        if (known != null) text(known.id.title) else molecule.displaySymbol,
+        style = MaterialTheme.typography.labelLarge,
+        color = Color.Black,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    if (known != null) {
+        Text(
+            molecule.displaySymbol,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+
+    // Порог ионизации. У безымянной молекулы своего значения нет — это оценка по атомам, помечаем «≈».
+    molecule.energyLevels.lastOrNull()?.let { threshold ->
+        Spacer(Modifier.height(12.dp))
+        Text(text(UiString.INFO_IONIZATION), style = MaterialTheme.typography.labelSmall, color = Color.Black)
+        Text(
+            if (known?.ionizationEnergy != null) evText(threshold) else "≈ ${evText(threshold)}",
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+
+    // Связи ПО ТИПАМ, а не по штукам: энергия — свойство типа связи, поэтому у воды одна строка O–H,
+    // а не две. Слабейший тип помечен: он и есть порог диссоциации, с него молекула начнёт разваливаться.
+    val types = bondTypes(molecule)
+    if (types.isNotEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        Text(text(UiString.INFO_BONDS), style = MaterialTheme.typography.labelSmall, color = Color.Black)
+        val weakest = molecule.dissociationEnergy
+        types.forEach { type ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BondGlyph(type)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    type.energy?.let { evText(it) } ?: "—",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Black,
+                )
+                if (type.energy != null && type.energy == weakest) {
+                    Spacer(Modifier.width(6.dp))
+                    Text(text(UiString.INFO_WEAKEST_BOND), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+            }
+        }
+    }
+
+    // Выбранные атомы: электроотрицательность — насколько атом перетягивает общую пару на себя.
+    if (selectedAtoms.isNotEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        Text(text(UiString.INFO_ELECTRONEGATIVITY), style = MaterialTheme.typography.labelSmall, color = Color.Black)
+        Text(
+            selectedAtoms.joinToString(", ") { localId ->
+                val isotope = molecule.atom(localId).isotope
+                "${isotope.bareSymbol}$localId ${isotope.electronegativity?.toString() ?: "—"}"
+            },
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+// Тип связи: пара элементов и кратность. Энергия у типа одна (BondEnergy ключуется по Z и кратности),
+// поэтому одинаковые связи молекулы схлопываются в одну строку.
+private data class BondTypeRow(val heavy: Element, val light: Element, val order: Int, val energy: Float?)
+
+private fun bondTypes(molecule: Molecule): List<BondTypeRow> = molecule.bonds
+    .map { bond ->
+        val first = molecule.atom(bond.localId1).isotope
+        val second = molecule.atom(bond.localId2).isotope
+        val heavyFirst = first.details.p >= second.details.p   // тяжёлый слева: читается как O–H, C–H
+        BondTypeRow(
+            heavy = if (heavyFirst) first else second,
+            light = if (heavyFirst) second else first,
+            order = bond.order,
+            energy = bond.energy,
+        )
+    }
+    .distinctBy { Triple(it.heavy.details.p, it.light.details.p, it.order) }
+
+private val BOND_GLYPH_ATOM = 11.dp     // радиус кружка атома в значке связи
+private val BOND_GLYPH_GAP = 16.dp      // просвет между кружками — сама «связь»
+
+// Значок связи: два кружка и линии по кратности — тот же язык, что на холсте, только мельче.
+@Composable
+private fun BondGlyph(type: BondTypeRow) {
+    val textMeasurer = rememberTextMeasurer()
+    Canvas(Modifier.size(BOND_GLYPH_ATOM * 4 + BOND_GLYPH_GAP, BOND_GLYPH_ATOM * 2)) {
+        val radius = size.height / 2f - 1f
+        val left = Offset(radius + 1f, size.height / 2f)
+        val right = Offset(size.width - radius - 1f, size.height / 2f)
+
+        drawBondLines(left, right, type.order, lineWidth = 1.5f, spacing = radius * 0.45f)
+        listOf(left to type.heavy, right to type.light).forEach { (center, element) ->
+            drawElementCircle(
+                textMeasurer, center, radius, ElementColors.fill(element), element.bareSymbol,
+                outline = Stroke(1.5f),
+                fontSizeSp = BOND_GLYPH_ATOM.value * 0.85f,
+            )
+        }
+    }
+}
+
+private val PARTICLE_CHIP = 22.dp
+
+// Частица рядом со своим количеством: кружок как на холсте (заливка, обводка, символ), но размером с текст.
+@Composable
+private fun ParticleCount(fill: Color, symbol: String, count: Int) {
+    val textMeasurer = rememberTextMeasurer()
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Canvas(Modifier.size(PARTICLE_CHIP)) {
+            // Размер шрифта берём от dp-величины кружка, а не от радиуса в пикселях: иначе на плотном
+            // экране символ раздувается вдвое.
+            drawElementCircle(
+                textMeasurer, Offset(size.width / 2f, size.height / 2f), size.minDimension / 2f - 1f, fill, symbol,
+                outline = Stroke(1.5f),
+                fontSizeSp = PARTICLE_CHIP.value * 0.42f,
+            )
+        }
+        Text("$count", style = MaterialTheme.typography.bodySmall, color = Color.Black)
+    }
+}
+
+// Энергия в эВ для подписи: два знака после запятой.
+private fun evText(ev: Float): String = (round(ev * 100) / 100).toString()
 
 // Редактор энергии фотона (эВ). Энергию ≤ 0 не применяем: у реального фотона энергии-нуля не бывает.
 @Composable

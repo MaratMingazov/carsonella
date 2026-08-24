@@ -323,6 +323,21 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
 //    H2                      to Details (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", p = 2, n = 0, energyBondDissociation = 4.5f, dissociationElements = listOf(Element.HYDROGEN, Element.HYDROGEN)),
 )
 
+/**
+ * Электроотрицательность по шкале Полинга — насколько атом перетягивает на себя общую электронную пару.
+ * Ключ по Z (свойство элемента, не изотопа), как и лестницы ниже.
+ *
+ * Отсюда берётся частичный заряд δ± на узлах молекулы: у благородных газов значения нет вовсе, у
+ * тяжёлых элементов оно нам не нужно — ковалентно они у нас не связываются ([Element.valence] = 0).
+ */
+internal fun electronegativityTable(): Map<Int, Float> = mapOf(
+    1 to 2.20f,                                                             // H
+    3 to 0.98f, 4 to 1.57f, 5 to 2.04f, 6 to 2.55f,                         // Li Be B C
+    7 to 3.04f, 8 to 3.44f, 9 to 3.98f,                                     // N O F
+    11 to 0.93f, 12 to 1.31f, 13 to 1.61f, 14 to 1.90f,                     // Na Mg Al Si
+    15 to 2.19f, 16 to 2.58f, 17 to 3.16f,                                  // P S Cl
+)
+
 // Энергетические уровни ионизации по элементу (Z), а не по изотопу: зависят только от Z, не от N
 // (рефакторинг ионизации 2C2b-4). Индекс внешнего списка = число электронов; значение = пороги/уровни
 // этого зарядового состояния. Одна лестница на элемент — общая для всех его изотопов (Element.energyLevels).

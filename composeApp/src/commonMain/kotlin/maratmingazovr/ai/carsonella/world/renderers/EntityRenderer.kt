@@ -101,12 +101,10 @@ class EntityRenderer(
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
         val radius = if (bareProton) Element.ELECTRON.details.radius else element.details.radius
 
+        // Частица — это тот же кружок без слотов, поэтому отдельной ветки рисования ей не нужно.
+        val freeSlots = if (withValenceSlots) element.valence(entity.electrons) else 0
         with(drawScope) {
-            if (withValenceSlots) {
-                drawAtom(position, radius, fillColor, symbol, element.valence(entity.electrons), vibrationParams.slotAngle, highlighted = highlight.entity)
-            } else {
-                drawSubAtom(position, radius, fillColor, symbol, vibrationParams.slotAngle, highlighted = highlight.entity)
-            }
+            drawAtom(position, radius, fillColor, symbol, freeSlots, vibrationParams.slotAngle, highlighted = highlight.entity)
         }
     }
 
@@ -165,7 +163,6 @@ class EntityRenderer(
         val firstShift = -(total - 1) / 2f
         val lineWidth =  2.5f // ширина линии
         val BOND_LINE_SPACING = 8f       // сдвиг параллельных линий для двойных/тройных связей
-        val BOND_COLOR = Color(0xFF212121)     // МИНИМАЛИЗМ: почти чёрная связь (Sokobond, на белом)
         val NEW_BOND_COLOR = Color(0xFF4CAF50) // будущая связь под курсором — зелёная: «кликни, и она появится»
         val NEW_BOND_LINE_WIDTH = 5f           // вдвое толще обычной, чтобы читалась как приглашение к действию
         for (i in 0 until total) {
@@ -207,7 +204,6 @@ class EntityRenderer(
         hovered: Boolean = false,  // атом молекулы под курсором → то же кольцо, но тонкое
     ) {
         val outlineWidth =  2.5f // ширина обводки атома
-        drawCircle(color = fill, center = center, radius = radius) // сам круг
         val outlineStyle = if (highlighted) // обводка выделенного атома рисуется штриховкой
             Stroke(
                 width = outlineWidth,
@@ -217,19 +213,8 @@ class EntityRenderer(
                 )
             )
         else Stroke(width = outlineWidth)
-        drawCircle(color = Color.Black, center = center, radius = radius, style = outlineStyle) // обводка
-        drawCenteredSymbol(textMeasurer, center, symbol, onFillTextColor(fill), fontSizeSp = radius * 0.7f)
-
-        if (freeSlots > 0) {
-            val slotR = (radius * 0.18f).coerceIn(2.5f, 6f)   // размер маркера слота
-            val base = slotAngle.toDouble()
-            for (i in 0 until freeSlots) {
-                val a = base + 2.0 * kotlin.math.PI * i / freeSlots
-                val p = center + Offset(kotlin.math.cos(a).toFloat() * radius, kotlin.math.sin(a).toFloat() * radius)
-                drawCircle(color = Color.White, center = p, radius = slotR)   // белый кружок слота
-                drawCircle(color = Color.Black, center = p, radius = slotR, style = Stroke(outlineWidth)) // обводка
-            }
-        }
+        drawElementCircle(textMeasurer, center, radius, fill, symbol, outlineStyle)
+        drawValenceSlots(center, radius, freeSlots, slotAngle, outlineWidth)
 
         // Кольцо ВОКРУГ атома: подсветка молекулы штрихует все её атомы, а это — метка выбранного.
         // Радиус берём за слотами (их маркеры сидят на кромке), рисуем последним — поверх всего.
@@ -242,30 +227,6 @@ class EntityRenderer(
             )
         }
     }
-
-    private fun DrawScope.drawSubAtom(
-        center: Offset,
-        radius: Float,
-        fill: Color,
-        symbol: String,
-        slotAngle: Float, //
-        highlighted: Boolean, // наведён/выбран → штриховая оконтовка
-    ) {
-        val outlineWidth =  2.5f // ширина обводки атома
-        drawCircle(color = fill, center = center, radius = radius) // сам круг
-        val outlineStyle = if (highlighted) // обводка выделенного атома рисуется штриховкой
-            Stroke(
-                width = outlineWidth,
-                pathEffect = PathEffect.dashPathEffect(
-                    floatArrayOf(5f, 5f),   // штрих/пропуск в пикселях,
-                    slotAngle * radius * 0.5f // скорость вращения пунктирный обводки атома при выделении
-                )
-            )
-        else Stroke(width = outlineWidth)
-        drawCircle(color = Color.Black, center = center, radius = radius, style = outlineStyle) // обводка
-        drawCenteredSymbol(textMeasurer, center, symbol, onFillTextColor(fill), fontSizeSp = radius * 0.7f)
-    }
-
 
     private fun drawStar(
         drawScope: DrawScope,

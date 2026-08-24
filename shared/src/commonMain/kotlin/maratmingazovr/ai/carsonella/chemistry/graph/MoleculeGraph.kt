@@ -177,20 +177,8 @@ data class MoleculeGraph(
         recurse(0)
         best!!
     } // Канонический ключ молекулы — детерминированная строка, ОДИНАКОВАЯ у одной и той же молекулы при любой перенумерации узлов и РАЗНАЯ у разных молекул.
-    /**
-     * Слабейшая связь молекулы и её энергия — ПОРОГ ДИССОЦИАЦИИ.
-     * Слабейшая связь требует меньше всего энергии → рвётся первой.
-     * `null`, если связей нет ИЛИ тип связи не в каталоге (для CHNO не случается, но `Float?` честно это выражает).
-     *
-     * Нам это нужно, чтобы понять какая связь разорветс во время диссоциации.
-     * Но если молекула кольцо, тогда после разрыва молекула остается
-     */
+
     val weakestBondAndEnergy: Pair<Bond, Float>? = energyByBond.entries.minByOrNull { it.value }?.let { (bond, energy) -> bond to energy }
-    /**
-     * Энергетическая лестница молекулы список уровней, где ПОСЛЕДНИЙ = порог (первый потенциал ионизации, IP). Кэш на графе (иммутабелен).
-     * Пусто, если ни один атом не ионизируем (пустая атомная лестница — напр. Z>18) — как у атома
-     * с пустой лестницей. Для CHNO не случается.
-     */
     val energyLevels: List<Float> = listOfNotNull(nodes.mapNotNull { it.isotope.energyLevels(it.isotope.details.p).lastOrNull() }.minOrNull())
     val freeNodes: List<Int> = nodes.map { it.localId }.filter { freeValenceById.getValue(it) > 0 } // localId узлов, которым ещё есть чем связываться (в порядке nodes).
     val hasFreeValence: Boolean = freeNodes.isNotEmpty() // Есть ли в молекуле хоть один незакрытый валентный слот (есть куда расти / что усиливать).

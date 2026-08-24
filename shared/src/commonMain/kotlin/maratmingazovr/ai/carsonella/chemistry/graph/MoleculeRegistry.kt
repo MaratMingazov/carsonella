@@ -12,6 +12,7 @@ data class KnownMoleculeDetails(
     val graph: MoleculeGraph,
     val structuralFormula: String = "", // сжатая СТРУКТУРНАЯ формула (связность + радикальный слот •): CH₃–CH₃, H–O–O•.
     val offsets: Map<Int, Vec2D> = emptyMap(), // эталонное расположение атомов
+    val ionizationEnergy: Float? = null, // Порог ионизации МОЛЕКУЛЫ (эВ) —  из NIST WebBook.
 )
 
 private val H = MoleculeGraph(listOf(AtomNode(0, Element.HYDROGEN)), emptyList())
@@ -25,71 +26,71 @@ object MoleculeRegistry {
     private val entries = registry {
 
         // --- двухатомные ---
-        val dihydrogen = H.attach(H); known(dihydrogen, KnownMoleculeId.DIHYDROGEN, "H–H", offsets = pair())
-        val dioxygen = O.attach(O, order = 2); known(dioxygen, KnownMoleculeId.DIOXYGEN, "O=O", offsets = pair())
-        val dinitrogen = N.attach(N, order = 3); known(dinitrogen, KnownMoleculeId.DINITROGEN, "N≡N", offsets = pair())
-        val hydroxyl = O.attach(H); val hydroxylShape: Map<Int, Vec2D> = at(0 to xy(0f, 0f), 1 to xy(0.4f, -0.9f)); known(hydroxyl, KnownMoleculeId.HYDROXYL, "•OH", offsets = pair())
+        val dihydrogen = H.attach(H); known(dihydrogen, KnownMoleculeId.DIHYDROGEN, "H–H", offsets = pair(), ionizationEnergy = 15.426f)
+        val dioxygen = O.attach(O, order = 2); known(dioxygen, KnownMoleculeId.DIOXYGEN, "O=O", offsets = pair(), ionizationEnergy = 12.0697f)
+        val dinitrogen = N.attach(N, order = 3); known(dinitrogen, KnownMoleculeId.DINITROGEN, "N≡N", offsets = pair(), ionizationEnergy = 15.581f)
+        val hydroxyl = O.attach(H); val hydroxylShape: Map<Int, Vec2D> = at(0 to xy(0f, 0f), 1 to xy(0.4f, -0.9f)); known(hydroxyl, KnownMoleculeId.HYDROXYL, "•OH", offsets = pair(), ionizationEnergy = 13.017f)
         val dicarbonSingle = C.attach(C); known(dicarbonSingle, KnownMoleculeId.DICARBON, "•C–C•")
-        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, KnownMoleculeId.DICARBON, "C=C")
+        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, KnownMoleculeId.DICARBON, "C=C", ionizationEnergy = 11.4f) // 11.4 — у основного состояния C₂, у него и двойная связь; прочим кратностям порога нет
         val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, KnownMoleculeId.DICARBON, "•C≡C•")
 
         // --- малые неорганические / простые ---
-        val water = hydroxyl.attach(H); known(water, KnownMoleculeId.WATER, "H–O–H", offsets = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)))
-        val hydroperoxyl = hydroxyl.attach(O); known(hydroperoxyl, KnownMoleculeId.HYDROPEROXYL, "H–O–O•")
-        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, KnownMoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)))
+        val water = hydroxyl.attach(H); known(water, KnownMoleculeId.WATER, "H–O–H", offsets = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)), ionizationEnergy = 12.621f)
+        val hydroperoxyl = hydroxyl.attach(O); known(hydroperoxyl, KnownMoleculeId.HYDROPEROXYL, "H–O–O•", ionizationEnergy = 11.35f)
+        val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, KnownMoleculeId.HYDROGEN_PEROXIDE, "H–O–O–H", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)), ionizationEnergy = 10.58f)
         val trioxidane = hydroperoxyl.attach(hydroxyl); known(trioxidane, KnownMoleculeId.TRIOXIDANE, "H–O–O–O–H", offsets = at(0 to xy(-1f, 0.2f), 1 to xy(-1.6f, -0.55f), 2 to xy(0f, -0.2f), 3 to xy(1f, 0.2f), 4 to xy(1.6f, 0.95f)))
         val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, KnownMoleculeId.TETRAOXIDANE, "H–O–O–O–O–H", offsets = at(0 to xy(-1.5f, 0.2f), 1 to xy(-2.1f, 0.95f), 2 to xy(-0.5f, -0.2f), 3 to xy(1.5f, -0.2f), 4 to xy(2.1f, -0.95f), 5 to xy(0.5f, 0.2f)))
         val imidogen = N.attach(H); known(imidogen, KnownMoleculeId.IMIDOGEN, ":NH")
         val amino = imidogen.attach(H); known(amino, KnownMoleculeId.AMINO_RADICAL, "•NH₂")
-        val ammonia = amino.attach(H); known(ammonia, KnownMoleculeId.AMMONIA, "NH₃")
+        val ammonia = amino.attach(H); known(ammonia, KnownMoleculeId.AMMONIA, "NH₃", ionizationEnergy = 10.07f)
         val carbonyl = C.attach(O, order = 2)                 // >C=O — группа, а не вещество: своей записи нет
-        val carbonDioxide = carbonyl.attach(O, order = 2); known(carbonDioxide, KnownMoleculeId.CARBON_DIOXIDE, "O=C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(-1f, 0f), 2 to xy(1f, 0f)))
-        val cyano = C.attach(N, order = 3); known(cyano, KnownMoleculeId.CYANO, "•C≡N")
-        val hydrogenCyanide = cyano.attach(H); known(hydrogenCyanide, KnownMoleculeId.HYDROGEN_CYANIDE, "H–C≡N")
+        val carbonDioxide = carbonyl.attach(O, order = 2); known(carbonDioxide, KnownMoleculeId.CARBON_DIOXIDE, "O=C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(-1f, 0f), 2 to xy(1f, 0f)), ionizationEnergy = 13.777f)
+        val cyano = C.attach(N, order = 3); known(cyano, KnownMoleculeId.CYANO, "•C≡N", ionizationEnergy = 13.598f)
+        val hydrogenCyanide = cyano.attach(H); known(hydrogenCyanide, KnownMoleculeId.HYDROGEN_CYANIDE, "H–C≡N", ionizationEnergy = 13.60f)
 
         // --- углеводороды ---
-        val methylidyne = C.attach(H); known(methylidyne, KnownMoleculeId.METHYLIDYNE, "•CH")
-        val methylene = methylidyne.attach(H); known(methylene, KnownMoleculeId.METHYLENE, ":CH₂")
-        val methyl = methylene.attach(H); val methylShape = at(0 to xy(0f, 0f), 1 to xy(-0.4f, -0.9f), 2 to xy(-1f, 0f), 3 to xy(-0.4f, 0.9f)); known(methyl, KnownMoleculeId.METHYL, "•CH₃")
-        val methane = methyl.attach(H); known(methane, KnownMoleculeId.METHANE, "CH₄", offsets = at(0 to xy(0f, 0f), 1 to polar(45f), 2 to polar(135f), 3 to polar(225f), 4 to polar(315f)))
-        val ethynyl = methylidyne.attach(C, order = 3); known(ethynyl, KnownMoleculeId.ETHYNYL, "HC≡C•")
-        val acetylene = ethynyl.attach(H); known(acetylene, KnownMoleculeId.ACETYLENE, "HC≡CH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1.5f, 0f), 2 to xy(0.5f, 0f), 3 to xy(1.5f, 0f)))
+        val methylidyne = C.attach(H); known(methylidyne, KnownMoleculeId.METHYLIDYNE, "•CH", ionizationEnergy = 10.64f)
+        val methylene = methylidyne.attach(H); known(methylene, KnownMoleculeId.METHYLENE, ":CH₂", ionizationEnergy = 10.396f)
+        val methyl = methylene.attach(H); val methylShape = at(0 to xy(0f, 0f), 1 to xy(-0.4f, -0.9f), 2 to xy(-1f, 0f), 3 to xy(-0.4f, 0.9f)); known(methyl, KnownMoleculeId.METHYL, "•CH₃", ionizationEnergy = 9.84f)
+        val methane = methyl.attach(H); known(methane, KnownMoleculeId.METHANE, "CH₄", offsets = at(0 to xy(0f, 0f), 1 to polar(45f), 2 to polar(135f), 3 to polar(225f), 4 to polar(315f)), ionizationEnergy = 12.61f)
+        val ethynyl = methylidyne.attach(C, order = 3); known(ethynyl, KnownMoleculeId.ETHYNYL, "HC≡C•", ionizationEnergy = 11.61f)
+        val acetylene = ethynyl.attach(H); known(acetylene, KnownMoleculeId.ACETYLENE, "HC≡CH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1.5f, 0f), 2 to xy(0.5f, 0f), 3 to xy(1.5f, 0f)), ionizationEnergy = 11.400f)
         val vinyl = methylene.attach(methylidyne, order = 2); known(vinyl, KnownMoleculeId.VINYL, "H₂C=CH•")
-        val ethylene = vinyl.attach(H); known(ethylene, KnownMoleculeId.ETHYLENE, "H₂C=CH₂", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-0.9f, 0.9f), 3 to xy(0.5f, 0f), 4 to xy(0.9f, -0.9f), 5 to xy(0.9f, 0.9f)))
+        val ethylene = vinyl.attach(H); known(ethylene, KnownMoleculeId.ETHYLENE, "H₂C=CH₂", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-0.9f, 0.9f), 3 to xy(0.5f, 0f), 4 to xy(0.9f, -0.9f), 5 to xy(0.9f, 0.9f)), ionizationEnergy = 10.5138f)
         val ethyl = methyl.attach(methylene); known(ethyl, KnownMoleculeId.ETHYL, "CH₃–CH₂•")
-        val ethane = ethyl.attach(H); known(ethane, KnownMoleculeId.ETHANE, "CH₃–CH₃", offsets = methylShape.place(xy(-0.5f, 0f)) + methylShape.place(xy(0.5f, 0f), mirror = true, idOffset = 4))
+        val ethane = ethyl.attach(H); known(ethane, KnownMoleculeId.ETHANE, "CH₃–CH₃", offsets = methylShape.place(xy(-0.5f, 0f)) + methylShape.place(xy(0.5f, 0f), mirror = true, idOffset = 4), ionizationEnergy = 11.52f)
 
         // Бутаны C₄H₁₀
-        val butane = ethyl.attach(ethyl); known(butane, KnownMoleculeId.BUTANE, "CH₃–CH₂–CH₂–CH₃")
+        val butane = ethyl.attach(ethyl); known(butane, KnownMoleculeId.BUTANE, "CH₃–CH₂–CH₂–CH₃", ionizationEnergy = 10.53f)
         val ethylidene = methyl.attach(methylidyne)           // CH₃–CH:
         val isopropyl = ethylidene.attach(methyl); known(isopropyl, KnownMoleculeId.ISOPROPYL, "(CH₃)₂CH•")
-        val isobutane = isopropyl.attach(methyl); known(isobutane, KnownMoleculeId.ISOBUTANE, "(CH₃)₃CH")
+        val isobutane = isopropyl.attach(methyl); known(isobutane, KnownMoleculeId.ISOBUTANE, "(CH₃)₃CH", ionizationEnergy = 10.68f)
 
         // Бутены C₄H₈
-        val butene1 = vinyl.attach(ethyl); known(butene1, KnownMoleculeId.BUTENE_1, "H₂C=CH–CH₂–CH₃")
-        val butene2 = ethylidene.attach(ethylidene, order = 2); known(butene2, KnownMoleculeId.BUTENE_2, "CH₃–CH=CH–CH₃")
+        val butene1 = vinyl.attach(ethyl); known(butene1, KnownMoleculeId.BUTENE_1, "H₂C=CH–CH₂–CH₃", ionizationEnergy = 9.55f)
+        val butene2 = ethylidene.attach(ethylidene, order = 2); known(butene2, KnownMoleculeId.BUTENE_2, "CH₃–CH=CH–CH₃", ionizationEnergy = 9.10f) // (E)-изомер: цис/транс граф не различает
         val vinylidene = methylene.attach(C, order = 2)       // H₂C=C:
         val isopropenyl = vinylidene.attach(methyl); known(isopropenyl, KnownMoleculeId.ISOPROPENYL, "H₂C=C(CH₃)•")
-        val isobutylene = isopropenyl.attach(methyl); known(isobutylene, KnownMoleculeId.ISOBUTYLENE, "H₂C=C(CH₃)₂")
+        val isobutylene = isopropenyl.attach(methyl); known(isobutylene, KnownMoleculeId.ISOBUTYLENE, "H₂C=C(CH₃)₂", ionizationEnergy = 9.22f)
 
 
         val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂•
         val trimethylene = ethanediyl.extend(methylene); known(trimethylene, KnownMoleculeId.TRIMETHYLENE, "•CH₂–CH₂–CH₂•")
-        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, KnownMoleculeId.CYCLOPROPANE, "(CH₂)₃")
+        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, KnownMoleculeId.CYCLOPROPANE, "(CH₂)₃", ionizationEnergy = 9.86f)
         val oxyethyl = ethanediyl.extend(O)                   // •CH₂–CH₂–O•
-        val oxirane = oxyethyl.closeChain(); known(oxirane, KnownMoleculeId.OXIRANE, "(CH₂)₂O")
+        val oxirane = oxyethyl.closeChain(); known(oxirane, KnownMoleculeId.OXIRANE, "(CH₂)₂O", ionizationEnergy = 10.56f)
 
         val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH•
         val butadienediyl = ethenediyl.extend(ethenediyl)             // •CH=CH–CH=CH•
         val hexatrienediyl = butadienediyl.extend(ethenediyl)         // •CH=CH–CH=CH–CH=CH•
-        val benzene = hexatrienediyl.closeChain(); known(benzene, KnownMoleculeId.BENZENE, "(CH)₆")
+        val benzene = hexatrienediyl.closeChain(); known(benzene, KnownMoleculeId.BENZENE, "(CH)₆", ionizationEnergy = 9.2438f)
 
         // --- кислородсодержащая органика ---
-        val formyl = carbonyl.attach(H); known(formyl, KnownMoleculeId.FORMYL, "H–C•=O")
-        val formaldehyde = formyl.attach(H); known(formaldehyde, KnownMoleculeId.FORMALDEHYDE, "H₂C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(0f, -1f), 2 to xy(-0.87f, 0.5f), 3 to xy(0.87f, 0.5f)))
-        val methanol = methyl.attach(hydroxyl); known(methanol, KnownMoleculeId.METHANOL, "CH₃–OH", offsets = methylShape.place(xy(-0.5f, 0f)) + hydroxylShape.place(xy(0.5f, 0f), idOffset = 4))
-        val formicAcid = formyl.attach(hydroxyl); known(formicAcid, KnownMoleculeId.FORMIC_ACID, "H–C(=O)–OH")
-        val ethanol = ethyl.attach(hydroxyl); known(ethanol, KnownMoleculeId.ETHANOL, "CH₃–CH₂–OH")
+        val formyl = carbonyl.attach(H); known(formyl, KnownMoleculeId.FORMYL, "H–C•=O", ionizationEnergy = 8.12f)
+        val formaldehyde = formyl.attach(H); known(formaldehyde, KnownMoleculeId.FORMALDEHYDE, "H₂C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(0f, -1f), 2 to xy(-0.87f, 0.5f), 3 to xy(0.87f, 0.5f)), ionizationEnergy = 10.88f)
+        val methanol = methyl.attach(hydroxyl); known(methanol, KnownMoleculeId.METHANOL, "CH₃–OH", offsets = methylShape.place(xy(-0.5f, 0f)) + hydroxylShape.place(xy(0.5f, 0f), idOffset = 4), ionizationEnergy = 10.84f)
+        val formicAcid = formyl.attach(hydroxyl); known(formicAcid, KnownMoleculeId.FORMIC_ACID, "H–C(=O)–OH", ionizationEnergy = 11.33f)
+        val ethanol = ethyl.attach(hydroxyl); known(ethanol, KnownMoleculeId.ETHANOL, "CH₃–CH₂–OH", ionizationEnergy = 10.48f)
     }
 
     private val byCanonical: Map<String, KnownMoleculeDetails> = run {
@@ -135,8 +136,9 @@ private class RegistryBuilder {
         id: KnownMoleculeId,
         structuralFormula: String = "",
         offsets: Map<Int, Vec2D> = emptyMap(),
+        ionizationEnergy: Float? = null,
     ): MoleculeGraph {
-        entries += KnownMoleculeDetails(id, graph, structuralFormula, offsets = offsets)
+        entries += KnownMoleculeDetails(id, graph, structuralFormula, offsets = offsets, ionizationEnergy = ionizationEnergy)
         return graph
     }
 }

@@ -196,7 +196,7 @@ class Molecule private constructor(
     var energy: Float = energy // Внутренняя (колебательная) энергия — квазинепрерывная, в отличие от дискретных уровней атома.
         set(value) { field = value.coerceAtLeast(0f); markChanged() }
     override val displaySymbol: String get() = graph.formulaPretty + chargeSuffix(graph.protons - electrons)
-    override val energyLevels: List<Float> get() = graph.energyLevels
+    override val energyLevels: List<Float> get() = known?.ionizationEnergy?.let { listOf(it) } ?: graph.energyLevels // Порог ионизации: у известной молекулы — измеренный (NIST), у остальных — оценка графа по атомам.
     override val saveKey: String get() = graph.formula
 
     override fun distanceToSurface(point: Position): Float = atoms.minOf { it.kinematics.position.distanceTo(point) - it.radius } // Молекула не кружок: берём ближайший АТОМ.
