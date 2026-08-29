@@ -417,7 +417,7 @@ enum class AtomElement(val title: TranslatedText, val description: TranslatedTex
     }
 
     companion object {
-        // Каталог Details вынесен в ElementDetails.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
+        // Каталог Details вынесен в AtomRegistry.kt. Делёж на light/heavy/heaviest — ради лимита JVM 64KB на байткод метода.
         private val detailsMap: Map<AtomElement, Details> = elementDetails()
 
         // Энергетические лестницы ионизации по Z (одна на элемент, общая для изотопов). Опора energyLevels(electrons).
