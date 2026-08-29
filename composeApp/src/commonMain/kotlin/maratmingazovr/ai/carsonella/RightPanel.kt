@@ -52,7 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
@@ -640,7 +640,7 @@ private fun SelectedEntityPanel(
         }
 
         // Редактор энергии (пока только фотон).
-        if (selectedEntity is SubAtom && selectedEntity.element == Element.PHOTON) {
+        if (selectedEntity is SubAtom && selectedEntity.element == AtomElement.PHOTON) {
             Spacer(Modifier.height(8.dp))
             EnergyEditor(
                 energyEv = selectedEntity.energy,
@@ -675,8 +675,8 @@ private fun AtomInfo(atom: Atom) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ParticleCount(BARE_PROTON_FILL, BARE_PROTON_SYMBOL, element.details.p)
-        ParticleCount(ElementColors.fill(Element.ELECTRON), Element.ELECTRON.details.symbol, atom.electrons)
-        ParticleCount(ElementColors.fill(Element.NEUTRON), Element.NEUTRON.details.symbol, element.details.n)
+        ParticleCount(ElementColors.fill(AtomElement.ELECTRON), AtomElement.ELECTRON.details.symbol, atom.electrons)
+        ParticleCount(ElementColors.fill(AtomElement.NEUTRON), AtomElement.NEUTRON.details.symbol, element.details.n)
     }
 
     val levels = atom.energyLevels
@@ -758,7 +758,7 @@ private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
 
 // Тип связи: пара элементов и кратность. Энергия у типа одна (BondEnergy ключуется по Z и кратности),
 // поэтому одинаковые связи молекулы схлопываются в одну строку.
-private data class BondTypeRow(val heavy: Element, val light: Element, val order: Int, val energy: Float?)
+private data class BondTypeRow(val heavy: AtomElement, val light: AtomElement, val order: Int, val energy: Float?)
 
 private fun bondTypes(molecule: Molecule): List<BondTypeRow> = molecule.bonds
     .map { bond ->

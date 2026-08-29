@@ -3,16 +3,16 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.BERYLLIUM_7
-import maratmingazovr.ai.carsonella.chemistry.Element.BORON_8
-import maratmingazovr.ai.carsonella.chemistry.Element.DEUTERIUM
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_3
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.LITHIUM_7
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.BERYLLIUM_7
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.BORON_8
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.DEUTERIUM
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_3
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.LITHIUM_7
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HYDROGEN
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.isBareNucleus
@@ -53,10 +53,10 @@ class StarPPChain(
     private data class Match(
         val atom1: Atom,
         val atom2: Entity,
-        val atom1Element: Element,
-        val atom2Element: Element,
-        val result: Element,
-        val extras: List<Element>,
+        val atom1Element: AtomElement,
+        val atom2Element: AtomElement,
+        val result: AtomElement,
+        val extras: List<AtomElement>,
     ) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
@@ -70,7 +70,7 @@ class StarPPChain(
         // через alphaGammaResult на ³He²⁺.
         // Для ⁷Be⁴⁺ возможны две ветки: + e⁻ → ⁷Li³⁺ (pp-II, доминирует) либо + p → ⁸B⁵⁺ (pp-III, редкая).
         // Водород здесь всегда ГОЛЫЙ (протон): у нейтрального H тот же Element, отличает их только заряд.
-        val candidates: List<Triple<Element, Element, List<Element>>> = when {
+        val candidates: List<Triple<AtomElement, AtomElement, List<AtomElement>>> = when {
             atom.isBareNucleus(HYDROGEN) -> listOf(Triple(HYDROGEN,  DEUTERIUM, emptyList()))
             atomElement == DEUTERIUM     -> listOf(Triple(HYDROGEN,  HELIUM_3,  emptyList()))
             atomElement == HELIUM_3      -> listOf(Triple(HELIUM_3,  HELIUM_4,  listOf(HYDROGEN, HYDROGEN)))
@@ -102,7 +102,7 @@ class StarPPChain(
 
     // Годится ли сосед на роль второго реагента. Водород — только голый (протон): нейтральный атом H
     // несёт тот же Element, но в pp-цепочке не участвует.
-    private fun isCandidate(entity: Entity, element: Element): Boolean = when {
+    private fun isCandidate(entity: Entity, element: AtomElement): Boolean = when {
         element == HYDROGEN -> entity.isBareNucleus(HYDROGEN)
         element == ELECTRON -> entity is SubAtom && entity.element == ELECTRON
         else -> entity is Atom && entity.element == element

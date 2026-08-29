@@ -2,7 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -69,7 +69,7 @@ class MolecularSpontaneousEmission(private val entityGenerator: IEntityGenerator
             updateState = listOf(StateUpdate(molecule) { molecule.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createAtom(
-                    Element.PHOTON,
+                    AtomElement.PHOTON,
                     photon.position,
                     photon.direction,
                     MAX_VELOCITY,

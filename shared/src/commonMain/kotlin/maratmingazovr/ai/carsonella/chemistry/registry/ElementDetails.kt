@@ -1,11 +1,37 @@
 package maratmingazovr.ai.carsonella.chemistry
 
-import maratmingazovr.ai.carsonella.chemistry.Element.*
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.*
 
 
-internal fun elementDetails(): Map<Element, Details> = mapOf(
+data class Details(
+    val type: ElementType,
+    val symbol: String,
+    val label: String,
+    val p: Int, // Количество протонов в элементе
+    val n: Int, // Количество нейтронов в элементе
+    val radius: Float = 40f,
+    val covalentRadiusPm: Int? = null, // ковалентный: ½ длины связи — геометрия связанного атома в молекуле
+    val vdwRadiusPm: Int? = null,      // ван-дер-ваальсов: ½ дистанции касания несвязанных — «размер» одинокого атома
+    val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
+    val dissociationElements: List<AtomElement> = listOf(), // Элементы, которые получаются в результате диссоциации
+    val alphaGammaResult: AtomElement? = null, // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
+    val alphaProtonResult: AtomElement? = null, // (α,p) реакция. Ядро ловит ⁴He, выбрасывает протон: A + ⁴He → A′ + p (Z→Z+1, A→A+3). Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919). У нас работает только в TemperatureMode.Space — аналог «лабораторного» режима.
+    val alphaNeutronResult: AtomElement? = null, // (α,n) реакция. Ядро ловит ⁴He, выбрасывает нейтрон: A + ⁴He → A′ + n (Z→Z+2, A→A+3). Главный нейтронный источник для s-процесса: ¹⁸O→²¹Ne, ²²Ne→²⁵Mg (weak s-process в массивных звёздах), ²⁵Mg→²⁸Si. Работает в TemperatureMode.Star — He-burning ядро AGB и массивных звёзд.
+    val protonGammaResult: AtomElement? = null, // (p,γ) реакция. Ядро ловит протон с радиативным переходом: A + p → A′ + γ (Z→Z+1, A→A+1). Тип реакции, встречающийся в CNO/NeNa/MgAl-циклах (²⁰Ne+p→²¹Na, ²⁴Mg+p→²⁵Al и т.п.), pp-III (⁷Be+p→⁸B) и hot CNO breakouts. Работает в TemperatureMode.Star.
+    val protonAlphaResult: AtomElement? = null, // (p,α) реакция. Ядро ловит протон, выбрасывает ⁴He: A + p → A′ + ⁴He (Z→Z-1, A→A-3). Главные применения — замыкания циклов горения водорода: ¹⁵N+p→¹²C+α (CNO-I), ¹⁷O/¹⁸O+p→¹⁴N/¹⁵N+α (CNO-II/III), ²³Na+p→²⁰Ne+α (NeNa), ²⁷Al+p→²⁴Mg+α (MgAl). Работает в TemperatureMode.Star.
+    val protonNeutronResult: AtomElement? = null, // (p,n) реакция. Ядро ловит протон, выбрасывает нейтрон: A + p → A′ + n (Z→Z+1, A→A). Превращает изотоп в изобарный сосед с большим Z. В основном эндотермические — нужны высокие T (HotStar условия). Главный пример: ⁷Li(p,n)⁷Be (Q=-1.64 МэВ).
+    val neutronGammaResult: AtomElement? = null, // (n,γ) реакция. Ядро ловит нейтрон с радиативным переходом: A + n → A′ + γ (Z→Z, A→A+1). Главный механизм s-процесса — через цепочку (n,γ) рождаются все элементы тяжелее железа. Нет кулоновского барьера — идёт при любых T где есть свободные нейтроны. Цикл воспроизводства нейтронов: ¹²C(n,γ)¹³C(α,n)¹⁶O.
+    val neutronProtonResult: AtomElement? = null, // (n,p) реакция. Ядро ловит нейтрон, выбрасывает протон: A + n → A′ + p (Z→Z-1, A→A). Изобарный сосед с меньшим Z. Главный пример: ¹⁴N(n,p)¹⁴C — космогенный источник ¹⁴C (радиоуглеродное датирование). ¹⁴C β⁻-нестабилен → замыкает петлю ¹⁴N(n,p)¹⁴C(β⁻)¹⁴N.
+    val neutronAlphaResult: AtomElement? = null, // (n,α) реакция. Ядро ловит нейтрон, выбрасывает α (⁴He): A + n → A′ + ⁴He (Z→Z-2, A→A-3). Падение сразу на два Z. Пример: ¹⁷O(n,α)¹⁴C — кормит ту же радиоуглеродную петлю, что и (n,p). Прочие (¹⁰B(n,α)⁷Li, ⁶Li(n,α)³H) ждут target-ядер ¹⁰B/⁶Li.
+    val betaPlusDecayResult: AtomElement? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
+    val betaMinusDecayResult: AtomElement? = null, // β⁻-распад. Нейтрон-избыточное ядро превращает нейтрон в протон с испусканием электрона: n → p + e⁻ + ν̄ₑ (антинейтрино опускаем). Z→Z+1, A не меняется. Зеркало betaPlusDecayResult — толкает s-процесс вверх по таблице (нейтрон-избыточный продукт (n,γ) распадается в следующий элемент). Первый пример: ³¹Si→³¹P.
+    val alphaDecayResult: AtomElement? = null, // α-распад. Ядро испускает ⁴He²⁺ (голое ядро гелия): A(Z) → A′(Z-2) + ⁴He. Замыкает свинцово-висмутовый цикл s-процесса: ²¹⁰Po → ²⁰⁶Pb + α. Generic — по образцу betaMinusDecayResult.
+)
+
+internal fun elementDetails(): Map<AtomElement, Details> = mapOf(
     // --- субатомные частицы ---
-    PHOTON                  to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           p = 0, n = 0, radius = 25f),
+    PHOTON to Details (type = ElementType.SubAtom,     symbol = "γ",           label = "Photon (γ)",           p = 0, n = 0, radius = 25f),
     ELECTRON                to Details (type = ElementType.SubAtom,     symbol = "e⁻",          label = "Electron (e⁻)",        p = 0, n = 0, radius = 25f),
     NEUTRON                 to Details (type = ElementType.SubAtom,     symbol = "n",           label = "Neutron (n)",          p = 0, n = 1, radius = 25f),
     // Позитрон — фундаментальная античастица электрона; p = 1 здесь это маркер положительного единичного заряда (для calculateForce), а не «содержит протон».
@@ -311,16 +337,6 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
     POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", p = 84, n = 126, covalentRadiusPm = 140, vdwRadiusPm = 197, alphaDecayResult = LEAD_206),
 
     Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         p = 1, n = 0, radius = 100f),
-
-//    // Молекулы
-//    C2_H6_O_ETHANOL         to Details (type = ElementType.Molecule, symbol = "C₂H₅OH", label = "Ethanol (C₂H₅OH)", p = 26, n = 20, description = "Этиловый спирт. Основной компонент водки."),
-//    C2_H6_O_DIMETHYL_ETHER  to Details (type = ElementType.Molecule, symbol = "CH₃OCH₃", label = "Dimethyl Ether (CH₃OCH₃)", p = 26, n = 20, description = "Диметиловый Эфир."),
-//
-//    C_H4                    to Details (type = ElementType.Molecule, symbol = "CH₄", label = "Methane (CH₄)", p = 10, n = 6, description = "Метан. Основной компонент природного газа."),
-//
-//    O2                      to Details (type = ElementType.Molecule, symbol = "O₂", label = "Oxygen (O₂)", p = 16, n = 16),
-//    H2O                     to Details (type = ElementType.Molecule, symbol = "H₂O", label = "Water (H₂O)", p = 10, n = 8),
-//    H2                      to Details (type = ElementType.Molecule, symbol = "H₂", label = "DiHydrogen (H₂)", p = 2, n = 0, energyBondDissociation = 4.5f, dissociationElements = listOf(Element.HYDROGEN, Element.HYDROGEN)),
 )
 
 /**
@@ -328,7 +344,7 @@ internal fun elementDetails(): Map<Element, Details> = mapOf(
  * Ключ по Z (свойство элемента, не изотопа), как и лестницы ниже.
  *
  * Отсюда берётся частичный заряд δ± на узлах молекулы: у благородных газов значения нет вовсе, у
- * тяжёлых элементов оно нам не нужно — ковалентно они у нас не связываются ([Element.valence] = 0).
+ * тяжёлых элементов оно нам не нужно — ковалентно они у нас не связываются ([AtomElement.valence] = 0).
  */
 internal fun electronegativityTable(): Map<Int, Float> = mapOf(
     1 to 2.20f,                                                             // H

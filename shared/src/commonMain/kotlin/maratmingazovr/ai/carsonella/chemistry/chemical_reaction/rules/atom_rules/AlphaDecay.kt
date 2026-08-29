@@ -2,8 +2,8 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -28,7 +28,7 @@ class AlphaDecay(
     override val id = "AlphaDecay"
 
     /** [parentElement] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val parent: Atom, val parentElement: Element) : MatchedData
+    private data class Match(val parent: Atom, val parentElement: AtomElement) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null

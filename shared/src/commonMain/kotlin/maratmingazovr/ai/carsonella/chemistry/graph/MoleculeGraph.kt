@@ -1,15 +1,15 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 
-/** Узел графа — атом конкретного изотопа. [isotope] несёт протоны/нейтроны/символ через [Element.details].
+/** Узел графа — атом конкретного изотопа. [isotope] несёт протоны/нейтроны/символ через [AtomElement.details].
  * electrons -  количество электронов здесь хранить нельзя. Даже если мы у атома кислорода выбили 1 электрон
  *              и теперь соединили его с атомом углерода, то теперь нельзя сказать у какого кокретного атома в молекуле
  *              не хватает электрона, его не хватает у молекулы в целом
  * */
 data class AtomNode(
     val localId: Int,        // номер узла, локальный для этой молекулы; на него ссылаются связи
-    val isotope: Element,    // HYDROGEN, OXYGEN_16 — ядро узла (p/n/символ)
+    val isotope: AtomElement,    // HYDROGEN, OXYGEN_16 — ядро узла (p/n/символ)
 )
 
 /**
@@ -37,7 +37,7 @@ data class Bond(
 
 private const val CANONICAL_MAX_NODES = 9 // Потолок наивного перебора O(n!) в MoleculeGraph.canonical; считается по ТЯЖЁЛЫМ атомам (водороды свёрнуты), выше канон = "" (до Моргана, Стадия 2).
 
-private fun Element.isHydrogen() = details.p == 1 // HYDROGEN и DEUTERIUM: одновалентны, значит в молекуле всегда концевые
+private fun AtomElement.isHydrogen() = details.p == 1 // HYDROGEN и DEUTERIUM: одновалентны, значит в молекуле всегда концевые
 private const val RING_MIN_SIZE = 3
 
 data class MoleculeGraph(
@@ -60,7 +60,7 @@ data class MoleculeGraph(
         }
     }
 
-    private val isotopeById: Map<Int, Element> = nodes.associate { it.localId to it.isotope }
+    private val isotopeById: Map<Int, AtomElement> = nodes.associate { it.localId to it.isotope }
     private val energyByBond: Map<Bond, Float> = bonds.mapNotNull { bond -> BondEnergy.of(isotopeById.getValue(bond.atom1), isotopeById.getValue(bond.atom2), bond.order)?.let { energy -> bond to energy } }.toMap() // Энергия КАЖДОЙ связи (эВ), посчитанная один раз при рождении графа.
     private val ringBonds: Set<Bond> = bonds.filterTo(HashSet()) { bond -> bond.atom2 in reachableFrom(bond.atom1, without = bond) } // Связи, лежащие в ЦИКЛЕ: разорви такую — граф останется связным, то есть молекула не распадётся, а кольцо раскроется в цепь.
     private val freeValenceById: Map<Int, Int> = run {

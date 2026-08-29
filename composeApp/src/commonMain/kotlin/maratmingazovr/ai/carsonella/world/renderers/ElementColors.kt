@@ -9,7 +9,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.sp
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 
 
 object ElementColors {
@@ -30,11 +30,11 @@ object ElementColors {
 
     // Сплошная заливка кружка (плоский стиль). Субатомы — по типу частицы (иначе позитрон с p=1
     // случайно получил бы белый водорода из fillByZ), атомы/ядра — по Z, остальное — фолбэк.
-    fun fill(element: Element): Color = when (element) {
-        Element.PHOTON -> Color(0xFFFFE9A8) // тёплый бледно-жёлтый (свет)
-        Element.ELECTRON -> Color(0xFFAFD3F2) // голубой (−)
-        Element.POSITRON -> Color(0xFFF6B8C4) // розовый (+)
-        Element.NEUTRON -> Color(0xFFD3D9DD) // нейтральный серый
+    fun fill(element: AtomElement): Color = when (element) {
+        AtomElement.PHOTON -> Color(0xFFFFE9A8) // тёплый бледно-жёлтый (свет)
+        AtomElement.ELECTRON -> Color(0xFFAFD3F2) // голубой (−)
+        AtomElement.POSITRON -> Color(0xFFF6B8C4) // розовый (+)
+        AtomElement.NEUTRON -> Color(0xFFD3D9DD) // нейтральный серый
         else -> fillByZ[element.details.p] ?: FILL_DEFAULT
     }
 }

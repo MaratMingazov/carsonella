@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -29,7 +29,7 @@ class SpontaneousEmission(
     override val id = "Luminescence"
 
     /** [entityElement] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val entity: Atom, val entityElement: Element) : MatchedData
+    private data class Match(val entity: Atom, val entityElement: AtomElement) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null
@@ -61,7 +61,7 @@ class SpontaneousEmission(
         val photonEnergy = entityEnergy - targetEnergy
         val photonVelocity = MAX_VELOCITY
         val photonDirection = randomDirection(entityGenerator.random)
-        val photonOffset = entityRadius + Element.PHOTON.details.radius
+        val photonOffset = entityRadius + AtomElement.PHOTON.details.radius
         val photonPosition = entityPosition.addVelocity(photonDirection * photonOffset)
 
         return ReactionOutcome(
@@ -70,7 +70,7 @@ class SpontaneousEmission(
             updateState = listOf(StateUpdate(entity) { entity.energy = targetEnergy }),
             spawn = listOf {
                 entityGenerator.createAtom(
-                    Element.PHOTON,
+                    AtomElement.PHOTON,
                     photonPosition,
                     photonDirection,
                     photonVelocity,

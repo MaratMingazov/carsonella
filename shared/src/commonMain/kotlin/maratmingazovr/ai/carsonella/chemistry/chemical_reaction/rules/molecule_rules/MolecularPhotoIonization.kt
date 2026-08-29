@@ -1,7 +1,7 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
@@ -36,7 +36,7 @@ class MolecularPhotoIonization(private val entityGenerator: IEntityGenerator) : 
 
         val photons = neighbors
             .filterIsInstance<SubAtom>()
-            .filter { it.element == Element.PHOTON && it.energy > 0f && it.alive }
+            .filter { it.element == AtomElement.PHOTON && it.energy > 0f && it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }        // оба в одной среде
             .filter { molecule.energy + it.energy >= threshold }                 // не хватает на ионизацию → мимо (может сработать распад)
         if (photons.isEmpty()) return null

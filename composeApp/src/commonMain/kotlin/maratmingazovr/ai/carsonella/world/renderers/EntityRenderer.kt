@@ -10,7 +10,7 @@ import androidx.compose.ui.text.TextMeasurer
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TranslatedText
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
@@ -35,7 +35,7 @@ internal val BARE_PROTON_DESCRIPTION = TranslatedText(
     ru = "Протон - это ядро водорода, с которого сняли электрон, самое простое ядро на свете. Именно число протонов решает, что за элемент перед тобой: один - водород, шесть - углерод, восемь - кислород. Протоны родились в первые мгновения после Большого взрыва и с тех пор не распался ни один - похоже, они вечные.",
     en = "A proton is a hydrogen nucleus with the electron taken off - the simplest nucleus there is. It is the number of protons that decides which element you are looking at: one is hydrogen, six is carbon, eight is oxygen. Protons were born in the first moments after the Big Bang and not one has fallen apart since - they look to be forever.",
 )
-internal fun isBareProton(element: Element, electrons: Int) = element == Element.HYDROGEN && electrons == 0
+internal fun isBareProton(element: AtomElement, electrons: Int) = element == AtomElement.HYDROGEN && electrons == 0
 
 private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы
 
@@ -90,7 +90,7 @@ class EntityRenderer(
         drawScope: DrawScope,
         entity: Entity,
         center: Position, // позицию передаёт вызывающий: у Entity её нет, а зовут отсюда только атом и частицу
-        element: Element,
+        element: AtomElement,
         highlight: Highlight,
         vibrationParams: VibrationParams,
         withValenceSlots: Boolean,
@@ -99,7 +99,7 @@ class EntityRenderer(
         val bareProton = isBareProton(element, entity.electrons)
         val fillColor = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)
         val symbol = if (bareProton) BARE_PROTON_SYMBOL else element.bareSymbol
-        val radius = if (bareProton) Element.ELECTRON.details.radius else element.details.radius
+        val radius = if (bareProton) AtomElement.ELECTRON.details.radius else element.details.radius
 
         // Частица — это тот же кружок без слотов, поэтому отдельной ветки рисования ей не нужно.
         val freeSlots = if (withValenceSlots) element.valence(entity.electrons) else 0

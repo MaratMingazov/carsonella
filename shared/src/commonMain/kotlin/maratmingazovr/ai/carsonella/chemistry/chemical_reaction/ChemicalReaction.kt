@@ -4,7 +4,7 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
@@ -48,7 +48,7 @@ interface IEntityGenerator {
     val random: Random
 
     /** Атом, частица или звезда — по элементу. Какой класс строить, решает генератор. */
-    fun createAtom(element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
+    fun createAtom(element: AtomElement, position: Position, direction: Vec2D, velocity: Float, energy: Float, environment: IEnvironment, electrons: Int): Entity
 
     fun createMolecule(shape: MoleculeShape, energy: Float, environment: IEnvironment, electrons: Int): Entity
     fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity

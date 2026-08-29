@@ -15,17 +15,17 @@ import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.MoleculeElement
 import maratmingazovr.ai.carsonella.world.PaletteItem
-import maratmingazovr.ai.carsonella.world.UNLIMITED
 import maratmingazovr.ai.carsonella.world.World
 
 // Что лежит в палитре свободного мира. Порядок здесь — он же порядок слотов на экране.
 private val SANDBOX_PALETTE: Map<PaletteItem, Int> = mapOf(
-    PaletteItem.Atom(Element.HYDROGEN) to UNLIMITED,
-    PaletteItem.Atom(Element.OXYGEN_16) to UNLIMITED,
-    PaletteItem.Atom(Element.CARBON_12) to UNLIMITED,
+    PaletteItem.Atom(AtomElement.HYDROGEN) to 9999,
+    PaletteItem.Atom(AtomElement.CARBON_12) to 9999,
+    PaletteItem.Atom(AtomElement.NITROGEN_14) to 9999,
+    PaletteItem.Atom(AtomElement.OXYGEN_16) to 9999,
 )
 
 /**
@@ -33,7 +33,7 @@ private val SANDBOX_PALETTE: Map<PaletteItem, Int> = mapOf(
  * ни награды, ни расхода палитры. Размер мира не задаём: по умолчанию мир занимает весь холст.
  */
 @Composable
-fun SandboxScreen(onDiscover: (KnownMoleculeId) -> Unit, onExit: () -> Unit) {
+fun SandboxScreen(onDiscover: (MoleculeElement) -> Unit, onExit: () -> Unit) {
     val scope = rememberCoroutineScope()
     val world = remember { World(scope).apply { start() } }
 

@@ -2,8 +2,8 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -37,8 +37,8 @@ class StarAlphaNeutronReaction(
     private data class Match(
         val atom1: Atom,
         val atom2: Atom,
-        val atom1Element: Element,
-        val atom2Element: Element,
+        val atom1Element: AtomElement,
+        val atom2Element: AtomElement,
     ) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
@@ -92,7 +92,7 @@ class StarAlphaNeutronReaction(
                     // Нейтрон-отдача вылетает по направлению движения СМ (impulse-splitting в проекте
                     // не моделируется — см. StarPPChain / AlphaProtonReaction).
                     entityGenerator.createAtom(
-                        Element.NEUTRON,
+                        AtomElement.NEUTRON,
                         Position(
                             resultPosition.x + 1.5f * direction.x * resultElement.details.radius,
                             resultPosition.y + 1.5f * direction.y * resultElement.details.radius,

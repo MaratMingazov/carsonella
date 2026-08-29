@@ -2,17 +2,17 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.CARBON_12
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.MAGNESIUM_23
-import maratmingazovr.ai.carsonella.chemistry.Element.MAGNESIUM_24
-import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
-import maratmingazovr.ai.carsonella.chemistry.Element.NEON_20
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.CARBON_12
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.MAGNESIUM_23
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.MAGNESIUM_24
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NEUTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.SODIUM_23
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NEON_20
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -42,10 +42,10 @@ class StarCarbonBurning(
     private data class Match(
         val atom1: Atom,
         val atom2: Atom,
-        val atom1Element: Element,
-        val atom2Element: Element,
-        val result: Element,
-        val extras: List<Element>,
+        val atom1Element: AtomElement,
+        val atom2Element: AtomElement,
+        val result: AtomElement,
+        val extras: List<AtomElement>,
     ) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {

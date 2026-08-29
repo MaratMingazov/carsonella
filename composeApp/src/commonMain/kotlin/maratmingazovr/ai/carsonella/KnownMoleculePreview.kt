@@ -10,8 +10,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.KnownMoleculeDetails
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.world.renderers.ElementColors
 import maratmingazovr.ai.carsonella.world.renderers.drawBondLines
@@ -70,7 +70,7 @@ fun KnownMoleculePreview(knownMoleculeDetails: KnownMoleculeDetails, scale: Floa
 private fun DrawScope.drawPreviewAtom(
     textMeasurer: TextMeasurer,
     center: Offset,
-    element: Element,
+    element: AtomElement,
     freeSlots: Int,
     scale: Float,
 ) {

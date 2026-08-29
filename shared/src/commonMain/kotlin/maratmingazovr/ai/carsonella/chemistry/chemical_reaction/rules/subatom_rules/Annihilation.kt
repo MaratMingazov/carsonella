@@ -2,9 +2,9 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.subatom_r
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
@@ -76,7 +76,7 @@ class Annihilation(
             (positronPosition.x + electronPosition.x) / 2f,
             (positronPosition.y + electronPosition.y) / 2f,
         )
-        val photonRadius = Element.PHOTON.details.radius
+        val photonRadius = AtomElement.PHOTON.details.radius
         val photonEnergy = 511f
 
         return ReactionOutcome(
@@ -84,7 +84,7 @@ class Annihilation(
             spawn = listOf(
                 {
                     entityGenerator.createAtom(
-                        Element.PHOTON,
+                        AtomElement.PHOTON,
                         Position(
                             centerPosition.x + photonDirection.x * photonRadius,
                             centerPosition.y + photonDirection.y * photonRadius,
@@ -98,7 +98,7 @@ class Annihilation(
                 },
                 {
                     entityGenerator.createAtom(
-                        Element.PHOTON,
+                        AtomElement.PHOTON,
                         Position(
                             centerPosition.x + oppositeDirection.x * photonRadius,
                             centerPosition.y + oppositeDirection.y * photonRadius,

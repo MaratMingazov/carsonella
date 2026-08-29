@@ -1,9 +1,9 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 
 /**
- * Каталог энергий связи — эмпирический ПРИМИТИВ (как p/n/radius в [Element] details): средняя энергия
+ * Каталог энергий связи — эмпирический ПРИМИТИВ (как p/n/radius в [AtomElement] details): средняя энергия
  * связи по ТИПУ (пара элементов + кратность), в эВ.
  *
  * Ключевая идея (почему таблица маленькая): энергия связи — свойство самой связи (два атома + кратность),
@@ -12,12 +12,12 @@ import maratmingazovr.ai.carsonella.chemistry.Element
  * (аддитивность) — её не храним, а считаем.
  *
  * Детали:
- *  - Ключ по ХИМИЧЕСКОМУ элементу (Z = [Element] details.p), не по изотопу: D–H ≈ H–H.
+ *  - Ключ по ХИМИЧЕСКОМУ элементу (Z = [AtomElement] details.p), не по изотопу: D–H ≈ H–H.
  *  - Пара неупорядочена: of(a,b) == of(b,a).
  *  - Значения — средние bond enthalpies (кДж/моль ÷ 96.485 → эВ). Двухатомный частный случай совпадает
  *    со старым `H2.energyBondDissociation = 4.5`: это и есть энергия связи H–H.
  *  - null = тип связи не в каталоге. В частности тяжёлые элементы (Z>18, напр. железо) — они и
- *    ковалентно не связываются ([Element.valence] = 0), поэтому их в каталоге нет.
+ *    ковалентно не связываются ([AtomElement.valence] = 0), поэтому их в каталоге нет.
  *  - Аддитивность — приближение (окружение сдвигает энергию на несколько %); для симулятора достаточно.
  *
  * Один источник правды для энергетики: рост/усиление связи (правило «max выигрыш энергии») и
@@ -26,7 +26,7 @@ import maratmingazovr.ai.carsonella.chemistry.Element
 object BondEnergy {
 
     /** Энергия связи [a]–[b] кратности [order] в эВ, либо null если тип связи не в каталоге. */
-    fun of(a: Element, b: Element, order: Int): Float? = table[key(a.details.p, b.details.p, order)]
+    fun of(a: AtomElement, b: AtomElement, order: Int): Float? = table[key(a.details.p, b.details.p, order)]
 
     private fun key(z1: Int, z2: Int, order: Int) = Triple(minOf(z1, z2), maxOf(z1, z2), order)
 

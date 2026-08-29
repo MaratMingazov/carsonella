@@ -13,7 +13,7 @@ import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.randomDirection
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.Atom
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Kinematics
 import maratmingazovr.ai.carsonella.chemistry.Molecule
@@ -36,17 +36,17 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.ReactionSelectio
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.EntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IdGenerator
 
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
+import maratmingazovr.ai.carsonella.chemistry.registry.MoleculeElement
 /** Образовалась известная молекула: запись реестра и место, где это случилось. */
-data class MoleculeEvent(val id: Long, val knownMoleculeId: KnownMoleculeId, val position: Position)
+data class MoleculeEvent(val id: Long, val knownMoleculeId: MoleculeElement, val position: Position)
 
 sealed interface PaletteItem {
-    data class Atom(val element: Element, val electrons: Int = neutralElectrons(element)) : PaletteItem
-    data class KnownMolecule(val knownMoleculeId: KnownMoleculeId) : PaletteItem
+    data class Atom(val element: AtomElement, val electrons: Int = neutralElectrons(element)) : PaletteItem
+    data class KnownMolecule(val knownMoleculeId: MoleculeElement) : PaletteItem
 }
 
 // Сколько электронов у частицы «по умолчанию»: у свободного электрона он свой, у остальных — нейтраль.
-fun neutralElectrons(element: Element): Int = if (element == Element.ELECTRON) 1 else element.details.p
+fun neutralElectrons(element: AtomElement): Int = if (element == AtomElement.ELECTRON) 1 else element.details.p
 
 data class PaletteSlot(val item: PaletteItem, val count: Int) // Слот палитры: что игрок может взять и сколько этого осталось на уровне.
 
@@ -248,8 +248,8 @@ class World(
         clampEntityIntoBounds(entity.id)   // дроп в угол холста — внутрь границ
     }
 
-    private fun spawnAtom(element: Element, electrons: Int, position: Position): Entity {
-        val energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
+    private fun spawnAtom(element: AtomElement, electrons: Int, position: Position): Entity {
+        val energy = if (element == AtomElement.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f
         return entityGenerator.createAtom(
             element = element, position = position, direction = randomDirection(random),
             velocity = 0f, energy = energy, environment = environment, electrons = electrons,
@@ -257,7 +257,7 @@ class World(
     }
 
     // Игрок перетащил известную молекулу на игровое поле. Нужно ее создать
-    private fun spawnKnownMolecule(id: KnownMoleculeId, position: Position): Entity? {
+    private fun spawnKnownMolecule(id: MoleculeElement, position: Position): Entity? {
         val knownMolecule = id.details
         val graph = knownMolecule.graph
         val isotopeOf = graph.nodes.associate { it.localId to it.isotope }
@@ -492,7 +492,7 @@ class World(
         val byId = mutableMapOf<Long, Entity>()
         dto.entities.filter { it.alive }.forEach { e ->
             val element = try {
-                Element.valueOf(e.element)
+                AtomElement.valueOf(e.element)
             } catch (ex: IllegalArgumentException) {
                 logs += "${currentTime()}: load: неизвестный элемент ${e.element}, пропущен"
                 return@forEach
@@ -505,7 +505,7 @@ class World(
                 velocity = e.velocity,
                 // Энергия в слепок не попадает (см. EntityDto). Фотону нельзя дать 0: у него energy это E=hν,
                 // и wavelengthNmFromEnergyEv на нуле падает по require — поэтому дефолт из палитры.
-                energy = if (element == Element.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f,
+                energy = if (element == AtomElement.PHOTON) DEFAULT_PHOTON_ENERGY_EV else 0f,
                 environment = environment,
                 electrons = e.electrons,
             )

@@ -1,6 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.graph
 
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 
 /**
  * Геометрия молекулы: на сколько разведены концы связи.
@@ -17,7 +17,7 @@ object MoleculeGeometry {
     private const val BOND_PX = 25f // расстояние между двумя атомами
 
     /** Длина покоя связи. Наружу — потому что по ней же тянут пружины связей в Molecule. */
-    fun bondLengthPx(a: Element, b: Element, order: Int): Float {
+    fun bondLengthPx(a: AtomElement, b: AtomElement, order: Int): Float {
         // по идее чем больше кратность связи order, тем короче должно быть, позже сделаем
         return a.details.radius + b.details.radius + BOND_PX
     }

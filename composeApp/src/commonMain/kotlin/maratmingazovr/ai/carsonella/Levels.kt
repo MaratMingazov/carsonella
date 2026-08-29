@@ -1,6 +1,6 @@
 package maratmingazovr.ai.carsonella
 
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.world.InitialEntity
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.WorldArea
@@ -8,20 +8,43 @@ import maratmingazovr.ai.carsonella.world.neutralElectrons
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_DESCRIPTION
 import maratmingazovr.ai.carsonella.world.renderers.BARE_PROTON_TITLE
 
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeId
+import maratmingazovr.ai.carsonella.chemistry.registry.MoleculeElement
 
 enum class LevelId {
-    PROTON, ELECTRON, PHOTON,
-    HYDROGEN_ATOM, RECOMBINATION, DIHYDROGEN, OXYGEN_ATOM, HYDROXYL, WATER, DIOXYGEN, HYDROGEN_PEROXIDE, PEROXIDE_SPLIT,
-    TRIOXIDANE, TETRAOXIDANE, CARBON_12, METHANE,
-    ETHANE, ETHYLENE, ACETYLENE, METHANOL, FORMALDEHYDE, CARBON_DIOXIDE,
+
+    // SUB ATOMS
+    PROTON, ELECTRON, PHOTON, NEUTRON,
+
+    // 1-ATOMS
+    HYDROGEN_ATOM, RECOMBINATION, CARBON_ATOM, NITROGEN_ATOM, OXYGEN_ATOM,
+
+    // 2-ATOMS
+    DIHYDROGEN, HYDROXYL, DIOXYGEN,
+
+    // 3-ATOMS
+    WATER, CARBON_DIOXIDE,
+
+    // 4-ATOMS
+    HYDROGEN_PEROXIDE, HYDROGEN_PEROXIDE_SPLIT, ACETYLENE, FORMALDEHYDE,
+
+    // 5-ATOMS
+    METHANE, TRIOXIDANE,
+
+    // 6-ATOMS
+    TETRAOXIDANE, ETHYLENE, METHANOL,
+
+    // 7-ATOMS
+
+    // 8-ATOMS
+    ETHANE,
+
 }
 
 // Что должно появиться на холсте, чтобы задание считалось успешно пройденным
 sealed interface LevelGoal {
     // count — сколько таких атомов должно быть живо ОДНОВРЕМЕННО (тип задания «урожай»).
-    data class CreateAtom(val element: Element, val electrons: Int = neutralElectrons(element), val count: Int = 1) : LevelGoal
-    data class CreateMolecule(val knownMoleculeId: KnownMoleculeId) : LevelGoal
+    data class CreateAtom(val element: AtomElement, val electrons: Int = neutralElectrons(element), val count: Int = 1) : LevelGoal
+    data class CreateMolecule(val knownMoleculeId: MoleculeElement) : LevelGoal
 }
 
 data class LevelReward(
@@ -84,39 +107,49 @@ val LEVELS = listOf(
         LevelId.PROTON,
         title = BARE_PROTON_TITLE,
         granted = true,
-        levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN, electrons = 0),
-        image = listOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0)),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.HYDROGEN, electrons = 0),
+        image = listOf(PaletteItem.Atom(AtomElement.HYDROGEN, electrons = 0)),
         description = TranslatedText(ru = "", en = ""),
         reward = LevelReward(text = BARE_PROTON_DESCRIPTION),
     ),
 
     Level(
         LevelId.ELECTRON,
-        title = Element.ELECTRON.title,
+        title = AtomElement.ELECTRON.title,
         granted = true,
-        levelGoal = LevelGoal.CreateAtom(Element.ELECTRON),
-        image = listOf(PaletteItem.Atom(Element.ELECTRON)),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.ELECTRON),
+        image = listOf(PaletteItem.Atom(AtomElement.ELECTRON)),
         description = TranslatedText(ru = "", en = ""),
-        reward = LevelReward(text = Element.ELECTRON.description),
+        reward = LevelReward(text = AtomElement.ELECTRON.description),
     ),
 
     Level(
         LevelId.PHOTON,
-        title =  Element.PHOTON.title,
+        title =  AtomElement.PHOTON.title,
         granted = true,
-        levelGoal = LevelGoal.CreateAtom(Element.PHOTON),
-        image = listOf(PaletteItem.Atom(Element.PHOTON)),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.PHOTON),
+        image = listOf(PaletteItem.Atom(AtomElement.PHOTON)),
         description = TranslatedText(ru = "", en = ""),
-        reward = LevelReward(text = Element.PHOTON.description),
+        reward = LevelReward(text = AtomElement.PHOTON.description),
+    ),
+
+    Level(
+        LevelId.NEUTRON,
+        title =  AtomElement.NEUTRON.title,
+        granted = true,
+        levelGoal = LevelGoal.CreateAtom(AtomElement.NEUTRON),
+        image = listOf(PaletteItem.Atom(AtomElement.NEUTRON)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = AtomElement.NEUTRON.description),
     ),
 
     Level(
         LevelId.HYDROGEN_ATOM,
-        title = Element.HYDROGEN.title,
+        title = AtomElement.HYDROGEN.title,
         requiredLevels = setOf(LevelId.PROTON, LevelId.ELECTRON),
-        levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN),
-        image = listOf(PaletteItem.Atom(Element.HYDROGEN)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 1, PaletteItem.Atom(Element.ELECTRON) to 1),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.HYDROGEN),
+        image = listOf(PaletteItem.Atom(AtomElement.HYDROGEN)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN, electrons = 0) to 1, PaletteItem.Atom(AtomElement.ELECTRON) to 1),
         description = TranslatedText(
             ru = "Начнём с самого начала: пусть протон поймает электрон и станет атомом водорода \n hint: подведи электрон к протону",
             en = "Let's start at the very beginning: let a proton catch an electron and become a hydrogen atom \n hint: bring the electron up to the proton",
@@ -139,13 +172,13 @@ val LEVELS = listOf(
             en = "The recombination era",
         ),
         requiredLevels = setOf(LevelId.HYDROGEN_ATOM),
-        levelGoal = LevelGoal.CreateAtom(Element.HYDROGEN, count = 10),
-        image = listOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0), PaletteItem.Atom(Element.ELECTRON)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN, electrons = 0) to 10, PaletteItem.Atom(Element.ELECTRON) to 10),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.HYDROGEN, count = 10),
+        image = listOf(PaletteItem.Atom(AtomElement.HYDROGEN, electrons = 0), PaletteItem.Atom(AtomElement.ELECTRON)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN, electrons = 0) to 10, PaletteItem.Atom(AtomElement.ELECTRON) to 10),
         worldArea = WorldArea.Circle(radiusPx = 300f),
         initialEntities =
-            cluster(PaletteItem.Atom(Element.HYDROGEN, electrons = 0), centerX = -170f, columns = 3, rows = 3, step = 55f) +
-            cluster(PaletteItem.Atom(Element.ELECTRON), centerX = 170f, columns = 3, rows = 3, step = 50f),
+            cluster(PaletteItem.Atom(AtomElement.HYDROGEN, electrons = 0), centerX = -170f, columns = 3, rows = 3, step = 55f) +
+            cluster(PaletteItem.Atom(AtomElement.ELECTRON), centerX = 170f, columns = 3, rows = 3, step = 50f),
         description = TranslatedText(
             ru = "Вот так выглядела Вселенная: состояла из протонов и электронов, и больше ничего. Собери из неё 10 атомов водорода \n hint: одинаковые заряды расталкиваются — толпу придётся перемешать",
             en = "This is what the Universe looked like: protons and electrons, and nothing else. Make 10 hydrogen atoms out of it \n hint: like charges push each other apart - you will have to stir the crowd",
@@ -161,11 +194,11 @@ val LEVELS = listOf(
 
     Level(
         LevelId.DIHYDROGEN,
-        title = KnownMoleculeId.DIHYDROGEN.title,
+        title = MoleculeElement.DIHYDROGEN.title,
         requiredLevels = setOf(LevelId.HYDROGEN_ATOM),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIHYDROGEN),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.DIHYDROGEN)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.DIHYDROGEN),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.DIHYDROGEN)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 2),
         description = TranslatedText(
             ru = "Давай перетащим два атома водорода и соберем первую молекулу",
             en = "Let's drag two hydrogen atoms together and build our first molecule",
@@ -181,22 +214,33 @@ val LEVELS = listOf(
 
     Level(
         LevelId.OXYGEN_ATOM,
-        title =  Element.OXYGEN_16.title,
+        title =  AtomElement.OXYGEN_16.title,
         granted = true,
         requiredLevels = setOf(LevelId.DIHYDROGEN), // чтобы на карте нарисовать после молекулы водорода
-        levelGoal = LevelGoal.CreateAtom(Element.OXYGEN_16),
-        image = listOf(PaletteItem.Atom(Element.OXYGEN_16)),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.OXYGEN_16),
+        image = listOf(PaletteItem.Atom(AtomElement.OXYGEN_16)),
         description = TranslatedText(ru = "", en = ""),
-        reward = LevelReward(text = Element.OXYGEN_16.description),
+        reward = LevelReward(text = AtomElement.OXYGEN_16.description),
+    ),
+
+    Level(
+        LevelId.NITROGEN_ATOM,
+        title =  AtomElement.NITROGEN_14.title,
+        granted = true,
+        requiredLevels = setOf(LevelId.OXYGEN_ATOM), // чтобы на карте нарисовать после молекулы водорода
+        levelGoal = LevelGoal.CreateAtom(AtomElement.NITROGEN_14),
+        image = listOf(PaletteItem.Atom(AtomElement.NITROGEN_14)),
+        description = TranslatedText(ru = "", en = ""),
+        reward = LevelReward(text = AtomElement.NITROGEN_14.description),
     ),
 
     Level(
         LevelId.HYDROXYL,
-        title = KnownMoleculeId.HYDROXYL.title,
+        title = MoleculeElement.HYDROXYL.title,
         requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROXYL)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.HYDROXYL),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.HYDROXYL)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 1, PaletteItem.Atom(AtomElement.OXYGEN_16) to 1),
         description = TranslatedText(
             ru = "Теперь попробуем соединить атомы водорода и кислорода",
             en = "Now let's try joining a hydrogen atom and an oxygen atom",
@@ -211,10 +255,10 @@ val LEVELS = listOf(
     ),
     Level(
         LevelId.WATER,
-        title = KnownMoleculeId.WATER.title,
+        title = MoleculeElement.WATER.title,
         requiredLevels = setOf(LevelId.HYDROXYL),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.WATER),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.WATER)), inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 1),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.WATER),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.WATER)), inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 2, PaletteItem.Atom(AtomElement.OXYGEN_16) to 1),
         description = TranslatedText(
             ru = "Хочу пить! Нужна Вода!",
             en = "I'm thirsty! We need Water!",
@@ -229,36 +273,36 @@ val LEVELS = listOf(
     ),
     Level(
         LevelId.DIOXYGEN,
-        title = KnownMoleculeId.DIOXYGEN.title,
+        title = MoleculeElement.DIOXYGEN.title,
         requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.OXYGEN_ATOM),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.DIOXYGEN), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.DIOXYGEN)), inventory = mapOf(PaletteItem.Atom(Element.OXYGEN_16) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.DIOXYGEN), image = listOf(PaletteItem.KnownMolecule(MoleculeElement.DIOXYGEN)), inventory = mapOf(PaletteItem.Atom(AtomElement.OXYGEN_16) to 2),
         description = TranslatedText(
             ru = "А ты знаешь что для дыхания всем нам нужен кислород! Давай соберем его. \n hint: у атомов должна быть двойная связь",
             en = "Did you know that we all need oxygen to breathe! Let's build some. \n hint: the atoms need a double bond",
         ),
-        reward = LevelReward(text=KnownMoleculeId.DIOXYGEN.description),
+        reward = LevelReward(text=MoleculeElement.DIOXYGEN.description),
     ),
     Level(
         LevelId.HYDROGEN_PEROXIDE,
-        title = KnownMoleculeId.HYDROGEN_PEROXIDE.title,
+        title = MoleculeElement.HYDROGEN_PEROXIDE.title,
         requiredLevels = setOf(LevelId.DIOXYGEN),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.HYDROGEN_PEROXIDE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.HYDROGEN_PEROXIDE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 2, PaletteItem.Atom(AtomElement.OXYGEN_16) to 2),
         description = TranslatedText(
             ru = "Теперь давай попробуем построить перекись водорода",
             en = "Now let's try building hydrogen peroxide",
         ),
-        reward = LevelReward(text=KnownMoleculeId.HYDROGEN_PEROXIDE.description),
+        reward = LevelReward(text=MoleculeElement.HYDROGEN_PEROXIDE.description),
     ),
     Level(
-        LevelId.PEROXIDE_SPLIT,
+        LevelId.HYDROGEN_PEROXIDE_SPLIT,
         title = TranslatedText(
             ru = "Разрыв перекиси светом",
             en = "Peroxide split by light",
         ),
         requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE), PaletteItem.Atom(Element.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(KnownMoleculeId.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(Element.PHOTON) to 3),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.HYDROXYL), image = listOf(PaletteItem.KnownMolecule(MoleculeElement.HYDROGEN_PEROXIDE), PaletteItem.Atom(AtomElement.PHOTON)), inventory = mapOf(PaletteItem.KnownMolecule(MoleculeElement.HYDROGEN_PEROXIDE) to 1, PaletteItem.Atom(AtomElement.PHOTON) to 3),
         description = TranslatedText(
             ru = "А теперь наоборот - разобьём перекись светом на два гидроксила \n hint: фотон нужно положить прямо на атом кислорода",
             en = "Now the other way round - let's break the peroxide apart with light into two hydroxyls \n hint: drop the photon right onto an oxygen atom",
@@ -273,129 +317,129 @@ val LEVELS = listOf(
     ),
     Level(
         LevelId.TRIOXIDANE,
-        title = KnownMoleculeId.TRIOXIDANE.title,
+        title = MoleculeElement.TRIOXIDANE.title,
         requiredLevels = setOf(LevelId.HYDROGEN_PEROXIDE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.TRIOXIDANE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.TRIOXIDANE)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 3),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.TRIOXIDANE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.TRIOXIDANE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 2, PaletteItem.Atom(AtomElement.OXYGEN_16) to 3),
         description = TranslatedText(
             ru = "В перекиси два кислорода подряд. А если поставить третий? \n hint: нужна цепочка H–O–O–O–H",
             en = "Peroxide has two oxygens in a row. What if we put in a third? \n hint: you need the chain H–O–O–O–H",
         ),
-        reward = LevelReward(text = KnownMoleculeId.TRIOXIDANE.description),
+        reward = LevelReward(text = MoleculeElement.TRIOXIDANE.description),
     ),
     Level(
         LevelId.TETRAOXIDANE,
-        title = KnownMoleculeId.TETRAOXIDANE.title,
+        title = MoleculeElement.TETRAOXIDANE.title,
         requiredLevels = setOf(LevelId.TRIOXIDANE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.TETRAOXIDANE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.TETRAOXIDANE)),
-        inventory = mapOf(PaletteItem.Atom(Element.HYDROGEN) to 2, PaletteItem.Atom(Element.OXYGEN_16) to 4),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.TETRAOXIDANE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.TETRAOXIDANE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.HYDROGEN) to 2, PaletteItem.Atom(AtomElement.OXYGEN_16) to 4),
         description = TranslatedText(
             ru = "А ещё один кислород влезет? \n hint: нужна цепочка H–O–O–O–O–H",
             en = "Will one more oxygen fit? \n hint: you need the chain H–O–O–O–O–H",
         ),
-        reward = LevelReward(text = KnownMoleculeId.TETRAOXIDANE.description),
+        reward = LevelReward(text = MoleculeElement.TETRAOXIDANE.description),
     ),
     Level(
-        LevelId.CARBON_12,
-        title =  Element.CARBON_12.title,
+        LevelId.CARBON_ATOM,
+        title =  AtomElement.CARBON_12.title,
         granted = true,
         requiredLevels = setOf(LevelId.TETRAOXIDANE),
-        levelGoal = LevelGoal.CreateAtom(Element.CARBON_12),
-        image = listOf(PaletteItem.Atom(Element.CARBON_12)),
+        levelGoal = LevelGoal.CreateAtom(AtomElement.CARBON_12),
+        image = listOf(PaletteItem.Atom(AtomElement.CARBON_12)),
         description = TranslatedText(ru = "", en = ""),
-        reward = LevelReward(text = Element.CARBON_12.description),
+        reward = LevelReward(text = AtomElement.CARBON_12.description),
     ),
     Level(
         LevelId.METHANE,
-        title = KnownMoleculeId.METHANE.title,
-        requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.CARBON_12),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.METHANE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.METHANE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        title = MoleculeElement.METHANE.title,
+        requiredLevels = setOf(LevelId.HYDROGEN_ATOM, LevelId.CARBON_ATOM),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.METHANE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.METHANE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 1, PaletteItem.Atom(AtomElement.HYDROGEN) to 4),
         description = TranslatedText(
             ru = "У углерода целых четыре свободные связи. Давай посадим на них четыре атома водорода",
             en = "Carbon has four free bonds all at once. Let's put four hydrogen atoms on them",
         ),
-        reward = LevelReward(text = KnownMoleculeId.METHANE.description),
+        reward = LevelReward(text = MoleculeElement.METHANE.description),
     ),
     Level(
         LevelId.ETHANE,
-        title = KnownMoleculeId.ETHANE.title,
+        title = MoleculeElement.ETHANE.title,
         requiredLevels = setOf(LevelId.METHANE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ETHANE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ETHANE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 6),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.ETHANE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.ETHANE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 2, PaletteItem.Atom(AtomElement.HYDROGEN) to 6),
         description = TranslatedText(
             ru = "Возьми два атома углерода. Обвесь оба водородами, оставив у каждого по одной свободной связи, а потом соедини эти два конца",
             en = "Take two carbon atoms. Hang hydrogens on both, leaving one free bond on each, then join those two ends",
         ),
-        reward = LevelReward(text = KnownMoleculeId.ETHANE.description),
+        reward = LevelReward(text = MoleculeElement.ETHANE.description),
     ),
     Level(
         LevelId.ETHYLENE,
-        title = KnownMoleculeId.ETHYLENE.title,
+        title = MoleculeElement.ETHYLENE.title,
         requiredLevels = setOf(LevelId.ETHANE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ETHYLENE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ETHYLENE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.ETHYLENE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.ETHYLENE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 2, PaletteItem.Atom(AtomElement.HYDROGEN) to 4),
         description = TranslatedText(
             ru = "На этот раз оставь на каждом углероде по две свободные связи. Соедини их между собой, а потом усиль эту связь \n hint: клик по связи повышает её кратность",
             en = "This time leave two free bonds on each carbon. Join them together, then strengthen that bond \n hint: click a bond to raise its order",
         ),
-        reward = LevelReward(text = KnownMoleculeId.ETHYLENE.description),
+        reward = LevelReward(text = MoleculeElement.ETHYLENE.description),
     ),
     Level(
         LevelId.ACETYLENE,
-        title = KnownMoleculeId.ACETYLENE.title,
+        title = MoleculeElement.ACETYLENE.title,
         requiredLevels = setOf(LevelId.ETHYLENE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.ACETYLENE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.ACETYLENE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 2, PaletteItem.Atom(Element.HYDROGEN) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.ACETYLENE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.ACETYLENE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 2, PaletteItem.Atom(AtomElement.HYDROGEN) to 2),
         description = TranslatedText(
             ru = "Оставь на каждом углероде уже по три свободные связи. Соединив их, ты сможешь усилить связь дважды \n hint: усиливай связь, пока получается",
             en = "Leave three free bonds on each carbon this time. Once you join them, you can strengthen the bond twice \n hint: keep strengthening the bond while it lets you",
         ),
-        reward = LevelReward(text = KnownMoleculeId.ACETYLENE.description),
+        reward = LevelReward(text = MoleculeElement.ACETYLENE.description),
     ),
     Level(
         LevelId.METHANOL,
-        title = KnownMoleculeId.METHANOL.title,
+        title = MoleculeElement.METHANOL.title,
         requiredLevels = setOf(LevelId.ACETYLENE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.METHANOL),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.METHANOL)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1, PaletteItem.Atom(Element.HYDROGEN) to 4),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.METHANOL),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.METHANOL)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 1, PaletteItem.Atom(AtomElement.OXYGEN_16) to 1, PaletteItem.Atom(AtomElement.HYDROGEN) to 4),
         description = TranslatedText(
             ru = "Собери отдельно метил (три водорода на углероде) и гидроксил (один водород на кислороде), а потом соедини их свободные концы",
             en = "Build a methyl (three hydrogens on carbon) and a hydroxyl (one hydrogen on oxygen) separately, then join their free ends",
         ),
-        reward = LevelReward(text = KnownMoleculeId.METHANOL.description),
+        reward = LevelReward(text = MoleculeElement.METHANOL.description),
     ),
     Level(
         LevelId.FORMALDEHYDE,
-        title = KnownMoleculeId.FORMALDEHYDE.title,
+        title = MoleculeElement.FORMALDEHYDE.title,
         requiredLevels = setOf(LevelId.METHANOL),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.FORMALDEHYDE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.FORMALDEHYDE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 1, PaletteItem.Atom(Element.HYDROGEN) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.FORMALDEHYDE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.FORMALDEHYDE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 1, PaletteItem.Atom(AtomElement.OXYGEN_16) to 1, PaletteItem.Atom(AtomElement.HYDROGEN) to 2),
         description = TranslatedText(
             ru = "Оставь на углероде две свободные связи и присоедини к нему кислород, а потом усиль эту связь",
             en = "Leave two free bonds on carbon and attach oxygen to it, then strengthen that bond",
         ),
-        reward = LevelReward(text = KnownMoleculeId.FORMALDEHYDE.description),
+        reward = LevelReward(text = MoleculeElement.FORMALDEHYDE.description),
     ),
     Level(
         LevelId.CARBON_DIOXIDE,
-        title = KnownMoleculeId.CARBON_DIOXIDE.title,
+        title = MoleculeElement.CARBON_DIOXIDE.title,
         requiredLevels = setOf(LevelId.FORMALDEHYDE),
-        levelGoal = LevelGoal.CreateMolecule(KnownMoleculeId.CARBON_DIOXIDE),
-        image = listOf(PaletteItem.KnownMolecule(KnownMoleculeId.CARBON_DIOXIDE)),
-        inventory = mapOf(PaletteItem.Atom(Element.CARBON_12) to 1, PaletteItem.Atom(Element.OXYGEN_16) to 2),
+        levelGoal = LevelGoal.CreateMolecule(MoleculeElement.CARBON_DIOXIDE),
+        image = listOf(PaletteItem.KnownMolecule(MoleculeElement.CARBON_DIOXIDE)),
+        inventory = mapOf(PaletteItem.Atom(AtomElement.CARBON_12) to 1, PaletteItem.Atom(AtomElement.OXYGEN_16) to 2),
         description = TranslatedText(
             ru = "Присоедини к углероду один кислород и усиль связь до двойной. У углерода ещё останется два свободных места — сделай то же самое со вторым кислородом",
             en = "Attach one oxygen to carbon and strengthen the bond to a double one. Carbon still has two free bonds left - do the same with a second oxygen",
         ),
-        reward = LevelReward(text = KnownMoleculeId.CARBON_DIOXIDE.description),
+        reward = LevelReward(text = MoleculeElement.CARBON_DIOXIDE.description),
     ),
 )

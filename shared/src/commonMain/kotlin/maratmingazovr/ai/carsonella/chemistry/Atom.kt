@@ -17,11 +17,12 @@ import maratmingazovr.ai.carsonella.chemistry.behavior.NeighborsSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.OnDeathSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequestSupport
 import maratmingazovr.ai.carsonella.chemistry.behavior.ReactionRequester
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import kotlin.math.round
 
 class Atom private constructor(
     override val id: Long,
-    val element: Element,
+    val element: AtomElement,
     energy: Float,
     electrons: Int,
     private val movement: PointMovement,
@@ -35,7 +36,7 @@ class Atom private constructor(
     LogWritable  by LoggingSupport(),
     ChangeNotifiable by ChangeSupport()
 {
-    constructor(id: Long, element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) :
+    constructor(id: Long, element: AtomElement, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) :
             this(id, element, energy, electrons, PointMovement(position, direction, velocity, (element.details.p + element.details.n).toFloat()))
 
     init {

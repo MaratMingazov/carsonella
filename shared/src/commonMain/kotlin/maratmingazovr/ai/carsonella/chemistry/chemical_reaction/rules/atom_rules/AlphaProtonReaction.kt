@@ -2,10 +2,10 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -44,8 +44,8 @@ class AlphaProtonReaction(
     private data class Match(
         val target: Atom,
         val alpha: Atom,
-        val targetElement: Element,
-        val alphaElement: Element,
+        val targetElement: AtomElement,
+        val alphaElement: AtomElement,
     ) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {

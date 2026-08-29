@@ -2,14 +2,13 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
-import maratmingazovr.ai.carsonella.chemistry.MAX_VELOCITY
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.bondPhoton
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.MatchedData
@@ -30,7 +29,7 @@ class MoleculeGrowth(
         val partner: Entity,
         val moleculeAtom: MoleculeAtom,
         val partnerAtom: MoleculeAtom?,
-        val partnerIsotope: Element,
+        val partnerIsotope: AtomElement,
     ) : MatchedData
 
     override fun matchesMolecule(molecule: Molecule, neighbors: List<Entity>): MatchedData? {

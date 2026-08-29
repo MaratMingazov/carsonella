@@ -1,6 +1,6 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules
 
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Molecule
@@ -38,7 +38,7 @@ class PhotoDissociation(private val entityGenerator: IEntityGenerator) : Molecul
 
         val photons = neighbors
             .filterIsInstance<SubAtom>()
-            .filter { it.element == Element.PHOTON && it.energy > 0f && it.alive }
+            .filter { it.element == AtomElement.PHOTON && it.energy > 0f && it.alive }
             .filter { it.getEnvironment() === molecule.getEnvironment() }   // оба в одной среде
         if (photons.isEmpty()) return null
 

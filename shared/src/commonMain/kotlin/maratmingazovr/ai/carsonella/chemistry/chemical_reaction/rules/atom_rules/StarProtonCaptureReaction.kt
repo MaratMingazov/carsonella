@@ -3,19 +3,19 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ALUMINUM_27
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_14
-import maratmingazovr.ai.carsonella.chemistry.Element.NITROGEN_15
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_16
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_17
-import maratmingazovr.ai.carsonella.chemistry.Element.OXYGEN_18
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
-import maratmingazovr.ai.carsonella.chemistry.Element.SODIUM_23
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ALUMINUM_27
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NEUTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NITROGEN_14
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NITROGEN_15
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.OXYGEN_16
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.OXYGEN_17
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.OXYGEN_18
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HYDROGEN
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.SODIUM_23
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.isBareNucleus
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -52,17 +52,17 @@ class StarProtonCaptureReaction(
     override val id = "StarProtonCaptureReaction"
 
     private sealed class Outcome {
-        data class Gamma(val product: Element) : Outcome()
-        data class Alpha(val product: Element) : Outcome()
-        data class Neutron(val product: Element) : Outcome()
+        data class Gamma(val product: AtomElement) : Outcome()
+        data class Alpha(val product: AtomElement) : Outcome()
+        data class Neutron(val product: AtomElement) : Outcome()
     }
 
     /** [outcome] — канал, выбранный roulette-wheel; элементы выяснены в matchesAtom. */
     private data class Match(
         val atom1: Atom,
         val atom2: Atom,
-        val atom1Element: Element,
-        val atom2Element: Element,
+        val atom1Element: AtomElement,
+        val atom2Element: AtomElement,
         val outcome: Outcome,
     ) : MatchedData
 
@@ -250,7 +250,7 @@ class StarProtonCaptureReaction(
      * Используется для bottleneck (¹⁴N(p,γ)¹⁵O реально на ~1000× медленнее остальных шагов
      * CNO-I) и slowdown (¹⁶O(p,γ)¹⁷F).
      */
-    private fun captureRate(target: Element): Float = when (target) {
+    private fun captureRate(target: AtomElement): Float = when (target) {
         NITROGEN_14 -> 0.02f  // CNO-I bottleneck — сжато до x50 от реальных ~1000×
         OXYGEN_16   -> 0.10f  // CNO-II slowdown
         else        -> 1.0f
@@ -262,7 +262,7 @@ class StarProtonCaptureReaction(
      * branching ratios (сжатые для играбельности — реальные 0.04%/1%/5% доводим до 10%).
      * Если у target нет соответствующего result-поля, вес игнорируется.
      */
-    private fun branchingWeights(target: Element): Triple<Float, Float, Float> = when (target) {
+    private fun branchingWeights(target: AtomElement): Triple<Float, Float, Float> = when (target) {
         // CNO утечки: 10% (p,γ) уходит в следующий цикл, 90% (p,α) замыкает текущий.
         NITROGEN_15   -> Triple(0.1f, 0.9f, 0f)  // CNO-I → CNO-II leak vs CNO-I closure
         OXYGEN_17     -> Triple(0.1f, 0.9f, 0f)  // CNO-II → CNO-III leak vs CNO-II closure

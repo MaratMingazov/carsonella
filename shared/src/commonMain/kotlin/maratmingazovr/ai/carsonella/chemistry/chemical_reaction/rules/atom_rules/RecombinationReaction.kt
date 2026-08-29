@@ -2,8 +2,8 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -24,8 +24,8 @@ class RecombinationReaction(
     private data class Match(
         val atom1: Atom,
         val atom2: Entity,
-        val atom1Element: Element,
-        val atom2Element: Element,
+        val atom1Element: AtomElement,
+        val atom2Element: AtomElement,
     ) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
@@ -79,7 +79,7 @@ class RecombinationReaction(
             }),
             spawn = listOf {
                 entityGenerator.createAtom(
-                    Element.PHOTON,
+                    AtomElement.PHOTON,
                     Position(
                         resultPosition.x + 1.5f * direction.x * radius,
                         resultPosition.y + 1.5f * direction.y * radius

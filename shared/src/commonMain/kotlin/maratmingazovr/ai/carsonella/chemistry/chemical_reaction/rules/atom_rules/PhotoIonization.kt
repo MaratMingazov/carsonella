@@ -1,8 +1,8 @@
 package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -37,8 +37,8 @@ class PhotoIonization (
     private data class Match(
         val atom: Atom,
         val photon: SubAtom,
-        val atomElement: Element,     // элементы реагентов, выясненные в matchesAtom — produce не вычисляет заново
-        val photonElement: Element,
+        val atomElement: AtomElement,     // элементы реагентов, выясненные в matchesAtom — produce не вычисляет заново
+        val photonElement: AtomElement,
         val level: Float?,
     ) : MatchedData
 

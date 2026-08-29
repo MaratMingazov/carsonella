@@ -2,7 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.randomDirection
 import kotlin.random.Random
 
@@ -33,6 +33,6 @@ internal fun bondPhoton(p1: Position, r1: Float, p2: Position, r2: Float, random
         if (random.nextBoolean()) Vec2D(-unit.y, unit.x) else Vec2D(unit.y, -unit.x)
     }
     val midpoint = Position((p1.x + p2.x) / 2f, (p1.y + p2.y) / 2f)
-    val clearance = maxOf(r1, r2) + Element.PHOTON.details.radius
+    val clearance = maxOf(r1, r2) + AtomElement.PHOTON.details.radius
     return BondPhoton(midpoint.addVelocity(across * clearance), across)
 }

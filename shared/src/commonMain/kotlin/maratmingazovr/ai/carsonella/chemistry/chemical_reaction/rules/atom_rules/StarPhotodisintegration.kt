@@ -3,12 +3,12 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.HELIUM_4
-import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.HYDROGEN
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HELIUM_4
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NEUTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.HYDROGEN
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Entity
@@ -41,18 +41,18 @@ class StarPhotodisintegration(
     override val id = "StarPhotodisintegration"
 
     private sealed class Channel {
-        abstract val parent: Element
-        abstract val ejected: Element
-        data class Alpha(override val parent: Element) : Channel() { override val ejected = HELIUM_4 } // (γ,α)
-        data class ProtonOut(override val parent: Element) : Channel() { override val ejected = HYDROGEN } // (γ,p)
-        data class NeutronOut(override val parent: Element) : Channel() { override val ejected = NEUTRON } // (γ,n)
+        abstract val parent: AtomElement
+        abstract val ejected: AtomElement
+        data class Alpha(override val parent: AtomElement) : Channel() { override val ejected = HELIUM_4 } // (γ,α)
+        data class ProtonOut(override val parent: AtomElement) : Channel() { override val ejected = HYDROGEN } // (γ,p)
+        data class NeutronOut(override val parent: AtomElement) : Channel() { override val ejected = NEUTRON } // (γ,n)
     }
 
     /** [channel] — выбранный обратный канал; [atomElement] выяснен в matchesAtom. */
     private data class Match(
         val atom: Atom,
         val photon: SubAtom,
-        val atomElement: Element,
+        val atomElement: AtomElement,
         val channel: Channel,
     ) : MatchedData
 
@@ -148,11 +148,11 @@ class StarPhotodisintegration(
         private const val RATE = 0.1f
 
         // Реверс полей захвата: продукт → родитель. (γ,X) на N возвращает P, у которого P.(x)GammaResult == N.
-        private val alphaGammaReverse: Map<Element, Element> =
-            Element.entries.mapNotNull { p -> p.details.alphaGammaResult?.let { it to p } }.toMap()
-        private val protonGammaReverse: Map<Element, Element> =
-            Element.entries.mapNotNull { p -> p.details.protonGammaResult?.let { it to p } }.toMap()
-        private val neutronGammaReverse: Map<Element, Element> =
-            Element.entries.mapNotNull { p -> p.details.neutronGammaResult?.let { it to p } }.toMap()
+        private val alphaGammaReverse: Map<AtomElement, AtomElement> =
+            AtomElement.entries.mapNotNull { p -> p.details.alphaGammaResult?.let { it to p } }.toMap()
+        private val protonGammaReverse: Map<AtomElement, AtomElement> =
+            AtomElement.entries.mapNotNull { p -> p.details.protonGammaResult?.let { it to p } }.toMap()
+        private val neutronGammaReverse: Map<AtomElement, AtomElement> =
+            AtomElement.entries.mapNotNull { p -> p.details.neutronGammaResult?.let { it to p } }.toMap()
     }
 }

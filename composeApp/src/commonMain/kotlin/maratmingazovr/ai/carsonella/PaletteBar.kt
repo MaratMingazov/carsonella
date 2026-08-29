@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.world.PaletteItem
 import maratmingazovr.ai.carsonella.world.PaletteSlot
 import maratmingazovr.ai.carsonella.world.UNLIMITED
@@ -121,17 +121,17 @@ private fun slotWidth(item: PaletteItem): Dp = when (item) {
 
 // Ширина бокса кружка: радиус в px переводим в dp, чтобы Canvas вышел ровно 2*radius (+запас на обводку).
 @Composable
-internal fun paletteAtomBoxDp(element: Element, electrons: Int = neutralElectrons(element)): Dp =
+internal fun paletteAtomBoxDp(element: AtomElement, electrons: Int = neutralElectrons(element)): Dp =
     with(LocalDensity.current) { (atomRadiusPx(element, electrons) * 2f + 5f).toDp() }
 
 // Голый водород — это протон: мельче атома и со своим символом, как на канве (см. EntityRenderer).
-private fun atomRadiusPx(element: Element, electrons: Int) =
-    if (isBareProton(element, electrons)) Element.ELECTRON.details.radius else element.details.radius
+private fun atomRadiusPx(element: AtomElement, electrons: Int) =
+    if (isBareProton(element, electrons)) AtomElement.ELECTRON.details.radius else element.details.radius
 
 // Плоский кружок элемента — тот же вид, что у частицы на канве (заливка + чёрная обводка + символ),
 // но статично и без валентных слотов. Переиспользует ElementColors.fill / drawCenteredSymbol.
 @Composable
-internal fun PaletteAtom(element: Element, modifier: Modifier = Modifier, electrons: Int = neutralElectrons(element)) {
+internal fun PaletteAtom(element: AtomElement, modifier: Modifier = Modifier, electrons: Int = neutralElectrons(element)) {
     val textMeasurer = rememberTextMeasurer()
     val bareProton = isBareProton(element, electrons)
     val fill = if (bareProton) BARE_PROTON_FILL else ElementColors.fill(element)

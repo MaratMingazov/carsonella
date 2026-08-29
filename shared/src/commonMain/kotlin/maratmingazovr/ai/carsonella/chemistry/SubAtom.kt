@@ -4,17 +4,18 @@ import maratmingazovr.ai.carsonella.IEnvironment
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.outsideFactor
-import maratmingazovr.ai.carsonella.chemistry.Element.ELECTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.NEUTRON
-import maratmingazovr.ai.carsonella.chemistry.Element.PHOTON
-import maratmingazovr.ai.carsonella.chemistry.Element.POSITRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.ELECTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.NEUTRON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.PHOTON
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement.POSITRON
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import kotlin.math.round
 
 
 class SubAtom private constructor(
     override val id: Long,
-    val element: Element,
+    val element: AtomElement,
     energy: Float,
     electrons: Int,
     private val movement: PointMovement,
@@ -28,7 +29,7 @@ class SubAtom private constructor(
     LogWritable  by LoggingSupport(),
     ChangeNotifiable by ChangeSupport()
 {
-    constructor(id: Long, element: Element, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) :
+    constructor(id: Long, element: AtomElement, position: Position, direction: Vec2D, velocity: Float, energy: Float, electrons: Int) :
             this(id, element, energy, electrons, PointMovement(position, direction, velocity, if (element == ELECTRON) 1f else (element.details.p + element.details.n).toFloat()))
 
     init { movement.setOnChange(::markChanged) } // делегат сам до markChanged не дотянется: в клаузе делегирования this ещё нет

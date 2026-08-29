@@ -4,12 +4,13 @@ import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import kotlin.math.round
 
 
 class Star private constructor(
     override val id: Long,
-    val element: Element,
+    val element: AtomElement,
     // energy звезде не нужна: ей никто её не меняет, а пульс в drawStar от неё не зависит.
     electrons: Int,
     private val movement: PointMovement,
@@ -26,7 +27,7 @@ class Star private constructor(
 {
     private var radiusCounter = element.details.radius
 
-    constructor(id: Long, element: Element, position: Position, direction: Vec2D, velocity: Float, electrons: Int) :
+    constructor(id: Long, element: AtomElement, position: Position, direction: Vec2D, velocity: Float, electrons: Int) :
             this(id, element, electrons, PointMovement(position, direction, velocity, (element.details.p + element.details.n).toFloat()))
 
     init { movement.setOnChange(::markChanged) } // делегат сам до markChanged не дотянется: в клаузе делегирования this ещё нет

@@ -7,19 +7,18 @@ import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.outsideFactor
 import maratmingazovr.ai.carsonella.chemistry.behavior.*
 import maratmingazovr.ai.carsonella.chemistry.graph.AtomNode
-import maratmingazovr.ai.carsonella.chemistry.graph.KnownMoleculeDetails
-import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeRegistry
 import kotlin.math.round
 import maratmingazovr.ai.carsonella.chemistry.graph.Bond
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGeometry
 import maratmingazovr.ai.carsonella.chemistry.graph.MoleculeGraph
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import kotlin.Float
 import kotlin.math.sqrt
 
 
 class MoleculeAtom(
     val localId: Int,
-    val isotope: Element,
+    val isotope: AtomElement,
     var kinematics: Kinematics,
 ) {
     val radius: Float = isotope.details.radius

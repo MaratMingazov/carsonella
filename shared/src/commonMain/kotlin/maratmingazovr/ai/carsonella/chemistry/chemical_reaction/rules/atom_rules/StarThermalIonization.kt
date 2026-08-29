@@ -2,7 +2,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rule
 
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.TemperatureMode
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -33,7 +33,7 @@ class StarThermalIonization(
     override val id = "StarThermalIonization"
 
     /** [element] выяснен в matchesAtom — produce не вычисляет заново. */
-    private data class Match(val atom: Atom, val element: Element) : MatchedData
+    private data class Match(val atom: Atom, val element: AtomElement) : MatchedData
 
     override fun matchesAtom(atom: Atom, neighbors: List<Entity>): MatchedData? {
         if (neighbors.isNotEmpty()) return null
@@ -60,7 +60,7 @@ class StarThermalIonization(
             updateState = listOf(StateUpdate(atom) { atom.electrons = electrons - 1; atom.energy = 0f }),
             spawn = listOf {
                 entityGenerator.createAtom(
-                    Element.ELECTRON,
+                    AtomElement.ELECTRON,
                     electronPosition,
                     randomDirection(entityGenerator.random),
                     10f,

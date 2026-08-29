@@ -3,7 +3,7 @@ package maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.star_rule
 import maratmingazovr.ai.carsonella.Position
 import maratmingazovr.ai.carsonella.Vec2D
 import maratmingazovr.ai.carsonella.chance
-import maratmingazovr.ai.carsonella.chemistry.Element
+import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.behavior.Movable
@@ -67,7 +67,7 @@ class StarEmission (
         Когда концентрация элементов в звезде повышается, она начинает излучить их в космос
          */
         if (entityReagents.size < 20) {
-            val resultElement =  if (!chance(0.5f, entityGenerator.random))  Element.HYDROGEN else Element.ELECTRON
+            val resultElement =  if (!chance(0.5f, entityGenerator.random))  AtomElement.HYDROGEN else AtomElement.ELECTRON
             return ReactionOutcome(
                 spawn = listOf {
                     entityGenerator.createAtom(
@@ -77,7 +77,7 @@ class StarEmission (
                         2f,
                         energy = 0f,
                         environment = star,
-                        electrons = if (resultElement == Element.ELECTRON) 1 else 0,
+                        electrons = if (resultElement == AtomElement.ELECTRON) 1 else 0,
                     )
                 },
             )
