@@ -747,7 +747,7 @@ private fun MoleculeInfo(molecule: Molecule, selectedAtoms: List<Int>) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 ElementChip(ElementColors.fill(isotope), isotope.bareSymbol)
                 Text(
-                    isotope.electronegativity?.toString() ?: "—",
+                    isotope.details.electronegativity?.toString() ?: "—",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Black,
                 )

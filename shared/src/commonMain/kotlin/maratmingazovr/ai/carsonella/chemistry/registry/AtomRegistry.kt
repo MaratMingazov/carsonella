@@ -13,8 +13,7 @@ data class Details(
     val radius: Float = 40f,
     val covalentRadiusPm: Int? = null, // ковалентный: ½ длины связи — геометрия связанного атома в молекуле
     val vdwRadiusPm: Int? = null,      // ван-дер-ваальсов: ½ дистанции касания несвязанных — «размер» одинокого атома
-    val energyBondDissociation: Float? = null, // Энергия диссоциации. Сколько нужно энергии, чтобы разорвать химическую связь.
-    val dissociationElements: List<AtomElement> = listOf(), // Элементы, которые получаются в результате диссоциации
+    val electronegativity: Float? = null, // Электроотрицательность по Полингу; null — значения нет (благородные газы) или элемент тяжёлый.
     val alphaGammaResult: AtomElement? = null, // Альфа захват. Процесс в недрах звезд. Когда ион захватывает альфа частицу (ион Гелия-4) и получается более тяжелый элемент
     val alphaProtonResult: AtomElement? = null, // (α,p) реакция. Ядро ловит ⁴He, выбрасывает протон: A + ⁴He → A′ + p (Z→Z+1, A→A+3). Историческая ¹⁴N+α→¹⁷O+p (Резерфорд, 1919). У нас работает только в TemperatureMode.Space — аналог «лабораторного» режима.
     val alphaNeutronResult: AtomElement? = null, // (α,n) реакция. Ядро ловит ⁴He, выбрасывает нейтрон: A + ⁴He → A′ + n (Z→Z+2, A→A+3). Главный нейтронный источник для s-процесса: ¹⁸O→²¹Ne, ²²Ne→²⁵Mg (weak s-process в массивных звёздах), ²⁵Mg→²⁸Si. Работает в TemperatureMode.Star — He-burning ядро AGB и массивных звёзд.
@@ -27,7 +26,7 @@ data class Details(
     val betaPlusDecayResult: AtomElement? = null, // β⁺-распад. Протон-избыточное ядро превращает протон в нейтрон с испусканием позитрона: p → n + e⁺ + νₑ (нейтрино опускаем). Если поле выставлено — элемент сам по себе нестабилен и распадается в указанный.
     val betaMinusDecayResult: AtomElement? = null, // β⁻-распад. Нейтрон-избыточное ядро превращает нейтрон в протон с испусканием электрона: n → p + e⁻ + ν̄ₑ (антинейтрино опускаем). Z→Z+1, A не меняется. Зеркало betaPlusDecayResult — толкает s-процесс вверх по таблице (нейтрон-избыточный продукт (n,γ) распадается в следующий элемент). Первый пример: ³¹Si→³¹P.
     val alphaDecayResult: AtomElement? = null, // α-распад. Ядро испускает ⁴He²⁺ (голое ядро гелия): A(Z) → A′(Z-2) + ⁴He. Замыкает свинцово-висмутовый цикл s-процесса: ²¹⁰Po → ²⁰⁶Pb + α. Generic — по образцу betaMinusDecayResult.
-)
+    )
 
 internal fun elementDetails(): Map<AtomElement, Details> = mapOf(
     // --- субатомные частицы ---
@@ -38,54 +37,54 @@ internal fun elementDetails(): Map<AtomElement, Details> = mapOf(
     POSITRON                to Details (type = ElementType.SubAtom,     symbol = "e⁺",          label = "Positron (e⁺)",        p = 1, n = 0, radius = 25f),
 
     // --- атомы ---
-    HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",      label = "Hydrogen (H)",         p = 1, n = 0,   covalentRadiusPm = 31, vdwRadiusPm = 120, radius = 35f, neutronGammaResult = DEUTERIUM),
+    HYDROGEN                to Details (type = ElementType.Atom, symbol = "H",      label = "Hydrogen (H)",         p = 1, n = 0,   covalentRadiusPm = 31, vdwRadiusPm = 120, radius = 35f, neutronGammaResult = DEUTERIUM, electronegativity = 2.20f),
     DEUTERIUM               to Details (type = ElementType.Atom, symbol = "²H",     label = "DEUTERIUM (²H)",       p = 1, n = 1,   covalentRadiusPm = 31, vdwRadiusPm = 120),
     HELIUM_3                to Details (type = ElementType.Atom, symbol = "³He",    label = "Helium (³He)",         p = 2, n = 1,   covalentRadiusPm = 28, vdwRadiusPm = 140, alphaGammaResult = BERYLLIUM_7),
     HELIUM_4                to Details (type = ElementType.Atom, symbol = "⁴He",    label = "Helium (⁴He)",         p = 2, n = 2,   covalentRadiusPm = 28, vdwRadiusPm = 140, alphaGammaResult = BERYLLIUM_8),
-    LITHIUM_7               to Details (type = ElementType.Atom, symbol = "⁷Li",    label = "Lithium (⁷Li)",        p = 3, n = 4,   covalentRadiusPm = 128, vdwRadiusPm = 182, protonNeutronResult = BERYLLIUM_7, neutronGammaResult = LITHIUM_8),
-    LITHIUM_8               to Details (type = ElementType.Atom, symbol = "⁸Li",    label = "Lithium (⁸Li)",        p = 3, n = 5,   covalentRadiusPm = 128, vdwRadiusPm = 182, betaMinusDecayResult = BERYLLIUM_8),
-    BERYLLIUM_7             to Details (type = ElementType.Atom, symbol = "⁷Be",    label = "Beryllium (⁷Be)",      p = 4, n = 3,   covalentRadiusPm = 96, vdwRadiusPm = 153),
-    BERYLLIUM_8             to Details (type = ElementType.Atom, symbol = "⁸Be",    label = "Beryllium (⁸Be)",      p = 4, n = 4,   covalentRadiusPm = 96, vdwRadiusPm = 153, alphaGammaResult = CARBON_12),
-    BORON_8                 to Details (type = ElementType.Atom, symbol = "⁸B",     label = "Boron (⁸B)",           p = 5, n = 3,   covalentRadiusPm = 84, vdwRadiusPm = 192, betaPlusDecayResult = BERYLLIUM_8),
-    CARBON_12               to Details (type = ElementType.Atom, symbol = "¹²C",    label = "Carbon (¹²C)",         p = 6, n = 6,   covalentRadiusPm = 76, vdwRadiusPm = 170, alphaGammaResult = OXYGEN_16, protonGammaResult = NITROGEN_13, neutronGammaResult = CARBON_13),
-    CARBON_13               to Details (type = ElementType.Atom, symbol = "¹³C",    label = "Carbon (¹³C)",         p = 6, n = 7,     covalentRadiusPm = 76, vdwRadiusPm = 170, alphaGammaResult = OXYGEN_17, alphaNeutronResult = OXYGEN_16, protonGammaResult = NITROGEN_14),
-    CARBON_14               to Details (type = ElementType.Atom, symbol = "¹⁴C",    label = "Carbon (¹⁴C)",         p = 6, n = 8,     covalentRadiusPm = 76, vdwRadiusPm = 170, betaMinusDecayResult = NITROGEN_14),
-    NITROGEN_13             to Details (type = ElementType.Atom, symbol = "¹³N",    label = "Nitrogen (¹³N)",       p = 7, n = 6,     covalentRadiusPm = 71, vdwRadiusPm = 155, betaPlusDecayResult = CARBON_13, alphaGammaResult = FLUORINE_17, alphaProtonResult = OXYGEN_16),
-    NITROGEN_14             to Details (type = ElementType.Atom, symbol = "¹⁴N",    label = "Nitrogen (¹⁴N)",       p = 7, n = 7,     covalentRadiusPm = 71, vdwRadiusPm = 155, alphaProtonResult = OXYGEN_17, alphaGammaResult = FLUORINE_18, protonGammaResult = OXYGEN_15, neutronGammaResult = NITROGEN_15, neutronProtonResult = CARBON_14),
-    NITROGEN_15             to Details (type = ElementType.Atom, symbol = "¹⁵N",    label = "Nitrogen (¹⁵N)",       p = 7, n = 8,     covalentRadiusPm = 71, vdwRadiusPm = 155, alphaGammaResult = FLUORINE_19, alphaProtonResult = OXYGEN_18, protonGammaResult = OXYGEN_16, protonAlphaResult = CARBON_12),
-    OXYGEN_15               to Details (type = ElementType.Atom, symbol = "¹⁵O",    label = "Oxygen (¹⁵O)",         p = 8, n = 7,     covalentRadiusPm = 66, vdwRadiusPm = 152, betaPlusDecayResult = NITROGEN_15),
-    OXYGEN_16               to Details (type = ElementType.Atom, symbol = "¹⁶O",    label = "Oxygen (¹⁶O)",         p = 8, n = 8,     covalentRadiusPm = 66, vdwRadiusPm = 152, alphaGammaResult = NEON_20, protonGammaResult = FLUORINE_17, neutronGammaResult = OXYGEN_17),
-    OXYGEN_17               to Details (type = ElementType.Atom, symbol = "¹⁷O",    label = "Oxygen (¹⁷O)",         p = 8, n = 9,     covalentRadiusPm = 66, vdwRadiusPm = 152, alphaNeutronResult = NEON_20, protonGammaResult = FLUORINE_18, protonAlphaResult = NITROGEN_14, neutronGammaResult = OXYGEN_18, neutronAlphaResult = CARBON_14),
-    OXYGEN_18               to Details (type = ElementType.Atom, symbol = "¹⁸O",    label = "Oxygen (¹⁸O)",         p = 8, n = 10,    covalentRadiusPm = 66, vdwRadiusPm = 152, alphaGammaResult = NEON_22, alphaNeutronResult = NEON_21, protonGammaResult = FLUORINE_19, protonAlphaResult = NITROGEN_15),
-    FLUORINE_17             to Details (type = ElementType.Atom, symbol = "¹⁷F",       label = "Fluorine (¹⁷F)",       p = 9, n = 8,     covalentRadiusPm = 57, vdwRadiusPm = 147, betaPlusDecayResult = OXYGEN_17, alphaProtonResult = NEON_20),
-    FLUORINE_18             to Details (type = ElementType.Atom, symbol = "¹⁸F",       label = "Fluorine (¹⁸F)",       p = 9, n = 9,     covalentRadiusPm = 57, vdwRadiusPm = 147, betaPlusDecayResult = OXYGEN_18),
-    FLUORINE_19             to Details (type = ElementType.Atom, symbol = "¹⁹F",       label = "Fluorine (¹⁹F)",       p = 9, n = 10,    covalentRadiusPm = 57, vdwRadiusPm = 147, alphaGammaResult = SODIUM_23, protonAlphaResult = OXYGEN_16),
+    LITHIUM_7               to Details (type = ElementType.Atom, symbol = "⁷Li",    label = "Lithium (⁷Li)",        p = 3, n = 4,   covalentRadiusPm = 128, vdwRadiusPm = 182, protonNeutronResult = BERYLLIUM_7, neutronGammaResult = LITHIUM_8, electronegativity = 0.98f),
+    LITHIUM_8               to Details (type = ElementType.Atom, symbol = "⁸Li",    label = "Lithium (⁸Li)",        p = 3, n = 5,   covalentRadiusPm = 128, vdwRadiusPm = 182, betaMinusDecayResult = BERYLLIUM_8, electronegativity = 0.98f),
+    BERYLLIUM_7             to Details (type = ElementType.Atom, symbol = "⁷Be",    label = "Beryllium (⁷Be)",      p = 4, n = 3,   covalentRadiusPm = 96, vdwRadiusPm = 153, electronegativity = 1.57f),
+    BERYLLIUM_8             to Details (type = ElementType.Atom, symbol = "⁸Be",    label = "Beryllium (⁸Be)",      p = 4, n = 4,   covalentRadiusPm = 96, vdwRadiusPm = 153, alphaGammaResult = CARBON_12, electronegativity = 1.57f),
+    BORON_8                 to Details (type = ElementType.Atom, symbol = "⁸B",     label = "Boron (⁸B)",           p = 5, n = 3,   covalentRadiusPm = 84, vdwRadiusPm = 192, betaPlusDecayResult = BERYLLIUM_8, electronegativity = 2.04f),
+    CARBON_12               to Details (type = ElementType.Atom, symbol = "¹²C",    label = "Carbon (¹²C)",         p = 6, n = 6,   covalentRadiusPm = 76, vdwRadiusPm = 170, alphaGammaResult = OXYGEN_16, protonGammaResult = NITROGEN_13, neutronGammaResult = CARBON_13, electronegativity = 2.55f),
+    CARBON_13               to Details (type = ElementType.Atom, symbol = "¹³C",    label = "Carbon (¹³C)",         p = 6, n = 7,     covalentRadiusPm = 76, vdwRadiusPm = 170, alphaGammaResult = OXYGEN_17, alphaNeutronResult = OXYGEN_16, protonGammaResult = NITROGEN_14, electronegativity = 2.55f),
+    CARBON_14               to Details (type = ElementType.Atom, symbol = "¹⁴C",    label = "Carbon (¹⁴C)",         p = 6, n = 8,     covalentRadiusPm = 76, vdwRadiusPm = 170, betaMinusDecayResult = NITROGEN_14, electronegativity = 2.55f),
+    NITROGEN_13             to Details (type = ElementType.Atom, symbol = "¹³N",    label = "Nitrogen (¹³N)",       p = 7, n = 6,     covalentRadiusPm = 71, vdwRadiusPm = 155, betaPlusDecayResult = CARBON_13, alphaGammaResult = FLUORINE_17, alphaProtonResult = OXYGEN_16, electronegativity = 3.04f),
+    NITROGEN_14             to Details (type = ElementType.Atom, symbol = "¹⁴N",    label = "Nitrogen (¹⁴N)",       p = 7, n = 7,     covalentRadiusPm = 71, vdwRadiusPm = 155, alphaProtonResult = OXYGEN_17, alphaGammaResult = FLUORINE_18, protonGammaResult = OXYGEN_15, neutronGammaResult = NITROGEN_15, neutronProtonResult = CARBON_14, electronegativity = 3.04f),
+    NITROGEN_15             to Details (type = ElementType.Atom, symbol = "¹⁵N",    label = "Nitrogen (¹⁵N)",       p = 7, n = 8,     covalentRadiusPm = 71, vdwRadiusPm = 155, alphaGammaResult = FLUORINE_19, alphaProtonResult = OXYGEN_18, protonGammaResult = OXYGEN_16, protonAlphaResult = CARBON_12, electronegativity = 3.04f),
+    OXYGEN_15               to Details (type = ElementType.Atom, symbol = "¹⁵O",    label = "Oxygen (¹⁵O)",         p = 8, n = 7,     covalentRadiusPm = 66, vdwRadiusPm = 152, betaPlusDecayResult = NITROGEN_15, electronegativity = 3.44f),
+    OXYGEN_16               to Details (type = ElementType.Atom, symbol = "¹⁶O",    label = "Oxygen (¹⁶O)",         p = 8, n = 8,     covalentRadiusPm = 66, vdwRadiusPm = 152, alphaGammaResult = NEON_20, protonGammaResult = FLUORINE_17, neutronGammaResult = OXYGEN_17, electronegativity = 3.44f),
+    OXYGEN_17               to Details (type = ElementType.Atom, symbol = "¹⁷O",    label = "Oxygen (¹⁷O)",         p = 8, n = 9,     covalentRadiusPm = 66, vdwRadiusPm = 152, alphaNeutronResult = NEON_20, protonGammaResult = FLUORINE_18, protonAlphaResult = NITROGEN_14, neutronGammaResult = OXYGEN_18, neutronAlphaResult = CARBON_14, electronegativity = 3.44f),
+    OXYGEN_18               to Details (type = ElementType.Atom, symbol = "¹⁸O",    label = "Oxygen (¹⁸O)",         p = 8, n = 10,    covalentRadiusPm = 66, vdwRadiusPm = 152, alphaGammaResult = NEON_22, alphaNeutronResult = NEON_21, protonGammaResult = FLUORINE_19, protonAlphaResult = NITROGEN_15, electronegativity = 3.44f),
+    FLUORINE_17             to Details (type = ElementType.Atom, symbol = "¹⁷F",       label = "Fluorine (¹⁷F)",       p = 9, n = 8,     covalentRadiusPm = 57, vdwRadiusPm = 147, betaPlusDecayResult = OXYGEN_17, alphaProtonResult = NEON_20, electronegativity = 3.98f),
+    FLUORINE_18             to Details (type = ElementType.Atom, symbol = "¹⁸F",       label = "Fluorine (¹⁸F)",       p = 9, n = 9,     covalentRadiusPm = 57, vdwRadiusPm = 147, betaPlusDecayResult = OXYGEN_18, electronegativity = 3.98f),
+    FLUORINE_19             to Details (type = ElementType.Atom, symbol = "¹⁹F",       label = "Fluorine (¹⁹F)",       p = 9, n = 10,    covalentRadiusPm = 57, vdwRadiusPm = 147, alphaGammaResult = SODIUM_23, protonAlphaResult = OXYGEN_16, electronegativity = 3.98f),
     NEON_20                 to Details (type = ElementType.Atom, symbol = "²⁰Ne",      label = "Neon (²⁰Ne)",          p = 10, n = 10,  covalentRadiusPm = 58, vdwRadiusPm = 154, alphaGammaResult = MAGNESIUM_24, protonGammaResult = SODIUM_21, neutronGammaResult = NEON_21),
     NEON_21                 to Details (type = ElementType.Atom, symbol = "²¹Ne",      label = "Neon (²¹Ne)",          p = 10, n = 11,  covalentRadiusPm = 58, vdwRadiusPm = 154, alphaNeutronResult = MAGNESIUM_24, protonGammaResult = SODIUM_22, neutronGammaResult = NEON_22),
     NEON_22                 to Details (type = ElementType.Atom, symbol = "²²Ne",      label = "Neon (²²Ne)",          p = 10, n = 12,  covalentRadiusPm = 58, vdwRadiusPm = 154, alphaGammaResult = MAGNESIUM_26, alphaNeutronResult = MAGNESIUM_25, protonGammaResult = SODIUM_23),
-    SODIUM_21               to Details (type = ElementType.Atom, symbol = "²¹Na",      label = "Sodium (²¹Na)",        p = 11, n = 10,  covalentRadiusPm = 166, vdwRadiusPm = 227, betaPlusDecayResult = NEON_21),
-    SODIUM_22               to Details (type = ElementType.Atom, symbol = "²²Na",      label = "Sodium (²²Na)",        p = 11, n = 11,  covalentRadiusPm = 166, vdwRadiusPm = 227, betaPlusDecayResult = NEON_22),
-    SODIUM_23               to Details (type = ElementType.Atom, symbol = "²³Na",      label = "Sodium (²³Na)",        p = 11, n = 12,  covalentRadiusPm = 166, vdwRadiusPm = 227, protonAlphaResult = NEON_20, protonGammaResult = MAGNESIUM_24),
-    MAGNESIUM_23            to Details (type = ElementType.Atom, symbol = "²³Mg",      label = "Magnesium (²³Mg)",     p = 12, n = 11,  covalentRadiusPm = 141, vdwRadiusPm = 173, betaPlusDecayResult = SODIUM_23),
-    MAGNESIUM_24            to Details (type = ElementType.Atom, symbol = "²⁴Mg",      label = "Magnesium (²⁴Mg)",     p = 12, n = 12,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_28, protonGammaResult = ALUMINUM_25, neutronGammaResult = MAGNESIUM_25),
-    MAGNESIUM_25            to Details (type = ElementType.Atom, symbol = "²⁵Mg",      label = "Magnesium (²⁵Mg)",     p = 12, n = 13,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_29, alphaNeutronResult = SILICON_28, protonGammaResult = ALUMINUM_26, neutronGammaResult = MAGNESIUM_26),
-    MAGNESIUM_26            to Details (type = ElementType.Atom, symbol = "²⁶Mg",      label = "Magnesium (²⁶Mg)",     p = 12, n = 14,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_30, alphaNeutronResult = SILICON_29, protonGammaResult = ALUMINUM_27),
-    ALUMINUM_25             to Details (type = ElementType.Atom, symbol = "²⁵Al",      label = "Aluminum (²⁵Al)",      p = 13, n = 12,  covalentRadiusPm = 121, vdwRadiusPm = 184, betaPlusDecayResult = MAGNESIUM_25),
-    ALUMINUM_26             to Details (type = ElementType.Atom, symbol = "²⁶Al",      label = "Aluminum (²⁶Al)",      p = 13, n = 13,  covalentRadiusPm = 121, vdwRadiusPm = 184, betaPlusDecayResult = MAGNESIUM_26),
-    ALUMINUM_27             to Details (type = ElementType.Atom, symbol = "²⁷Al",      label = "Aluminum (²⁷Al)",      p = 13, n = 14,  covalentRadiusPm = 121, vdwRadiusPm = 184, protonAlphaResult = MAGNESIUM_24, protonGammaResult = SILICON_28),
-    SILICON_28              to Details (type = ElementType.Atom, symbol = "²⁸Si",      label = "Silicon (²⁸Si)",       p = 14, n = 14,  covalentRadiusPm = 111, vdwRadiusPm = 210, alphaGammaResult = SULFUR_32, alphaProtonResult = PHOSPHORUS_31, neutronGammaResult = SILICON_29),
-    SILICON_29              to Details (type = ElementType.Atom, symbol = "²⁹Si",      label = "Silicon (²⁹Si)",       p = 14, n = 15,  covalentRadiusPm = 111, vdwRadiusPm = 210, neutronGammaResult = SILICON_30),
-    SILICON_30              to Details (type = ElementType.Atom, symbol = "³⁰Si",      label = "Silicon (³⁰Si)",       p = 14, n = 16,  covalentRadiusPm = 111, vdwRadiusPm = 210, neutronGammaResult = SILICON_31),
-    SILICON_31              to Details (type = ElementType.Atom, symbol = "³¹Si",      label = "Silicon (³¹Si)",       p = 14, n = 17,  covalentRadiusPm = 111, vdwRadiusPm = 210, betaMinusDecayResult = PHOSPHORUS_31),
-    PHOSPHORUS_31           to Details (type = ElementType.Atom, symbol = "³¹P",       label = "Phosphorus (³¹P)",     p = 15, n = 16,  covalentRadiusPm = 107, vdwRadiusPm = 180),
-    SULFUR_31               to Details (type = ElementType.Atom, symbol = "³¹S",       label = "Sulfur (³¹S)",         p = 16, n = 15,  covalentRadiusPm = 105, vdwRadiusPm = 180, betaPlusDecayResult = PHOSPHORUS_31),
-    SULFUR_32               to Details (type = ElementType.Atom, symbol = "³²S",      label = "Sulfur (³²S)",         p = 16, n = 16,  covalentRadiusPm = 105, vdwRadiusPm = 180, alphaGammaResult = ARGON_36, neutronGammaResult = SULFUR_33),
-    SULFUR_33               to Details (type = ElementType.Atom, symbol = "³³S",      label = "Sulfur (³³S)",         p = 16, n = 17,  covalentRadiusPm = 105, vdwRadiusPm = 180, neutronGammaResult = SULFUR_34),
-    SULFUR_34               to Details (type = ElementType.Atom, symbol = "³⁴S",      label = "Sulfur (³⁴S)",         p = 16, n = 18,  covalentRadiusPm = 105, vdwRadiusPm = 180, neutronGammaResult = SULFUR_35),
-    SULFUR_35               to Details (type = ElementType.Atom, symbol = "³⁵S",      label = "Sulfur (³⁵S)",         p = 16, n = 19,  covalentRadiusPm = 105, vdwRadiusPm = 180, betaMinusDecayResult = CHLORINE_35),
-    CHLORINE_35             to Details (type = ElementType.Atom, symbol = "³⁵Cl",     label = "Chlorine (³⁵Cl)",      p = 17, n = 18,  covalentRadiusPm = 102, vdwRadiusPm = 175, neutronGammaResult = CHLORINE_36),
-    CHLORINE_36             to Details (type = ElementType.Atom, symbol = "³⁶Cl",     label = "Chlorine (³⁶Cl)",      p = 17, n = 19,  covalentRadiusPm = 102, vdwRadiusPm = 175, neutronGammaResult = CHLORINE_37),
-    CHLORINE_37             to Details (type = ElementType.Atom, symbol = "³⁷Cl",     label = "Chlorine (³⁷Cl)",      p = 17, n = 20,  covalentRadiusPm = 102, vdwRadiusPm = 175),
+    SODIUM_21               to Details (type = ElementType.Atom, symbol = "²¹Na",      label = "Sodium (²¹Na)",        p = 11, n = 10,  covalentRadiusPm = 166, vdwRadiusPm = 227, betaPlusDecayResult = NEON_21, electronegativity = 0.93f),
+    SODIUM_22               to Details (type = ElementType.Atom, symbol = "²²Na",      label = "Sodium (²²Na)",        p = 11, n = 11,  covalentRadiusPm = 166, vdwRadiusPm = 227, betaPlusDecayResult = NEON_22, electronegativity = 0.93f),
+    SODIUM_23               to Details (type = ElementType.Atom, symbol = "²³Na",      label = "Sodium (²³Na)",        p = 11, n = 12,  covalentRadiusPm = 166, vdwRadiusPm = 227, protonAlphaResult = NEON_20, protonGammaResult = MAGNESIUM_24, electronegativity = 0.93f),
+    MAGNESIUM_23            to Details (type = ElementType.Atom, symbol = "²³Mg",      label = "Magnesium (²³Mg)",     p = 12, n = 11,  covalentRadiusPm = 141, vdwRadiusPm = 173, betaPlusDecayResult = SODIUM_23, electronegativity = 1.31f),
+    MAGNESIUM_24            to Details (type = ElementType.Atom, symbol = "²⁴Mg",      label = "Magnesium (²⁴Mg)",     p = 12, n = 12,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_28, protonGammaResult = ALUMINUM_25, neutronGammaResult = MAGNESIUM_25, electronegativity = 1.31f),
+    MAGNESIUM_25            to Details (type = ElementType.Atom, symbol = "²⁵Mg",      label = "Magnesium (²⁵Mg)",     p = 12, n = 13,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_29, alphaNeutronResult = SILICON_28, protonGammaResult = ALUMINUM_26, neutronGammaResult = MAGNESIUM_26, electronegativity = 1.31f),
+    MAGNESIUM_26            to Details (type = ElementType.Atom, symbol = "²⁶Mg",      label = "Magnesium (²⁶Mg)",     p = 12, n = 14,  covalentRadiusPm = 141, vdwRadiusPm = 173, alphaGammaResult = SILICON_30, alphaNeutronResult = SILICON_29, protonGammaResult = ALUMINUM_27, electronegativity = 1.31f),
+    ALUMINUM_25             to Details (type = ElementType.Atom, symbol = "²⁵Al",      label = "Aluminum (²⁵Al)",      p = 13, n = 12,  covalentRadiusPm = 121, vdwRadiusPm = 184, betaPlusDecayResult = MAGNESIUM_25, electronegativity = 1.61f),
+    ALUMINUM_26             to Details (type = ElementType.Atom, symbol = "²⁶Al",      label = "Aluminum (²⁶Al)",      p = 13, n = 13,  covalentRadiusPm = 121, vdwRadiusPm = 184, betaPlusDecayResult = MAGNESIUM_26, electronegativity = 1.61f),
+    ALUMINUM_27             to Details (type = ElementType.Atom, symbol = "²⁷Al",      label = "Aluminum (²⁷Al)",      p = 13, n = 14,  covalentRadiusPm = 121, vdwRadiusPm = 184, protonAlphaResult = MAGNESIUM_24, protonGammaResult = SILICON_28, electronegativity = 1.61f),
+    SILICON_28              to Details (type = ElementType.Atom, symbol = "²⁸Si",      label = "Silicon (²⁸Si)",       p = 14, n = 14,  covalentRadiusPm = 111, vdwRadiusPm = 210, alphaGammaResult = SULFUR_32, alphaProtonResult = PHOSPHORUS_31, neutronGammaResult = SILICON_29, electronegativity = 1.90f),
+    SILICON_29              to Details (type = ElementType.Atom, symbol = "²⁹Si",      label = "Silicon (²⁹Si)",       p = 14, n = 15,  covalentRadiusPm = 111, vdwRadiusPm = 210, neutronGammaResult = SILICON_30, electronegativity = 1.90f),
+    SILICON_30              to Details (type = ElementType.Atom, symbol = "³⁰Si",      label = "Silicon (³⁰Si)",       p = 14, n = 16,  covalentRadiusPm = 111, vdwRadiusPm = 210, neutronGammaResult = SILICON_31, electronegativity = 1.90f),
+    SILICON_31              to Details (type = ElementType.Atom, symbol = "³¹Si",      label = "Silicon (³¹Si)",       p = 14, n = 17,  covalentRadiusPm = 111, vdwRadiusPm = 210, betaMinusDecayResult = PHOSPHORUS_31, electronegativity = 1.90f),
+    PHOSPHORUS_31           to Details (type = ElementType.Atom, symbol = "³¹P",       label = "Phosphorus (³¹P)",     p = 15, n = 16,  covalentRadiusPm = 107, vdwRadiusPm = 180, electronegativity = 2.19f),
+    SULFUR_31               to Details (type = ElementType.Atom, symbol = "³¹S",       label = "Sulfur (³¹S)",         p = 16, n = 15,  covalentRadiusPm = 105, vdwRadiusPm = 180, betaPlusDecayResult = PHOSPHORUS_31, electronegativity = 2.58f),
+    SULFUR_32               to Details (type = ElementType.Atom, symbol = "³²S",      label = "Sulfur (³²S)",         p = 16, n = 16,  covalentRadiusPm = 105, vdwRadiusPm = 180, alphaGammaResult = ARGON_36, neutronGammaResult = SULFUR_33, electronegativity = 2.58f),
+    SULFUR_33               to Details (type = ElementType.Atom, symbol = "³³S",      label = "Sulfur (³³S)",         p = 16, n = 17,  covalentRadiusPm = 105, vdwRadiusPm = 180, neutronGammaResult = SULFUR_34, electronegativity = 2.58f),
+    SULFUR_34               to Details (type = ElementType.Atom, symbol = "³⁴S",      label = "Sulfur (³⁴S)",         p = 16, n = 18,  covalentRadiusPm = 105, vdwRadiusPm = 180, neutronGammaResult = SULFUR_35, electronegativity = 2.58f),
+    SULFUR_35               to Details (type = ElementType.Atom, symbol = "³⁵S",      label = "Sulfur (³⁵S)",         p = 16, n = 19,  covalentRadiusPm = 105, vdwRadiusPm = 180, betaMinusDecayResult = CHLORINE_35, electronegativity = 2.58f),
+    CHLORINE_35             to Details (type = ElementType.Atom, symbol = "³⁵Cl",     label = "Chlorine (³⁵Cl)",      p = 17, n = 18,  covalentRadiusPm = 102, vdwRadiusPm = 175, neutronGammaResult = CHLORINE_36, electronegativity = 3.16f),
+    CHLORINE_36             to Details (type = ElementType.Atom, symbol = "³⁶Cl",     label = "Chlorine (³⁶Cl)",      p = 17, n = 19,  covalentRadiusPm = 102, vdwRadiusPm = 175, neutronGammaResult = CHLORINE_37, electronegativity = 3.16f),
+    CHLORINE_37             to Details (type = ElementType.Atom, symbol = "³⁷Cl",     label = "Chlorine (³⁷Cl)",      p = 17, n = 20,  covalentRadiusPm = 102, vdwRadiusPm = 175, electronegativity = 3.16f),
     ARGON_36                to Details (type = ElementType.Atom, symbol = "³⁶Ar",     label = "Argon (³⁶Ar)",         p = 18, n = 18,  covalentRadiusPm = 106, vdwRadiusPm = 188, alphaGammaResult = CALCIUM_40, neutronGammaResult = ARGON_37),
     ARGON_37                to Details (type = ElementType.Atom, symbol = "³⁷Ar",     label = "Argon (³⁷Ar)",         p = 18, n = 19,  covalentRadiusPm = 106, vdwRadiusPm = 188, neutronGammaResult = ARGON_38),
     ARGON_38                to Details (type = ElementType.Atom, symbol = "³⁸Ar",     label = "Argon (³⁸Ar)",         p = 18, n = 20,  covalentRadiusPm = 106, vdwRadiusPm = 188, neutronGammaResult = ARGON_39),
@@ -337,21 +336,6 @@ internal fun elementDetails(): Map<AtomElement, Details> = mapOf(
     POLONIUM_210            to Details (type = ElementType.Atom, symbol = "²¹⁰Po", label = "Polonium (²¹⁰Po)", p = 84, n = 126, covalentRadiusPm = 140, vdwRadiusPm = 197, alphaDecayResult = LEAD_206),
 
     Star                    to Details (type = ElementType.Star,                symbol = "Star",    label = "Star",         p = 1, n = 0, radius = 100f),
-)
-
-/**
- * Электроотрицательность по шкале Полинга — насколько атом перетягивает на себя общую электронную пару.
- * Ключ по Z (свойство элемента, не изотопа), как и лестницы ниже.
- *
- * Отсюда берётся частичный заряд δ± на узлах молекулы: у благородных газов значения нет вовсе, у
- * тяжёлых элементов оно нам не нужно — ковалентно они у нас не связываются ([AtomElement.valence] = 0).
- */
-internal fun electronegativityTable(): Map<Int, Float> = mapOf(
-    1 to 2.20f,                                                             // H
-    3 to 0.98f, 4 to 1.57f, 5 to 2.04f, 6 to 2.55f,                         // Li Be B C
-    7 to 3.04f, 8 to 3.44f, 9 to 3.98f,                                     // N O F
-    11 to 0.93f, 12 to 1.31f, 13 to 1.61f, 14 to 1.90f,                     // Na Mg Al Si
-    15 to 2.19f, 16 to 2.58f, 17 to 3.16f,                                  // P S Cl
 )
 
 // Энергетические уровни ионизации по элементу (Z), а не по изотопу: зависят только от Z, не от N
