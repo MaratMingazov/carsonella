@@ -421,13 +421,11 @@ enum class AtomElement(val title: TranslatedText, val description: TranslatedTex
 
         // База для symbol(e). Пока каталог не свёрнут — выводим из существующего symbol срезанием
         // (на шаге 2C станет хранимым полем изотопа). Считается один раз.
-        private val baseSymbolMap: Map<AtomElement, String> =
-            entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
+        private val baseSymbolMap: Map<AtomElement, String> = entries.filter { it.details.type == ElementType.Atom }.associateWith { stripCharge(it.details.symbol) }
 
         // Опора bareSymbol. Без фильтра по типу, в отличие от соседей: подпись нужна и частицам, и звёздам.
         // Считается один раз — спрашивают на каждый атом каждый кадр (рендер) и на каждую формулу.
-        private val bareSymbolMap: Map<AtomElement, String> =
-            entries.associateWith { element -> element.details.symbol.filter { it.isLetter() } }
+        private val bareSymbolMap: Map<AtomElement, String> = entries.associateWith { element -> element.details.symbol.filter { it.isLetter() } }
 
         // Базовый символ нуклида без заряда: срезаем хвостовой "⁺" и хвостовые надстрочные цифры заряда.
         // Массовый индекс-префикс ("¹²C") не трогается — он стоит перед буквой элемента.
