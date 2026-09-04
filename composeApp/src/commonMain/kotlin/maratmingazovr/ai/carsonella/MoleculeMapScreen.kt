@@ -86,7 +86,7 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
     val nodes = remember { mapNodes() }
     val layout = remember { ringLayout(nodes) }
     var opened by remember { mutableStateOf<MapNode?>(null) }
-    var zoom by remember { mutableStateOf(0.5f) }   // целиком карта в окно не влезает, поэтому открываем отдалённой
+    var zoom by remember { mutableStateOf(0.7f) }   // начальный zoom
 
     Box(
         Modifier

@@ -44,6 +44,10 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         TranslatedText("Дикарбон", "Dicarbon"),
         TranslatedText(ru = "", en = ""),
     ),
+    TRICARBON(
+        TranslatedText("Триуглерод", "Tricarbon"),
+        TranslatedText(ru = "", en = ""),
+    ),
     WATER(
         TranslatedText("Вода", "Water"),
         TranslatedText(
@@ -122,6 +126,8 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         ),
     ),
     BUTANE           (TranslatedText("Бутан", "Butane"), TranslatedText(ru = "", en = "")),
+    ETHYLIDYNE       (TranslatedText("Этилидин", "Ethylidyne"), TranslatedText(ru = "", en = "")),
+    ETHYLIDENE       (TranslatedText("Этилиден", "Ethylidene"), TranslatedText(ru = "", en = "")),
     ISOPROPYL        (TranslatedText("Изопропил", "Isopropyl"), TranslatedText(ru = "", en = "")),
     ISOBUTANE        (TranslatedText("Изобутан", "Isobutane"), TranslatedText(ru = "", en = "")),
     BUTENE_1         (TranslatedText("Бутен-1", "1-Butene"), TranslatedText(ru = "", en = "")),
