@@ -16,6 +16,7 @@ private sealed interface Screen {
     data class Game(val level: LevelId? = null) : Screen
     data object Sandbox : Screen
     data object Map : Screen
+    data object MoleculeMap : Screen   // опыт: карта реестра молекул кольцами, см. [MoleculeMapScreen]
     data object Language : Screen
     data object About : Screen
 }
@@ -33,6 +34,7 @@ fun App() {
                     onStart = { screen = Screen.Game() },
                     onSandbox = { screen = Screen.Sandbox },
                     onMap = { screen = Screen.Map },
+                    onMolecules = { screen = Screen.MoleculeMap },
                     onLanguage = { screen = Screen.Language },
                     onAbout = { screen = Screen.About },
                 )
@@ -42,6 +44,7 @@ fun App() {
                     onPlay = { screen = Screen.Game(it) },
                     onBack = { screen = Screen.Menu },
                 )
+                Screen.MoleculeMap -> MoleculeMapScreen(onBack = { screen = Screen.Menu })
                 Screen.Sandbox -> SandboxScreen(
                     onDiscover = { player = player.copy(progress = player.progress.discoverMolecule(it)) },
                     onExit = { screen = Screen.Menu },

@@ -76,6 +76,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
     IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
     AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
     AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
+    CARBONYL(TranslatedText("Карбонил", "Carbonyl"), TranslatedText(ru = "", en = "")),
     CARBON_DIOXIDE(
         TranslatedText("Углекислый газ", "Carbon dioxide"),
         TranslatedText(
@@ -104,6 +105,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         ),
     ),
     VINYL            (TranslatedText("Винил", "Vinyl"), TranslatedText(ru = "", en = "")),
+    VINYLIDENE       (TranslatedText("Винилиден", "Vinylidene"), TranslatedText(ru = "", en = "")),
     ETHYLENE(
         TranslatedText("Этилен", "Ethylene"),
         TranslatedText(

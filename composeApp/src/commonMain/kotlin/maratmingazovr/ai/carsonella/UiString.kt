@@ -17,6 +17,7 @@ enum class UiString(val en: String, val ru: String) {
     MENU_PLAY("play", "играть"),
     MENU_SANDBOX("lab", "лаба"),
     MENU_MAP("map", "карта"),
+    MENU_MOLECULES("molecules", "молекулы"),
     MENU_LANGUAGE("language", "язык"),
     MENU_ABOUT("about", "об игре"),
     MENU_BACK("back", "назад"),
