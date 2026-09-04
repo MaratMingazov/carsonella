@@ -24,6 +24,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         TranslatedText("Азот", "Dinitrogen"),
         TranslatedText(ru = "", en = ""),
     ),
+    NITROGEN_MONOXIDE(TranslatedText("Монооксид азота", "Nitric oxide"), TranslatedText(ru = "", en = "")),
     HYDROXYL(
         TranslatedText("Гидроксил", "Hydroxyl"),
         TranslatedText(
@@ -31,7 +32,15 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
             en = "Hydroxyl is a tiny molecule of one hydrogen atom and one oxygen atom. On its own it lives less than a second, but it works like a building block.",
         ),
     ),
-    DICARBON(
+    DICARBON_SINGLE(
+        TranslatedText("Дикарбон", "Dicarbon"),
+        TranslatedText(ru = "", en = ""),
+    ),
+    DICARBON_DOUBLE(
+        TranslatedText("Дикарбон", "Dicarbon"),
+        TranslatedText(ru = "", en = ""),
+    ),
+    DICARBON_TRIPLE(
         TranslatedText("Дикарбон", "Dicarbon"),
         TranslatedText(ru = "", en = ""),
     ),

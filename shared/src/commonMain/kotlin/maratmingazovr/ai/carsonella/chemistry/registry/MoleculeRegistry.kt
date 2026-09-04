@@ -31,18 +31,18 @@ object MoleculeRegistry {
 
         // --- двухатомные ---
         val dihydrogen = H.attach(H); known(dihydrogen, MoleculeElement.DIHYDROGEN, "H–H", offsets = pair(), ionizationEnergy = 15.426f, basedOn = listOf(AtomElement.HYDROGEN))
-        val methylidyne = C.attach(H); known(methylidyne, MoleculeElement.METHYLIDYNE, "•CH", ionizationEnergy = 10.64f, basedOn = listOf(AtomElement.CARBON_12))
-        val dicarbonSingle = C.attach(C); known(dicarbonSingle, MoleculeElement.DICARBON, "•C–C•", basedOn = listOf(AtomElement.CARBON_12))
-        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, MoleculeElement.DICARBON, "C=C", ionizationEnergy = 11.4f, basedOn = listOf(AtomElement.CARBON_12))
-        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, MoleculeElement.DICARBON, "•C≡C•", basedOn = listOf(AtomElement.CARBON_12))
-        val imidogen = N.attach(H); known(imidogen, MoleculeElement.IMIDOGEN, ":NH", basedOn = listOf(AtomElement.NITROGEN_14))
-        val cyano = N.attach(C, order = 3); known(cyano, MoleculeElement.CYANO, "•C≡N", ionizationEnergy = 13.598f, basedOn = listOf(AtomElement.NITROGEN_14))
+        val methylidyne = C.attach(H); known(methylidyne, MoleculeElement.METHYLIDYNE, "•CH", offsets = pair(), ionizationEnergy = 10.64f, basedOn = listOf(AtomElement.CARBON_12))
+        val dicarbonSingle = C.attach(C); known(dicarbonSingle, MoleculeElement.DICARBON_SINGLE, "•C–C•", offsets = pair(), basedOn = listOf(AtomElement.CARBON_12))
+        val dicarbonDouble = C.attach(C, order = 2); known(dicarbonDouble, MoleculeElement.DICARBON_DOUBLE, "C=C", offsets = pair(), ionizationEnergy = 11.4f, basedOn = listOf(AtomElement.CARBON_12))
+        val dicarbonTriple = C.attach(C, order = 3); known(dicarbonTriple, MoleculeElement.DICARBON_TRIPLE, "•C≡C•", offsets = pair(), basedOn = listOf(AtomElement.CARBON_12))
+        val imidogen = N.attach(H); known(imidogen, MoleculeElement.IMIDOGEN, ":NH", offsets = pair(), basedOn = listOf(AtomElement.NITROGEN_14))
+        val cyano = N.attach(C, order = 3); known(cyano, MoleculeElement.CYANO, "•C≡N", offsets = pair(), ionizationEnergy = 13.598f, basedOn = listOf(AtomElement.NITROGEN_14))
         val dinitrogen = N.attach(N, order = 3); known(dinitrogen, MoleculeElement.DINITROGEN, "N≡N", offsets = pair(), ionizationEnergy = 15.581f, basedOn = listOf(AtomElement.NITROGEN_14))
         val hydroxyl = O.attach(H); val hydroxylShape: Map<Int, Vec2D> = at(0 to xy(0f, 0f), 1 to xy(0.4f, -0.9f)); known(hydroxyl, MoleculeElement.HYDROXYL, "•OH", offsets = pair(), ionizationEnergy = 13.017f, basedOn = listOf(AtomElement.OXYGEN_16))
         val carbonyl = C.attach(O, order = 2)  // >C=O — группа, НУЖНО ДОБАВИТЬ ВЕЩЕСТВО ПОТОМ НА БАЗЕ НЕГО БУДЕТ УГЛЕКИСЛЫЙ ГАЗ
         // УГАРНЫЙ ГАЗ - ПОКА НЕ МОДЕЛИРУЕТСЯ (ТРОЙНАЯ СВЯЗЬ)
-        // МОНООКСИД АЗОТА НУЖНО ДОБАВИТЬ
-        val dioxygen = O.attach(O, order = 2); known(dioxygen, MoleculeElement.DIOXYGEN, "O=O", offsets = pair(), ionizationEnergy = 12.0697f)
+        val nitrogenMonoxide = N.attach(O, order = 2); known(nitrogenMonoxide, MoleculeElement.NITROGEN_MONOXIDE, "•N=O", offsets = pair(), ionizationEnergy = 9.2644f, basedOn = listOf(AtomElement.OXYGEN_16))
+        val dioxygen = O.attach(O, order = 2); known(dioxygen, MoleculeElement.DIOXYGEN, "O=O", offsets = pair(), ionizationEnergy = 12.0697f, basedOn = listOf(AtomElement.OXYGEN_16))
 
         // --- трехатомные ---
         val methylene = methylidyne.attach(H); known(methylene, MoleculeElement.METHYLENE, ":CH₂", ionizationEnergy = 10.396f, basedOn = listOf(MoleculeElement.METHYLIDYNE))
