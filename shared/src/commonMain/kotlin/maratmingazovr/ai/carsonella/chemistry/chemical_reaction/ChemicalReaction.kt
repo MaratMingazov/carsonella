@@ -36,6 +36,7 @@ import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.atom_rules.SpontaneousEmission
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.PhotoDissociation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MolecularPhotoIonization
+import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.HydrogenBondFormation
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.MoleculeGrowth
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.BondStrengthening
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.rules.molecule_rules.RingClosure
@@ -54,6 +55,7 @@ interface IEntityGenerator {
     fun createMolecule(atom1: Atom, atom2: Atom, environment: IEnvironment,): Entity
     fun createMolecule(molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom, environment: IEnvironment,): Entity
     fun createMolecule(molecule: Molecule, atom: MoleculeAtom, partner: Atom, environment: IEnvironment,): Entity
+    fun createHydrogenBond(molecule1: Molecule, atom1: MoleculeAtom, molecule2: Molecule, atom2: MoleculeAtom, environment: IEnvironment,): Entity
 }
 
 
@@ -91,6 +93,7 @@ class ChemicalReactionResolver(private val entityGenerator: IEntityGenerator) {
         StarDissociation(entityGenerator), // распад в звезде: молекула в Star-среде рвёт слабейшую связь за тик, рекурсивно до атомов
         MolecularPhotoIonization(entityGenerator), // отрыв электрона от молекулы под действием света (E ≥ IP): молекула → катион + e⁻
         MolecularSpontaneousEmission(entityGenerator), // спонтанный сброс внутренней энергии: предиссоциация (E ≥ порог связи) ИЛИ излучение фотона (иначе)
+        HydrogenBondFormation(entityGenerator), // водородная связь: донорный H одной молекулы + акцептор N/O/F другой. Молекулы не меняет
 
     )
 

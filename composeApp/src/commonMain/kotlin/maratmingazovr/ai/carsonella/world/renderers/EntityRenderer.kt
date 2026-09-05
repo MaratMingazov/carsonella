@@ -3,6 +3,7 @@ package maratmingazovr.ai.carsonella.world.renderers
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -12,12 +13,14 @@ import maratmingazovr.ai.carsonella.TranslatedText
 import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.registry.AtomElement
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.HydrogenBond
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.MoleculeBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.toOffset
+import kotlin.math.sin
 
 
 // Единый тайминг анимаций от монотонного time (секунды). Меняешь скорость здесь, в одном месте.
@@ -38,6 +41,14 @@ internal val BARE_PROTON_DESCRIPTION = TranslatedText(
 internal fun isBareProton(element: AtomElement, electrons: Int) = element == AtomElement.HYDROGEN && electrons == 0
 
 private val ACTION_COLOR = Color(0xFF4CAF50) // Цвет выбранного атома внутри молекулы
+
+// Водородная связь: холодная полупрозрачная волна — слабее и «мягче» ковалентной линии.
+private val H_BOND_COLOR = Color(0x8880D8FF)
+private val H_BOND_COLOR_HOVER = Color(0xFFB0E8FF)
+private const val H_BOND_WAVE_STEPS = 28      // сегментов ломаной, из которых собрана волна
+private const val H_BOND_WAVE_COUNT = 3f      // сколько полных волн влезает в связь
+private const val H_BOND_WAVE_AMPLITUDE = 5f  // размах в пикселях (в середине связи)
+private const val PI_F = 3.1415927f
 
 
 data class VibrationParams(
@@ -82,7 +93,35 @@ class EntityRenderer(
             is Atom -> drawElemental(drawScope, entity, entity.kinematics.position, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = true)
             is SubAtom -> drawElemental(drawScope, entity, entity.kinematics.position, entity.element, highlight, VibrationParams(entity.id, entity.energy, time), withValenceSlots = false)
             is Star -> drawStar(drawScope, entity, time)
+            is HydrogenBond -> with(drawScope) { drawHydrogenBond(entity, highlight.entity) }
         }
+    }
+
+    // Водородная связь — волна между атомами двух молекул: видно, что она слабая и живая, и её не спутать
+    // с ковалентной прямой линией. Амплитуда гаснет к концам, чтобы волна выходила из центров атомов.
+    private fun DrawScope.drawHydrogenBond(bond: HydrogenBond, highlighted: Boolean) {
+        val a = bond.atom1.kinematics.position.toOffset()
+        val b = bond.atom2.kinematics.position.toOffset()
+        val dir = b - a
+        val length = dir.getDistance()
+        if (length < 1f) return
+
+        val ux = dir.x / length
+        val uy = dir.y / length
+        val path = Path().apply {
+            moveTo(a.x, a.y)
+            for (i in 1..H_BOND_WAVE_STEPS) {
+                val t = i / H_BOND_WAVE_STEPS.toFloat()
+                val envelope = sin(t * PI_F)   // 0 на концах, 1 в середине
+                val swing = H_BOND_WAVE_AMPLITUDE * envelope * sin(t * H_BOND_WAVE_COUNT * ANIM_TWO_PI)
+                lineTo(a.x + ux * length * t - uy * swing, a.y + uy * length * t + ux * swing)
+            }
+        }
+        drawPath(
+            path = path,
+            color = if (highlighted) H_BOND_COLOR_HOVER else H_BOND_COLOR,
+            style = Stroke(width = if (highlighted) 3f else 1.5f),
+        )
     }
 
     // Кружок с символом: атом рисуется со свободными валентными слотами, частица — без них.

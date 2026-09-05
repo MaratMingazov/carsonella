@@ -9,6 +9,7 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Atom
 import maratmingazovr.ai.carsonella.chemistry.ElementType.Star
+import maratmingazovr.ai.carsonella.chemistry.HydrogenBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
@@ -63,6 +64,17 @@ class EntityGenerator(
         environment: IEnvironment,
     ): Entity = register(
         Molecule(idGen.nextId(), molecule, atom, partner),
+        environment,
+    )
+
+    override fun createHydrogenBond(
+        molecule1: Molecule,
+        atom1: MoleculeAtom,
+        molecule2: Molecule,
+        atom2: MoleculeAtom,
+        environment: IEnvironment,
+    ): Entity = register(
+        HydrogenBond(idGen.nextId(), energy = 0f, molecule1 = molecule1, localId1 = atom1.localId, molecule2 = molecule2, localId2 = atom2.localId),
         environment,
     )
 

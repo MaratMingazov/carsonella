@@ -171,6 +171,14 @@ class Molecule private constructor(
         if (corrected) markChanged()
     }
 
+    // Внешняя сила на ОДИН атом молекулы: так тянет межмолекулярная связь (HydrogenBond).
+    // Не через applyForce: тот раздаёт силу всему телу поровну, а водородная связь цепляет за конкретный атом.
+    fun applyForceToAtom(atom: MoleculeAtom, force: Vec2D) {
+        require(atomsById[atom.localId] === atom) { "Атом ${atom.localId} не из этой молекулы (${graph.formula})" }
+        atom.applyForce(force)
+        markChanged()
+    }
+
     override fun applyForce(force: Vec2D) {
         if (mass < 0.001f) return
         val a = force.div(mass) // сила приложена к телу целиком → ускорение у всех атомов одинаковое
@@ -232,8 +240,10 @@ class Molecule private constructor(
         if (moved) markChanged() // успокоилась — перестаём будить рендер
         checkBorders(environment)
 
+        // 150 px (а не 100, как у атома): водородная связь дотягивается дальше ковалентной, и на 100 px
+        // правило её образования не сматчилось бы ни разу. Свои дистанции каждое правило проверяет само.
         neighbors
-            .filter { entity -> atomsById.values.any { atom -> entity.distanceSquareTo(atom.kinematics.position) < 10000f } }
+            .filter { entity -> atomsById.values.any { atom -> entity.distanceSquareTo(atom.kinematics.position) < 22500f } }
             .takeIf { it.isNotEmpty() }
             ?.let { requestReaction(listOf(this) + it) }
 

@@ -7,6 +7,7 @@ import maratmingazovr.ai.carsonella.chemistry.Atom
 import maratmingazovr.ai.carsonella.chemistry.SubAtom
 import maratmingazovr.ai.carsonella.chemistry.Star
 import maratmingazovr.ai.carsonella.chemistry.Entity
+import maratmingazovr.ai.carsonella.chemistry.HydrogenBond
 import maratmingazovr.ai.carsonella.chemistry.Molecule
 import maratmingazovr.ai.carsonella.chemistry.MoleculeAtom
 import maratmingazovr.ai.carsonella.chemistry.chemical_reaction.IEntityGenerator
@@ -68,7 +69,7 @@ class MoleculeGrowth(
                     }
                 }
             }
-            is SubAtom, is Star -> emptyList()   // связей не образуют; ветка ради исчерпывающего when
+            is SubAtom, is Star, is HydrogenBond -> emptyList()   // связей не образуют; ветка ради исчерпывающего when
         }
     private fun reachable(moleculeAtom: MoleculeAtom, partnerPosition: Position, partnerRadius: Float): Float? {
         val distanceSquare = moleculeAtom.kinematics.position.distanceSquareTo(partnerPosition)
