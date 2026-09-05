@@ -49,6 +49,7 @@ object MoleculeRegistry {
         val ethynyl = methylidyne.attach(C, order = 3); val ethynylShape = at(0 to xy(-0.5f, 0f), 1 to xy(-1.5f, 0f), 2 to xy(0.5f, 0f)); known(ethynyl, MoleculeElement.ETHYNYL, "HC≡C•", offsets = ethynylShape, ionizationEnergy = 11.61f, basedOn = listOf(MoleculeElement.DICARBON_TRIPLE))
         val tricarbon = dicarbonDouble.attach(C, order = 2, nodeId = 1); known(tricarbon, MoleculeElement.TRICARBON, ":C=C=C:", offsets = at(0 to xy(-1f, 0f), 1 to xy(0f, 0f), 2 to xy(1f, 0f)), basedOn = listOf(MoleculeElement.DICARBON_DOUBLE))
         val amino = imidogen.attach(H); val aminoShape = at(0 to xy(0f, 0f), 1 to polar(90f - 103.4f / 2f), 2 to polar(90f + 103.4f / 2f)); known(amino, MoleculeElement.AMINO_RADICAL, "•NH₂", offsets = aminoShape, basedOn = listOf(MoleculeElement.IMIDOGEN))
+        val diazenyl = imidogen.attach(N, order = 2); val diazenylShape = at(0 to xy(0f, 0f), 1 to polar(-90f), 2 to polar(-90f + 112f)); known(diazenyl, MoleculeElement.DIAZENYL, "H–N=N•", offsets = diazenylShape, basedOn = listOf(MoleculeElement.IMIDOGEN))
         val hydrogenCyanide = cyano.attach(H); known(hydrogenCyanide, MoleculeElement.HYDROGEN_CYANIDE, "H–C≡N", offsets = at(0 to xy(-1f, 0f), 1 to xy(0f, 0f), 2 to xy(1f, 0f)), ionizationEnergy = 13.60f, basedOn = listOf(MoleculeElement.CYANO))  // линейная: N–C–H в ряд, узел 1 (С) в центре
         val water = hydroxyl.attach(H); known(water, MoleculeElement.WATER, "H–O–H", offsets = at(0 to xy(0f, -0.3f), 1 to polar(180f - 52.25f), 2 to polar(52.25f)), ionizationEnergy = 12.621f, basedOn = listOf(MoleculeElement.HYDROXYL))
         val hydroperoxyl = hydroxyl.attach(O); known(hydroperoxyl, MoleculeElement.HYDROPEROXYL, "H–O–O•", ionizationEnergy = 11.35f, basedOn = listOf(MoleculeElement.HYDROXYL))
@@ -63,6 +64,7 @@ object MoleculeRegistry {
         val formaldehyde = formyl.attach(H); known(formaldehyde, MoleculeElement.FORMALDEHYDE, "H₂C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(0f, -1f), 2 to xy(-0.87f, 0.5f), 3 to xy(0.87f, 0.5f)), ionizationEnergy = 10.88f, basedOn = listOf(MoleculeElement.FORMYL))
         val vinylidene = dicarbonDouble.attach(H, nodeId = 0).attach(H, nodeId = 0); val vinylideneShape = at(0 to xy(-0.5f, 0f), 1 to xy(0.5f, 0f), 2 to xy(-0.9f, -0.9f), 3 to xy(-0.9f, 0.9f)); known(vinylidene, MoleculeElement.VINYLIDENE, "H₂C=C:", offsets = vinylideneShape, basedOn = listOf(MoleculeElement.DICARBON_DOUBLE))
         val hydrazinediyl = imidogen.attach(imidogen); val hydrazinediylShape = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)); known(hydrazinediyl, MoleculeElement.HYDRAZINEDIYL, "•NH–NH•", offsets = hydrazinediylShape, basedOn = listOf(MoleculeElement.IMIDOGEN))
+        val diazene = diazenyl.attach(H); val diazeneShape = diazenylShape + (3 to (diazenylShape.getValue(2) + polar(90f))); known(diazene, MoleculeElement.DIAZENE, "HN=NH", offsets = diazeneShape, basedOn = listOf(MoleculeElement.DIAZENYL))
         val methyleneamidogen = methylene.attach(N, order = 2); val methyleneamidogenShape = methyleneShape + (3 to (methyleneShape.getValue(0) + polar(-90f))); known(methyleneamidogen, MoleculeElement.METHYLENEAMIDOGEN, "H₂C=N•", offsets = methyleneamidogenShape, basedOn = listOf(MoleculeElement.METHYLENE))
         // Нужно добавить формилоксил HCO2 -> потом на базе него получить муравьиную кислоту
 
@@ -73,16 +75,19 @@ object MoleculeRegistry {
         val ethylidyne = methyl.attach(C); val ethylidyneShape = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-1.5f, 0f), 3 to xy(-0.9f, 0.9f), 4 to xy(0.5f, 0f)); known(ethylidyne, MoleculeElement.ETHYLIDYNE, "CH₃–C•", offsets = ethylidyneShape, basedOn = listOf(MoleculeElement.METHYL))
         /* нужнен на базе формилоксила */ val formicAcid = formyl.attach(hydroxyl); known(formicAcid, MoleculeElement.FORMIC_ACID, "H–C(=O)–OH", ionizationEnergy = 11.33f, basedOn = listOf(MoleculeElement.FORMYL))
         val methanimine = methyleneamidogen.attach(H); val methanimineShape = methyleneamidogenShape + (4 to (methyleneamidogenShape.getValue(3) + polar(-20f))); known(methanimine, MoleculeElement.METHANIMINE, "H₂C=NH", offsets = methanimineShape, basedOn = listOf(MoleculeElement.METHYLENEAMIDOGEN))
+        val aminocarbene = amino.attach(methylidyne); val aminocarbeneShape = aminoShape + (3 to (aminoShape.getValue(0) + polar(-90f))) + (4 to (aminoShape.getValue(0) + polar(-90f) + polar(-20f))); known(aminocarbene, MoleculeElement.AMINOCARBENE, "H₂N–CH:", offsets = aminocarbeneShape, basedOn = listOf(MoleculeElement.AMINO_RADICAL))
 
         // --- шестиатомные ---
         val ethylene = vinyl.attach(H); val ethyleneShape = vinylShape + (5 to (vinylShape.getValue(1) + polar(-60f))); known(ethylene, MoleculeElement.ETHYLENE, "H₂C=CH₂", offsets = ethyleneShape, ionizationEnergy = 10.5138f, basedOn = listOf(MoleculeElement.VINYL))
         val ethylidene = ethylidyne.attach(H); val ethylideneShape = ethylidyneShape + (5 to (ethylidyneShape.getValue(4) + polar(60f))); known(ethylidene, MoleculeElement.ETHYLIDENE, "CH₃–CH:", offsets = ethylideneShape, basedOn = listOf(MoleculeElement.ETHYLIDYNE))
         val hydrazine = hydrazinediyl.attach(H, nodeId = 0).attach(H, nodeId = 2); val hydrazineShape = hydrazinediylShape + (4 to (hydrazinediylShape.getValue(0) + polar(135f))) + (5 to (hydrazinediylShape.getValue(2) + polar(-45f))); known(hydrazine, MoleculeElement.HYDRAZINE, "H₂N–NH₂", offsets = hydrazineShape, ionizationEnergy = 8.1f, basedOn = listOf(MoleculeElement.HYDRAZINEDIYL))
         val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, MoleculeElement.TETRAOXIDANE, "H–O–O–O–O–H", offsets = at(0 to xy(-1.5f, 0.2f), 1 to xy(-2.1f, 0.95f), 2 to xy(-0.5f, -0.2f), 3 to xy(1.5f, -0.2f), 4 to xy(2.1f, -0.95f), 5 to xy(0.5f, 0.2f)), basedOn = listOf(MoleculeElement.TRIOXIDANE))
+        val methylaminyl = methyl.attach(imidogen); val methylaminylShape = methylShape + (4 to (methylShape.getValue(0) + polar(90f))) + (5 to (methylShape.getValue(0) + polar(90f) + polar(22f))); known(methylaminyl, MoleculeElement.METHYLAMINYL, "CH₃–NH•", offsets = methylaminylShape, basedOn = listOf(MoleculeElement.METHYL))
         val methanol = methyl.attach(hydroxyl); known(methanol, MoleculeElement.METHANOL, "CH₃–OH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-1.5f, 0f), 3 to xy(-0.9f, 0.9f), 4 to xy(0.5f, 0f), 5 to xy(0.9f, -0.9f)), ionizationEnergy = 10.84f, basedOn = listOf(MoleculeElement.METHYL))
 
         // --- семиатомные ---
         val ethyl = ethylidene.attach(H); val ethylShape = ethylideneShape + (6 to (ethylideneShape.getValue(4) + polar(-60f))); known(ethyl, MoleculeElement.ETHYL, "CH₃–CH₂•", offsets = ethylShape, basedOn = listOf(MoleculeElement.ETHYLIDENE))
+        val methylamine = methylaminyl.attach(H); val methylamineShape = methylaminylShape + (6 to (methylaminylShape.getValue(4) + polar(158f))); known(methylamine, MoleculeElement.METHYLAMINE, "CH₃–NH₂", offsets = methylamineShape, ionizationEnergy = 8.9f, basedOn = listOf(MoleculeElement.METHYLAMINYL))
 
 
         // --- восьмиатомные ---
