@@ -36,17 +36,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,7 @@ import kotlin.math.sin
 
 private val CHIP = 110.dp          // размер карточки узла — квадрат: на кольце они стоят под любым углом
 private val CHIP_PITCH = 150.dp    // минимальное расстояние между соседями по кольцу
-private val RING_STEP = 150.dp     // и между самими кольцами
+private val RING_STEP = 170.dp     // и между самими кольцами
 private val MAP_MARGIN = 40.dp
 private val CHIP_BORDER = Color(0xFFE4E4E4)
 private val LINE_COLOR = Color(0xFFDCDCDC)
@@ -128,7 +129,7 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
             }
 
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val mapSize = (layout.outerRadius + CHIP / 2 + MAP_MARGIN) * 2
+                val mapSize = ((layout.outerRadius + CHIP / 2 + MAP_MARGIN) * 2) + 100.dp
                 // Полотно не меньше окна: на отдалении карта стоит по центру, а не липнет в угол.
                 val canvasWidth = (mapSize * zoom).coerceAtLeast(maxWidth)
                 val canvasHeight = (mapSize * zoom).coerceAtLeast(maxHeight)
@@ -142,20 +143,10 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
                         .horizontalScroll(hScroll)
                         .verticalScroll(vScroll),
                 ) {
-                    Box(Modifier.width(canvasWidth).height(canvasHeight), contentAlignment = Alignment.Center) {
-                        // Масштабируем картинку, а не раскладку: размер полотна считаем отдельно, иначе
-                        // прокрутка не знала бы, сколько места занимает отдалённая карта.
-                        Box(
-                            Modifier
-                                .size(mapSize * zoom)
-                                .graphicsLayer {
-                                    scaleX = zoom
-                                    scaleY = zoom
-                                    transformOrigin = TransformOrigin(0f, 0f)
-                                },
-                        ) {
-                            Box(Modifier.size(mapSize), contentAlignment = Alignment.Center) {
-                                BasedOnLines(nodes, layout)
+                    Box(Modifier.width(canvasWidth).height(canvasHeight).border(2.dp, Color.Red), contentAlignment = Alignment.Center) {
+                        ScaledSquare(unscaledSide = mapSize, scale = zoom) {
+                            Box(contentAlignment = Alignment.Center) {
+                                BasedOnLines(nodes, layout) // рисуем линии
                                 nodes.forEach { node -> // рисуем каждую карточку
                                     val place = layout.positions.getValue(node.item)
                                     Box(Modifier.offset(place.x, place.y)) {
@@ -174,6 +165,27 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
 }
 
 private fun zoomed(zoom: Float, factor: Float): Float = (zoom * factor).coerceIn(0.15f, 1.5f)
+
+// Меряем контент в истинном размере (unscaledSide), а наружу отдаём уже смасштабированный: так родитель
+// (прокрутка, центрирование) всегда знает точный размер картинки. Вложенные Modifier.size так не могут —
+// когда ребёнок больше родителя, размер родителя "утекает" вверх и центрирование съезжает.
+@Composable
+private fun ScaledSquare(unscaledSide: Dp, scale: Float, content: @Composable () -> Unit) {
+    Layout(content = content) { measurables, _ ->
+        val fixed = Constraints.fixed(unscaledSide.roundToPx(), unscaledSide.roundToPx())
+        val placeables = measurables.map { it.measure(fixed) }
+        val scaledSidePx = (unscaledSide.toPx() * scale).roundToInt()
+        layout(scaledSidePx, scaledSidePx) {
+            placeables.forEach { placeable ->
+                placeable.placeWithLayer(0, 0) {
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0f, 0f)
+                }
+            }
+        }
+    }
+}
 
 // Линии зависимостей идут под карточками — те залиты белым, поэтому конец линии не торчит из-под рамки.
 @Composable

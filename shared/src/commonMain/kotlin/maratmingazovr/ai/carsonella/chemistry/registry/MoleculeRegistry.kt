@@ -62,6 +62,7 @@ object MoleculeRegistry {
         val hydrogenPeroxide = hydroperoxyl.attach(H); known(hydrogenPeroxide, MoleculeElement.HYDROGEN_PEROXIDE, "H–O–O–H", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-1f, -0.8f), 2 to xy(0.5f, 0f), 3 to xy(1f, 0.8f)), ionizationEnergy = 10.58f, basedOn = listOf(MoleculeElement.HYDROPEROXYL))
         val formaldehyde = formyl.attach(H); known(formaldehyde, MoleculeElement.FORMALDEHYDE, "H₂C=O", offsets = at(0 to xy(0f, 0f), 1 to xy(0f, -1f), 2 to xy(-0.87f, 0.5f), 3 to xy(0.87f, 0.5f)), ionizationEnergy = 10.88f, basedOn = listOf(MoleculeElement.FORMYL))
         val vinylidene = dicarbonDouble.attach(H, nodeId = 0).attach(H, nodeId = 0); val vinylideneShape = at(0 to xy(-0.5f, 0f), 1 to xy(0.5f, 0f), 2 to xy(-0.9f, -0.9f), 3 to xy(-0.9f, 0.9f)); known(vinylidene, MoleculeElement.VINYLIDENE, "H₂C=C:", offsets = vinylideneShape, basedOn = listOf(MoleculeElement.DICARBON_DOUBLE))
+        // БИРАДИКАЛ •NH–NH• ->  он на базе ИМИДОГЕН -> потом на базе него ГИДРАЗИН
         // Нужно добавить формилоксил HCO2 -> потом на базе него получить муравьиную кислоту
 
         // --- пятиатомные ---
@@ -74,6 +75,7 @@ object MoleculeRegistry {
         // --- шестиатомные ---
         val ethylene = vinyl.attach(H); val ethyleneShape = vinylShape + (5 to (vinylShape.getValue(1) + polar(-60f))); known(ethylene, MoleculeElement.ETHYLENE, "H₂C=CH₂", offsets = ethyleneShape, ionizationEnergy = 10.5138f, basedOn = listOf(MoleculeElement.VINYL))
         val ethylidene = ethylidyne.attach(H); val ethylideneShape = ethylidyneShape + (5 to (ethylidyneShape.getValue(4) + polar(60f))); known(ethylidene, MoleculeElement.ETHYLIDENE, "CH₃–CH:", offsets = ethylideneShape, basedOn = listOf(MoleculeElement.ETHYLIDYNE))
+        // ГИДРАЗИН H₂N–NH₂ -> он на базе БИРАДИКАЛ •NH–NH•
         val tetraoxidane = hydroperoxyl.attach(hydroperoxyl); known(tetraoxidane, MoleculeElement.TETRAOXIDANE, "H–O–O–O–O–H", offsets = at(0 to xy(-1.5f, 0.2f), 1 to xy(-2.1f, 0.95f), 2 to xy(-0.5f, -0.2f), 3 to xy(1.5f, -0.2f), 4 to xy(2.1f, -0.95f), 5 to xy(0.5f, 0.2f)), basedOn = listOf(MoleculeElement.TRIOXIDANE))
         val methanol = methyl.attach(hydroxyl); known(methanol, MoleculeElement.METHANOL, "CH₃–OH", offsets = at(0 to xy(-0.5f, 0f), 1 to xy(-0.9f, -0.9f), 2 to xy(-1.5f, 0f), 3 to xy(-0.9f, 0.9f), 4 to xy(0.5f, 0f), 5 to xy(0.9f, -0.9f)), ionizationEnergy = 10.84f, basedOn = listOf(MoleculeElement.METHYL))
 
@@ -87,29 +89,33 @@ object MoleculeRegistry {
         // --- девятиатомные ---
         val ethanol = ethyl.attach(hydroxyl); val ethanolShape = ethylShape + (7 to (ethylShape.getValue(4) + xy(1f, 0f))) + (8 to (ethylShape.getValue(4) + xy(1.4f, -0.9f))); known(ethanol, MoleculeElement.ETHANOL, "CH₃–CH₂–OH", offsets = ethanolShape, ionizationEnergy = 10.48f, basedOn = listOf(MoleculeElement.ETHYL))
 
+        //////
+        val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂• ЭТАНДИИЛ на базе DICARBON_SINGLE
+        val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH• ЭТЕНДИИЛ на базе DICARBON_DOUBLE
+
 
         // Бутаны C₄H₁₀
-        val butane = ethyl.attach(ethyl); known(butane, MoleculeElement.BUTANE, "CH₃–CH₂–CH₂–CH₃", ionizationEnergy = 10.53f)
-        val isopropyl = ethylidene.attach(methyl); known(isopropyl, MoleculeElement.ISOPROPYL, "(CH₃)₂CH•")
-        val isobutane = isopropyl.attach(methyl); known(isobutane, MoleculeElement.ISOBUTANE, "(CH₃)₃CH", ionizationEnergy = 10.68f)
+        //val butane = ethyl.attach(ethyl); known(butane, MoleculeElement.BUTANE, "CH₃–CH₂–CH₂–CH₃", ionizationEnergy = 10.53f)
+        //val isopropyl = ethylidene.attach(methyl); known(isopropyl, MoleculeElement.ISOPROPYL, "(CH₃)₂CH•")
+        //val isobutane = isopropyl.attach(methyl); known(isobutane, MoleculeElement.ISOBUTANE, "(CH₃)₃CH", ionizationEnergy = 10.68f)
 
         // Бутены C₄H₈
-        val butene1 = vinyl.attach(ethyl); known(butene1, MoleculeElement.BUTENE_1, "H₂C=CH–CH₂–CH₃", ionizationEnergy = 9.55f)
-        val butene2 = ethylidene.attach(ethylidene, order = 2); known(butene2, MoleculeElement.BUTENE_2, "CH₃–CH=CH–CH₃", ionizationEnergy = 9.10f) // (E)-изомер: цис/транс граф не различает
-        val isopropenyl = vinylidene.attach(methyl); known(isopropenyl, MoleculeElement.ISOPROPENYL, "H₂C=C(CH₃)•")
-        val isobutylene = isopropenyl.attach(methyl); known(isobutylene, MoleculeElement.ISOBUTYLENE, "H₂C=C(CH₃)₂", ionizationEnergy = 9.22f)
+        //val butene1 = vinyl.attach(ethyl); known(butene1, MoleculeElement.BUTENE_1, "H₂C=CH–CH₂–CH₃", ionizationEnergy = 9.55f)
+        //val butene2 = ethylidene.attach(ethylidene, order = 2); known(butene2, MoleculeElement.BUTENE_2, "CH₃–CH=CH–CH₃", ionizationEnergy = 9.10f) // (E)-изомер: цис/транс граф не различает
+        //val isopropenyl = vinylidene.attach(methyl); known(isopropenyl, MoleculeElement.ISOPROPENYL, "H₂C=C(CH₃)•")
+        //val isobutylene = isopropenyl.attach(methyl); known(isobutylene, MoleculeElement.ISOBUTYLENE, "H₂C=C(CH₃)₂", ionizationEnergy = 9.22f)
 
 
-        val ethanediyl = methylene.attach(methylene)          // •CH₂–CH₂•
-        val trimethylene = ethanediyl.extend(methylene); known(trimethylene, MoleculeElement.TRIMETHYLENE, "•CH₂–CH₂–CH₂•")
-        val cyclopropane = trimethylene.closeChain(); known(cyclopropane, MoleculeElement.CYCLOPROPANE, "(CH₂)₃", ionizationEnergy = 9.86f)
+
+        //val trimethylene = ethanediyl.extend(methylene); known(trimethylene, MoleculeElement.TRIMETHYLENE, "•CH₂–CH₂–CH₂•")
+        //val cyclopropane = trimethylene.closeChain(); known(cyclopropane, MoleculeElement.CYCLOPROPANE, "(CH₂)₃", ionizationEnergy = 9.86f)
         val oxyethyl = ethanediyl.extend(O)                   // •CH₂–CH₂–O•
-        val oxirane = oxyethyl.closeChain(); known(oxirane, MoleculeElement.OXIRANE, "(CH₂)₂O", ionizationEnergy = 10.56f)
+        //val oxirane = oxyethyl.closeChain(); known(oxirane, MoleculeElement.OXIRANE, "(CH₂)₂O", ionizationEnergy = 10.56f)
 
-        val ethenediyl = methylidyne.attach(methylidyne, order = 2)   // •CH=CH•
+
         val butadienediyl = ethenediyl.extend(ethenediyl)             // •CH=CH–CH=CH•
         val hexatrienediyl = butadienediyl.extend(ethenediyl)         // •CH=CH–CH=CH–CH=CH•
-        val benzene = hexatrienediyl.closeChain(); known(benzene, MoleculeElement.BENZENE, "(CH)₆", ionizationEnergy = 9.2438f)
+        //val benzene = hexatrienediyl.closeChain(); known(benzene, MoleculeElement.BENZENE, "(CH)₆", ionizationEnergy = 9.2438f)
 
     }
 
