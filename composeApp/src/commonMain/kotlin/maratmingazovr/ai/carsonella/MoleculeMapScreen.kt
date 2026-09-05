@@ -87,7 +87,7 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
     val nodes = remember { mapNodes() }
     val layout = remember { ringLayout(nodes) }
     var opened by remember { mutableStateOf<MapNode?>(null) }
-    var zoom by remember { mutableStateOf(0.7f) }   // начальный zoom
+    var zoom by remember { mutableStateOf(0.9f) }   // начальный zoom
 
     Box(
         Modifier
@@ -98,8 +98,8 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
                     e.type != KeyDown -> false
                     e.key == Key.Escape && opened != null -> { opened = null; true }
                     e.key == Key.Escape -> { onBack(); true }
-                    e.key == Key.Minus || e.key == Key.NumPadSubtract -> { zoom = zoomed(zoom, 1 / 1.2f); true }
-                    e.key == Key.Plus || e.key == Key.Equals || e.key == Key.NumPadAdd -> { zoom = zoomed(zoom, 1.2f); true }
+                    e.key == Key.Minus || e.key == Key.NumPadSubtract -> { zoom = zoomOut(zoom, 0.1f); true }
+                    e.key == Key.Plus || e.key == Key.Equals || e.key == Key.NumPadAdd -> { zoom = zoomIn(zoom, 1.0f); true }
                     else -> false
                 }
             },
@@ -115,7 +115,7 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
                     letterSpacing = 0.08.em, color = Color(0xFFC8C8C8),
                 )
                 Spacer(Modifier.weight(1f))
-                MapTextLink("−", 22.sp) { zoom = zoomed(zoom, 1 / 1.2f) }
+                MapTextLink("−", 22.sp) { zoom = zoomOut(zoom, 0.1f) }
                 Spacer(Modifier.width(12.dp))
                 Text(
                     "${(zoom * 100).toInt()}%",
@@ -123,7 +123,7 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
                     color = Color(0xFFA8A8A8),
                 )
                 Spacer(Modifier.width(12.dp))
-                MapTextLink("+", 22.sp) { zoom = zoomed(zoom, 1.2f) }
+                MapTextLink("+", 22.sp) { zoom = zoomIn(zoom, 0.1f) }
                 Spacer(Modifier.width(24.dp))
                 MapTextLink(text(UiString.MENU_BACK), 18.sp, onBack)
             }
@@ -164,7 +164,8 @@ fun MoleculeMapScreen(onBack: () -> Unit) {
     }
 }
 
-private fun zoomed(zoom: Float, factor: Float): Float = (zoom * factor).coerceIn(0.15f, 1.5f)
+private fun zoomIn(zoom: Float, factor: Float): Float = (zoom + factor).coerceIn(0.2f, 1.0f)
+private fun zoomOut(zoom: Float, factor: Float): Float = (zoom - factor).coerceIn(0.2f, 1.0f)
 
 // Меряем контент в истинном размере (unscaledSide), а наружу отдаём уже смасштабированный: так родитель
 // (прокрутка, центрирование) всегда знает точный размер картинки. Вложенные Modifier.size так не могут —

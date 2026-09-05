@@ -80,6 +80,10 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
     IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
     AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
     AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
+    HYDRAZINEDIYL(TranslatedText("Гидразиндиил", "Hydrazinediyl"), TranslatedText(ru = "", en = "")),
+    HYDRAZINE(TranslatedText("Гидразин", "Hydrazine"), TranslatedText(ru = "", en = "")),
+    METHYLENEAMIDOGEN(TranslatedText("Метиленамидоген", "Methyleneamidogen"), TranslatedText(ru = "", en = "")),
+    METHANIMINE(TranslatedText("Метанимин", "Methanimine"), TranslatedText(ru = "", en = "")),
     CARBONYL(TranslatedText("Карбонил", "Carbonyl"), TranslatedText(ru = "", en = "")),
     CARBON_DIOXIDE(
         TranslatedText("Углекислый газ", "Carbon dioxide"),

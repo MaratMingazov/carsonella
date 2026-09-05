@@ -26,6 +26,7 @@ private val SANDBOX_PALETTE: Map<PaletteItem, Int> = mapOf(
     PaletteItem.Atom(AtomElement.CARBON_12) to 9999,
     PaletteItem.Atom(AtomElement.NITROGEN_14) to 9999,
     PaletteItem.Atom(AtomElement.OXYGEN_16) to 9999,
+    PaletteItem.Atom(AtomElement.SILICON_28) to 9999,
 )
 
 /**
