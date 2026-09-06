@@ -49,6 +49,10 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         TranslatedText("Триуглерод", "Tricarbon"),
         TranslatedText(ru = "", en = ""),
     ),
+    PROPADIENYLIDENE (TranslatedText("Пропадиенилиден", "Propadienylidene"), TranslatedText(ru = "", en = "")),
+    PROPARGYL        (TranslatedText("Пропаргил", "Propargyl"), TranslatedText(ru = "", en = "")),
+    PROPADIENE       (TranslatedText("Пропадиен", "Propadiene"), TranslatedText(ru = "", en = "")),
+    PROPYNE          (TranslatedText("Пропин", "Propyne"), TranslatedText(ru = "", en = "")),
     WATER(
         TranslatedText("Вода", "Water"),
         TranslatedText(
@@ -57,6 +61,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         ),
     ),
     HYDROPEROXYL(TranslatedText("Гидропероксил", "Hydroperoxyl"), TranslatedText(ru = "", en = "")),
+    HYDROTRIOXYL(TranslatedText("Гидротриоксил", "Hydrotrioxyl"), TranslatedText(ru = "", en = "")),
     HYDROGEN_PEROXIDE(
         TranslatedText("Перекись водорода", "Hydrogen peroxide"),
         TranslatedText(
@@ -125,6 +130,8 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
     ),
     VINYL            (TranslatedText("Винил", "Vinyl"), TranslatedText(ru = "", en = "")),
     VINYLIDENE       (TranslatedText("Винилиден", "Vinylidene"), TranslatedText(ru = "", en = "")),
+    ETHENEDIYL       (TranslatedText("Этендиил", "Ethenediyl"), TranslatedText(ru = "", en = "")),
+    ETHANEDIYL       (TranslatedText("Этандиил", "Ethanediyl"), TranslatedText(ru = "", en = "")),
     ETHYLENE(
         TranslatedText("Этилен", "Ethylene"),
         TranslatedText(
@@ -174,6 +181,16 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         ),
     ),
     FORMYLOXYL       (TranslatedText("Формилоксил", "Formyloxyl"), TranslatedText(ru = "", en = "")),
+    CARBAMOYL        (TranslatedText("Карбамоил", "Carbamoyl"), TranslatedText(ru = "", en = "")),
+    CARBAMOYLOXYL    (TranslatedText("Карбамоилоксил", "Carbamoyloxyl"), TranslatedText(ru = "", en = "")),
+    CARBAMIC_ACID    (TranslatedText("Карбаминовая кислота", "Carbamic acid"), TranslatedText(ru = "", en = "")),
+    UREA(
+        TranslatedText("Мочевина", "Urea"),
+        TranslatedText(
+            ru = "Мочевину твоё тело делает само - чтобы сбросить лишний азот, и именно с ней азот уходит наружу. А в 1828 году её впервые собрали в пробирке из неживого вещества, и это похоронило веру в то, что вещества живого рождаются только в живом.",
+            en = "Your body makes urea itself - to dump spare nitrogen, and that is how the nitrogen leaves you. And in 1828 it became the first substance of the living world put together in a test tube out of lifeless matter, which buried the belief that only life can make the stuff of life.",
+        ),
+    ),
     FORMAMIDE(
         TranslatedText("Формамид", "Formamide"),
         TranslatedText(
@@ -182,6 +199,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         ),
     ),
     FORMIC_ACID      (TranslatedText("Муравьиная кислота", "Formic acid"), TranslatedText(ru = "", en = "")),
+    ETHOXYL          (TranslatedText("Этоксил", "Ethoxyl"), TranslatedText(ru = "", en = "")),
     ETHANOL          (TranslatedText("Этанол", "Ethanol"), TranslatedText(ru = "", en = "")),
     ;
 

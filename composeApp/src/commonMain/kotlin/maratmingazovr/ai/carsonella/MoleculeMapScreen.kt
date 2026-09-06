@@ -66,7 +66,7 @@ import kotlin.math.sin
 
 private val CHIP = 150.dp          // размер карточки узла — квадрат: на кольце они стоят под любым углом
 private val CHIP_PITCH = 200.dp    // минимальное расстояние между соседями по кольцу
-private val RING_STEP = 200.dp     // и между самими кольцами
+private val RING_STEP = 250.dp     // и между самими кольцами
 private val MAP_MARGIN = 40.dp
 private val CHIP_BORDER = Color(0xFFE4E4E4)
 private val LINE_COLOR = Color(0xFFDCDCDC)
