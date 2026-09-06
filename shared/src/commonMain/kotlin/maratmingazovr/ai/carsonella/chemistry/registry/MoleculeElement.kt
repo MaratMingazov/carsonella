@@ -25,6 +25,7 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
         TranslatedText(ru = "", en = ""),
     ),
     NITROGEN_MONOXIDE(TranslatedText("Монооксид азота", "Nitric oxide"), TranslatedText(ru = "", en = "")),
+    NITROXYL(TranslatedText("Нитроксил", "Nitroxyl"), TranslatedText(ru = "", en = "")),
     HYDROXYL(
         TranslatedText("Гидроксил", "Hydroxyl"),
         TranslatedText(
@@ -80,9 +81,12 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
     IMIDOGEN(TranslatedText("Имидоген", "Imidogen"), TranslatedText(ru = "", en = "")),
     AMINO_RADICAL(TranslatedText("Аминорадикал", "Amino radical"), TranslatedText(ru = "", en = "")),
     AMMONIA(TranslatedText("Аммиак", "Ammonia"), TranslatedText(ru = "", en = "")),
+    AMINOXYL(TranslatedText("Аминоксил", "Aminoxyl"), TranslatedText(ru = "", en = "")),
+    HYDROXYLAMINE(TranslatedText("Гидроксиламин", "Hydroxylamine"), TranslatedText(ru = "", en = "")),
     DIAZENYL(TranslatedText("Диазенил", "Diazenyl"), TranslatedText(ru = "", en = "")),
     DIAZENE(TranslatedText("Диазен", "Diazene"), TranslatedText(ru = "", en = "")),
     HYDRAZINEDIYL(TranslatedText("Гидразиндиил", "Hydrazinediyl"), TranslatedText(ru = "", en = "")),
+    HYDRAZINYL(TranslatedText("Гидразинил", "Hydrazinyl"), TranslatedText(ru = "", en = "")),
     HYDRAZINE(TranslatedText("Гидразин", "Hydrazine"), TranslatedText(ru = "", en = "")),
     METHYLENEAMIDOGEN(TranslatedText("Метиленамидоген", "Methyleneamidogen"), TranslatedText(ru = "", en = "")),
     METHANIMINE(TranslatedText("Метанимин", "Methanimine"), TranslatedText(ru = "", en = "")),
@@ -155,11 +159,24 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
             en = "The first molecule where oxygen sits right on carbon by a double bond. Its solution - formalin - is what museums use to preserve anatomical specimens: formaldehyde keeps tissue from decaying. Your own body makes tiny amounts of it too.",
         ),
     ),
+    ACETYL(TranslatedText("Ацетил", "Acetyl"), TranslatedText(ru = "", en = "")),
+    ACETALDEHYDE(TranslatedText("Ацетальдегид", "Acetaldehyde"), TranslatedText(ru = "", en = "")),
+    ACETYLOXYL(TranslatedText("Ацетилоксил", "Acetyloxyl"), TranslatedText(ru = "", en = "")),
+    ACETIC_ACID(TranslatedText("Уксусная кислота", "Acetic acid"), TranslatedText(ru = "", en = "")),
+    METHOXYL(TranslatedText("Метоксил", "Methoxyl"), TranslatedText(ru = "", en = "")),
     METHANOL(
         TranslatedText("Метанол", "Methanol"),
         TranslatedText(
             ru = "Метанол называют древесным спиртом: раньше его получали, нагревая дерево без воздуха. Пить его нельзя - он ядовит, в отличие от родственного ему винного спирта.",
             en = "Methanol is called wood alcohol: it used to be made by heating wood without air. You cannot drink it - it is poisonous, unlike its cousin, drinking alcohol.",
+        ),
+    ),
+    FORMYLOXYL       (TranslatedText("Формилоксил", "Formyloxyl"), TranslatedText(ru = "", en = "")),
+    FORMAMIDE(
+        TranslatedText("Формамид", "Formamide"),
+        TranslatedText(
+            ru = "Формамид считают одним из самых вероятных мостиков от простой химии к жизни. Именно из этой молекулы в лаборатории получают элементы ДНК и РНК: аденин и урацил.",
+            en = "Formamide is seen as one of the likeliest bridges from simple chemistry to life. In the lab it is this very molecule that gives adenine and uracil - building blocks of DNA and RNA.",
         ),
     ),
     FORMIC_ACID      (TranslatedText("Муравьиная кислота", "Formic acid"), TranslatedText(ru = "", en = "")),
