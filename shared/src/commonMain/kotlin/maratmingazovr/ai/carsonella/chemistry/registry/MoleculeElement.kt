@@ -101,6 +101,8 @@ enum class MoleculeElement(val title: TranslatedText, val description: Translate
             en = "Carbon ended up with two double bonds at once, both on the same atom. This is the gas we breathe out, and the one plants breathe in to build their whole body out of it. It is also what makes soda fizzy, and it keeps the planet warm - without it, Earth would be colder.",
         ),
     ),
+    ISOCYANATO       (TranslatedText("Изоцианат", "Isocyanato"), TranslatedText(ru = "", en = "")),
+    ISOCYANIC_ACID   (TranslatedText("Изоциановая кислота", "Isocyanic acid"), TranslatedText(ru = "", en = "")),
     CYANO            (TranslatedText("Циано", "Cyano"), TranslatedText(ru = "", en = "")),
     HYDROGEN_CYANIDE (TranslatedText("Циановодород", "Hydrogen cyanide"), TranslatedText(ru = "", en = "")),
     METHYLIDYNE      (TranslatedText("Метилидин", "Methylidyne"), TranslatedText(ru = "", en = "")),
